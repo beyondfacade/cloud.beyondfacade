@@ -1,0 +1,91 @@
+name: beyondfacade
+
+services:
+  db:
+    image: pgvector/pgvector:pg17
+    container_name: beyondfacade-db
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-beyondfacade}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-beyondfacade}
+      POSTGRES_DB: ${POSTGRES_DB:-beyondfacade}
+    ports:
+      - "127.0.0.1:5434:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./data:/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-beyondfacade} -d ${POSTGRES_DB:-beyondfacade}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  neo4j:
+    image: neo4j:5-community
+    container_name: beyondfacade-neo4j
+    environment:
+      NEO4J_AUTH: ${NEO4J_AUTH:-neo4j/beyondfacade}
+    ports:
+      - "127.0.0.1:7475:7474"
+      - "127.0.0.1:7688:7687"
+    volumes:
+      - neo4jdata:/data
+      - neo4jlogs:/logs
+
+  redis:
+    image: redis:7-alpine
+    container_name: beyondfacade-redis
+    ports:
+      - "127.0.0.1:6380:6379"
+    volumes:
+      - redisdata:/data
+
+  backend:
+    build: ./backend
+    container_name: beyondfacade-api
+    environment:
+      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-beyondfacade}:${POSTGRES_PASSWORD:-beyondfacade}@db:5432/${POSTGRES_DB:-beyondfacade}
+      NEO4J_URI: bolt://neo4j:7687
+      NEO4J_AUTH: ${NEO4J_AUTH:-neo4j/beyondfacade}
+      REDIS_URL: redis://redis:6379/0
+    ports:
+      - "127.0.0.1:8200:8000"
+    volumes:
+      - ./data:/data
+    depends_on:
+      db:
+        condition: service_healthy
+      neo4j:
+        condition: service_started
+      redis:
+        condition: service_started
+
+  # 프론트엔드 배포는 Vercel — 이 서비스는 로컬 개발용. 스택 확정 후 사용:
+  # docker compose --profile frontend up
+  frontend:
+    profiles: ["frontend"]
+    build: ./frontend
+    container_name: beyondfacade-web
+    ports:
+      - "127.0.0.1:3200:3000"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+
+  # 백엔드 온프레미스 노출용 Cloudflare Tunnel. TUNNEL_TOKEN 발급 후 사용:
+  # docker compose --profile tunnel up -d
+  cloudflared:
+    profiles: ["tunnel"]
+    image: cloudflare/cloudflared:latest
+    container_name: beyondfacade-cloudflared
+    command: tunnel --no-autoupdate run
+    environment:
+      TUNNEL_TOKEN: ${TUNNEL_TOKEN:-}
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+volumes:
+  pgdata:
+  neo4jdata:
+  neo4jlogs:
+  redisdata:
