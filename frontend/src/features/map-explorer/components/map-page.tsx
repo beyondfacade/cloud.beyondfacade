@@ -1,25 +1,34 @@
 "use client";
 
-import { useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { MapView } from "./map-view";
-import type { MetricKey } from "@/shared/api/types";
+import { ControlBar } from "./control-bar";
+import { parseMapState, serializeMapState } from "../lib/map-state";
+import type { MapState } from "../lib/map-state";
 
-const DEFAULT_INDUSTRY = "cafe";
-const DEFAULT_METRIC: MetricKey = "closure_rate";
-const DEFAULT_YEAR = 2026;
-
-/** URL 파라미터 연동은 Task 6·7에서 확장. 현재는 기본값 + 선택 상태만 보관. */
+/** URL 파라미터와 상태를 연동. */
 export function MapPage() {
-  const [regionCode, setRegionCode] = useState<string | null>(null);
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const state = parseMapState(searchParams);
+
+  const handleStateChange = (nextState: MapState) => {
+    router.replace(`?${serializeMapState(nextState)}`, { scroll: false });
+  };
+
+  const handleSelectRegion = (code: string) => {
+    handleStateChange({ ...state, region: code });
+  };
 
   return (
     <div className="flex flex-1 flex-col">
+      <ControlBar state={state} onChange={handleStateChange} />
       <MapView
-        regionCode={regionCode}
-        metric={DEFAULT_METRIC}
-        industry={DEFAULT_INDUSTRY}
-        year={DEFAULT_YEAR}
-        onSelectRegion={setRegionCode}
+        regionCode={state.region}
+        metric={state.metric}
+        industry={state.industry}
+        year={state.year}
+        onSelectRegion={handleSelectRegion}
       />
     </div>
   );
