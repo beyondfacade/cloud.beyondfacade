@@ -9,7 +9,7 @@ import { useAgentReport } from "../hooks/use-agent-report";
 /** URL region·industry 프리필 → 분석 시작 → 진행 패널(좌) + 리포트(우). */
 export function AnalysisPage() {
   const searchParams = useSearchParams();
-  const { state, start } = useAgentReport();
+  const { state, start, loading } = useAgentReport();
 
   return (
     <div className="flex flex-1 flex-col gap-4 p-4">
@@ -17,6 +17,7 @@ export function AnalysisPage() {
         initialRegion={searchParams.get("region") ?? ""}
         initialIndustry={searchParams.get("industry") ?? ""}
         onSubmit={start}
+        disabled={loading}
       />
       {state.error && <p className="text-sm text-[var(--danger)]">{state.error}</p>}
       <div className="flex flex-1 gap-4">

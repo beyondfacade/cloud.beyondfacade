@@ -36,7 +36,7 @@ export function ProgressPanel({ state }: ProgressPanelProps) {
               <ul className="mt-2 flex flex-col gap-1 border-l border-[var(--border)] pl-3">
                 {slot.tools.map((t, i) => (
                   <li
-                    key={i}
+                    key={`${t.tool}:${t.summary}`}
                     className={
                       i === slot.tools.length - 1
                         ? "text-xs text-[var(--text-primary)]"

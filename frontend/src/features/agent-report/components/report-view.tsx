@@ -46,8 +46,8 @@ export function ReportView({ state }: ReportViewProps) {
         <div className="border-t border-[var(--border)] pt-4">
           <h3 className="text-sm font-medium text-[var(--text-primary)]">참고 자료</h3>
           <ul className="mt-2 flex flex-col gap-2">
-            {citations.map((c, i) => (
-              <li key={i} className="flex items-center justify-between gap-2 text-sm">
+            {citations.map((c) => (
+              <li key={`${c.title}:${c.url}`} className="flex items-center justify-between gap-2 text-sm">
                 <a href={c.url} target="_blank" rel="noreferrer" className="text-[var(--accent)] underline">
                   {c.title}
                 </a>

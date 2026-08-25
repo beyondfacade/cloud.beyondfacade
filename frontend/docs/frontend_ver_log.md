@@ -1,5 +1,15 @@
 # Frontend Version Log
 
+## [v0.6.1] - 2026-08-25
+
+### Fixed
+- `frontend/src/features/agent-report/hooks/use-agent-report.ts` — `start()` 재진입 가드 없음으로 인한 `EventSource` 누수 수정: `loadingRef`로 `apiPost` await 이전에 동기적으로 재진입을 차단(진행 중이면 무시), `loading` 상태를 훅 반환값에 추가. `apiPost` 실패를 `try/catch`로 잡아 `state.error`에 반영(기존에는 unhandled rejection이었음)
+- `frontend/src/features/agent-report/components/analysis-page.tsx` — `useAgentReport().loading`을 `AnalysisForm`의 `disabled`로 실제 전달(더블클릭 방지 UI 배선)
+- `frontend/src/features/agent-report/components/progress-panel.tsx`, `report-view.tsx` — 타임라인/인용 리스트의 index key를 `tool:summary`/`title:url` 조합 키로 교체
+
+### Added
+- `frontend/src/features/agent-report/hooks/use-agent-report.test.ts` — `EventSource`/`fetch` mock으로 `start()` 연속 호출 시 연결이 1개만 생성됨을 검증하는 재진입 가드 테스트
+
 ## [v0.6.0] - 2026-08-25
 
 ### Added
