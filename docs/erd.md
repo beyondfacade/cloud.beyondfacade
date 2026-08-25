@@ -84,15 +84,19 @@ erDiagram
         string target_group "대상학년 등, nullable"
     }
     store {
-        string store_id PK
-        string region_code FK
+        string store_id PK "인허가 관리번호 MNG_NO"
+        string name "사업장명 BPLC_NM - 실응답 기반 추가"
+        string district_code FK "OPN_ATMY_GRP_CD 매핑 - NOT NULL"
+        string region_code FK "nullable - 경계 공간조인 후 채움"
         string industry_id FK
         string subcategory_id FK "nullable"
-        float lat
-        float lng
-        date open_date
-        date close_date "nullable"
-        string status "영업/폐업/휴업"
+        float lat "nullable - EPSG5174 to WGS84 변환"
+        float lng "nullable"
+        date open_date "인허가일자 LCPMT_YMD - nullable"
+        date close_date "폐업일자 CLSBIZ_YMD - nullable"
+        string status_code "상세영업상태코드 DTL_SALS_STTS_CD"
+        string status_name "영업중/폐업/직권말소/전출 등 - 실응답 확인"
+        datetime source_updated_at "DAT_UPDT_PNT - 증분 수집 커서"
     }
     academy_course {
         string course_id PK
@@ -142,14 +146,15 @@ erDiagram
         string source_url
     }
     news_article {
-        string article_id PK
+        string article_id PK "sha1(url) 20자리"
         string title
-        string press
-        date published_at
-        string url
+        string description "발췌 - 본문 저장 금지"
+        string press "nullable - 네이버 응답에 언론사명 없음"
+        datetime published_at "실응답 RFC822 datetime"
+        string url UK
         string matched_keyword
         string region_code FK "nullable"
-        string event_id FK "nullable"
+        string event_id FK "nullable - shock_event BC 생성 시 컬럼+FK 동시 추가(구현 유보)"
     }
     funding_program {
         string program_id PK
