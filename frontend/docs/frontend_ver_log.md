@@ -1,5 +1,18 @@
 # Frontend Version Log
 
+## [v0.6.0] - 2026-08-25
+
+### Added
+- `frontend/src/features/agent-report/lib/agent-events.ts` — `initialAgentState()`/`applyAgentEvent(state, ev)` 순수 리듀서. `AgentState = { agents: Record<AgentName, {status, tools}>; sections: Record<string, string>; done; citations; error }`, 4개 `AgentEvent` 타입별 불변 갱신
+- `frontend/src/features/agent-report/lib/agent-events.test.ts` — agent_status/tool_call 누적/report_delta 이어붙임/report_done TDD 테스트 4건
+- `frontend/src/features/agent-report/hooks/use-agent-report.ts` — `useAgentReport()`: `apiPost("/analysis", ...)` → `EventSource(\`${config.apiBase}/analysis/{id}/events\`)` 구독, 4개 이벤트 타입 `addEventListener` → 리듀서 적용, `report_done`/언마운트 시 close, `onerror` 시 `error` 상태 노출
+- `frontend/src/features/agent-report/components/progress-panel.tsx` — 에이전트 4행(오케스트레이터/상권 진단/충격 분석/정책자금) 상태 점(idle/running/done/error, 토큰 기반) + 도구 호출 타임라인(최근 항목 강조)
+- `frontend/src/features/agent-report/components/report-view.tsx` — 섹션 순서 고정(`verdict,market,shock,funding,calculator`) `react-markdown`(+`remark-gfm`) 렌더, `report_done` 시 citations 목록(`GradeBadge`) — unknown 배열 런타임 가드
+- `frontend/src/features/agent-report/components/analysis-form.tsx` — 지역 코드/업종/자유 질문 입력 폼, URL 프리필
+- `frontend/src/features/agent-report/components/analysis-page.tsx` — map-page 패턴의 클라이언트 컴포넌트: URL region·industry 프리필 → 폼 → 진행 패널(좌) + 리포트(우)
+- `frontend/src/app/analysis/page.tsx` — 서버 컴포넌트 + `<Suspense>`로 `AnalysisPage` 감싸기
+- `remark-gfm` 의존성 (계산기 섹션 마크다운 표 렌더)
+
 ## [v0.5.0] - 2026-08-25
 
 ### Added
