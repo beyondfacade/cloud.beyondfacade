@@ -1,0 +1,14 @@
+:root {
+  --bg-base: #f7f7f5;      --bg-surface: #ffffff;   --bg-raised: #f0f0ee;
+  --text-primary: #1a1a1a; --text-secondary: #5c5c57;
+  --border: #e2e2de;
+  --accent: #0f6b5c;       --accent-fg: #ffffff;    /* 임시 — Task 10 폴리시에서 확정 */
+  --ok: #15803d;           --warn: #b45309;         --danger: #b91c1c;
+}
+[data-theme="dark"] {
+  --bg-base: #16181a;      --bg-surface: #1e2124;   --bg-raised: #26292d;
+  --text-primary: #f2f2f0; --text-secondary: #a3a39d;
+  --border: #33373b;
+  --accent: #2dd4bf;       --accent-fg: #10201d;
+  --ok: #4ade80;           --warn: #fbbf24;         --danger: #f87171;
+}
