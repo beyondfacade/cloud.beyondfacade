@@ -1,3 +1,6 @@
 .env
 .venv/
 data/
+__pycache__/
+logs/
+스크린샷*.png
