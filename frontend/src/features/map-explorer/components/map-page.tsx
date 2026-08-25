@@ -3,6 +3,7 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import { MapView } from "./map-view";
 import { ControlBar } from "./control-bar";
+import { SidePanel } from "./side-panel";
 import { parseMapState, serializeMapState } from "../lib/map-state";
 import type { MapState } from "../lib/map-state";
 
@@ -23,13 +24,18 @@ export function MapPage() {
   return (
     <div className="flex flex-1 flex-col">
       <ControlBar state={state} onChange={handleStateChange} />
-      <MapView
-        regionCode={state.region}
-        metric={state.metric}
-        industry={state.industry}
-        year={state.year}
-        onSelectRegion={handleSelectRegion}
-      />
+      <div className="flex flex-1">
+        <div className="min-w-0 flex-1">
+          <MapView
+            regionCode={state.region}
+            metric={state.metric}
+            industry={state.industry}
+            year={state.year}
+            onSelectRegion={handleSelectRegion}
+          />
+        </div>
+        <SidePanel regionCode={state.region} industry={state.industry} />
+      </div>
     </div>
   );
 }

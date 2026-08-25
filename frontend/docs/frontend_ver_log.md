@@ -1,5 +1,16 @@
 # Frontend Version Log
 
+## [v0.5.0] - 2026-08-25
+
+### Added
+- `frontend/src/shared/ui/grade-badge.tsx` — `<GradeBadge grade="fact"|"signal">` 신뢰 배지 (fact=accent solid, signal=outline 중립, 토큰 기반)
+- `frontend/src/shared/ui/grade-badge.test.tsx` — fact/signal 라벨 렌더 TDD 테스트
+- `frontend/src/features/map-explorer/components/side-panel.tsx` — `<SidePanel regionCode industry>`: region summary TanStack Query(`enabled: !!regionCode`), 미선택/로딩/404("데이터 없음") 상태 분기, 카드 리스트 + `[AI 분석 →]` `/analysis?region=..&industry=..` 딥링크
+- `frontend/src/features/map-explorer/api.ts` — `fetchRegionSummary(regionCode, industry)` 추가 (`apiGet` 경유)
+
+### Changed
+- `frontend/src/features/map-explorer/components/map-page.tsx` — `SidePanel`을 `MapView` 우측에 배선 (지도 flex-1 래퍼로 폭 조정)
+
 ## [v0.4.0] - 2026-08-25
 
 ### Added
