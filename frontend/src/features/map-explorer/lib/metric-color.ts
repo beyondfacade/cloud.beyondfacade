@@ -6,6 +6,9 @@ type Rgb = [number, number, number];
 const SEQUENTIAL_STOPS = ["#fee8c8", "#fdbb84", "#fc8d59", "#e34a33", "#7f0000"];
 const DIVERGING_STOPS = ["#2166ac", "#67a9cf", "#f7f7f7", "#ef8a62", "#b2182b"];
 
+/** 값이 없는 region의 fill-color, 그리고 안전 폴백으로 재사용하는 중립 회색. */
+export const NO_DATA_COLOR = "#cccccc";
+
 function clamp(value: number, min: number, max: number): number {
   return Math.min(max, Math.max(min, value));
 }

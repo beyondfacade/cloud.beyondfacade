@@ -6,7 +6,7 @@ import "maplibre-gl/dist/maplibre-gl.css";
 import { config } from "@/shared/config";
 import type { MetricKey } from "@/shared/api/types";
 import { useMapData } from "../hooks/use-map-data";
-import { metricColor, type ColorScheme } from "../lib/metric-color";
+import { metricColor, NO_DATA_COLOR, type ColorScheme } from "../lib/metric-color";
 
 const SEOUL_CENTER: [number, number] = [126.99, 37.55];
 const INITIAL_ZOOM = 11;
@@ -31,6 +31,11 @@ function currentTheme(): "light" | "dark" {
 function vworldTileUrl(theme: "light" | "dark"): string {
   const layer = theme === "dark" ? "midnight" : "Base";
   return `https://api.vworld.kr/req/wmts/1.0.0/${config.vworldKey}/${layer}/{z}/{y}/{x}.png`;
+}
+
+/** 현재 테마의 --accent CSS 토큰을 읽는다. 토큰을 못 읽는 예외 상황의 안전 폴백은 lib의 중립색을 재사용. */
+function readAccentColor(): string {
+  return getComputedStyle(document.documentElement).getPropertyValue("--accent").trim() || NO_DATA_COLOR;
 }
 
 function domainOf(values: number[]): [number, number] {
@@ -89,14 +94,14 @@ export function MapView({ regionCode, metric, industry, year, onSelectRegion }: 
         id: REGIONS_FILL_LAYER_ID,
         type: "fill",
         source: REGIONS_SOURCE_ID,
-        paint: { "fill-color": "#cccccc", "fill-opacity": 0.55 },
+        paint: { "fill-color": NO_DATA_COLOR, "fill-opacity": 0.55 },
       });
       map.addLayer({
         id: REGIONS_LINE_LAYER_ID,
         type: "line",
         source: REGIONS_SOURCE_ID,
         filter: ["==", ["get", "region_code"], NO_SELECTION],
-        paint: { "line-color": "#000000", "line-width": 2 },
+        paint: { "line-color": readAccentColor(), "line-width": 2 },
       });
       map.on("click", REGIONS_FILL_LAYER_ID, (e) => {
         const code = e.features?.[0]?.properties?.region_code;
@@ -111,13 +116,16 @@ export function MapView({ regionCode, metric, industry, year, onSelectRegion }: 
     };
   }, []);
 
-  // 테마 전환(data-theme) → 래스터 타일 URL 교체.
+  // 테마 전환(data-theme) → 래스터 타일 URL 교체 + 선택 강조색(--accent) 재적용.
   useEffect(() => {
     function applyTheme() {
       const map = mapRef.current;
       if (!map) return;
       const source = map.getSource<RasterTileSource>(TILE_SOURCE_ID);
       source?.setTiles([vworldTileUrl(currentTheme())]);
+      if (map.getLayer(REGIONS_LINE_LAYER_ID)) {
+        map.setPaintProperty(REGIONS_LINE_LAYER_ID, "line-color", readAccentColor());
+      }
     }
     const observer = new MutationObserver(applyTheme);
     observer.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
@@ -140,7 +148,7 @@ export function MapView({ regionCode, metric, industry, year, onSelectRegion }: 
     const values = (rows.data ?? []).map((row) => row.value);
     const domain = domainOf(values);
     const pairs = (rows.data ?? []).flatMap((row) => [row.region_code, metricColor(row.value, domain, scheme)]);
-    const expression = pairs.length > 0 ? ["match", ["get", "region_code"], ...pairs, "#cccccc"] : "#cccccc";
+    const expression = pairs.length > 0 ? ["match", ["get", "region_code"], ...pairs, NO_DATA_COLOR] : NO_DATA_COLOR;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any -- 동적 match 표현식은 스타일 스펙 제네릭과 정확히 맞추기 어려움
     map.setPaintProperty(REGIONS_FILL_LAYER_ID, "fill-color", expression as any);
   }, [ready, rows.data, metric]);
@@ -149,8 +157,7 @@ export function MapView({ regionCode, metric, industry, year, onSelectRegion }: 
   useEffect(() => {
     const map = mapRef.current;
     if (!map || !ready) return;
-    const accent = getComputedStyle(document.documentElement).getPropertyValue("--accent").trim() || "#000000";
-    map.setPaintProperty(REGIONS_LINE_LAYER_ID, "line-color", accent);
+    map.setPaintProperty(REGIONS_LINE_LAYER_ID, "line-color", readAccentColor());
     // eslint-disable-next-line @typescript-eslint/no-explicit-any -- FilterSpecification은 maplibre-gl 공개 API로 노출되지 않음
     map.setFilter(REGIONS_LINE_LAYER_ID, ["==", ["get", "region_code"], regionCode ?? NO_SELECTION] as any);
   }, [ready, regionCode]);
