@@ -1,5 +1,12 @@
 # Frontend Version Log
 
+## [v0.7.2] - 2026-08-26
+
+### Fixed
+- `frontend/src/features/map-explorer/components/map-view.tsx` — 지도 탭에서 행정동 폴리곤(단계구분도)이 전혀 렌더/클릭되지 않던 버그 수정. 근본 원인: maplibre-gl@6.6.0은 GeoJSON 타일링을 수행하는 워커 스크립트의 URL을 `import.meta.url` 기반으로 런타임에 자체 계산하는데, Turbopack 번들 청크의 `import.meta.url`은 http(s) URL이 아니어서 그 계산이 빈 문자열로 실패해 워커가 뜨지 못하고 타일링이 조용히 멈춰 있었다(콘솔/네트워크 에러 없음). `maplibre-gl`의 `setWorkerUrl()`로 워커 스크립트 경로를 명시 지정해 우회. Turbopack의 `new URL(path, import.meta.url)` 정적 에셋 처리는 참조 파일을 해시된 이름으로 그대로 복사할 뿐 내부 상대 import(`./maplibre-gl-shared.mjs`)는 재작성하지 않으므로, `maplibre-gl-worker.mjs`와 `maplibre-gl-shared.mjs`를 원본 파일명 그대로 `frontend/public/maplibre-gl/`에 함께 두고 그 경로를 지정했다(버전 `maplibre-gl@6.6.0` 고정, 이 패키지를 업그레이드하면 두 파일도 함께 갱신해야 함).
+- `frontend/scripts/e2e-journey.sh` — 위 렌더링 버그가 고쳐지면서 실제로 폴리곤을 클릭해 보니, 기존 클릭 좌표(613, 446)가 `map.project()`의 지도-컨테이너 상대 좌표를 그대로 페이지 절대 좌표로 오인해 계산된 값이라 실제로는 대상 폴리곤을 빗나가고 있었음을 확인. 지도 컨테이너의 페이지 오프셋(top:114, left:0)을 더한 올바른 페이지 절대 좌표(666, 538)로 교정.
+- `frontend/package.json` — `e2e` 스크립트에서 `E2E_XFAIL_CLICK=1` 기본값 제거. 지도 렌더링 버그가 해결되어 `npm run e2e`가 실제 폴리곤 클릭 경로까지 엄격 모드(클릭 실패 시 exit 1)로 통과한다.
+
 ## [v0.7.1] - 2026-08-26
 
 ### Fixed

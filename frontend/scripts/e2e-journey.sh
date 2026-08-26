@@ -30,12 +30,14 @@ if ! curl -s -o /dev/null -w "%{http_code}" "$BASE_URL/" | grep -q "200"; then
 fi
 
 # 역삼1동 (fixtures.ts DONGS[0], region_code 1168064000) 중심 화면 좌표.
-# SEOUL_CENTER [126.99, 37.55] / zoom 11 (map-view.tsx) 기준 Web Mercator 투영으로 계산한
-# 값으로, 뷰포트 1440x900에서 지도 컨테이너 box(x:0, y:114, w:1120, h:480)와 맞는다.
+# 뷰포트 1440x900, map.project()로 구한 지도 컨테이너 기준 좌표(666, 424)에
+# 지도 컨테이너의 페이지 오프셋(top:114, left:0)을 더한 페이지 절대 좌표.
+# agent-browser mouse 명령은 페이지 절대 좌표를 받으므로 컨테이너 오프셋을 빼먹으면
+# 클릭이 실제보다 114px 위쪽(다른 행정동 또는 폴리곤 밖)에 떨어진다.
 VIEWPORT_W=1440
 VIEWPORT_H=900
-CLICK_X=613
-CLICK_Y=446
+CLICK_X=666
+CLICK_Y=538
 DONG_CODE="1168064000"
 INDUSTRY="cafe"
 

@@ -1,12 +1,20 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Map as MapLibreGLMap, type GeoJSONSource, type RasterTileSource } from "maplibre-gl";
+import { Map as MapLibreGLMap, setWorkerUrl, type GeoJSONSource, type RasterTileSource } from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { config } from "@/shared/config";
 import type { MetricKey } from "@/shared/api/types";
 import { useMapData } from "../hooks/use-map-data";
 import { metricColor, NO_DATA_COLOR, type ColorScheme } from "../lib/metric-color";
+
+// maplibre-gl은 GeoJSON 타일링을 Web Worker에서 수행하며, 워커 스크립트 URL을 import.meta.url 기반으로
+// 런타임에 자체 계산한다. Turbopack 번들 청크의 import.meta.url은 http(s) URL이 아니어서 그 계산이
+// 실패해(빈 문자열) 워커가 뜨지 못하고 폴리곤 타일링이 조용히 멈춘다(콘솔/네트워크 에러 없음).
+// Turbopack의 new URL(path, import.meta.url) 정적 에셋 처리는 참조된 .mjs 파일을 해시된 이름으로
+// 그대로 복사할 뿐, 그 파일 내부의 상대 import("./maplibre-gl-shared.mjs")는 재작성하지 않는다.
+// 그래서 원본 이름을 유지한 채 두 파일(worker + shared)을 public/에 함께 두고 그 경로를 지정한다.
+setWorkerUrl("/maplibre-gl/maplibre-gl-worker.mjs");
 
 const SEOUL_CENTER: [number, number] = [126.99, 37.55];
 const INITIAL_ZOOM = 11;
