@@ -22,6 +22,9 @@ class Settings(BaseSettings):
     naver_ncp_api_key_id: str = ""
     naver_ncp_api_key: str = ""
     data_go_kr_api_key: str = ""
+    vworld_api_key: str = ""
+    # 브이월드 인증키에 등록된 서비스URL — 데이터·WFS API는 domain 불일치 시 INCORRECT_KEY
+    vworld_service_domain: str = "beyondfacade.cloud"
 
 
 @lru_cache
