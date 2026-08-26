@@ -8,7 +8,7 @@
     "start": "next start -p 3500",
     "test": "vitest run",
     "test:watch": "vitest",
-    "e2e": "bash scripts/e2e-journey.sh",
+    "e2e": "E2E_XFAIL_CLICK=1 bash scripts/e2e-journey.sh",
     "shots": "bash scripts/screenshot-matrix.sh"
   },
   "dependencies": {

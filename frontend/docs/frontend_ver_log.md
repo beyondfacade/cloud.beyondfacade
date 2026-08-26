@@ -1,5 +1,12 @@
 # Frontend Version Log
 
+## [v0.7.1] - 2026-08-26
+
+### Fixed
+- `frontend/scripts/e2e-journey.sh` — "동 폴리곤 클릭" 단계가 실패해도 stderr 경고만 남기고 조용히 폴백 내비게이션 후 exit 0으로 통과하던 문제 수정: 기본 동작은 클릭 실패 시 exit 1(명확한 한국어 오류 메시지)로 종료하도록 변경. 알려진 지도 렌더링 버그로 인한 실패를 의도적으로 우회하려면 `E2E_XFAIL_CLICK=1`을 명시적으로 지정해야 하며, 이 경우 최종 stdout 요약에 `XFAIL: 폴리곤 클릭 (지도 렌더링 버그)` 줄이 출력된다. 스크립트 헤더 주석에 두 모드를 문서화.
+- `frontend/scripts/e2e-journey.sh`, `frontend/scripts/screenshot-matrix.sh` — `set -euo pipefail` 하에서 중간 단계가 실패하면 스크립트 마지막의 `AB close`가 실행되지 못해 헤드리스 브라우저/agent-browser 데몬 프로세스가 누수되던 문제 수정: 스크립트 상단에 `trap 'AB close >/dev/null 2>&1 || true' EXIT`를 추가해 정상/비정상 종료 모두에서 정리되도록 함(기존 말미의 중복 `AB close` 호출 제거).
+- `frontend/package.json` — `e2e` npm 스크립트를 `E2E_XFAIL_CLICK=1 bash scripts/e2e-journey.sh`로 변경해, 지도 렌더링 버그가 열려 있는 동안 기본 `npm run e2e`는 계속 녹색을 유지하도록 함. 원본 스크립트(`bash scripts/e2e-journey.sh`)는 계속 엄격 모드를 유지하며, 지도 버그 수정 후 이 환경변수 없이 재검증해야 함.
+
 ## [v0.7.0] - 2026-08-26
 
 ### Added

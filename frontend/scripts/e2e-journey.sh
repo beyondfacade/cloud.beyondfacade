@@ -4,6 +4,15 @@
 #
 # 전제: http://localhost:3500 (또는 $BASE_URL)에 dev 서버가 떠 있어야 한다 (npm run dev).
 # agent-browser는 전역 설치가 안 된 환경을 고려해 npx로 실행한다.
+#
+# 실행 모드 (동 폴리곤 클릭 단계):
+#   기본 (E2E_XFAIL_CLICK 미설정 또는 0): 클릭 후 region= 쿼리 파라미터가 갱신되지 않으면
+#     실패로 간주하고 비정상 종료(exit 1)한다. 클릭 회귀를 은폐하지 않기 위한 기본 동작이다.
+#   E2E_XFAIL_CLICK=1: 알려진 지도 렌더링 버그(폴리곤 클릭 히트테스트 미동작,
+#     task-9-report.md 참고)로 인한 실패를 명시적으로 예상하고 폴백 내비게이션으로
+#     나머지 여정을 계속 검증한다. 이 경우 최종 요약(stdout)에 "XFAIL: 폴리곤 클릭"
+#     줄이 출력된다. 지도 버그가 수정된 뒤에는 이 환경변수 없이 실행해 실제 클릭
+#     경로가 통과하는지 확인해야 한다.
 set -euo pipefail
 
 BASE_URL="${BASE_URL:-http://localhost:3500}"
@@ -11,6 +20,9 @@ BASE_URL="${BASE_URL:-http://localhost:3500}"
 export AGENT_BROWSER_ARGS="${AGENT_BROWSER_ARGS:---no-sandbox}"
 
 AB() { npx -y agent-browser "$@"; }
+
+# 중간 실패로 스크립트가 조기 종료돼도 헤드리스 브라우저/데몬 프로세스가 남지 않도록 정리한다.
+trap 'AB close >/dev/null 2>&1 || true' EXIT
 
 if ! curl -s -o /dev/null -w "%{http_code}" "$BASE_URL/" | grep -q "200"; then
   echo "오류: $BASE_URL 에서 dev 서버 응답이 없습니다. 먼저 'npm run dev'로 서버를 띄운 뒤 다시 실행하세요." >&2
@@ -40,15 +52,24 @@ AB mouse down left >/dev/null
 AB mouse up left >/dev/null
 sleep 1
 
+CLICK_XFAIL=0
 CURRENT_URL="$(AB get url)"
 if [[ "$CURRENT_URL" != *"region="* ]]; then
-  # 알려진 환경 이슈: 일부 헤드리스/샌드박스 제약 환경에서는 MapLibre GeoJSON 소스의
-  # 타일링이 끝나지 않아 폴리곤 클릭 히트테스트가 동작하지 않는 경우가 있다
-  # (frontend/.superpowers/sdd/2026-08-25-frontend-mvp/task-9-report.md 참고).
-  # 이 경우 동일한 최종 상태로 폴백해 나머지 여정을 계속 검증한다.
-  echo "  경고: 폴리곤 클릭이 사이드패널에 반영되지 않았습니다. region 쿼리 파라미터로 폴백합니다." >&2
-  AB navigate "$BASE_URL/?region=${DONG_CODE}&industry=${INDUSTRY}" >/dev/null
-  AB wait --load networkidle >/dev/null
+  if [[ "${E2E_XFAIL_CLICK:-0}" == "1" ]]; then
+    # 알려진 환경 이슈: 일부 헤드리스/샌드박스 제약 환경에서는 MapLibre GeoJSON 소스의
+    # 타일링이 끝나지 않아 폴리곤 클릭 히트테스트가 동작하지 않는 경우가 있다
+    # (frontend/.superpowers/sdd/2026-08-25-frontend-mvp/task-9-report.md 참고).
+    # E2E_XFAIL_CLICK=1로 명시적으로 opt-in한 경우에만 동일한 최종 상태로 폴백해
+    # 나머지 여정을 계속 검증한다.
+    CLICK_XFAIL=1
+    echo "  경고: 폴리곤 클릭이 사이드패널에 반영되지 않았습니다. E2E_XFAIL_CLICK=1이므로 region 쿼리 파라미터로 폴백합니다." >&2
+    AB navigate "$BASE_URL/?region=${DONG_CODE}&industry=${INDUSTRY}" >/dev/null
+    AB wait --load networkidle >/dev/null
+  else
+    echo "오류: 폴리곤 클릭이 region= 쿼리 파라미터에 반영되지 않았습니다 (클릭 회귀 가능성)." >&2
+    echo "  알려진 지도 렌더링 버그로 인한 실패라면 E2E_XFAIL_CLICK=1로 재실행해 나머지 여정만 검증할 수 있습니다 (task-9-report.md 참고)." >&2
+    exit 1
+  fi
 fi
 
 echo "[3/7] 사이드패널 확인"
@@ -85,5 +106,7 @@ if ! echo "$REPORT_TEXT" | grep -q "종합 진단"; then
   exit 1
 fi
 
-AB close >/dev/null 2>&1 || true
 echo "성공: E2E 여정 완료 (리포트 텍스트 확인됨)"
+if [[ "$CLICK_XFAIL" == "1" ]]; then
+  echo "XFAIL: 폴리곤 클릭 (지도 렌더링 버그) — E2E_XFAIL_CLICK=1로 폴백 내비게이션 사용, 실제 클릭 경로는 검증되지 않았습니다."
+fi

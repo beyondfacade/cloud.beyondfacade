@@ -10,6 +10,9 @@ export AGENT_BROWSER_ARGS="${AGENT_BROWSER_ARGS:---no-sandbox}"
 
 AB() { npx -y agent-browser "$@" >/dev/null; }
 
+# 중간 실패로 스크립트가 조기 종료돼도 헤드리스 브라우저/데몬 프로세스가 남지 않도록 정리한다.
+trap 'AB close >/dev/null 2>&1 || true' EXIT
+
 if ! curl -s -o /dev/null -w "%{http_code}" "$BASE_URL/" | grep -q "200"; then
   echo "오류: $BASE_URL 에서 dev 서버 응답이 없습니다. 먼저 'npm run dev'로 서버를 띄운 뒤 다시 실행하세요." >&2
   exit 1
@@ -64,6 +67,5 @@ for vp in "${VIEWPORTS[@]}"; do
   done
 done
 
-AB close || true
 echo "완료: $OUT_DIR/ 에 스크린샷 저장됨"
 ls -1 "$OUT_DIR"
