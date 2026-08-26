@@ -25,3 +25,12 @@ export interface RegionSummary {
   industry_id: string;
   cards: SummaryCard[];
 }
+
+export interface Store {
+  store_id: string;
+  name: string;
+  lat: number;
+  lng: number;
+  status_name: string;
+  open_date: string;
+}

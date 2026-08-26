@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# 스크린샷 매트릭스: 화면(/, /analysis 시작 전·진행 중·완료) × 테마(light/dark) × 뷰포트(1440/1024)
+# 스크린샷 매트릭스: 화면(/, 동 선택 후 점포 마커, /analysis 시작 전·진행 중·완료) × 테마(light/dark) × 뷰포트(1440/1024)
 # → frontend/screenshots/ 에 저장 (해당 디렉토리는 .gitignore 대상 — 커밋되지 않음).
 #
 # 전제: http://localhost:3200 (또는 $BASE_URL)에 dev 서버가 떠 있어야 한다 (npm run dev).
@@ -46,6 +46,16 @@ for vp in "${VIEWPORTS[@]}"; do
       sleep 1
     fi
     AB screenshot "$OUT_DIR/map_${theme}_${W}.png"
+
+    # --- 지도 탐색: 동 선택 후 점포 마커/클러스터 ---
+    AB navigate "$BASE_URL/?region=${REGION}&industry=${INDUSTRY}"
+    AB wait --load networkidle
+    if [[ "$theme" == "dark" ]]; then
+      AB find role button click --name "테마 전환"
+      sleep 1
+    fi
+    sleep 1
+    AB screenshot "$OUT_DIR/map-markers_${theme}_${W}.png"
 
     # --- AI 분석: 시작 전 ---
     AB navigate "$BASE_URL/analysis?region=${REGION}&industry=${INDUSTRY}"

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# E2E 여정: / → 동 폴리곤 클릭 → 사이드패널 확인 → [AI 분석] 클릭
+# E2E 여정: / → 동 폴리곤 클릭 → 사이드패널 확인 → 점포 마커 로드 확인 → [AI 분석] 클릭
 #           → /analysis 프리필 확인 → 분석 시작 → report_done까지 대기 → 리포트 텍스트 존재 assert
 #
 # 전제: http://localhost:3200 (또는 $BASE_URL)에 dev 서버가 떠 있어야 한다 (npm run dev).
@@ -36,7 +36,7 @@ INDUSTRY="cafe"
 
 AB close >/dev/null 2>&1 || true
 
-echo "[1/7] 지도 탐색(/) 오픈"
+echo "[1/8] 지도 탐색(/) 오픈"
 AB set viewport "$VIEWPORT_W" "$VIEWPORT_H" >/dev/null
 AB open "$BASE_URL/" >/dev/null
 AB wait --load networkidle >/dev/null
@@ -69,7 +69,7 @@ if [[ -z "${CLICK_X:-}" || -z "${CLICK_Y:-}" ]]; then
   exit 1
 fi
 
-echo "[2/7] 동 폴리곤 클릭 (역삼1동, x=$CLICK_X y=$CLICK_Y)"
+echo "[2/8] 동 폴리곤 클릭 (역삼1동, x=$CLICK_X y=$CLICK_Y)"
 AB mouse move "$CLICK_X" "$CLICK_Y" >/dev/null
 AB mouse down left >/dev/null
 AB mouse up left >/dev/null
@@ -95,14 +95,25 @@ if [[ "$CURRENT_URL" != *"region="* ]]; then
   fi
 fi
 
-echo "[3/7] 사이드패널 확인"
+echo "[3/8] 사이드패널 확인"
 AB wait --text "AI 분석 →" >/dev/null
 
-echo "[4/7] [AI 분석] 클릭"
+echo "[4/8] 점포 마커 로드 확인"
+# store-markers.tsx는 regionCode가 선택된 뒤에만 GET /api/mock/stores를 호출한다(성능 가드).
+# 클러스터 원(WebGL 캔버스)은 DOM으로 직접 검사할 수 없으므로, 그 트리거인 네트워크 요청 발생 여부로
+# "동 선택 → 마커 데이터 로드" 배선이 실제로 동작함을 검증한다.
+STORE_REQUESTS="$(AB network requests --filter "/api/mock/stores")"
+if [[ "$STORE_REQUESTS" != *"region=${DONG_CODE}"* ]]; then
+  echo "오류: 동 선택 후 /api/mock/stores 요청을 찾지 못했습니다 (마커 로드 배선 회귀 가능성)." >&2
+  echo "$STORE_REQUESTS" >&2
+  exit 1
+fi
+
+echo "[5/8] [AI 분석] 클릭"
 AB find text "AI 분석 →" click >/dev/null
 AB wait --text "분석 시작" >/dev/null
 
-echo "[5/7] /analysis 프리필 확인"
+echo "[6/8] /analysis 프리필 확인"
 PREFILL="$(cat <<'EOF' | AB eval --stdin
 (() => {
   const byLabel = (text) => Array.from(document.querySelectorAll("label"))
@@ -118,11 +129,11 @@ if [[ "$PREFILL" != *"$DONG_CODE"* ]] || [[ "$PREFILL" != *"$INDUSTRY"* ]]; then
   exit 1
 fi
 
-echo "[6/7] 분석 시작 → report_done 대기"
+echo "[7/8] 분석 시작 → report_done 대기"
 AB find text "분석 시작" click >/dev/null
 AB wait --text "참고 자료" >/dev/null
 
-echo "[7/7] 리포트 텍스트 존재 확인"
+echo "[8/8] 리포트 텍스트 존재 확인"
 REPORT_TEXT="$(AB get text body)"
 if ! echo "$REPORT_TEXT" | grep -q "종합 진단"; then
   echo "오류: 리포트 텍스트를 찾을 수 없습니다." >&2

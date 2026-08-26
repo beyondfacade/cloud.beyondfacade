@@ -5,8 +5,10 @@ import type {
   MetricKey,
   MetricRow,
   RegionSummary,
+  Store,
   SummaryCard,
 } from "@/shared/api/types";
+import { STORE_SAMPLES } from "./store-samples";
 
 type RegionProperties = { region_code: string; name: string };
 
@@ -102,6 +104,22 @@ export function summaryOf(code: string, industry: string): RegionSummary {
   ];
 
   return { region_code: code, name, industry_id: industry, cards };
+}
+
+/** region_code·industry_id로 STORE_SAMPLES를 필터링해 마커용 점포 목록을 반환한다.
+ *  실적재 데이터가 없는 업종/동 조합은 빈 배열 — 이는 오류가 아니라 실데이터 부재를 그대로 반영한 것. */
+export function storesOf(regionCode: string, industryId: string): Store[] {
+  const samples = STORE_SAMPLES[regionCode] ?? [];
+  return samples
+    .filter((s) => s.industry_id === industryId)
+    .map(({ store_id, name, lat, lng, status_name, open_date }) => ({
+      store_id,
+      name,
+      lat,
+      lng,
+      status_name,
+      open_date,
+    }));
 }
 
 const AGENT_TOOLS: Record<Exclude<AgentName, "orchestrator">, { tool: string; summary: string }[]> = {

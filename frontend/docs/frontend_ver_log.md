@@ -1,5 +1,21 @@
 # Frontend Version Log
 
+## [v0.9.0] - 2026-08-26
+
+### Added
+- `frontend/src/app/api/mock/store-samples.ts` — backend `store` 테이블 실데이터(297k행, beyondfacade-db)에서 8개 동 × 6개 업종(billiard/cafe/gym/hair_salon/karaoke/pc_bang) bounding box로 필터링해 추출한 점포 표본(`STORE_SAMPLES`, 동×업종당 최대 20건). store 테이블에 실적재 데이터가 없는 업종(convenience_store/real_estate/academy/childcare)은 표본에 없음 — 해당 조합은 의도적으로 빈 배열
+- `frontend/src/app/api/mock/stores/route.ts` — `GET /stores?region={code}&industry={id}` mock 라우트. 미등록 region은 404 `REGION_NOT_FOUND`, 미지원 industry는 404 `INDUSTRY_NOT_FOUND`(metrics 라우트의 `METRIC_NOT_FOUND` 가드와 대칭)
+- `frontend/src/app/api/mock/stores/route.test.ts` — 정상 조회/미등록 region/미지원 industry/실적재 데이터 없는 업종(빈 배열) TDD 테스트 4건
+- `frontend/src/app/api/mock/fixtures.ts` — `storesOf(regionCode, industryId)`: `STORE_SAMPLES`를 region·industry로 필터링해 `Store[]` 반환
+- `frontend/src/features/map-explorer/components/store-markers.tsx` — `<StoreMarkers>`: MapLibre GeoJSON 클러스터 소스(`cluster: true`, `clusterMaxZoom: 14`, `clusterRadius: 50`) + 클러스터/클러스터 카운트/비클러스터 3개 레이어. 클러스터 클릭 시 `getClusterExpansionZoom`으로 확대, 개별 마커 클릭 시 상호·개업일·영업상태 팝업. 동 선택(`regionCode`) 없으면 소스를 빈 FeatureCollection으로 유지(성능 가드 — 전 서울 로드 금지). 클러스터/마커 페인트 색상은 `map-view.tsx`와 동일한 `--accent`/`--bg-surface`/`--accent-fg` 토큰을 읽어 적용하고, `data-theme` `MutationObserver`로 테마 전환 시 재적용
+- `frontend/src/features/map-explorer/api.ts` — `fetchStores(regionCode, industry)` 추가 (`apiGet` 경유)
+- `frontend/src/shared/api/types.ts` — `Store` 인터페이스(`store_id, name, lat, lng, status_name, open_date`)
+
+### Changed
+- `frontend/src/features/map-explorer/components/map-view.tsx` — `readAccentColor()`를 export(마커 페인트 색상도 동일 토큰을 읽어야 하므로), `<StoreMarkers>`를 지도 컨테이너에 배선(`mapRef`/`ready`/`regionCode`/`industry` 전달)
+- `frontend/scripts/e2e-journey.sh` — 사이드패널 확인 직후 "점포 마커 로드 확인" 단계 추가(동 선택 후 `GET /api/mock/stores` 네트워크 요청 발생 여부를 `agent-browser network requests --filter`로 검증 — WebGL 캔버스 클러스터는 DOM으로 직접 검사할 수 없어 그 트리거인 네트워크 요청으로 배선을 확인). 단계 번호 7→8단계로 재조정
+- `frontend/scripts/screenshot-matrix.sh` — 동 선택 후 점포 마커/클러스터가 보이는 지도 화면(`map-markers_{theme}_{width}.png`) 스크린샷 추가
+
 ## [v0.8.0] - 2026-08-26
 
 ### Added
