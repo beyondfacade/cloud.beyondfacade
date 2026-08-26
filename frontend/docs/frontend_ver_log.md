@@ -1,5 +1,13 @@
 # Frontend Version Log
 
+## [v0.9.1] - 2026-08-26
+
+### Fixed
+- `frontend/src/app/api/mock/fixtures.ts` — `metricRows(metric, year, industry)`에 `industry` 인자 추가, `hashSeed` 입력에 포함해 지표(choropleth)가 업종별로 달라지도록 수정. `summaryOf`가 점포수/폐업률/성장률 카드 계산 시 `metricRows`에 `industry`를 전달하도록 변경 — 업종을 바꿔도 지도 색상·요약 카드 수치가 그대로였던 데모 결함 수정
+- `frontend/src/app/api/mock/metrics/route.ts` — `industry` 쿼리 파라미터를 읽어 `metricRows`에 전달, `stores` 라우트와 대칭인 `INDUSTRY_NOT_FOUND` 404 가드 추가
+- `frontend/src/features/map-explorer/components/side-panel.tsx` — 에러 상태 div에 `role="alert"` 추가 (`analysis-page.tsx`의 기존 패턴과 일치)
+- `frontend/src/app/api/mock/metrics/route.test.ts`, `frontend/src/app/api/mock/fixtures.test.ts` — industry 파라미터 필수화에 맞춰 기존 테스트 업데이트, 업종별 값 분산·결정성(같은 조합→동일 값) 검증 테스트 추가
+
 ## [v0.9.0] - 2026-08-26
 
 ### Added

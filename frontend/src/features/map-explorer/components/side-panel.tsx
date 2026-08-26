@@ -52,7 +52,7 @@ export function SidePanel({ regionCode, industry }: SidePanelProps) {
       )}
 
       {regionCode && summary.isError && (
-        <div className="my-auto flex flex-col items-center gap-2 px-4 text-center">
+        <div role="alert" className="my-auto flex flex-col items-center gap-2 px-4 text-center">
           <span className="text-sm font-medium text-[var(--danger)]">데이터 없음</span>
           <span className="text-sm leading-relaxed text-[var(--text-secondary)]">
             <span className="tabular-nums">{regionCode}</span> 행정동의 {label} 지표를 불러오지 못했습니다.

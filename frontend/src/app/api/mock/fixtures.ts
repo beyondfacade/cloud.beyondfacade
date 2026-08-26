@@ -69,10 +69,10 @@ const METRIC_RANGES: Record<MetricKey, [number, number]> = {
   store_count: [15, 320],
 };
 
-export function metricRows(metric: MetricKey, year: number): MetricRow[] {
+export function metricRows(metric: MetricKey, year: number, industry: string): MetricRow[] {
   const [min, max] = METRIC_RANGES[metric];
   return DONGS.map(({ region_code }) => {
-    const u = unitFrom(hashSeed(metric, year, region_code));
+    const u = unitFrom(hashSeed(metric, year, industry, region_code));
     const raw = min + u * (max - min);
     const value = metric === "store_count" ? Math.round(raw) : Math.round(raw * 1000) / 1000;
     return { region_code, value };
@@ -82,9 +82,9 @@ export function metricRows(metric: MetricKey, year: number): MetricRow[] {
 export function summaryOf(code: string, industry: string): RegionSummary {
   const dong = DONGS.find((d) => d.region_code === code);
   const name = dong?.name ?? "알 수 없음";
-  const storeCount = metricRows("store_count", 2026).find((r) => r.region_code === code)?.value ?? 0;
-  const closureRate = metricRows("closure_rate", 2026).find((r) => r.region_code === code)?.value ?? 0;
-  const growthRate = metricRows("growth_rate", 2026).find((r) => r.region_code === code)?.value ?? 0;
+  const storeCount = metricRows("store_count", 2026, industry).find((r) => r.region_code === code)?.value ?? 0;
+  const closureRate = metricRows("closure_rate", 2026, industry).find((r) => r.region_code === code)?.value ?? 0;
+  const growthRate = metricRows("growth_rate", 2026, industry).find((r) => r.region_code === code)?.value ?? 0;
   const newsSeed = unitFrom(hashSeed("news", code, industry));
 
   const cards: SummaryCard[] = [
