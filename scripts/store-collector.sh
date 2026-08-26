@@ -13,6 +13,8 @@ cd "${BACKEND_DIR}"
 {
   echo "[$(date '+%Y-%m-%d %H:%M:%S')] store collector 시작"
   .venv/bin/python -m apps.store.adapter.inbound.cli.store_collector
+  echo "[$(date '+%Y-%m-%d %H:%M:%S')] region 공간조인 (신규분)"
+  .venv/bin/python -m apps.store.adapter.inbound.cli.assign_regions
 } >> "${LOG_FILE}" 2>&1 || echo "[$(date '+%Y-%m-%d %H:%M:%S')] store collector 실패 (exit $?)" >> "${LOG_FILE}"
 
 tail -n 5000 "${LOG_FILE}" > "${LOG_FILE}.tmp" && mv "${LOG_FILE}.tmp" "${LOG_FILE}"
