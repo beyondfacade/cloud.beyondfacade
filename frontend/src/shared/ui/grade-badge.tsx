@@ -14,7 +14,7 @@ interface GradeBadgeProps {
 
 export function GradeBadge({ grade }: GradeBadgeProps) {
   return (
-    <span className={`inline-flex items-center rounded px-2 py-0.5 text-xs font-medium ${STYLE[grade]}`}>
+    <span className={`inline-flex shrink-0 items-center rounded px-2 py-0.5 text-xs font-medium whitespace-nowrap ${STYLE[grade]}`}>
       {LABEL[grade]}
     </span>
   );

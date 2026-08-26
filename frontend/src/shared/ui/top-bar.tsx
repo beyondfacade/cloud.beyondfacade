@@ -13,10 +13,10 @@ export function TopBar() {
   const pathname = usePathname();
 
   return (
-    <header className="flex items-center justify-between border-b border-[var(--border)] bg-[var(--bg-surface)] px-4 py-3">
-      <div className="flex items-center gap-6">
-        <span className="text-sm font-semibold text-[var(--text-primary)]">Metabole</span>
-        <nav className="flex items-center gap-4">
+    <header className="flex shrink-0 items-center justify-between border-b border-[var(--border)] bg-[var(--bg-surface)] px-5">
+      <div className="flex items-center gap-7">
+        <span className="text-sm font-semibold tracking-tight text-[var(--text-primary)]">Metabole</span>
+        <nav className="flex items-center gap-1">
           {TABS.map((tab) => {
             const active = pathname === tab.href;
             return (
@@ -24,11 +24,11 @@ export function TopBar() {
                 key={tab.href}
                 href={tab.href}
                 aria-current={active ? "page" : undefined}
-                className={
+                className={`border-b-2 px-2 py-3.5 text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[var(--accent)] ${
                   active
-                    ? "text-sm font-medium text-[var(--accent)]"
-                    : "text-sm font-medium text-[var(--text-secondary)]"
-                }
+                    ? "border-[var(--accent)] text-[var(--accent)]"
+                    : "border-transparent text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
+                }`}
               >
                 {tab.label}
               </Link>

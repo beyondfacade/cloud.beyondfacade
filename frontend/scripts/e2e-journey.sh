@@ -2,7 +2,7 @@
 # E2E 여정: / → 동 폴리곤 클릭 → 사이드패널 확인 → [AI 분석] 클릭
 #           → /analysis 프리필 확인 → 분석 시작 → report_done까지 대기 → 리포트 텍스트 존재 assert
 #
-# 전제: http://localhost:3500 (또는 $BASE_URL)에 dev 서버가 떠 있어야 한다 (npm run dev).
+# 전제: http://localhost:3200 (또는 $BASE_URL)에 dev 서버가 떠 있어야 한다 (npm run dev).
 # agent-browser는 전역 설치가 안 된 환경을 고려해 npx로 실행한다.
 #
 # 실행 모드 (동 폴리곤 클릭 단계):
@@ -15,7 +15,7 @@
 #     경로가 통과하는지 확인해야 한다.
 set -euo pipefail
 
-BASE_URL="${BASE_URL:-http://localhost:3500}"
+BASE_URL="${BASE_URL:-http://localhost:3200}"
 # 컨테이너/CI 등 Chrome 샌드박스 네임스페이스 제약이 있는 환경을 위한 기본값 — 호출자가 이미 지정했으면 존중한다.
 export AGENT_BROWSER_ARGS="${AGENT_BROWSER_ARGS:---no-sandbox}"
 
@@ -29,15 +29,8 @@ if ! curl -s -o /dev/null -w "%{http_code}" "$BASE_URL/" | grep -q "200"; then
   exit 1
 fi
 
-# 역삼1동 (fixtures.ts DONGS[0], region_code 1168064000) 중심 화면 좌표.
-# 뷰포트 1440x900, map.project()로 구한 지도 컨테이너 기준 좌표(666, 424)에
-# 지도 컨테이너의 페이지 오프셋(top:114, left:0)을 더한 페이지 절대 좌표.
-# agent-browser mouse 명령은 페이지 절대 좌표를 받으므로 컨테이너 오프셋을 빼먹으면
-# 클릭이 실제보다 114px 위쪽(다른 행정동 또는 폴리곤 밖)에 떨어진다.
 VIEWPORT_W=1440
 VIEWPORT_H=900
-CLICK_X=666
-CLICK_Y=538
 DONG_CODE="1168064000"
 INDUSTRY="cafe"
 
@@ -47,6 +40,34 @@ echo "[1/7] 지도 탐색(/) 오픈"
 AB set viewport "$VIEWPORT_W" "$VIEWPORT_H" >/dev/null
 AB open "$BASE_URL/" >/dev/null
 AB wait --load networkidle >/dev/null
+
+# 역삼1동(fixtures.ts DONGS[0], region_code 1168064000) 폴리곤 중심의 페이지 절대 좌표를
+# 런타임에 계산한다. 하드코딩하면 상단바/컨트롤바 높이가 바뀔 때마다 조용히 빗나가므로,
+# 지도 컨테이너의 실제 bounding rect + 웹 메르카토르 투영(bearing/pitch 0)으로 매번 구한다.
+CLICK_POINT="$(cat <<'EOF' | AB eval --stdin
+(() => {
+  const el = document.querySelector(".maplibregl-map");
+  if (!el) return "";
+  const r = el.getBoundingClientRect();
+  const world = 512 * Math.pow(2, 11);            // map-view.tsx INITIAL_ZOOM
+  const px = (lng) => ((lng + 180) / 360) * world;
+  const py = (lat) => {
+    const s = Math.sin((lat * Math.PI) / 180);
+    return (0.5 - Math.log((1 + s) / (1 - s)) / (4 * Math.PI)) * world;
+  };
+  const center = [126.99, 37.55];                 // map-view.tsx SEOUL_CENTER
+  const target = [127.02625, 37.5];               // 역삼1동 사각형 중심
+  const x = Math.round(r.left + r.width / 2 + (px(target[0]) - px(center[0])));
+  const y = Math.round(r.top + r.height / 2 + (py(target[1]) - py(center[1])));
+  return x + " " + y;
+})()
+EOF
+)"
+read -r CLICK_X CLICK_Y <<<"$(echo "$CLICK_POINT" | tr -cd '0-9 \n')"
+if [[ -z "${CLICK_X:-}" || -z "${CLICK_Y:-}" ]]; then
+  echo "오류: 지도 컨테이너를 찾지 못해 클릭 좌표를 계산할 수 없습니다 (응답: $CLICK_POINT)." >&2
+  exit 1
+fi
 
 echo "[2/7] 동 폴리곤 클릭 (역삼1동, x=$CLICK_X y=$CLICK_Y)"
 AB mouse move "$CLICK_X" "$CLICK_Y" >/dev/null

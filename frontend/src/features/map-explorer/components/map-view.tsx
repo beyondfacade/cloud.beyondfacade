@@ -170,5 +170,5 @@ export function MapView({ regionCode, metric, industry, year, onSelectRegion }: 
     map.setFilter(REGIONS_LINE_LAYER_ID, ["==", ["get", "region_code"], regionCode ?? NO_SELECTION] as any);
   }, [ready, regionCode]);
 
-  return <div ref={containerRef} className="h-full w-full min-h-[480px]" />;
+  return <div ref={containerRef} className="h-full min-h-[320px] w-full" />;
 }

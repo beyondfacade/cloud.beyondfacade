@@ -2,10 +2,10 @@
 # 스크린샷 매트릭스: 화면(/, /analysis 시작 전·진행 중·완료) × 테마(light/dark) × 뷰포트(1440/1024)
 # → frontend/screenshots/ 에 저장 (해당 디렉토리는 .gitignore 대상 — 커밋되지 않음).
 #
-# 전제: http://localhost:3500 (또는 $BASE_URL)에 dev 서버가 떠 있어야 한다 (npm run dev).
+# 전제: http://localhost:3200 (또는 $BASE_URL)에 dev 서버가 떠 있어야 한다 (npm run dev).
 set -euo pipefail
 
-BASE_URL="${BASE_URL:-http://localhost:3500}"
+BASE_URL="${BASE_URL:-http://localhost:3200}"
 export AGENT_BROWSER_ARGS="${AGENT_BROWSER_ARGS:---no-sandbox}"
 
 AB() { npx -y agent-browser "$@" >/dev/null; }

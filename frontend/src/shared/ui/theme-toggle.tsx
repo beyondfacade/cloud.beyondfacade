@@ -17,7 +17,7 @@ export function ThemeToggle() {
   }, []);
   return (
     <button aria-label="테마 전환" onClick={toggle}
-      className="rounded-md border border-[var(--border)] px-2 py-1 text-sm text-[var(--text-secondary)]">
+      className="rounded-md border border-[var(--border)] px-2.5 py-1 text-sm text-[var(--text-secondary)] transition-colors hover:border-[var(--accent)] hover:text-[var(--text-primary)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)] active:translate-y-px">
       {theme === "dark" ? "라이트" : "다크"}
     </button>
   );

@@ -12,16 +12,22 @@ export function AnalysisPage() {
   const { state, start, loading } = useAgentReport();
 
   return (
-    <div className="flex flex-1 flex-col gap-4 p-4">
-      <AnalysisForm
-        initialRegion={searchParams.get("region") ?? ""}
-        initialIndustry={searchParams.get("industry") ?? ""}
-        onSubmit={start}
-        disabled={loading}
-      />
-      {state.error && <p className="text-sm text-[var(--danger)]">{state.error}</p>}
-      <div className="flex flex-1 gap-4">
-        <div className="w-80 shrink-0">
+    <div className="mx-auto flex w-full max-w-[1400px] flex-1 flex-col gap-8 px-6 py-8">
+      <div className="max-w-xl">
+        <AnalysisForm
+          initialRegion={searchParams.get("region") ?? ""}
+          initialIndustry={searchParams.get("industry") ?? ""}
+          onSubmit={start}
+          disabled={loading}
+        />
+        {state.error && (
+          <p role="alert" className="mt-3 text-sm text-[var(--danger)]">
+            {state.error}
+          </p>
+        )}
+      </div>
+      <div className="flex flex-1 flex-col gap-8 lg:flex-row lg:gap-10">
+        <div className="w-full shrink-0 lg:w-72">
           <ProgressPanel state={state} />
         </div>
         <div className="min-w-0 flex-1">

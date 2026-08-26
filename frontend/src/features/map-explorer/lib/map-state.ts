@@ -1,21 +1,16 @@
 import type { MetricKey } from "@/shared/api/types";
-
-export const INDUSTRIES = [
-  "cafe",
-  "convenience_store",
-  "hair_salon",
-  "karaoke",
-  "pc_bang",
-  "gym",
-  "billiard",
-  "real_estate",
-  "academy",
-  "childcare",
-] as const;
+import { INDUSTRIES } from "@/shared/industries";
 
 export const METRICS = ["closure_rate", "growth_rate", "store_count"] as const;
 
 export const YEARS = Array.from({ length: 8 }, (_, i) => 2019 + i);
+
+/** 화면 표기용 한국어 라벨. URL 파라미터·API 값은 영문 id를 그대로 쓴다. */
+export const METRIC_LABELS: Record<(typeof METRICS)[number], string> = {
+  closure_rate: "폐업률",
+  growth_rate: "성장률",
+  store_count: "점포수",
+};
 
 export interface MapState {
   industry: string;

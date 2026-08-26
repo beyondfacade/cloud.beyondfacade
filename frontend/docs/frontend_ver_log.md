@@ -1,5 +1,37 @@
 # Frontend Version Log
 
+## [v0.8.0] - 2026-08-26
+
+### Added
+- `frontend/src/shared/industries.ts` — 업종 id 목록(`INDUSTRIES`)과 한국어 라벨(`INDUSTRY_LABELS`, `industryLabel()`)의 공통 어휘 모듈. 지도 탐색·AI 분석 두 feature가 함께 쓰므로 feature 간 직접 import 금지 규칙에 따라 `shared/`에 배치 (`map-state.ts`의 `INDUSTRIES` 정의를 이곳으로 이동)
+- `frontend/src/shared/ui/route-fallback.tsx` — 라우트 셸 `<Suspense>` 폴백 컴포넌트 (`role="status"`, 레이아웃 높이 유지)
+- `frontend/src/app/api/mock/metrics/route.test.ts` — metrics mock 라우트 TDD 테스트 2건 (지원 metric 200 / 미지원 metric 404 `METRIC_NOT_FOUND`)
+- `frontend/src/app/globals.css` — `.report-markdown` 스코프 스타일. Tailwind preflight가 리셋한 리포트 마크다운 요소(h2/h3, p, strong, ul/ol, table/th/td)를 토큰 기반으로 복원하고 표에 `tabular-nums` 적용. `prefers-reduced-motion` 감축 규칙 추가
+- `frontend/src/features/map-explorer/lib/map-state.ts` — `METRIC_LABELS` (폐업률·성장률·점포수)
+
+### Changed
+- `frontend/src/styles/tokens.css` — **강조색 확정 (스펙 열린 항목 1 해소)**: `ui-ux-pro-max` 팔레트 DB의 신뢰·데이터 계열 후보 3종(civic-navy / market-teal / ink-sky)을 스크린샷으로 비교해 **market-teal** 선택 — 라이트 `--accent: #0f766e` / 다크 `--accent: #2dd4bf`. 중립 스케일·`--ok/--warn/--danger`를 포함한 라이트/다크 11종 토큰 세트 전체를 확정값으로 교체. 선정 근거: 단계구분도 팔레트(warm 순차 / 청·적 발산)와 색상환이 겹치지 않아 지도 위 선택 강조선이 데이터색과 혼동되지 않으며, 상권·부동산 도메인 정합이 가장 높음
+- `frontend/src/features/map-explorer/components/control-bar.tsx` — 지표 세그먼트가 raw id(`closure_rate` 등) 대신 한국어 라벨을 표시(값·URL 파라미터는 영문 유지), 업종 select도 한국어 라벨 표시. 각 컨트롤에 보이는 라벨(업종/지표/연도) 추가, 세그먼트에 `role="group"`+`aria-pressed`, 전 컨트롤에 `focus-visible` 아웃라인·hover·`active` 피드백 부여
+- `frontend/src/features/map-explorer/components/side-panel.tsx` — 미선택/에러 상태를 안내 문구가 있는 구성된 빈 상태로 교체, 로딩을 텍스트 대신 스켈레톤으로 교체(`role="status"`), 지표 목록을 카드 대신 `divide-y` 구분선 구성으로 변경, 헤더에 region_code·업종 라벨 캡션 추가, CTA 버튼에 hover/active/focus 상태 추가
+- `frontend/src/features/agent-report/components/analysis-form.tsx` — 지역 코드·업종을 2열 그리드로 배치하고 폼 너비를 `max-w-xl`로 제한(1440px에서 입력창이 전폭으로 늘어나던 문제), 업종 입력 아래 한국어 라벨 힌트 표시(입력값 자체는 API 계약상의 영문 id 유지), 추가 질문 placeholder, 제출 버튼 로딩 라벨("분석 중…")·focus/active 상태
+- `frontend/src/features/agent-report/components/analysis-page.tsx` — 컨테이너 `max-w-[1400px]` 중앙 정렬, 진행 패널/리포트를 `lg` 이상에서만 2열로 분기(그 이하는 세로 스택), 에러 메시지에 `role="alert"`
+- `frontend/src/features/agent-report/components/progress-panel.tsx` — 에이전트 4행을 카드 4개 대신 `divide-y` 타임라인으로 변경, `role="status" aria-live="polite"` 부여, 상태를 색상 점만이 아니라 텍스트 라벨(대기/진행 중/완료/오류)로도 노출(색상 단독 전달 금지 규칙)
+- `frontend/src/features/agent-report/components/report-view.tsx` — 섹션에 `.report-markdown` 클래스 적용(제목·표·목록 스타일 복원), 빈 상태를 구성된 안내 박스로 교체, 참고 자료 목록을 `divide-y`+underline-offset 링크로 정리
+- `frontend/src/shared/ui/top-bar.tsx` — 활성 탭을 색상만이 아니라 하단 2px 인디케이터로도 표시, 탭에 hover/focus-visible 상태, 헤더 `shrink-0`
+- `frontend/src/shared/ui/theme-toggle.tsx`, `frontend/src/shared/ui/grade-badge.tsx` — hover/focus-visible/active 상태, 배지 `shrink-0 whitespace-nowrap`(좁은 패널에서 줄바꿈 방지)
+- `frontend/src/app/page.tsx`, `frontend/src/app/analysis/page.tsx` — `<Suspense>`에 `<RouteFallback>` 지정(기존에는 fallback 없음)
+- `frontend/package.json`, `frontend/scripts/e2e-journey.sh`, `frontend/scripts/screenshot-matrix.sh` — **포트 규약 정정 3500 → 3200** (`next dev/start -p 3200`, 스크립트 `BASE_URL` 기본값 및 헤더 주석). 루트 `docker-compose.yml`의 frontend 서비스 포트(3200)와 일치
+- `frontend/scripts/e2e-journey.sh` — 역삼1동 폴리곤 클릭 좌표를 하드코딩(666,538) 대신 런타임 계산으로 변경. 지도 컨테이너의 실제 `getBoundingClientRect()`에 웹 메르카토르 투영(zoom 11, bearing/pitch 0)으로 구한 오프셋을 더한다. 상단바·컨트롤바 높이가 바뀌면 하드코딩 좌표가 조용히 빗나가던 취약성 제거(이번 레이아웃 변경으로 실제 좌표가 538 → 700으로 이동)
+
+### Fixed
+- `frontend/src/features/map-explorer/components/control-bar.tsx` — 존재하지 않는 토큰 `--border-color`를 참조해 border 선언이 무효화되고 `currentColor`로 폴백되던 버그 수정 (올바른 토큰명은 `--border`)
+- `frontend/src/app/layout.tsx`, `frontend/src/features/map-explorer/components/map-page.tsx`, `map-view.tsx` — `/` 지도 화면이 뷰포트 높이를 채우지 못하고 하단에 빈 영역이 남던 레이아웃 버그 수정. `<body>`의 `min-h-full`은 `<html>`에 높이가 없어 해석되지 않으므로 `min-h-[100dvh]`로 교체하고, flex 체인에 `min-h-0`·`overflow-hidden`을 추가해 `MapView`의 `h-full`이 실제로 남은 높이를 받도록 함(`min-h-[480px]` → `min-h-[320px]` 안전 하한)
+- `frontend/src/app/api/mock/metrics/route.ts` — 미지원 `metric` 파라미터가 들어오면 `METRIC_RANGES` 조회 실패로 500이 나던 문제 수정. summary 라우트의 `REGION_NOT_FOUND` 가드와 대칭으로 404 `METRIC_NOT_FOUND`를 반환하도록 검증 추가
+- `frontend/src/app/layout.tsx` — `<title>`이 스캐폴드 기본값("Create Next App")으로 남아 있던 문제 수정 → "Metabole — 상권 분석" + 설명 metadata
+
+### 스택 핀 버전
+`next@16.3.2` / `react@19.2.8` · `react-dom@19.2.8` / `maplibre-gl@^6.6.0` / `@tanstack/react-query@^5.102.3` / `react-markdown@^10.1.0` · `remark-gfm@^4.0.1` / `tailwindcss@^4` · `@tailwindcss/postcss@^4` / `typescript@^5` / `vitest@^4.1.11` · `jsdom@^29.1.1` · `@testing-library/react@^16.3.2`
+
 ## [v0.7.2] - 2026-08-26
 
 ### Fixed
