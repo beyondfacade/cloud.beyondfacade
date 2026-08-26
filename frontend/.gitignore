@@ -36,6 +36,9 @@ yarn-error.log*
 # vercel
 .vercel
 
+# E2E/스크린샷 산출물 (Task 9 — 커밋 금지)
+/screenshots/
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts

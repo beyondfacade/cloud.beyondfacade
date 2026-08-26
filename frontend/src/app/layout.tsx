@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { ApiProviders } from "@/shared/api/providers";
+import { TopBar } from "@/shared/ui/top-bar";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -14,6 +15,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/variable/pretendardvariable-dynamic-subset.min.css" />
       </head>
       <body className="bg-[var(--bg-base)] text-[var(--text-primary)] min-h-full flex flex-col">
+        <TopBar />
         <ApiProviders>{children}</ApiProviders>
       </body>
     </html>

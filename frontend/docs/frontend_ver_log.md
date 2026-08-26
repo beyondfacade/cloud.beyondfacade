@@ -1,5 +1,19 @@
 # Frontend Version Log
 
+## [v0.7.0] - 2026-08-26
+
+### Added
+- `frontend/src/shared/ui/top-bar.tsx` — `<TopBar />`: 로고("Metabole") + 탭 링크 2개(`/` 지도 탐색, `/analysis` AI 분석, `usePathname` 기반 `aria-current`/accent 하이라이트) + `<ThemeToggle />` 배치
+- `frontend/src/shared/ui/top-bar.test.tsx` — 현재 경로 탭에 `aria-current="page"`가 붙는지 검증하는 TDD 테스트
+- `frontend/scripts/e2e-journey.sh` — agent-browser(`npx -y agent-browser`) 기반 E2E 여정: `/` → 동 폴리곤 클릭 → 사이드패널 확인 → `[AI 분석 →]` 클릭 → `/analysis` 프리필 확인 → 분석 시작 → `report_done`까지 대기 → 리포트 텍스트 존재 assert. dev 서버 미기동 시 한국어 오류 메시지로 종료
+- `frontend/scripts/screenshot-matrix.sh` — 화면(`/`, `/analysis` 시작 전·진행 중·완료) × 테마(light/dark, `ThemeToggle` 클릭으로 전환) × 뷰포트(1440/1024) 16종 스크린샷을 `frontend/screenshots/`에 저장
+- `package.json` scripts: `e2e`, `shots`
+
+### Changed
+- `frontend/src/app/layout.tsx` — `<body>` 내부 `{children}` 위에 `<TopBar />` 렌더
+- `frontend/.gitignore` — `/screenshots/` 추가 (E2E/스크린샷 산출물은 커밋 대상 아님)
+- `package.json` — `dev`/`start` 스크립트 포트를 3000 → 3500으로 변경 (`next dev -p 3500`, `next start -p 3500`)
+
 ## [v0.6.1] - 2026-08-25
 
 ### Fixed
