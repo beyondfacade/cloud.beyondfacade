@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
-# 한국은행 기준금리 + R-ONE 임대동향 수집기 크론 러너 — 주 1회(월 05:20) 실행 (등록: crontab)
+# 한국은행 기준금리·대출금리 + R-ONE 임대동향 수집기 크론 러너 — 주 1회(월 05:20) 실행 (등록: crontab)
 # ECOS 722Y001 월별 기준금리 → interest_rate 업서트(멱등)
+# ECOS 121Y006 가중평균 대출금리(신규취급액, 3계열) → interest_rate 업서트(멱등) — 월 공표라 주 1회로 충분
 # R-ONE 임대료·공실률(분기, 통계표 20개) → rent_price 업서트(멱등) — 분기 공표라 주 1회로 충분
 set -euo pipefail
 
@@ -14,6 +15,8 @@ cd "${BACKEND_DIR}"
 {
   echo "[$(date '+%Y-%m-%d %H:%M:%S')] interest rate collector 시작"
   .venv/bin/python -m apps.shock.adapter.inbound.cli.load_interest_rate
+  echo "[$(date '+%Y-%m-%d %H:%M:%S')] loan rate collector 시작"
+  .venv/bin/python -m apps.shock.adapter.inbound.cli.load_loan_rate
   echo "[$(date '+%Y-%m-%d %H:%M:%S')] rent price collector 시작"
   .venv/bin/python -m apps.rent.adapter.inbound.cli.load_rent_price
 } >> "${LOG_FILE}" 2>&1 || echo "[$(date '+%Y-%m-%d %H:%M:%S')] interest/rent collector 실패 (exit $?)" >> "${LOG_FILE}"

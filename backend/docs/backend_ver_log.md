@@ -1,5 +1,29 @@
 # Backend Version Log
 
+## [v0.16.0] - 2026-09-07
+
+### Added
+- **ECOS 121Y006 가중평균 대출금리 3계열 적재** — 계산기(§brainstorming 8.1③) 대출금리 추정 축.
+  `interest_rate`에 base와 병행 적재 (id 프리픽스 규약 `{rate_type}:{YYYYMM}` 일관):
+  - `loan_corp` = 기업대출(BECBLA02, 상위 벤치마크), `loan_sme` = 중소기업대출(BECBLA0202,
+    소상공인 차주 근사), `loan_facility` = 시설자금대출(BECBLA0204, 상가 등 부동산 취득 최근접)
+  - 신규취급액 기준·월별·2019-01~현재 — 실적재 273행(계열당 91행, 201901~202607)
+  - 2022 급등 사이클 실측: 기업대출 3.30%(202201)→5.67%(202211) — 기대 패턴 일치
+- `apps/shock/adapter/outbound/gateways/ecos_gateway.py` — `EcosSeries` VO로 시리즈 파라미터화,
+  `EcosLoanRateGateway`(121Y006 3계열) 추가. 기존 `parse_rates`는 기본값(base)으로 하위호환
+- `apps/shock/adapter/inbound/cli/load_loan_rate.py` — 적재 러너(Driving Adapter, 멱등 업서트 재사용)
+- `tests/test_loan_rate_gateway.py` — 실응답 픽스처 파싱·id 규약·3계열 구성 검증 2건
+- `scripts/interest-rate-collector.sh`에 loan rate collector 단계 추가 (주 1회 크론 — 월 공표라 충분)
+
+### Changed
+- **COFIX(은행연합회 소비자포털) 스크래핑 최종 포기 → 121Y006 대체 경위**: ECOS에 COFIX 부재
+  전수 확인(docs/api.md) 후 은행연합회 `portal.kfb.or.kr/fingoods/cofix.php` 스크래핑을 구현했으나,
+  `portal.kfb.or.kr/robots.txt`가 `User-agent: * / Disallow: /`(전 경로·전 UA 수집 금지)임을 확인.
+  ※ curl 기본 UA에는 오류 안내 페이지(200)가 와서 "robots 부재"로 오인 소지 — 브라우저·봇·httpx UA
+  교차 확인으로 전면 불허 확정. robots 존중 원칙에 따라 우회 없이 중단·전량 원복하고, api.md에
+  기록된 1차 대안인 ECOS 121Y006(정식 API)으로 대출금리 축을 대체. 은행연합회 수집 허가 문의는
+  사용자 판단으로 이관
+
 ## [v0.15.1] - 2026-09-07
 
 ### Changed
