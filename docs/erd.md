@@ -157,15 +157,23 @@ erDiagram
         string event_id FK "nullable - shock_event BC 생성 시 컬럼+FK 동시 추가(구현 유보)"
     }
     funding_program {
-        string program_id PK
-        string source "기업마당/K-Startup 등"
-        string title
-        string org
-        bigint limit_amount "LLM 추출"
-        string rate_info "LLM 추출"
-        date deadline
-        string region_scope
-        string url "원문 링크 필수"
+        string program_id PK "원천 공고 ID(bizinfo pblancId)"
+        string source "기업마당(bizinfo) - 소스 확장 대비"
+        string title "pblancNm"
+        string org "jrsdInsttNm 소관기관"
+        string exec_org "excInsttNm 수행기관 - nullable"
+        string field_category "pldirSportRealmLclasCodeNm 지원분야 대분류"
+        string field_subcategory "pldirSportRealmMlsfcCodeNm 중분류 - nullable"
+        string target_text "trgetNm 지원대상 원문 - LLM 추출 원천"
+        string hashtags "지역·업종 태그 원문 - LLM 추출 원천"
+        string apply_period "reqstBeginEndDe 신청기간 원문"
+        date apply_begin "파싱 - nullable(상시 등)"
+        date deadline "파싱 - nullable(상시 등)"
+        string summary "bsnsSumryCn 태그 제거 발췌 - 본문 전문 저장 금지"
+        string url UK "pblancUrl 원문 링크 필수"
+        datetime posted_at "creatPnttm - nullable"
+        datetime source_updated_at "updtPnttm - nullable"
+        boolean is_expired "일 배치 만료 갱신"
     }
     region_industry_metric {
         string id PK

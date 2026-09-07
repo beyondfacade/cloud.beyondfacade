@@ -2,6 +2,9 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
 
+from apps.funding.adapter.inbound.api.v1.funding_program_router import (
+    router as funding_router,
+)
 from apps.master.adapter.inbound.api.v1.region_router import router as region_router
 from apps.metric.adapter.inbound.api.v1.region_industry_metric_router import (
     router as metric_router,
@@ -17,6 +20,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 app.add_middleware(GZipMiddleware, minimum_size=1024)  # /regions/geojson 등 대형 응답 압축
+app.include_router(funding_router)
 app.include_router(region_router)
 app.include_router(metric_router)
 app.include_router(news_router)

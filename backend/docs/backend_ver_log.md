@@ -1,5 +1,37 @@
 # Backend Version Log
 
+## [v0.10.0] - 2026-09-07
+
+### Added
+- **funding BC 신설** (`apps/funding/`) — funding_program Fractal 11-File Set (정책자금 공고 수집, 기업마당 bizinfo)
+  - `BizinfoGateway` (Driven Adapter) — `bizinfo.go.kr/uss/rss/bizinfoApi.do` JSON, `searchCnt=3000`
+    **1회 호출 전량 수신** (~1,500건 상시, 페이징 불필요). 원천 ID(`pblancId`)·원문 링크 없는 항목 제외
+  - 실응답 컬럼 매핑 (샘플 3건 실확인, docs/erd.md funding_program 실컬럼 기반 정정):
+    pblancId→program_id(PK), pblancNm→title, jrsdInsttNm→org, excInsttNm→exec_org,
+    pldirSportRealmLclasCodeNm/MlsfcCodeNm→field_category/subcategory, trgetNm→target_text,
+    hashtags→hashtags(**원문 보존 — LLM 구조화 추출 원천, 추출은 후속 작업**),
+    reqstBeginEndDe→apply_period(원문)+apply_begin/deadline(방어적 파싱 — "예산 소진시"·"상시" 등 비일자는 None),
+    bsnsSumryCn→summary(태그 제거 1,000자 발췌 — 본문 전문 저장 금지), pblancUrl→url(UK, 원문 링크 필수)
+  - 업서트 멱등: program_id 기준, 원천 갱신시점(`updtPnttm`) 변경분만 갱신 — 마감 연장(변경 공고) 반영
+  - 만료 처리: `refresh_expirations` — `deadline < today → is_expired=True`, 연장·상시 전환 시 복원 (일 배치)
+  - `GET /funding/myself`(배선 검증) + `GET /funding?limit=` — 미만료만 마감 임박순(마감일 오름차순, 상시는 뒤),
+    limit 1~100 위반 시 400 `INVALID_LIMIT` — 에러 바디 단일 형식 `{error:{code,message}}`
+  - `funding_collector.py` (CLI) — 전량 수집·업서트+만료 갱신. **첫 적재: 1,499건**
+    (마감일 파싱 594건 / 상시·예산소진 등 비일자 905건 — 원문 전수 검증, 만료 0건: API가 접수중 공고만 제공)
+- 마이그레이션 `a66c8cd01cd2` — `funding_program` 테이블 (url UK, (is_expired, deadline) 조회 인덱스)
+- `scripts/funding-collector.sh` — 일 1회 크론(05:10) 등록, 로그 `logs/funding-collector.log`
+- `Settings`에 `bizinfo_api_key` 추가 (`BIZINFO_API_KEY`)
+- 테스트 11건 — 게이트웨이 파싱 픽스처 4(실응답 표본 매핑·ID/URL 부재 제외·기간 방어 파싱·요약 발췌) /
+  ingest 업서트 멱등·배치 내 dedup 1 / 만료 판정 2(엔티티 규칙·배치 만료/복원/상시) /
+  목록 3(임박순·만료 제외·limit·400 바디) / myself 배선 1 — 전체 66 passed
+  (기지 실패 1건: test_store_ingest 실DB 커서 테스트, 기존 상태 유지)
+
+### Changed
+- `main.py`에 funding 라우터 등록
+- `migrations/env.py` autogenerate 대상에 funding_program ORM 등록
+- `docs/erd.md` funding_program — 문서 스펙 추정 컬럼(limit_amount·rate_info·region_scope)을
+  실응답 컬럼 기반으로 정정 (LLM 추출 컬럼은 후속 작업에서 M:N과 함께 재도입)
+
 ## [v0.9.0] - 2026-09-07
 
 ### Added
