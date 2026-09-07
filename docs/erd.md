@@ -45,6 +45,7 @@ erDiagram
     district |o--o{ rent_price : "임대시세(상권 단위 원천 - 자치구 매핑 후속)"
     district ||--o{ tobacco_retailer : "지정관할(보조 테이블)"
     region |o--o{ tobacco_retailer : "위치(공간조인 후 채움)"
+    region ||--o{ convenience_store : "수집 단위(보조 테이블)"
     shock_event ||--o{ shock_event_industry : ""
     industry ||--o{ shock_event_industry : ""
     shock_event ||--o{ shock_event_region : ""
@@ -153,6 +154,20 @@ erDiagram
         string jibun_address "nullable - 좌표 결측분 지오코딩 대기열"
         datetime source_updated_at "데이터갱신시점"
     }
+    convenience_store {
+        string store_id PK "bizesId 상가업소번호 - 소진공 상가정보 실측 유일"
+        string name "bizesNm 상호명"
+        string branch_name "brchNm 지점명 - nullable"
+        string brand "상호 기반 추출 GS25/CU/세븐일레븐/이마트24/미니스톱 - 미확인 nullable"
+        string region_code FK "요청 행정동 - adongCd 8자리 = region_code 앞 8자리 유일 실측"
+        float lat "WGS84 원천 제공 - nullable 방어"
+        float lng
+        string road_address "rdnmAdr - nullable"
+        string jibun_address "lnoAdr - nullable"
+        string source_stdr_ym "원천 기준연월 stdrYm - 소실 분석 빈티지 구분"
+        date first_seen_on "최초 관측일 - 신규 출점 신호"
+        date last_seen_on "최근 관측일 - 정지 시 소실(폐점 추정 후보)"
+    }
     interest_rate {
         string id PK "rate_type:period - ECOS 실응답 기반"
         string rate_type "base 기준금리 - 시리즈 확장 대비"
@@ -240,6 +255,16 @@ erDiagram
   의도된 미연결은 좌표 결측 9.9%분)로 마스터 허브에 연결, 고립 없음.
   store에 합치지 않는 근거: 담배소매인은 점포(업종)가 아니라 **지정 권리** — industry FK가 성립하지
   않고(편의점·슈퍼·가판 복합), 지정일자·취소일자 등 고유 컬럼 축이 다르다.
+- `convenience_store` — **MVP 15테이블 밖 보조 테이블 추가** (2026-09-07, 편의점 축 2단계).
+  원천은 소진공 상가정보 sdsc2 `storeListInDong`(indsSclsCd=G20405 체인화 편의점) × 행정동 427회.
+  **store에 합치지 않는 근거**: 상가정보는 개폐업 시계열 분석 불가(api.md §2-3 — 상가업소번호
+  재생성 이력) → store에 섞으면 `region_industry_metric`의 open/close 지표가 오염된다.
+  이 테이블은 "현재 편의점 분포·경쟁밀도" 전용이고, 개폐업 이력은 `tobacco_retailer`가 담당.
+  §13 연결 원칙: `region_code` FK 필수(수집 자체가 행정동 단위 — adongCd 8자리 프리픽스가
+  427개 region에서 유일함을 DB 실측)로 마스터 허브 연결, 고립 없음. district는 region 경유
+  이행 종속이라 두지 않음(3NF — store 전례). `brand`는 상호 기반 추출 역정규화(브랜드 분포
+  조회 축 — 원본 상호 보존으로 재추출 가능). 관측 필드 `first_seen_on`/`last_seen_on`은
+  broker 전례의 스냅샷 소실 패턴 — 소실(last_seen 정지)="폐점 추정 후보"의 후속 분석 근거.
 
 ---
 

@@ -1,5 +1,44 @@
 # Backend Version Log
 
+## [v0.18.0] - 2026-09-07
+
+### Added
+- **convenience BC 신설** (`apps/convenience/`) — 편의점 분석 축 2단계: 현행 스냅샷 수집
+  (brainstorming §3.5 "편의점 신규 출점 = 검증된 상권 프록시"). tobacco 전례대로 소비
+  라우터가 아직 없어 entity+ORM+ports+interactor+gateway+repository+CLI 구성 (라우터 후속),
+  스냅샷 수집 흐름은 broker 전례(포트·인터랙터·Fake 게이트웨이 테스트)를 따름
+  - **원천**: 소진공 상가정보 sdsc2 `storeListInDong` × 행정동 427회/스냅샷
+    (indsSclsCd=G20405 체인화 편의점, DATA_GO_KR_API_KEY — 일 한도 10,000회의 4.3%).
+    실호출 검증: numOfRows=1000 1페이지 수신(최다 역삼1동 149건), WGS84 좌표 원값 제공,
+    adongCd 8자리 = region_code 앞 8자리 — 427개 region 프리픽스 유일 DB 실측이라
+    공간조인 폴백 없이 요청 행정동을 그대로 FK 기입
+  - `convenience_store` 테이블 — ERD 15테이블 밖 **보조 테이블** (erd.md §2 노드·엣지 추가):
+    PK=bizesId(상가업소번호), region FK 필수, 상호·지점명·브랜드(상호 기반 추출 역정규화 —
+    §5 키워드 dict 디스패치, 미확인 None)·좌표·도로명/지번주소·기준연월(stdrYm).
+    **store에 넣지 않는 근거**: 상가정보는 개폐업 시계열 불가(api.md §2-3) — store에 섞으면
+    region_industry_metric 개폐업 지표가 오염된다. 개폐업 이력은 tobacco_retailer 담당
+  - **관측 필드 `first_seen_on`/`last_seen_on`** — broker 전례의 스냅샷 소실 패턴:
+    멱등 업서트가 first_seen(최초 관측)은 보존하고 last_seen만 전진 → 소실(last_seen 정지)
+    = "폐점 추정 후보"를 후속 분석이 판정. broker와 달리 close_date 추정은 하지 않음
+    (관측과 해석의 분리 — 원천이 개폐업 진실 소스가 아니므로)
+  - 마이그레이션 `5a21ef1efab1` — `convenience_store` 테이블
+    (+ ix_convenience_store_region_last_seen: 행정동×최근 관측 경쟁밀도 조회 축)
+  - **첫 실적재: 9,395건 업서트** (API 427회 호출 — 계획과 정확히 일치, 실패 행정동 0):
+    좌표·region_code 채움 100%, FK 고아 0, 행정동 427/427 전 커버, 기준연월 202606 단일.
+    브랜드 분포: GS25 2,847(30.3%) · CU 2,643(28.1%) · 세븐일레븐 2,507(26.7%) ·
+    기타 641(6.8%) · 이마트24 613(6.5%) · 미니스톱 144(1.5%).
+    구별 상위: 강남 803 · 송파 583 · 강서 529 · 마포 511 · 영등포 502.
+    행정동 상위: 역삼1동 149 · 가산동 135 · 서교동 119. psql 표본(역삼1동): GS25역삼대홍점·
+    씨유역삼미래점 등 실명 확인. 기타 표본 재검으로 브랜드 사전 보강
+    (지에스 '25' 생략 상호 → GS25, 비지에프(BGF리테일=CU 운영사) → CU, 101건 재산출 갱신)
+  - `scripts/convenience-collector.sh` + 크론 등록 (매주 월 05:40) — **주 1회 근거**:
+    원천이 기준연월(stdrYm) 단위로 갱신되는 느린 스냅샷(현재 202606)이라 일 단위 무의미,
+    신규 출점 신호는 주 단위 해상도로 충분. 로그 `logs/convenience-collector.log`
+  - 테스트 10건 — 게이트웨이 픽스처 파싱(실응답 사본·브랜드 추출 변형·좌표 결측·페이징·
+    빈 행정동·오류 resultCode) + 실DB 멱등 업서트(first/last_seen 관측·소실 시 last_seen
+    정지·재등장 시 first_seen 보존·배치 내 중복 제거)
+    — 전체 135건 중 134 passed (기지 실패 1건: test_store_ingest 실DB 커서 테스트, 기존 상태 유지)
+
 ## [v0.17.0] - 2026-09-07
 
 ### Added
