@@ -1,5 +1,28 @@
 # Backend Version Log
 
+## [v0.15.1] - 2026-09-07
+
+### Changed
+- **도커 백엔드 이미지 갱신** — 13일 전 구버전(v0.5 이전, metric/funding/shock 라우터 없음)으로 돌던
+  `beyondfacade-api` 컨테이너를 v0.15.0(27b03b8) 코드로 재빌드·재기동 (`docker compose build backend` +
+  `up -d --no-deps backend`, db/redis/neo4j는 미재시작). 코드·compose 변경 없음
+- 갱신 후 실검증 (호스트 8200, 외부 API 키 없이 — 대상 엔드포인트 전부 DB·로컬 파일만 사용):
+  - `GET /health` 200, `GET /metrics/myself` 200 (배선 검증)
+  - `GET /metrics?industry=cafe&metric=closure_rate&year=2025` → 427행
+  - `GET /funding?limit=3`, `GET /shocks?limit=3` → 실데이터 정상
+  - `GET /regions/geojson` → 200, 5.4MB gzip 대상, FeatureCollection 427 features —
+    **BoundaryFileReader `parents[6]` 경로 실검증**: 컨테이너 안에서 `/app/apps/...` 기준 `parents[6]` = `/`,
+    geometry_ref(`data/geojson/regions/*.json`)가 compose의 `./data:/data` 마운트와 정확히 일치해 수정 불요.
+    단, 이미지 내 코드 깊이가 달라지면(예: WORKDIR 변경) 깨질 수 있는 암묵 결합이므로 주의
+- 기지 이슈(미수정, 기록만): docker-compose.yml frontend 매핑 `3200:3000`은 `next dev -p 3200`과 불일치
+  (frontend 코드가 main에 없어 포스트MVP로 이연)
+
+### Added
+- `CLAUDE.md` Part V(프론트엔드 구조 규칙) 성문화 — §14 Feature-Sliced 구조(feature 간 import 금지),
+  §15 Mock API 계약(`{error:{code,message}}`), §16 토큰 기반 스타일·다크모드(data-theme),
+  §17 TanStack Query 관행, §18 MapLibre WebGL 브리징, §19 Vitest·TDD.
+  `.worktrees/frontend-mvp/frontend` 실코드 관행 기반 (backend/docs·frontend/docs CLAUDE.md는 심볼릭 링크 — 자동 반영 확인)
+
 ## [v0.15.0] - 2026-09-07
 
 ### Added

@@ -383,7 +383,71 @@ orm_mapper:   adapter/outbound/orm_mappers/{name}_orm_mapper.py
 
 ## [Frontend] Part V — Frontend Project Structure Rules
 
-> 프론트엔드 아키텍처 규칙은 기술 스택 확정 후 이 섹션에 추가합니다.
+> 기술 스택: Next.js(App Router) + React + TypeScript + Tailwind v4 + TanStack Query + MapLibre GL + Vitest
+> dev/start 포트는 **3200** (포트 규약: 백엔드 8200, 프론트 3200)
+
+### 14. Feature-Sliced 구조
+
+**1 Feature = 1 AI 위임 단위.** 백엔드의 Bounded Context에 대응합니다.
+
+```
+frontend/src/
+├── app/          ← Next.js 라우팅 + /api/mock. 페이지 조립만 담당
+├── features/     ← 기능 단위 (예: map-explorer, agent-report)
+│   └── {feature}/
+│       ├── components/   ← "use client" 컴포넌트
+│       ├── hooks/        ← TanStack Query 훅, SSE 훅
+│       ├── lib/          ← 순수 로직 (프레임워크 무관, 단위 테스트 대상)
+│       └── api.ts        ← 해당 feature의 API 호출 함수
+├── shared/       ← config.ts, 공통 어휘, api/(client·providers·types), ui/
+└── styles/tokens.css
+```
+
+**의존 방향 규칙 (`features → shared`, 단방향):**
+- **feature 간 직접 import 절대 금지.** 두 feature가 함께 쓰는 코드는 `shared/`로 승격합니다.
+- `shared/`는 `features/`를 import하지 않습니다. `app/`은 feature 페이지 컴포넌트 조립만 합니다.
+- feature 내부는 상대 경로, feature 외부는 `@/shared/...` alias로만 참조합니다.
+- 페이지는 서버 컴포넌트로 두고 `<Suspense fallback={<RouteFallback/>}>`로 feature 클라이언트 컴포넌트를 감쌉니다. `"use client"`는 feature의 components/hooks 최상단에만 둡니다.
+
+### 15. Mock API 계약 (`src/app/api/mock/`)
+
+**mock은 실 백엔드 API의 미러입니다.** 경로·쿼리 파라미터·응답 스키마가 실 API와 동일해야 합니다.
+
+- 타입 단일 원천: `@/shared/api/types.ts` — mock 라우트와 feature `api.ts`가 **같은 타입을 양쪽에서 import**합니다.
+- 에러 바디는 항상 `{ error: { code, message } }`. 미지원 값은 **500이 아니라 404** (예: `METRIC_NOT_FOUND`). `code`는 SCREAMING_SNAKE, `message`는 한국어.
+- 픽스처는 `fixtures.ts`에 집약 (서버 전용 — 클라이언트 번들 진입 금지). **`Math.random` 금지** — 문자열 해시(FNV-1a) 기반 결정적 데이터만 (테스트 재현성).
+- API 베이스 스위칭: `shared/config.ts`의 `config.apiBase = NEXT_PUBLIC_API_BASE ?? "/api/mock"`. 실 API 전환은 코드 수정 없이 env로만 합니다.
+
+### 16. 스타일 — 토큰 기반 + 다크모드
+
+- 디자인 토큰은 `src/styles/tokens.css`가 단일 원천: `:root`(light)와 `[data-theme="dark"]` 두 블록에 `--bg-*`, `--text-*`, `--border`, `--accent`, `--ok/--warn/--danger`.
+- 컴포넌트는 토큰을 Tailwind arbitrary value로만 소비합니다: `bg-[var(--bg-surface)]`, `text-[var(--text-primary)]`. **하드코딩 hex 금지** (예외: 데이터 시각화 팔레트 — UI 토큰과 별개 체계로 주석 선언).
+- Tailwind v4 CSS-first — `tailwind.config.*` 파일 없이 `globals.css`에서 `@import "tailwindcss"` + `tokens.css`.
+- 다크모드는 `<html data-theme="light|dark">` 속성 방식(class 전략 아님). 테마 반응 컴포넌트는 `MutationObserver(attributeFilter: ["data-theme"])`로 감지합니다.
+
+### 17. 데이터 레이어 — TanStack Query
+
+- `QueryClient`는 `shared/api/providers.tsx`(Composition Root) 한 곳에서만 생성. 기본 `staleTime 60s, retry 1`.
+- queryKey는 `["도메인명", ...params]` — 문자열 리터럴 도메인명 + 파라미터 순서 고정. 예: `["metrics", metric, industry, year]`.
+- 불변 데이터(행정동 경계 geojson)는 `staleTime: Infinity`. 선택 의존 쿼리는 `enabled: !!regionCode`.
+- fetch는 `shared/api/client.ts`의 `apiGet/apiPost`로만 — 에러 바디 `{error:{code,message}}`를 `ApiError`로 변환하는 톨게이트입니다.
+- SSE 스트림은 TanStack Query가 아니라 native `EventSource` + 순수 리듀서 함수로 처리합니다.
+
+### 18. 지도 — MapLibre WebGL 브리징
+
+- **paint 속성은 CSS `var()`를 이해하지 못합니다** (WebGL 렌더링). `readAccentColor()`처럼 `getComputedStyle`로 계산된 값을 문자열로 넘깁니다. 팝업 등 실제 DOM 스타일에는 `var()`를 그대로 씁니다.
+- 테마 전환 시 `MutationObserver(data-theme)`로 타일 URL·paint 색을 재적용합니다 (§16의 감지 패턴과 동일).
+- 워커는 `public/maplibre-gl/`에 **원본 파일명 그대로 벤더링** + `setWorkerUrl()` (Turbopack이 해시 리네임하면 워커의 상대 import가 깨짐).
+- 색상 스케일은 `makeMetricColorScale()`이 단일 원천 — 지도 fill 표현식의 `colorOf`와 범례 `classes`가 **동일 객체를 공유**해 경계 계산이 어긋나지 않습니다.
+- 성능 가드: 점 데이터(상점 등)는 동 선택 시에만 로드 — 전 서울 로드 금지.
+
+### 19. 테스트 — Vitest + TDD
+
+- Part III의 TDD 규칙(Red → Green → Refactor)을 그대로 따릅니다.
+- 테스트 파일은 대상 파일 옆 co-located `*.test.ts(x)` (별도 `__tests__` 디렉토리 없음). 테스트 제목은 한국어 서술문.
+- **mock 라우트 계약 테스트 필수**: 라우트의 `GET/POST`를 직접 import해 `Request`로 호출, status와 `error.code`를 assert — mock이 실 API 계약(§15)을 지키는지 고정합니다.
+- `config.apiBase` 기본값 등 설정 계약도 테스트로 고정합니다.
+- E2E·스크린샷 매트릭스는 vitest 밖 `scripts/` 셸 스크립트로 분리합니다.
 
 ---
 
