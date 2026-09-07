@@ -10,9 +10,9 @@
 | 항목 | 결정 | 근거 |
 |---|---|---|
 | 에이전트 두뇌 | **로컬 gemma3:12b 먼저 평가 → Gemini(무료 티어, `GEMINI_API_KEY` 기입됨) 평가 → 비교표로 확정** | 사용자 지정. `LLMGatewayPort` 뒤 어댑터 2종이라 전환 = DI 교체 |
-| 임베딩 | **Qwen3-Embedding-4B @ 1536차원** (MRL truncate) — 기본 런타임 **Ollama Q4**(2.5GB, gemma3와 동시 상주 10.6GB < 16GB) | 사용자 지정. com.lifetutorial 검증 전례(Local/Gemini 어댑터, vector(1536) 규격). Gemini `gemini-embedding-001`도 1536 절단 지원 → 스키마 무변경 전환 |
-| 색인 운영 | 대량 색인 = **새벽 크론 배치**(기존 04~05시대 수집 크론 뒤), 쿼리 임베딩 = 상주 Ollama 실시간 | 사용자 지정 (LLM 상주·임베딩 1회성 분리) |
-| 임베딩 품질 게이트 | Q4 vs fp16(sentence-transformers) 차이는 **Recall@5 하네스 실측으로만 판단** — 유의미할 때만 fp16 재색인 | 추측 금지, 숫자로 결정 |
+| 임베딩 | **Qwen3-Embedding-4B @ 1536차원** (MRL truncate) — **혼용 구도 확정: 색인 = fp16(sentence-transformers, 새벽 배치) + 쿼리 = Ollama Q4(상주 2.5GB)** | 사용자 지정 + 2026-09-07 실측: 혼용 vs fp16 순수 top-1 일치 100%·top-5 겹침 85% (Q4 단독은 78%), 벡터 코사인 일치 평균 0.979. com.lifetutorial 검증 전례(Local/Gemini 어댑터, vector(1536) 규격). Gemini `gemini-embedding-001`도 1536 절단 지원 → 스키마 무변경 전환 |
+| 색인 운영 | 대량 색인 = **새벽 크론 배치**(기존 04~05시대 수집 크론 뒤, fp16 — LLM과 GPU 경합 없음), 쿼리 임베딩 = 상주 Ollama Q4 실시간 | 사용자 지정 (LLM 상시 상주·임베딩 1회성 분리) |
+| 임베딩 품질 게이트 | 평가셋 검수 완료 후 **Recall@5 하네스로 3조합(Q4 단독/fp16 단독/혼용) 실측 → 최종 확정** | 추측 금지, 숫자로 결정. 위 혼용 확정은 MVP 기본값이며 하네스가 뒤집으면 재색인(무료·수 분) |
 | 검색 저장소 | pgvector (기존 DB, 확장 활성 확인됨) + cosine + HNSW | 인프라 추가 없음 |
 
 ---
