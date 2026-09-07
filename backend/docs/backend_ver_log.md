@@ -1,5 +1,36 @@
 # Backend Version Log
 
+## [v0.12.0] - 2026-09-07
+
+### Added
+- **학원(academy) 수집** — 서울 열린데이터광장 OA-20528(`neisAcademyInfo`) → store + 신규 **academy_course** 테이블 (store 1:N)
+  - `SeoulAcademyGateway` (Driven Adapter) — 1회 1,000건 페이징(초과 시 ERROR-336 실확인), 재시도(지수 백오프)·
+    YYYYMMDD 방어 파싱(월말 클램프, MOIS 전례). **원천에 좌표 없음 → lat/lng NULL 적재, SGIS 지오코딩 후속 대상**
+    (부동산과 동일 대기열). 갱신시점 필터 없음(현행 스냅샷만) → 매 실행 전량 재수집(업서트 멱등), `LOAD_DT`→source_updated_at
+  - store 매핑 (실응답 기반): PEI_DSGN_NO→store_id(`academy:seoul:{번호}`, 서울 전역 유일 실확인), PEI_NM→name,
+    ADMDST_NM↔district.name→district_code(공란 40행은 도로명주소 2번째 어절로 복구 — 전량 매칭),
+    ESTBL_YMD→open_date, REG_STTS_NM→status(dict 디스패치: 개원→open 등, 폐원일 필드 없어 close_date는 NULL)
+  - 교습계열(FLD_NM)→subcategory_id dict 디스패치 (§3.6 5축): 입시.검정 및 보습→exam, 예능(대)·기예(대)→arts,
+    국제화→language, 직업기술·정보→vocational, 독서실→studyroom — 종합(대)·기타(대)·인문사회(대)는 5축 밖이라 미매핑(NULL)
+  - academy_course: 수강료 공개 항목(INDV_ATNLC_AMT_CN `항목명:금액`) 우선, 없으면 교습과정명(TRNG_CRS_LIST_NM)
+    — **course_name 원문 보존 = 대상학년 LLM 추출 원천 (추출은 후속 범위, target_grade는 현재 NULL)**.
+    재적재 멱등: 점포 단위 delete+insert (`replace_for_stores`)
+  - `AcademyCourseInteractor`(+ input/output port·entity·dto·orm·orm_mapper·repository) — store 업서트 후 course 재적재(FK 순서)
+  - `academy_collector.py` (Driving Adapter, CLI) — **첫 실적재: 점포 25,514건(전량), 교습과정 64,203건, API 26회 호출**
+    (일 1,000회 한도 대비 2.6%). 상태 분포: 개원 100%(원천이 현행 등록분만 제공 — 개폐업 시계열은 주기 스냅샷으로 축적),
+    서브카테고리 매핑 24,003건(94.1%), 수강료 보유 41,332건(평균 222,954원·중위 180,000원)
+- 마이그레이션 `5e26dfc27428` — `academy_course` 테이블 (store FK, store_id 인덱스)
+- 테스트 11건 — 게이트웨이 파싱 9건(YYYYMMDD 클램프/수강료 항목/과정 폴백/서브카테고리·상태 매핑/구 공란 주소 복구/
+  구 미매칭 스킵 보고) + ingest 2건(store+course 적재 / 재수집 시 course 잔재 없는 교체 멱등)
+  — 전체 82건 중 81 passed (기지 실패 1건: test_store_ingest 실DB 커서 테스트, 기존 상태 유지)
+- `Settings`에 `seoul_open_data_api_key` 필드 추가 (.env 기존 키 사용)
+
+### Changed
+- `scripts/store-collector.sh` — store_collector 뒤에 academy_collector 단계 추가 (일 배치 동일 크론)
+- `docs/erd.md` academy_course 실컬럼 기반 정정 — course_id(`store_id:연번`)·course_name(수강료 항목명 또는
+  교습과정명, 원문 보존)·tuition_fee nullable(공개 항목만)·target_grade(LLM 추출 후속, 현재 NULL)
+- 좌표 부재로 academy는 assign_regions·build_metrics 대상 제외 (지오코딩 후 합류 — region_code NULL 상태)
+
 ## [v0.11.0] - 2026-09-07
 
 ### Added

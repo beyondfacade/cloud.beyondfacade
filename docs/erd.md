@@ -99,11 +99,11 @@ erDiagram
         datetime source_updated_at "DAT_UPDT_PNT - 증분 수집 커서"
     }
     academy_course {
-        string course_id PK
+        string course_id PK "store_id:연번 - OA-20528 실응답 기반"
         string store_id FK
-        string course_name
-        string target_grade "LLM 추출"
-        int tuition_fee "수강료"
+        string course_name "수강료 항목명 INDV_ATNLC_AMT_CN 또는 교습과정명 TRNG_CRS_LIST_NM - 원문 보존"
+        int tuition_fee "수강료 - 공개 항목만, nullable"
+        string target_grade "LLM 추출 후속 - 현재 null"
     }
     population_stat {
         string region_code PK "FK, 행정동코드"

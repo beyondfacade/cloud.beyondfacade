@@ -28,6 +28,7 @@ import apps.master.adapter.outbound.orms.industry_subcategory_orm  # noqa: F401
 import apps.master.adapter.outbound.orms.population_stat_orm  # noqa: F401
 import apps.metric.adapter.outbound.orms.region_industry_metric_orm  # noqa: F401
 import apps.news.adapter.outbound.orms.news_article_orm  # noqa: F401
+import apps.store.adapter.outbound.orms.academy_course_orm  # noqa: F401
 import apps.store.adapter.outbound.orms.store_orm  # noqa: F401
 
 config.set_main_option("sqlalchemy.url", get_settings().database_url)

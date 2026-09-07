@@ -13,6 +13,8 @@ cd "${BACKEND_DIR}"
 {
   echo "[$(date '+%Y-%m-%d %H:%M:%S')] store collector 시작"
   .venv/bin/python -m apps.store.adapter.inbound.cli.store_collector
+  echo "[$(date '+%Y-%m-%d %H:%M:%S')] academy collector (서울 학원·교습소 스냅샷 전량, ~26회 호출)"
+  .venv/bin/python -m apps.store.adapter.inbound.cli.academy_collector
   echo "[$(date '+%Y-%m-%d %H:%M:%S')] region 공간조인 (신규분)"
   .venv/bin/python -m apps.store.adapter.inbound.cli.assign_regions
   echo "[$(date '+%Y-%m-%d %H:%M:%S')] 지표 배치 집계 (region_industry_metric)"
