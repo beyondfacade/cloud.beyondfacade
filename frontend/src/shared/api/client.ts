@@ -16,8 +16,8 @@ async function handle<T>(res: Response): Promise<T> {
 export const apiGet = <T>(path: string) =>
   fetch(`${config.apiBase}${path}`).then((r) => handle<T>(r));
 
-export const apiPost = <T>(path: string, body: unknown) =>
-  fetch(`${config.apiBase}${path}`, {
+export const apiPost = <T>(path: string, body: unknown, base: string = config.apiBase) =>
+  fetch(`${base}${path}`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),

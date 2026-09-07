@@ -1,5 +1,27 @@
 # Frontend Version Log
 
+## [v0.11.0] - 2026-09-07
+
+### Added
+- `frontend/src/features/map-explorer/components/map-view.tsx` — **지도 위 에러 배너** (컷오버 필수 결함 3a): geojson/metrics fetch 실패 시 `role="alert"` 배너 표시(기존 side-panel/analysis의 에러 표시 관행과 일관, `--danger` 토큰). 실 API가 데이터 미보유 업종·연도에 200 + 빈 배열을 반환하는 경우 `role="status"` "지표 데이터 없음" 안내 배너 표시(빈 지도 + 데이터 없음 명시)
+- `frontend/src/features/agent-report/components/progress-panel.test.tsx` — 동일 tool+summary 이벤트 반복 시 React key 중복 경고가 없음을 검증하는 TDD 테스트
+- `frontend/src/features/agent-report/hooks/use-agent-report.test.ts` — SSE payload가 JSON이 아닐 때 error 상태 합류·스트림 close 검증, `NEXT_PUBLIC_API_BASE`가 실 API여도 분석 POST·SSE가 `/api/mock` 베이스를 유지함을 검증하는 테스트 2건 추가(`FakeEventSource`에 listener 캡처/emit 기능 추가)
+- `frontend/src/features/map-explorer/lib/map-state.test.ts` — `YEARS`가 2019~2026 8개년임을 고정하는 계약 테스트(백엔드 v0.9.0 지표 제공 범위와 일치 — 코로나 충격 시계열 조회 가능. 상수 자체는 v0.4.0부터 이미 8개년이라 코드 변경 없음)
+
+### Changed
+- `frontend/.env.local` — `NEXT_PUBLIC_API_BASE=http://localhost:8201` 추가(실 API 컷오버, 미커밋 로컬 설정 — 커밋되는 `config.ts`의 `/api/mock` 폴백은 유지)
+- `frontend/src/features/agent-report/hooks/use-agent-report.ts` — **AI 분석 탭만 mock 유지**: 분석 시작 POST와 SSE `EventSource`가 `config.apiBase` 대신 명시적 `ANALYSIS_API_BASE = "/api/mock"` 상수를 사용(RAG 분석 백엔드 미구현 — 실 분석 API 전환 시 `config.apiBase`로 복귀, TODO 주석)
+- `frontend/src/shared/api/client.ts` — `apiPost`에 선택적 `base` 파라미터 추가(기본값 `config.apiBase`, 기존 호출부 무영향)
+
+### Fixed
+- `frontend/src/features/agent-report/hooks/use-agent-report.ts` — SSE `JSON.parse` 무가드 수정 (컷오버 필수 결함 3b): 손상된 payload를 try/catch로 잡아 `onerror`와 동일한 에러 경로(에러 메시지 + close + finish)에 합류
+- `frontend/src/features/agent-report/components/progress-panel.tsx` — 동일 tool+summary 이벤트 반복 시 React key 중복 경고 수정 (컷오버 필수 결함 3c): `tool:summary` content 기반 key → append-only 리스트에서 안정적인 인덱스 포함 key(`{i}:{tool}`)로 교체
+
+### 실 API 계약 검증 (백엔드 v0.9.0, uvicorn 8201)
+- `GET /regions/geojson` 427 MultiPolygon, `GET /metrics` 427행, `GET /regions/{code}/summary` fact 카드 3장(side-panel 정상 렌더), `GET /stores` 역삼1동 카페 705행(클러스터 정상 처리, `status_name: "영업"`) — curl + 브라우저(agent-browser) 실검증
+- 데이터 미보유 업종(편의점 등 4종)은 `/metrics`·`/stores` 모두 200 + 빈 배열 → 빈 지도 + "지표 데이터 없음" 배너 + summary 카드 "데이터 없음" 값으로 우아하게 처리됨을 확인
+- 백엔드 중단 상태에서 지도 접속 시 `role="alert"` 에러 배너 표시 확인. vitest 39건·`tsc --noEmit` 통과
+
 ## [v0.10.1] - 2026-09-07
 
 ### Changed

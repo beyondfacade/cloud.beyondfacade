@@ -1,5 +1,9 @@
 import { expect, it } from "vitest";
-import { parseMapState, serializeMapState } from "./map-state";
+import { parseMapState, serializeMapState, YEARS } from "./map-state";
+
+it("YEARS는 2019~2026 8개년을 제공한다 (백엔드 지표 범위와 일치)", () => {
+  expect(YEARS).toEqual([2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026]);
+});
 
 it("기본값: 파라미터 없으면 cafe/closure_rate/2026/null", () => {
   expect(parseMapState(new URLSearchParams())).toEqual({

@@ -64,6 +64,10 @@ export function MapView({ regionCode, metric, industry, year, onSelectRegion }: 
   const [ready, setReady] = useState(false);
 
   const { geojson, rows } = useMapData(metric, industry, year);
+  // 경계/지표 fetch 실패는 무음 빈 지도가 아니라 배너로 알린다 (side-panel의 role="alert" 관행과 일관).
+  const loadError = geojson.isError || rows.isError;
+  // 실 API는 데이터 미보유 업종·연도에 200 + 빈 배열을 반환한다 — 빈 지도임을 명시.
+  const noData = rows.isSuccess && rows.data.length === 0;
 
   // 맵 최초 생성 — unmount 시 정리.
   useEffect(() => {
@@ -166,7 +170,24 @@ export function MapView({ regionCode, metric, industry, year, onSelectRegion }: 
   }, [ready, regionCode]);
 
   return (
-    <div ref={containerRef} className="h-full min-h-[320px] w-full">
+    <div className="relative h-full min-h-[320px] w-full">
+      <div ref={containerRef} className="h-full w-full" />
+      {loadError && (
+        <div
+          role="alert"
+          className="absolute top-3 left-1/2 z-10 -translate-x-1/2 rounded-md border border-[var(--danger)] bg-[var(--bg-surface)] px-3 py-2 text-sm font-medium text-[var(--danger)] shadow-md"
+        >
+          지도 데이터를 불러오지 못했습니다. 서버 연결을 확인해 주세요.
+        </div>
+      )}
+      {!loadError && noData && (
+        <div
+          role="status"
+          className="absolute top-3 left-1/2 z-10 -translate-x-1/2 rounded-md border border-[var(--border)] bg-[var(--bg-surface)] px-3 py-2 text-sm text-[var(--text-secondary)] shadow-md"
+        >
+          해당 업종·연도의 지표 데이터가 없습니다.
+        </div>
+      )}
       <StoreMarkers mapRef={mapRef} ready={ready} regionCode={regionCode} industry={industry} />
     </div>
   );
