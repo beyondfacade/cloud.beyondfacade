@@ -43,6 +43,8 @@ erDiagram
     region ||--o{ population_stat : "인구"
     region ||--o{ sales_estimate : "추정매출(서울)"
     district |o--o{ rent_price : "임대시세(상권 단위 원천 - 자치구 매핑 후속)"
+    district ||--o{ tobacco_retailer : "지정관할(보조 테이블)"
+    region |o--o{ tobacco_retailer : "위치(공간조인 후 채움)"
     shock_event ||--o{ shock_event_industry : ""
     industry ||--o{ shock_event_industry : ""
     shock_event ||--o{ shock_event_region : ""
@@ -134,6 +136,23 @@ erDiagram
         string rent_statbl_id "임대료 원천 통계표 ID - 표본 개편(빈티지) 추적"
         string vacancy_statbl_id "공실률 원천 통계표 ID"
     }
+    tobacco_retailer {
+        string retailer_id PK "관리번호 - 인허가 CSV 실측 유일"
+        string name "사업장명"
+        string district_code FK "개방자치단체코드 매핑 (opn_authority_code)"
+        string region_code FK "nullable - 좌표 공간조인 후 채움 (store 전례)"
+        string status_code "상세영업상태코드 0 정상영업 ~ 6 영업정지"
+        string status_name "정상영업/폐업처리/지정취소/직권취소 등"
+        date designated_date "지정일자 - nullable (실측 76.0%)"
+        date permit_date "인허가일자"
+        date close_date "폐업일자"
+        date cancel_date "인허가취소일자 - 지정취소 폐지 시점"
+        float lat "EPSG:5174 to WGS84 변환 - nullable"
+        float lng
+        string road_address "nullable - 표시용"
+        string jibun_address "nullable - 좌표 결측분 지오코딩 대기열"
+        datetime source_updated_at "데이터갱신시점"
+    }
     interest_rate {
         string id PK "rate_type:period - ECOS 실응답 기반"
         string rate_type "base 기준금리 - 시리즈 확장 대비"
@@ -213,6 +232,14 @@ erDiagram
   **별도 테이블(예: loan_rate)로 유보** — 두 데이터는 축(시계열 vs 은행군×신용대 격자)이 달라 한 테이블에 섞지 않는다.
   참고: 계산기 §8.1③의 COFIX 보정 축은 ECOS 미제공 실확인(2026-09-07, 전체 통계표 전수 조회) —
   COFIX는 은행연합회 소비자포털 공시라 후속(은행연합회) 수집 범위로 이동.
+- `tobacco_retailer` — **MVP 15테이블 밖 보조 테이블 추가** (2026-09-07, 편의점 축 1단계).
+  편의점은 LOCALDATA 단일 인허가 코드가 없어 담배소매인 지정(지자체 거리 제한)이 사실상
+  출점 가능 여부를 결정 (brainstorming §3.5). 원천은 인허가 「기타_담배소매업」 서울 아카이브 CSV
+  (`data/raw/tobacco_retail/`, 95,402행 실컬럼 기반 — 표준데이터 CSV는 좌표 부재라 배제).
+  §13 연결 원칙: `district_code` FK 필수 + `region_code` FK nullable(좌표 공간조인 후 채움 —
+  의도된 미연결은 좌표 결측 9.9%분)로 마스터 허브에 연결, 고립 없음.
+  store에 합치지 않는 근거: 담배소매인은 점포(업종)가 아니라 **지정 권리** — industry FK가 성립하지
+  않고(편의점·슈퍼·가판 복합), 지정일자·취소일자 등 고유 컬럼 축이 다르다.
 
 ---
 
