@@ -1,5 +1,36 @@
 # Backend Version Log
 
+## [v0.13.0] - 2026-09-07
+
+### Added
+- **부동산중개업(real_estate) 수집** — 브이월드 NED `getEBOfficeInfo` (data.go.kr 15123990 LINK 실체) → store
+  - 원천 확정 경위: 시드된 15123990은 LINK형 → 실체는 브이월드 NED API (인증: `VWORLD_API_KEY`+domain,
+    data.go.kr 쿼터 미사용). 속성 응답에 **좌표·폐업일 없음 실확인** — 브이월드 일간 파일(부동산중개업공간정보 SHP,
+    좌표 포함)은 다운로드가 로그인 세션 필수(비로그인 200+0바이트 실측)라 기각, SGIS 지오코딩은 키 미발급으로 보류
+  - `MolitBrokerGateway` (Driven Adapter) — ldCode=district_code(시군구 5자리) 순차 페이징(1회 1,000행 실측 허용),
+    재시도(지수 백오프)·YYYY-MM-DD 방어 파싱(월말 클램프, MOIS 전례). 상태 무필터 조회가 전 상태 포함
+    (강남 2,990 = 영업중 2,972+휴업 16+업무정지 2 실측). **lat/lng NULL 적재 — SGIS 지오코딩 후속 대상(학원과 동일 대기열)**
+  - store 매핑 (실응답 기반): jurirno+ldCode→store_id(`real_estate:{구코드}:{등록번호}`, 자치구 내 유일 실확인),
+    bsnmCmpnm→name, registDe→open_date, sttusSeCode→status(dict 디스패치: 1→open, 2→suspended,
+    미지 코드는 원문 보존 — 실적재에서 휴업연장·업무정지 관측), lastUpdtDt→source_updated_at
+  - **폐업은 스냅샷 소실 기반 추정(관측일 기록)** — 원천이 폐업분 미제공(sttusSeCode=3 조회 totalCount 0 실확인).
+    업서트 후 DB에 있으나 이번 스냅샷에 없는 점포를 close_date=관측일, `closed_estimated`/"폐업(추정)"으로 기록.
+    최초 적재일은 비교 기준이 없어 발동 금지(테스트 검증). **과거 폐업 이력 없음 — 개폐업 시계열은 적재 시작일(2026-09-07)부터**
+  - 재수집 업서트의 위치 이월(`_carry_location`) — 후속 지오코딩·공간조인이 채울 lat/lng/region_code를
+    일일 전량 재수집이 지우지 않도록 기존 값을 엔티티에 이월 (테스트 검증)
+  - `BrokerSnapshotInteractor`(+ input/output port — `BrokerGatewayPort`·`StoreSnapshotRepositoryPort` ISP 분리),
+    저장소에 `active_store_ids`/`existing_locations`/`mark_closed` 추가
+  - `broker_collector.py` (Driving Adapter, CLI) — source_system→게이트웨이 **팩토리 레지스트리**(§5, 분기 없이 등록으로 확장).
+    **첫 실적재: 25개 구 25,317건 전량(영업중 25,237·휴업 58·업무정지 17·휴업연장 5), API 35회 호출, 폐업 추정 0건(최초)**
+- 테스트 12건 — 게이트웨이 7건(필드 매핑/상태 dict 디스패치·미지 코드 보존/날짜 클램프/페이징 종료/오류 페이로드)
+  + ingest 5건(최초 적재 폐업 추정 금지/소실 폐업 추정/재등장 복원·기폐업 재추정 금지/지오코딩 결과 보존/레지스트리)
+  — 전체 94건 중 93 passed (기지 실패 1건: test_store_ingest 실DB 커서 테스트, 기존 상태 유지)
+
+### Changed
+- `scripts/store-collector.sh` — academy_collector 뒤에 broker_collector 단계 추가 (일 배치 동일 크론)
+- 좌표 부재로 real_estate는 assign_regions·build_metrics 대상 제외 (SGIS 지오코딩 후 합류 — region_code NULL 상태,
+  region_industry_metric의 real_estate 지표는 지오코딩 후속 완료 시 생성)
+
 ## [v0.12.0] - 2026-09-07
 
 ### Added

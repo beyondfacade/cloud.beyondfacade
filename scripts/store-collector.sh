@@ -15,6 +15,8 @@ cd "${BACKEND_DIR}"
   .venv/bin/python -m apps.store.adapter.inbound.cli.store_collector
   echo "[$(date '+%Y-%m-%d %H:%M:%S')] academy collector (서울 학원·교습소 스냅샷 전량, ~26회 호출)"
   .venv/bin/python -m apps.store.adapter.inbound.cli.academy_collector
+  echo "[$(date '+%Y-%m-%d %H:%M:%S')] broker collector (부동산중개업 스냅샷 전량 + 폐업 추정, ~35회 호출)"
+  .venv/bin/python -m apps.store.adapter.inbound.cli.broker_collector
   echo "[$(date '+%Y-%m-%d %H:%M:%S')] region 공간조인 (신규분)"
   .venv/bin/python -m apps.store.adapter.inbound.cli.assign_regions
   echo "[$(date '+%Y-%m-%d %H:%M:%S')] 지표 배치 집계 (region_industry_metric)"
