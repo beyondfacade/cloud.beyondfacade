@@ -1,5 +1,48 @@
 # Backend Version Log
 
+## [v0.14.0] - 2026-09-07
+
+### Added
+- **shock BC 신설** (`apps/shock/`) — 특이변수(외생 충격) 데이터 계층 (brainstorming §5.2 4계층 분류, ERD shock_event 계열)
+  - `shock_event` Fractal 11-File Set — 계층은 `ShockLayer` StrEnum(policy/macro/trend/regional, if 분기 금지),
+    영향도는 `Severity` StrEnum(critical/high/medium/low). 엔티티 불변식: 출처(source) 없는 충격 등록 거부,
+    layer·severity 값 검증, 종료일<시행일 거부. 라우터는 `GET /shocks/myself`(§12 배선 검증) +
+    `GET /shocks?industry=&limit=`(시행일 오름차순 타임라인, 업종 영향 동봉) 최소 구성
+  - `shock_event_industry` M:N (event_id+industry_id PK, FK 강제, severity) — 업서트 시 영향 행 교체(멱등),
+    `shock_event_region` M:N (④지역 이벤트용 자리 — MVP 빈 테이블, 뉴스 기반 감지 후속)
+  - `ShockEventSourcePort` 1개에 소스 어댑터 2종 — 거리두기 API·시드 파일이 같은 계약으로 들어온다 (OCP)
+- **코로나 거리두기 이력 적재** — data.go.kr **15098772**(ODMS_COVID_12, 2026-09-07 실호출 검증:
+  2020-12-08~2021-10-31 일별 328건 결측 없음, 실필드 stdDay·seoLvl·socdisLvl·시도별 Lvl/Rmk)
+  - `CovidDistancingGateway` — 1회 호출 전량 수신(호출 수 로그), 서울(seoLvl) 동일 단계 연속 구간 압축 →
+    shock_event 3건(2.5단계 2020-12-08~/2단계 2021-02-15~/4단계 2021-07-08~2021-10-31), 결정적 event_id로 재적재 멱등.
+    severity 밴드 상수(§5.2 노래방·PC방·헬스장·당구장 ≫ 카페): 2.5+↑ critical/high, 2단계 high/medium
+  - `load_distancing.py` CLI — 과거 이력 1회성, 크론 불요
+- **①계층 정책 충격 시드** — `shock_events_seed.json`(시드 파일, 전 행 출처 명시) + `seed_shock_events.py` CLI, 23건
+  - API 미커버 거리두기 보충: 1차 거리두기~수도권 2단계(2020-03-22~2020-12-07 공백 없는 연속 8구간,
+    질병관리청·중대본 보도자료 기준) + 위드코로나(2021-11-01)·재강화(2021-12-18~2022-04-17) — covid 계열 총 13건 연속 커버
+  - 최저임금 연도별 고시 2019~2026 (시급 8,350→10,320원, 실제 금액·인상률·1/1 시행) — 편의점 high·카페 medium
+  - 주 52시간제 단계 시행 3건 (2018-07-01 300인↑/2020-01-01 50~299인/2021-07-01 5~49인) — 노래방·당구장 medium
+  - 1차 긴급재난지원금(2020-05-04)·소상공인 손실보상제(2021-10-27) — 전 업종 연결, **지원금 폐업 '지연' 왜곡
+    주의(§5.2 ⚠️)를 description에 명시**해 후속 분석이 참조
+- **②거시 — 한국은행 기준금리 적재** — ECOS StatisticSearch 722Y001(월)/0101000 (2026-09-07 실호출 검증:
+  TIME·DATA_VALUE·UNIT_NAME, 2019-01~2026-08 92행)
+  - `interest_rate` 독립 시계열 (계산기·부동산 분석 공용 — erd.md §4 역정규화 근거. 컬럼은 실데이터 기반 확정:
+    id=`{rate_type}:{period}` PK, rate_type="base", period YYYYMM, rate, unit, stat_code, item_code —
+    가중평균 대출금리 121Y006 확장 대비). ORM+CLI(`load_interest_rate.py`), 라우터 후속
+  - 실적재: 92행, 변경점 20건 — 1.75%(2019-01)→0.5%(2020-05 저점)→3.5%(2023-01 고점)→2.5%(2025-05)→3.0%(2026-08)
+    사이클 확인. ECOS 오류(200+RESULT 바디)는 RuntimeError 변환
+- `scripts/interest-rate-collector.sh` — 주 1회(월 05:20) 크론 러너 (기존 수집기 관행)
+- 테스트 17건 — 거리두기 파싱 4(실응답 픽스처 구간 압축/결정적 ID·출처/severity 매핑/빈 입력)
+  + 시드 5(출처·계층·업종 무결성/API 이전 구간 연속 커버/최저임금 실값/왜곡 경고) + ingest 3(업서트 멱등/영향 행 교체/업종 필터)
+  + myself 2 + ECOS 파싱 3(실필드/오류 바디/비수치 방어) + interest_rate 업서트 1
+  — 전체 111건 중 110 passed (기지 실패 1건: test_store_ingest 실DB 커서 테스트, 기존 상태 유지)
+- 실적재 검증(psql): shock_event 26건(policy 26 — ②거시는 interest_rate 테이블 담당), 업종 연결 105건,
+  covid 계열 13건 2020-03-22~2022-04-17 공백 0일, shock_event_region 0건(설계 의도), 재실행 신규 0/갱신 0(멱등)
+
+### Changed
+- `main.py` — shock_router 등록, `migrations/env.py` — shock ORM 4종 등록 (마이그레이션 2bd709bb5837)
+- `core/matrix/grid_keymaker_secret_manager.py` — `ecos_api_key` 추가 (.env `ECOS_API_KEY`)
+
 ## [v0.13.0] - 2026-09-07
 
 ### Added

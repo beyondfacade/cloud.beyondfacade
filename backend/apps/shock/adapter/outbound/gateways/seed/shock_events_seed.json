@@ -1,0 +1,672 @@
+{
+  "_doc": "특이변수 ①계층(정책·규제) 시드 — API 미커버 구간·공표 시행일 기반. 각 행은 source(근거 출처) 필수. 적재: python -m apps.shock.adapter.inbound.cli.seed_shock_events",
+  "events": [
+    {
+      "event_id": "covid-distancing-20200322",
+      "layer": "policy",
+      "name": "코로나19 강력한 사회적 거리두기",
+      "start_date": "2020-03-22",
+      "end_date": "2020-05-05",
+      "scope": "전국",
+      "source": "질병관리청·중앙재난안전대책본부 보도자료",
+      "source_url": "https://www.kdca.go.kr/board/board.es?mid=a20501010000&bid=0015",
+      "description": "종교시설·실내체육시설·유흥시설 운영중단 강력 권고 (2020-03-21 발표, 2주 시행 후 2020-05-05까지 연장)",
+      "industry_impacts": [
+        {
+          "industry_id": "billiard",
+          "severity": "high"
+        },
+        {
+          "industry_id": "cafe",
+          "severity": "medium"
+        },
+        {
+          "industry_id": "gym",
+          "severity": "critical"
+        },
+        {
+          "industry_id": "karaoke",
+          "severity": "high"
+        },
+        {
+          "industry_id": "pc_bang",
+          "severity": "high"
+        }
+      ]
+    },
+    {
+      "event_id": "covid-distancing-20200506",
+      "layer": "policy",
+      "name": "생활 속 거리두기 전환",
+      "start_date": "2020-05-06",
+      "end_date": "2020-08-15",
+      "scope": "전국",
+      "source": "질병관리청·중앙재난안전대책본부 보도자료",
+      "source_url": "https://www.kdca.go.kr/board/board.es?mid=a20501010000&bid=0015",
+      "description": "생활방역 체계 전환 — 시설 운영 재개, 방역수칙 준수 전제 (2020-05-03 발표)",
+      "industry_impacts": [
+        {
+          "industry_id": "billiard",
+          "severity": "medium"
+        },
+        {
+          "industry_id": "cafe",
+          "severity": "low"
+        },
+        {
+          "industry_id": "gym",
+          "severity": "medium"
+        },
+        {
+          "industry_id": "karaoke",
+          "severity": "medium"
+        },
+        {
+          "industry_id": "pc_bang",
+          "severity": "medium"
+        }
+      ]
+    },
+    {
+      "event_id": "covid-distancing-20200816",
+      "layer": "policy",
+      "name": "수도권 사회적 거리두기 2단계",
+      "start_date": "2020-08-16",
+      "end_date": "2020-08-29",
+      "scope": "수도권",
+      "source": "질병관리청·중앙재난안전대책본부 보도자료",
+      "source_url": "https://www.kdca.go.kr/board/board.es?mid=a20501010000&bid=0015",
+      "description": "서울·경기 2단계 격상 (2020-08-15 발표) — 노래연습장·PC방 등 고위험시설 12종 집합금지",
+      "industry_impacts": [
+        {
+          "industry_id": "billiard",
+          "severity": "high"
+        },
+        {
+          "industry_id": "cafe",
+          "severity": "medium"
+        },
+        {
+          "industry_id": "gym",
+          "severity": "high"
+        },
+        {
+          "industry_id": "karaoke",
+          "severity": "critical"
+        },
+        {
+          "industry_id": "pc_bang",
+          "severity": "critical"
+        }
+      ]
+    },
+    {
+      "event_id": "covid-distancing-20200830",
+      "layer": "policy",
+      "name": "수도권 강화된 2단계(2.5단계)",
+      "start_date": "2020-08-30",
+      "end_date": "2020-09-13",
+      "scope": "수도권",
+      "source": "질병관리청·중앙재난안전대책본부 보도자료",
+      "source_url": "https://www.kdca.go.kr/board/board.es?mid=a20501010000&bid=0015",
+      "description": "실내체육시설 집합금지, 프랜차이즈형 카페 포장·배달만 허용 (2020-08-28 발표)",
+      "industry_impacts": [
+        {
+          "industry_id": "billiard",
+          "severity": "critical"
+        },
+        {
+          "industry_id": "cafe",
+          "severity": "high"
+        },
+        {
+          "industry_id": "gym",
+          "severity": "critical"
+        },
+        {
+          "industry_id": "karaoke",
+          "severity": "critical"
+        },
+        {
+          "industry_id": "pc_bang",
+          "severity": "critical"
+        }
+      ]
+    },
+    {
+      "event_id": "covid-distancing-20200914",
+      "layer": "policy",
+      "name": "수도권 사회적 거리두기 2단계 완화",
+      "start_date": "2020-09-14",
+      "end_date": "2020-10-11",
+      "scope": "수도권",
+      "source": "질병관리청·중앙재난안전대책본부 보도자료",
+      "source_url": "https://www.kdca.go.kr/board/board.es?mid=a20501010000&bid=0015",
+      "description": "고위험시설 일부 운영 재개 — 핵심 방역수칙 의무화 (2020-09-13 발표)",
+      "industry_impacts": [
+        {
+          "industry_id": "billiard",
+          "severity": "high"
+        },
+        {
+          "industry_id": "cafe",
+          "severity": "medium"
+        },
+        {
+          "industry_id": "gym",
+          "severity": "high"
+        },
+        {
+          "industry_id": "karaoke",
+          "severity": "high"
+        },
+        {
+          "industry_id": "pc_bang",
+          "severity": "high"
+        }
+      ]
+    },
+    {
+      "event_id": "covid-distancing-20201012",
+      "layer": "policy",
+      "name": "전국 사회적 거리두기 1단계",
+      "start_date": "2020-10-12",
+      "end_date": "2020-11-18",
+      "scope": "전국",
+      "source": "질병관리청·중앙재난안전대책본부 보도자료",
+      "source_url": "https://www.kdca.go.kr/board/board.es?mid=a20501010000&bid=0015",
+      "description": "전국 1단계 완화 (2020-10-11 발표)",
+      "industry_impacts": [
+        {
+          "industry_id": "billiard",
+          "severity": "medium"
+        },
+        {
+          "industry_id": "cafe",
+          "severity": "low"
+        },
+        {
+          "industry_id": "gym",
+          "severity": "medium"
+        },
+        {
+          "industry_id": "karaoke",
+          "severity": "medium"
+        },
+        {
+          "industry_id": "pc_bang",
+          "severity": "medium"
+        }
+      ]
+    },
+    {
+      "event_id": "covid-distancing-20201119",
+      "layer": "policy",
+      "name": "수도권 사회적 거리두기 1.5단계",
+      "start_date": "2020-11-19",
+      "end_date": "2020-11-23",
+      "scope": "수도권",
+      "source": "질병관리청·중앙재난안전대책본부 보도자료",
+      "source_url": "https://www.kdca.go.kr/board/board.es?mid=a20501010000&bid=0015",
+      "description": "수도권 1.5단계 격상 (2020-11-17 발표)",
+      "industry_impacts": [
+        {
+          "industry_id": "billiard",
+          "severity": "medium"
+        },
+        {
+          "industry_id": "cafe",
+          "severity": "low"
+        },
+        {
+          "industry_id": "gym",
+          "severity": "medium"
+        },
+        {
+          "industry_id": "karaoke",
+          "severity": "medium"
+        },
+        {
+          "industry_id": "pc_bang",
+          "severity": "medium"
+        }
+      ]
+    },
+    {
+      "event_id": "covid-distancing-20201124",
+      "layer": "policy",
+      "name": "수도권 사회적 거리두기 2단계",
+      "start_date": "2020-11-24",
+      "end_date": "2020-12-07",
+      "scope": "수도권",
+      "source": "질병관리청·중앙재난안전대책본부 보도자료",
+      "source_url": "https://www.kdca.go.kr/board/board.es?mid=a20501010000&bid=0015",
+      "description": "수도권 2단계 격상 (2020-11-22 발표) — 카페 포장·배달만 허용. 이후 구간(2020-12-08~2021-10-31)은 data.go.kr 15098772 API 적재분이 담당",
+      "industry_impacts": [
+        {
+          "industry_id": "billiard",
+          "severity": "high"
+        },
+        {
+          "industry_id": "cafe",
+          "severity": "high"
+        },
+        {
+          "industry_id": "gym",
+          "severity": "high"
+        },
+        {
+          "industry_id": "karaoke",
+          "severity": "high"
+        },
+        {
+          "industry_id": "pc_bang",
+          "severity": "high"
+        }
+      ]
+    },
+    {
+      "event_id": "covid-reopening-20211101",
+      "layer": "policy",
+      "name": "단계적 일상회복(위드코로나) 1차 개편",
+      "start_date": "2021-11-01",
+      "end_date": "2021-12-17",
+      "scope": "전국",
+      "source": "질병관리청·중앙재난안전대책본부 보도자료",
+      "source_url": "https://www.kdca.go.kr/board/board.es?mid=a20501010000&bid=0015",
+      "description": "거리두기 해제·방역패스 도입 — §5.4 회복 판정의 기점 구간 (2021-10-29 발표)",
+      "industry_impacts": [
+        {
+          "industry_id": "billiard",
+          "severity": "low"
+        },
+        {
+          "industry_id": "cafe",
+          "severity": "low"
+        },
+        {
+          "industry_id": "gym",
+          "severity": "low"
+        },
+        {
+          "industry_id": "karaoke",
+          "severity": "low"
+        },
+        {
+          "industry_id": "pc_bang",
+          "severity": "low"
+        }
+      ]
+    },
+    {
+      "event_id": "covid-distancing-20211218",
+      "layer": "policy",
+      "name": "코로나19 거리두기 재강화(사적모임·영업시간 제한)",
+      "start_date": "2021-12-18",
+      "end_date": "2022-04-17",
+      "scope": "전국",
+      "source": "질병관리청·중앙재난안전대책본부 보도자료",
+      "source_url": "https://www.kdca.go.kr/board/board.es?mid=a20501010000&bid=0015",
+      "description": "사적모임 4인·21시 영업제한으로 재강화 (2021-12-16 발표). 기간 중 사적모임 4→6→8→10인, 영업시간 21→22→23시 수차례 조정, 2022-04-18 전면 해제",
+      "industry_impacts": [
+        {
+          "industry_id": "billiard",
+          "severity": "high"
+        },
+        {
+          "industry_id": "cafe",
+          "severity": "high"
+        },
+        {
+          "industry_id": "gym",
+          "severity": "high"
+        },
+        {
+          "industry_id": "karaoke",
+          "severity": "high"
+        },
+        {
+          "industry_id": "pc_bang",
+          "severity": "high"
+        }
+      ]
+    },
+    {
+      "event_id": "min-wage-2019",
+      "layer": "policy",
+      "name": "최저임금 인상 — 2019년 시급 8,350원(+10.9%)",
+      "start_date": "2019-01-01",
+      "end_date": "2019-12-31",
+      "scope": "전국",
+      "source": "고용노동부 최저임금 고시(2018년 8월 고시, 2019-01-01 시행)",
+      "source_url": "https://www.minimumwage.go.kr",
+      "description": "인건비 비중이 큰 야간 운영 업종에 직접 영향 — 야간 무인화·24시간 영업 포기 추세 (brainstorming §5.2)",
+      "industry_impacts": [
+        {
+          "industry_id": "cafe",
+          "severity": "medium"
+        },
+        {
+          "industry_id": "convenience_store",
+          "severity": "high"
+        }
+      ]
+    },
+    {
+      "event_id": "min-wage-2020",
+      "layer": "policy",
+      "name": "최저임금 인상 — 2020년 시급 8,590원(+2.9%)",
+      "start_date": "2020-01-01",
+      "end_date": "2020-12-31",
+      "scope": "전국",
+      "source": "고용노동부 최저임금 고시(2019년 8월 고시, 2020-01-01 시행)",
+      "source_url": "https://www.minimumwage.go.kr",
+      "description": "인건비 비중이 큰 야간 운영 업종에 직접 영향 — 야간 무인화·24시간 영업 포기 추세 (brainstorming §5.2)",
+      "industry_impacts": [
+        {
+          "industry_id": "cafe",
+          "severity": "medium"
+        },
+        {
+          "industry_id": "convenience_store",
+          "severity": "high"
+        }
+      ]
+    },
+    {
+      "event_id": "min-wage-2021",
+      "layer": "policy",
+      "name": "최저임금 인상 — 2021년 시급 8,720원(+1.5%)",
+      "start_date": "2021-01-01",
+      "end_date": "2021-12-31",
+      "scope": "전국",
+      "source": "고용노동부 최저임금 고시(2020년 8월 고시, 2021-01-01 시행)",
+      "source_url": "https://www.minimumwage.go.kr",
+      "description": "인건비 비중이 큰 야간 운영 업종에 직접 영향 — 야간 무인화·24시간 영업 포기 추세 (brainstorming §5.2)",
+      "industry_impacts": [
+        {
+          "industry_id": "cafe",
+          "severity": "medium"
+        },
+        {
+          "industry_id": "convenience_store",
+          "severity": "high"
+        }
+      ]
+    },
+    {
+      "event_id": "min-wage-2022",
+      "layer": "policy",
+      "name": "최저임금 인상 — 2022년 시급 9,160원(+5.1%)",
+      "start_date": "2022-01-01",
+      "end_date": "2022-12-31",
+      "scope": "전국",
+      "source": "고용노동부 최저임금 고시(2021년 8월 고시, 2022-01-01 시행)",
+      "source_url": "https://www.minimumwage.go.kr",
+      "description": "인건비 비중이 큰 야간 운영 업종에 직접 영향 — 야간 무인화·24시간 영업 포기 추세 (brainstorming §5.2)",
+      "industry_impacts": [
+        {
+          "industry_id": "cafe",
+          "severity": "medium"
+        },
+        {
+          "industry_id": "convenience_store",
+          "severity": "high"
+        }
+      ]
+    },
+    {
+      "event_id": "min-wage-2023",
+      "layer": "policy",
+      "name": "최저임금 인상 — 2023년 시급 9,620원(+5.0%)",
+      "start_date": "2023-01-01",
+      "end_date": "2023-12-31",
+      "scope": "전국",
+      "source": "고용노동부 최저임금 고시(2022년 8월 고시, 2023-01-01 시행)",
+      "source_url": "https://www.minimumwage.go.kr",
+      "description": "인건비 비중이 큰 야간 운영 업종에 직접 영향 — 야간 무인화·24시간 영업 포기 추세 (brainstorming §5.2)",
+      "industry_impacts": [
+        {
+          "industry_id": "cafe",
+          "severity": "medium"
+        },
+        {
+          "industry_id": "convenience_store",
+          "severity": "high"
+        }
+      ]
+    },
+    {
+      "event_id": "min-wage-2024",
+      "layer": "policy",
+      "name": "최저임금 인상 — 2024년 시급 9,860원(+2.5%)",
+      "start_date": "2024-01-01",
+      "end_date": "2024-12-31",
+      "scope": "전국",
+      "source": "고용노동부 최저임금 고시(2023년 8월 고시, 2024-01-01 시행)",
+      "source_url": "https://www.minimumwage.go.kr",
+      "description": "인건비 비중이 큰 야간 운영 업종에 직접 영향 — 야간 무인화·24시간 영업 포기 추세 (brainstorming §5.2)",
+      "industry_impacts": [
+        {
+          "industry_id": "cafe",
+          "severity": "medium"
+        },
+        {
+          "industry_id": "convenience_store",
+          "severity": "high"
+        }
+      ]
+    },
+    {
+      "event_id": "min-wage-2025",
+      "layer": "policy",
+      "name": "최저임금 인상 — 2025년 시급 10,030원(+1.7%)",
+      "start_date": "2025-01-01",
+      "end_date": "2025-12-31",
+      "scope": "전국",
+      "source": "고용노동부 최저임금 고시(2024년 8월 고시, 2025-01-01 시행)",
+      "source_url": "https://www.minimumwage.go.kr",
+      "description": "인건비 비중이 큰 야간 운영 업종에 직접 영향 — 야간 무인화·24시간 영업 포기 추세 (brainstorming §5.2)",
+      "industry_impacts": [
+        {
+          "industry_id": "cafe",
+          "severity": "medium"
+        },
+        {
+          "industry_id": "convenience_store",
+          "severity": "high"
+        }
+      ]
+    },
+    {
+      "event_id": "min-wage-2026",
+      "layer": "policy",
+      "name": "최저임금 인상 — 2026년 시급 10,320원(+2.9%)",
+      "start_date": "2026-01-01",
+      "end_date": "2026-12-31",
+      "scope": "전국",
+      "source": "고용노동부 최저임금 고시(2025년 8월 고시, 2026-01-01 시행)",
+      "source_url": "https://www.minimumwage.go.kr",
+      "description": "인건비 비중이 큰 야간 운영 업종에 직접 영향 — 야간 무인화·24시간 영업 포기 추세 (brainstorming §5.2)",
+      "industry_impacts": [
+        {
+          "industry_id": "cafe",
+          "severity": "medium"
+        },
+        {
+          "industry_id": "convenience_store",
+          "severity": "high"
+        }
+      ]
+    },
+    {
+      "event_id": "work-hour-52-20180701",
+      "layer": "policy",
+      "name": "주 52시간제 시행 — 300인 이상 사업장",
+      "start_date": "2018-07-01",
+      "end_date": null,
+      "scope": "전국",
+      "source": "고용노동부 — 근로기준법 개정(2018-03-20 공포), 300인 이상 2018-07-01 시행",
+      "source_url": "https://www.moel.go.kr",
+      "description": "회식·야간 여가 수요 감소의 간접 충격 — 노래방·당구장 주 영향 (brainstorming §5.2)",
+      "industry_impacts": [
+        {
+          "industry_id": "billiard",
+          "severity": "medium"
+        },
+        {
+          "industry_id": "karaoke",
+          "severity": "medium"
+        }
+      ]
+    },
+    {
+      "event_id": "work-hour-52-20200101",
+      "layer": "policy",
+      "name": "주 52시간제 시행 — 50~299인 사업장",
+      "start_date": "2020-01-01",
+      "end_date": null,
+      "scope": "전국",
+      "source": "고용노동부 — 근로기준법 개정(2018-03-20 공포), 50~299인 2020-01-01 시행 (계도기간 1년 부여)",
+      "source_url": "https://www.moel.go.kr",
+      "description": "회식·야간 여가 수요 감소의 간접 충격 — 노래방·당구장 주 영향 (brainstorming §5.2)",
+      "industry_impacts": [
+        {
+          "industry_id": "billiard",
+          "severity": "medium"
+        },
+        {
+          "industry_id": "karaoke",
+          "severity": "medium"
+        }
+      ]
+    },
+    {
+      "event_id": "work-hour-52-20210701",
+      "layer": "policy",
+      "name": "주 52시간제 시행 — 5~49인 사업장",
+      "start_date": "2021-07-01",
+      "end_date": null,
+      "scope": "전국",
+      "source": "고용노동부 — 근로기준법 개정(2018-03-20 공포), 5~49인 2021-07-01 시행",
+      "source_url": "https://www.moel.go.kr",
+      "description": "회식·야간 여가 수요 감소의 간접 충격 — 노래방·당구장 주 영향 (brainstorming §5.2)",
+      "industry_impacts": [
+        {
+          "industry_id": "billiard",
+          "severity": "medium"
+        },
+        {
+          "industry_id": "karaoke",
+          "severity": "medium"
+        }
+      ]
+    },
+    {
+      "event_id": "relief-fund-20200504",
+      "layer": "policy",
+      "name": "1차 긴급재난지원금 지급 (전 국민)",
+      "start_date": "2020-05-04",
+      "end_date": "2020-08-31",
+      "scope": "전국",
+      "source": "행정안전부 — 긴급재난지원금 지급 개시(2020-05-04), 사용기한 2020-08-31",
+      "source_url": "https://www.mois.go.kr",
+      "description": "전 국민 가구당 최대 100만원 — 전 업종 소비 진작. ⚠️ 지원금 왜곡 주의: 재난지원금·손실보상·대출 만기연장은 폐업을 '지연'시킨다 — 지원 기간 중 폐업률이 낮다가 종료 후 폐업 절벽이 온다. 시계열 해석 시 이 왜곡을 보정하지 않으면 '코로나 때 오히려 폐업이 적었다'는 착시를 사실로 출력하게 된다 (brainstorming §5.2)",
+      "industry_impacts": [
+        {
+          "industry_id": "academy",
+          "severity": "medium"
+        },
+        {
+          "industry_id": "billiard",
+          "severity": "medium"
+        },
+        {
+          "industry_id": "cafe",
+          "severity": "medium"
+        },
+        {
+          "industry_id": "childcare",
+          "severity": "medium"
+        },
+        {
+          "industry_id": "convenience_store",
+          "severity": "medium"
+        },
+        {
+          "industry_id": "gym",
+          "severity": "medium"
+        },
+        {
+          "industry_id": "hair_salon",
+          "severity": "medium"
+        },
+        {
+          "industry_id": "karaoke",
+          "severity": "medium"
+        },
+        {
+          "industry_id": "pc_bang",
+          "severity": "medium"
+        },
+        {
+          "industry_id": "real_estate",
+          "severity": "medium"
+        }
+      ]
+    },
+    {
+      "event_id": "loss-compensation-20211027",
+      "layer": "policy",
+      "name": "소상공인 손실보상제 시행",
+      "start_date": "2021-10-27",
+      "end_date": null,
+      "scope": "전국",
+      "source": "중소벤처기업부 — 소상공인법 개정(손실보상 법제화, 2021-07-07 공포·2021-10-08 시행), 1차 보상금 2021-10-27 지급 개시",
+      "source_url": "https://www.mss.go.kr",
+      "description": "영업제한 업종 손실 보상 — 집합금지·영업제한 이력 업종 전반. ⚠️ 지원금 왜곡 주의: 재난지원금·손실보상·대출 만기연장은 폐업을 '지연'시킨다 — 지원 기간 중 폐업률이 낮다가 종료 후 폐업 절벽이 온다. 시계열 해석 시 이 왜곡을 보정하지 않으면 '코로나 때 오히려 폐업이 적었다'는 착시를 사실로 출력하게 된다 (brainstorming §5.2)",
+      "industry_impacts": [
+        {
+          "industry_id": "academy",
+          "severity": "medium"
+        },
+        {
+          "industry_id": "billiard",
+          "severity": "medium"
+        },
+        {
+          "industry_id": "cafe",
+          "severity": "medium"
+        },
+        {
+          "industry_id": "childcare",
+          "severity": "medium"
+        },
+        {
+          "industry_id": "convenience_store",
+          "severity": "medium"
+        },
+        {
+          "industry_id": "gym",
+          "severity": "medium"
+        },
+        {
+          "industry_id": "hair_salon",
+          "severity": "medium"
+        },
+        {
+          "industry_id": "karaoke",
+          "severity": "medium"
+        },
+        {
+          "industry_id": "pc_bang",
+          "severity": "medium"
+        },
+        {
+          "industry_id": "real_estate",
+          "severity": "medium"
+        }
+      ]
+    }
+  ]
+}
