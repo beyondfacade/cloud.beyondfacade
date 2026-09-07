@@ -106,13 +106,12 @@ erDiagram
         int tuition_fee "수강료"
     }
     population_stat {
-        string id PK
-        string region_code FK
-        string period "YYYYMM"
-        string pop_type "상주/생활/직장/외국인"
-        string age_band
-        string nationality "외국인만, nullable"
-        int count
+        string region_code PK "FK, 행정동코드"
+        string period PK "YYYYMM (각년 12월 + 최신월)"
+        string gender PK "M/F — 계는 합산 도출"
+        int age_from PK "5세 구간 시작 (0,5,…,100)"
+        int age_to "구간 끝 — 100세 이상은 null"
+        int population "주민등록 인구수"
     }
     sales_estimate {
         string id PK
