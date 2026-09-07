@@ -42,7 +42,7 @@ erDiagram
     store ||--o{ academy_course : "교습과정(학원만)"
     region ||--o{ population_stat : "인구"
     region ||--o{ sales_estimate : "추정매출(서울)"
-    district ||--o{ rent_price : "임대시세"
+    district |o--o{ rent_price : "임대시세(상권 단위 원천 - 자치구 매핑 후속)"
     shock_event ||--o{ shock_event_industry : ""
     industry ||--o{ shock_event_industry : ""
     shock_event ||--o{ shock_event_region : ""
@@ -121,19 +121,27 @@ erDiagram
         bigint amount
     }
     rent_price {
-        string id PK
-        string district_code FK
-        string period
-        int rent_per_m2
-        float vacancy_rate
-        bigint sale_price_avg "실거래 평균"
+        string id PK "building_type:cls_id:period - R-ONE 실응답 기반"
+        string building_type "medium_large 중대형 / small 소규모 상가"
+        string cls_id "R-ONE 지역 분류 ID (CLS_ID)"
+        string region_name "CLS_NM 원문 보존 (예: 테헤란로)"
+        string region_path "CLS_FULLNM 원문 (서울>강남>테헤란로)"
+        int region_level "1 시도 / 2 권역 / 3 상권"
+        string district_code FK "nullable - 원천이 상권 단위라 자치구 미확정, 매핑 후속"
+        string period "YYYYQn 분기"
+        float rent_per_m2 "임대료 천원/㎡ - nullable"
+        float vacancy_rate "공실률 % - nullable"
+        string rent_statbl_id "임대료 원천 통계표 ID - 표본 개편(빈티지) 추적"
+        string vacancy_statbl_id "공실률 원천 통계표 ID"
     }
     interest_rate {
-        string id PK
-        string bank_tier "1군/2군"
-        string credit_band "신용등급 구간"
-        string period
-        float avg_rate
+        string id PK "rate_type:period - ECOS 실응답 기반"
+        string rate_type "base 기준금리 - 시리즈 확장 대비"
+        string period "YYYYMM"
+        float rate "연% 값"
+        string unit "ECOS UNIT_NAME"
+        string stat_code "ECOS 통계코드"
+        string item_code "ECOS 항목코드"
     }
     shock_event {
         string event_id PK
@@ -193,6 +201,18 @@ erDiagram
 
 `interest_rate`는 region/industry와 직접 엣지가 없는 유일한 예외처럼 보이나,
 계산기 유스케이스에서 `rent_price`(district)와 결합되어 사용되므로 **애플리케이션 레벨 엣지**를 §4에 명시해 고립을 해소한다.
+
+**실구현 정정 (2026-09-07, 실데이터 기반 원칙):**
+- `rent_price` — 원천(R-ONE 임대동향조사)의 지역 단위가 **자치구가 아니라 상권/권역/시도**로 실확인
+  (CLS_FULLNM "서울>강남>테헤란로"). 원천 지역명을 보존(`region_name`/`region_path`/`cls_id`)하고
+  `district_code` FK는 nullable(의도된 미연결 — 상권이 자치구 경계와 불일치, 매핑표 구축 후속).
+  초안의 `sale_price_avg`(실거래 매매 평균)는 국토부 실거래가 **후속 수집 시 추가** — 실데이터 확인 전 컬럼 유보.
+- `interest_rate` — 초안의 `bank_tier`(1군/2군)·`credit_band`(신용등급 구간)·`avg_rate`는
+  **은행연합회 공시 대출금리**의 컬럼이지 한국은행 시계열의 것이 아님. 실구현은 ECOS 시계열
+  (`rate_type`/`period`/`rate`)로 확정하고, 은행군×신용등급 평균 대출금리는 은행연합회 후속 수집 시
+  **별도 테이블(예: loan_rate)로 유보** — 두 데이터는 축(시계열 vs 은행군×신용대 격자)이 달라 한 테이블에 섞지 않는다.
+  참고: 계산기 §8.1③의 COFIX 보정 축은 ECOS 미제공 실확인(2026-09-07, 전체 통계표 전수 조회) —
+  COFIX는 은행연합회 소비자포털 공시라 후속(은행연합회) 수집 범위로 이동.
 
 ---
 

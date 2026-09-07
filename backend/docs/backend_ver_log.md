@@ -1,5 +1,48 @@
 # Backend Version Log
 
+## [v0.15.0] - 2026-09-07
+
+### Added
+- **rent BC 신설** (`apps/rent/`) — 월세vs매입 계산기(brainstorming §8.1③) 임대료·공실률 데이터 계층
+  - **R-ONE 상업용부동산 임대동향조사 적재** — reb.or.kr `SttsApiTblData.do` (2026-09-07 실호출 검증:
+    WRTTIME_IDTFR_ID(YYYYQQ)·CLS_ID·CLS_NM·CLS_FULLNM·DTA_VAL·UI_NM, 오류는 200+RESULT 바디 — ECOS 전례)
+  - **지역 단위 실확인: 자치구가 아니라 상권/권역/시도** (CLS_FULLNM "서울>강남>테헤란로" 3계층)
+    → erd.md 초안 정정: 원천 지역명 보존(cls_id/region_name/region_path/region_level),
+    district_code FK **nullable**(의도된 미연결 — 상권·자치구 경계 불일치, 매핑 후속),
+    초안의 sale_price_avg는 실거래가 후속 수집 시 추가로 유보 (실데이터 기반 원칙)
+  - `rent_price` 테이블 — id=`{building_type}:{cls_id}:{period}` PK, 임대료(천원/㎡)·공실률(%)이
+    별도 통계표로 오므로 **같은 PK 행에 지표별 컬럼 병합 업서트**(서로를 지우지 않음 — 멱등),
+    rent_statbl_id/vacancy_statbl_id로 값별 원천 통계표(표본 빈티지) 추적. ORM+마이그레이션(13e7c1526fef)+
+    적재 CLI(`load_rent_price.py`) — 라우터 후속(master 전례)
+  - **통계표 매핑표 확정** (SttsApiTbl.do 전수 738개 조회) — 표본 기준연도(빈티지)별 분리 제공이라
+    2019~최신 연결에 빈티지 5개(2019/2020/2021/2022~/2024Q3~) × 지표 2(임대료·공실률) × 상가 2(중대형·소규모)
+    = **통계표 20개** (`rone_gateway.py` `_TABLES` 정본, docs/api.md ⑫에 표 기록). 시리즈별 옛→새 순서 적재로
+    빈티지 경계 중복 시 새 표본 우선
+  - **첫 실적재: R-ONE API 39회 호출(자체 키, 순차), 서울 관측 7,244행 → rent_price 3,638행**
+    (임대료 3,622·공실률 3,622 병합, 편측 16+16) — 2019Q1~2026Q2 30개 분기, 관측 지역 88개
+    (시도 1·권역 4·상권 계층, 중대형 1,754행·소규모 1,584행 상권 단위)
+  - psql 표본: 테헤란로 중대형 임대료 47.7(2019Q1)→52.5천원/㎡(2026Q2), 광화문 중대형 공실률
+    10.0(2019Q1)→18.1(2022Q1 코로나)→5.2%(2026Q2) — 계산기 임대료·공실 리스크 축 검증
+- 테스트 6건 — R-ONE 파싱 4(실응답 픽스처 필드 매핑·결정적 ID·서울 필터·지역 계층/오류 바디/결측 방어/
+  분기 표기 변환) + rent_price 병합 업서트 2(임대료·공실률 같은 행 병합·district NULL/멱등·최신값 갱신)
+  — 전체 117건 중 116 passed (기지 실패 1건: test_store_ingest 실DB 커서 테스트, 기존 상태 유지)
+
+### Changed
+- `core/matrix/grid_keymaker_secret_manager.py` — `rone_api_key` 추가 (.env `RONE_API_KEY` 기발급)
+- `migrations/env.py` — rent_price ORM 등록
+- `scripts/interest-rate-collector.sh` — 기준금리 뒤에 rent_price 수집 단계 추가 (주 1회 크론 통합 —
+  분기 공표 데이터라 별도 스크립트 불요, store-collector 다단계 전례)
+- `docs/erd.md` — rent_price·interest_rate를 실구현 컬럼으로 정정 + 실구현 정정 절 신설:
+  interest_rate 초안의 bank_tier/credit_band/avg_rate는 은행연합회 공시 대출금리 축(은행군×신용등급 격자)
+  → 후속 수집 시 **별도 테이블(예: loan_rate)로 유보** 명시 (ECOS 시계열과 축이 달라 혼합 금지)
+- `docs/api.md` ⑫ — R-ONE 적재 구현 확정 사항(실필드·지역 단위·빈티지 매핑표 20개·표본 개편 불연속 주의) 기록
+
+### Removed
+- (계획 변경) **ECOS COFIX 적재 보류** — ECOS 오픈 API 전체 통계표 839개 전수 + 금리 관련 표
+  (722Y001/817Y002/721Y001/121Y002·006·013·015) 항목 전수 + 100대 통계지표 확인 결과 **코픽스/COFIX 부재 실확인**
+  (2026-09-07, ECOS 조회 8회). COFIX(신규취급액 기준) 원천은 은행연합회 소비자포털 공시 → 은행연합회
+  후속 수집 범위로 이동 (임의 대체 적재 금지 원칙). 계산기 금리 보정 축은 당분간 기준금리(`base:{YYYYMM}`)만
+
 ## [v0.14.0] - 2026-09-07
 
 ### Added

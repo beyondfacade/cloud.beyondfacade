@@ -25,6 +25,7 @@ class Settings(BaseSettings):
     bizinfo_api_key: str = ""
     seoul_open_data_api_key: str = ""
     ecos_api_key: str = ""
+    rone_api_key: str = ""
     vworld_api_key: str = ""
     # 브이월드 인증키에 등록된 서비스URL — 데이터·WFS API는 domain 불일치 시 INCORRECT_KEY
     vworld_service_domain: str = "beyondfacade.cloud"
