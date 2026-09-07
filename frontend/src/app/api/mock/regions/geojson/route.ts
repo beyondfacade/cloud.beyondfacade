@@ -1,5 +1,5 @@
-import { SEOUL_SAMPLE_GEOJSON } from "../../fixtures";
+import { SEOUL_REGIONS_GEOJSON } from "../../fixtures";
 
 export async function GET() {
-  return Response.json(SEOUL_SAMPLE_GEOJSON);
+  return Response.json(SEOUL_REGIONS_GEOJSON);
 }

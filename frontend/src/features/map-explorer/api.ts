@@ -1,9 +1,9 @@
-import type { FeatureCollection, Polygon } from "geojson";
+import type { FeatureCollection, MultiPolygon, Polygon } from "geojson";
 import { apiGet } from "@/shared/api/client";
 import type { MetricKey, MetricRow, RegionSummary, Store } from "@/shared/api/types";
 
 export type RegionProperties = { region_code: string; name: string };
-export type RegionGeoJSON = FeatureCollection<Polygon, RegionProperties>;
+export type RegionGeoJSON = FeatureCollection<Polygon | MultiPolygon, RegionProperties>;
 
 export function fetchRegionsGeoJson(): Promise<RegionGeoJSON> {
   return apiGet<RegionGeoJSON>("/regions/geojson");

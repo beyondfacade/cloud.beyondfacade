@@ -1,5 +1,15 @@
 # Frontend Version Log
 
+## [v0.10.0] - 2026-09-07
+
+### Added
+- `frontend/public/geojson/seoul-regions.geojson` — 서울 행정동 427개 실경계 FeatureCollection (5.2MB). 백엔드 v0.8.0 `GET /regions/geojson` 산출물 스냅샷(좌표 5자리 절삭, `properties={region_code, name}` — name은 DB `region.name` 조인). TownPulse(site.townpulse.www)의 프론트 정적 GeoJSON 패턴 참고
+
+### Changed
+- `frontend/src/app/api/mock/fixtures.ts` — `SEOUL_SAMPLE_GEOJSON`(강남권 사각형 8개 mock) → `SEOUL_REGIONS_GEOJSON`(실경계 427개, `readFileSync` 로드)으로 교체. `DONGS`/`rectPolygon` 제거, 지역 목록은 `REGIONS`(features의 properties 파생)로 대체 — `metricRows`가 427개 동 전체를 커버해 코로플레스가 서울 전역에 칠해짐
+- `frontend/src/features/map-explorer/api.ts` — `RegionGeoJSON` geometry 타입 `Polygon` → `Polygon | MultiPolygon` 확장 (실경계는 전부 MultiPolygon)
+- mock 라우트·테스트의 `SEOUL_SAMPLE_GEOJSON` 참조명 일괄 갱신 (동작 변화 없음, vitest 32건 통과)
+
 ## [v0.9.1] - 2026-08-26
 
 ### Fixed

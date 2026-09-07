@@ -1,4 +1,6 @@
-import type { FeatureCollection, Polygon } from "geojson";
+import { readFileSync } from "node:fs";
+import path from "node:path";
+import type { FeatureCollection, MultiPolygon } from "geojson";
 import type {
   AgentEvent,
   AgentName,
@@ -12,41 +14,13 @@ import { STORE_SAMPLES } from "./store-samples";
 
 type RegionProperties = { region_code: string; name: string };
 
-/** 강남권 행정동 8개 — 실좌표 기반 그리드 (사각형, mock 폴리곤). */
-const DONGS: { region_code: string; name: string; lng1: number; lat1: number; lng2: number; lat2: number }[] = [
-  { region_code: "1168064000", name: "역삼1동", lng1: 127.02, lat1: 37.49, lng2: 127.0325, lat2: 37.51 },
-  { region_code: "1168065000", name: "역삼2동", lng1: 127.0325, lat1: 37.49, lng2: 127.045, lat2: 37.51 },
-  { region_code: "1168058500", name: "대치1동", lng1: 127.045, lat1: 37.49, lng2: 127.0575, lat2: 37.51 },
-  { region_code: "1168060000", name: "대치4동", lng1: 127.0575, lat1: 37.49, lng2: 127.07, lat2: 37.51 },
-  { region_code: "1168052100", name: "논현1동", lng1: 127.02, lat1: 37.51, lng2: 127.0325, lat2: 37.53 },
-  { region_code: "1168056500", name: "삼성1동", lng1: 127.0325, lat1: 37.51, lng2: 127.045, lat2: 37.53 },
-  { region_code: "1168057000", name: "삼성2동", lng1: 127.045, lat1: 37.51, lng2: 127.0575, lat2: 37.53 },
-  { region_code: "1168055500", name: "청담동", lng1: 127.0575, lat1: 37.51, lng2: 127.07, lat2: 37.53 },
-];
+/** 서울 행정동 427개 실경계 — 백엔드 GET /regions/geojson 산출물 스냅샷 (v0.8.0, 좌표 5자리 절삭).
+ *  서버 전용 모듈(mock 라우트·테스트)에서만 import — 클라이언트 번들에 실리지 않는다. */
+export const SEOUL_REGIONS_GEOJSON: FeatureCollection<MultiPolygon, RegionProperties> = JSON.parse(
+  readFileSync(path.join(process.cwd(), "public", "geojson", "seoul-regions.geojson"), "utf-8"),
+);
 
-function rectPolygon(lng1: number, lat1: number, lng2: number, lat2: number): Polygon {
-  return {
-    type: "Polygon",
-    coordinates: [
-      [
-        [lng1, lat1],
-        [lng2, lat1],
-        [lng2, lat2],
-        [lng1, lat2],
-        [lng1, lat1],
-      ],
-    ],
-  };
-}
-
-export const SEOUL_SAMPLE_GEOJSON: FeatureCollection<Polygon, RegionProperties> = {
-  type: "FeatureCollection",
-  features: DONGS.map(({ region_code, name, lng1, lat1, lng2, lat2 }) => ({
-    type: "Feature",
-    properties: { region_code, name },
-    geometry: rectPolygon(lng1, lat1, lng2, lat2),
-  })),
-};
+const REGIONS: RegionProperties[] = SEOUL_REGIONS_GEOJSON.features.map((f) => f.properties);
 
 /** 문자열 시드 → 결정적 정수 해시 (FNV-1a). Math.random 사용 금지 — 테스트 재현성. */
 function hashSeed(...parts: (string | number)[]): number {
@@ -71,7 +45,7 @@ const METRIC_RANGES: Record<MetricKey, [number, number]> = {
 
 export function metricRows(metric: MetricKey, year: number, industry: string): MetricRow[] {
   const [min, max] = METRIC_RANGES[metric];
-  return DONGS.map(({ region_code }) => {
+  return REGIONS.map(({ region_code }) => {
     const u = unitFrom(hashSeed(metric, year, industry, region_code));
     const raw = min + u * (max - min);
     const value = metric === "store_count" ? Math.round(raw) : Math.round(raw * 1000) / 1000;
@@ -80,8 +54,7 @@ export function metricRows(metric: MetricKey, year: number, industry: string): M
 }
 
 export function summaryOf(code: string, industry: string): RegionSummary {
-  const dong = DONGS.find((d) => d.region_code === code);
-  const name = dong?.name ?? "알 수 없음";
+  const name = REGIONS.find((r) => r.region_code === code)?.name ?? "알 수 없음";
   const storeCount = metricRows("store_count", 2026, industry).find((r) => r.region_code === code)?.value ?? 0;
   const closureRate = metricRows("closure_rate", 2026, industry).find((r) => r.region_code === code)?.value ?? 0;
   const growthRate = metricRows("growth_rate", 2026, industry).find((r) => r.region_code === code)?.value ?? 0;

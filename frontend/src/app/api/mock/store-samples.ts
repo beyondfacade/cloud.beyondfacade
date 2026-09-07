@@ -9,7 +9,7 @@ export interface StoreSample {
 }
 
 /** region_code(행정동) → 점포 표본 배열.
- *  backend `store` 테이블 실데이터(297k행, beyondfacade-db)에서 SEOUL_SAMPLE_GEOJSON 8개 동의
+ *  backend `store` 테이블 실데이터(297k행, beyondfacade-db)에서 SEOUL_REGIONS_GEOJSON 8개 동의
  *  좌표 bounding box로 필터링해 동×업종 조합당 최대 20건 추출(2026-08-26).
  *  store 테이블에 아직 실적재 데이터가 없는 업종(convenience_store/real_estate/academy/childcare)은
  *  이 표본에 포함하지 않는다 — storesOf()가 그 조합에 빈 배열을 반환하는 것이 정확한 동작이다. */

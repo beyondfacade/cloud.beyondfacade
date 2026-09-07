@@ -1,12 +1,12 @@
 import { INDUSTRIES, type IndustryId } from "@/shared/industries";
-import { SEOUL_SAMPLE_GEOJSON, storesOf } from "../fixtures";
+import { SEOUL_REGIONS_GEOJSON, storesOf } from "../fixtures";
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const region = searchParams.get("region") ?? "";
   const industry = searchParams.get("industry") ?? "";
 
-  const knownRegion = SEOUL_SAMPLE_GEOJSON.features.some((f) => f.properties?.region_code === region);
+  const knownRegion = SEOUL_REGIONS_GEOJSON.features.some((f) => f.properties?.region_code === region);
   if (!knownRegion) {
     return Response.json(
       { error: { code: "REGION_NOT_FOUND", message: `알 수 없는 region_code: ${region}` } },
