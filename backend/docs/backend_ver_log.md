@@ -1,5 +1,20 @@
 # Backend Version Log
 
+## [v0.8.0] - 2026-09-07
+
+### Added
+- **region Fractal 11-File Set** (`apps/master/`) — master BC 최초 라우터. `GET /regions/myself`(배선 검증) + `GET /regions/geojson`
+  - `/regions/geojson` — 서울 행정동 427개 경계 FeatureCollection. `properties = {region_code, name}` 프론트엔드 계약 충족
+    (name은 경계 파일 properties가 `adm_nm`/`emd_kor_nm`로 혼재하므로 DB `region.name` 조인으로 통일)
+  - 좌표 소수 5자리 절삭(≈1.1m) — 응답 8.1MB → 5.4MB, gzip 시 849KB. 원본 파일은 원 정밀도 유지(공간조인용)
+  - `CachingRegionUseCaseProxy` (GoF Proxy) — FeatureCollection 프로세스 수명 캐시 (경계는 반기 갱신 데이터)
+  - `BoundaryFileReader` (Driven Adapter) — `geometry_ref` repo root 상대경로 판독
+- `tests/test_master_region_myself.py` — 배선 검증 1건
+- `tests/test_master_region_geojson.py` — FeatureCollection 조립·DB name 조인·geometry_ref 부재 제외·좌표 절삭·Proxy 캐시 4건
+
+### Changed
+- `main.py` — region 라우터 마운트, CORS 미들웨어(프론트 3200 오리진), GZip 미들웨어(1KB 이상 응답 압축)
+
 ## [v0.7.0] - 2026-08-26
 
 ### Added
