@@ -1,12 +1,13 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Map as MapLibreGLMap, setWorkerUrl, type GeoJSONSource, type RasterTileSource } from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { config } from "@/shared/config";
 import type { MetricKey } from "@/shared/api/types";
 import { useMapData } from "../hooks/use-map-data";
 import { makeMetricColorScale, NO_DATA_COLOR, type ColorScheme } from "../lib/metric-color";
+import { MapLegend } from "./map-legend";
 import { StoreMarkers } from "./store-markers";
 
 // maplibre-gl은 GeoJSON 타일링을 Web Worker에서 수행하며, 워커 스크립트 URL을 import.meta.url 기반으로
@@ -68,6 +69,12 @@ export function MapView({ regionCode, metric, industry, year, onSelectRegion }: 
   const loadError = geojson.isError || rows.isError;
   // 실 API는 데이터 미보유 업종·연도에 200 + 빈 배열을 반환한다 — 빈 지도임을 명시.
   const noData = rows.isSuccess && rows.data.length === 0;
+
+  // 색상 스케일 — fill-color 페인트와 범례가 같은 경계(classes)를 공유하는 단일 원천.
+  const scale = useMemo(
+    () => makeMetricColorScale((rows.data ?? []).map((row) => row.value), SCHEME_BY_METRIC[metric]),
+    [rows.data, metric],
+  );
 
   // 맵 최초 생성 — unmount 시 정리.
   useEffect(() => {
@@ -151,14 +158,11 @@ export function MapView({ regionCode, metric, industry, year, onSelectRegion }: 
   useEffect(() => {
     const map = mapRef.current;
     if (!map || !ready) return;
-    const scheme = SCHEME_BY_METRIC[metric];
-    const values = (rows.data ?? []).map((row) => row.value);
-    const colorOf = makeMetricColorScale(values, scheme);
-    const pairs = (rows.data ?? []).flatMap((row) => [row.region_code, colorOf(row.value)]);
+    const pairs = (rows.data ?? []).flatMap((row) => [row.region_code, scale.colorOf(row.value)]);
     const expression = pairs.length > 0 ? ["match", ["get", "region_code"], ...pairs, NO_DATA_COLOR] : NO_DATA_COLOR;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any -- 동적 match 표현식은 스타일 스펙 제네릭과 정확히 맞추기 어려움
     map.setPaintProperty(REGIONS_FILL_LAYER_ID, "fill-color", expression as any);
-  }, [ready, rows.data, metric]);
+  }, [ready, rows.data, scale]);
 
   // 선택된 region 강조 — line 레이어 필터/색상 갱신.
   useEffect(() => {
@@ -188,6 +192,7 @@ export function MapView({ regionCode, metric, industry, year, onSelectRegion }: 
           해당 업종·연도의 지표 데이터가 없습니다.
         </div>
       )}
+      <MapLegend metric={metric} classes={scale.classes} />
       <StoreMarkers mapRef={mapRef} ready={ready} regionCode={regionCode} industry={industry} />
     </div>
   );

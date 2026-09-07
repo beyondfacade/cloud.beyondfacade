@@ -1,6 +1,15 @@
 # Frontend Version Log
 
-## [v0.11.0] - 2026-09-07
+## [v0.12.0] - 2026-09-07
+
+### Added
+- `frontend/src/features/map-explorer/components/map-legend.tsx` — **단계구분도 범례** (포스트MVP 이연 항목): 지도 우하단 패널(MapLibre 어트리뷰션 위·좌하단 Next dev 인디케이터 회피), 7색 스와치 + 값 구간 텍스트 라벨 목록(`<ul>` 시맨틱, 스와치는 `aria-hidden` — 색에만 의존하지 않음) + `데이터 없음`(NO_DATA_COLOR) 행. 값 포맷은 지표별 `formatLegendValue`(폐업률·성장률 %(소수 1자리, 음수 부호 그대로), 점포수 정수 — Record 디스패치). classes가 비면(데이터 없는 업종) 렌더링하지 않음. 테마 토큰(`--bg-surface`/`--border`/`--text-secondary`) 사용, 다크 모드 검증 완료
+- `frontend/src/features/map-explorer/components/map-legend.test.tsx` — 포맷 함수(%·정수·음수 부호)/구간+데이터 없음 행 렌더링/빈 classes 숨김 테스트 3건
+- `frontend/src/features/map-explorer/lib/metric-color.test.ts` — 클래스 경계 노출 테스트 3건 추가: 7구간 연속성(min~max 빈틈 없음), sequential 분위수 경계값 일치 + colorOf와 단일 원천 일관성, diverging ±extent 대칭·중앙 구간 0 포함
+
+### Changed
+- `frontend/src/features/map-explorer/lib/metric-color.ts` — **`makeMetricColorScale` 반환 타입 변경**: `(value) => string` → `{ colorOf, classes }` (`MetricColorScale`). 내부 경계 breaks로 colorOf와 범례용 `classes: {color, from, to}[]`를 함께 생성하는 `scaleFromBreaks` 단일 원천 — 페인트 색과 범례 구간이 항상 일치. 빈 values는 `NO_DATA_COLOR` colorOf + 빈 classes
+- `frontend/src/features/map-explorer/components/map-view.tsx` — 색상 스케일을 effect 내부 생성 대신 `useMemo`로 끌어올려 fill-color 페인트와 `<MapLegend>`가 동일 scale을 공유
 
 ### Added
 - `frontend/src/features/map-explorer/components/map-view.tsx` — **지도 위 에러 배너** (컷오버 필수 결함 3a): geojson/metrics fetch 실패 시 `role="alert"` 배너 표시(기존 side-panel/analysis의 에러 표시 관행과 일관, `--danger` 토큰). 실 API가 데이터 미보유 업종·연도에 200 + 빈 배열을 반환하는 경우 `role="status"` "지표 데이터 없음" 안내 배너 표시(빈 지도 + 데이터 없음 명시)
