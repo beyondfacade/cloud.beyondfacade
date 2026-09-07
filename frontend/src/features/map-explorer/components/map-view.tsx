@@ -6,7 +6,7 @@ import "maplibre-gl/dist/maplibre-gl.css";
 import { config } from "@/shared/config";
 import type { MetricKey } from "@/shared/api/types";
 import { useMapData } from "../hooks/use-map-data";
-import { metricColor, NO_DATA_COLOR, type ColorScheme } from "../lib/metric-color";
+import { makeMetricColorScale, NO_DATA_COLOR, type ColorScheme } from "../lib/metric-color";
 import { StoreMarkers } from "./store-markers";
 
 // maplibre-gl은 GeoJSON 타일링을 Web Worker에서 수행하며, 워커 스크립트 URL을 import.meta.url 기반으로
@@ -46,13 +46,6 @@ function vworldTileUrl(theme: "light" | "dark"): string {
  *  store-markers.tsx도 클러스터/마커 페인트 색상에 동일 토큰을 써야 하므로 export한다. */
 export function readAccentColor(): string {
   return getComputedStyle(document.documentElement).getPropertyValue("--accent").trim() || NO_DATA_COLOR;
-}
-
-function domainOf(values: number[]): [number, number] {
-  if (values.length === 0) return [0, 1];
-  const min = Math.min(...values);
-  const max = Math.max(...values);
-  return min === max ? [min, min + 1] : [min, max];
 }
 
 interface MapViewProps {
@@ -156,8 +149,8 @@ export function MapView({ regionCode, metric, industry, year, onSelectRegion }: 
     if (!map || !ready) return;
     const scheme = SCHEME_BY_METRIC[metric];
     const values = (rows.data ?? []).map((row) => row.value);
-    const domain = domainOf(values);
-    const pairs = (rows.data ?? []).flatMap((row) => [row.region_code, metricColor(row.value, domain, scheme)]);
+    const colorOf = makeMetricColorScale(values, scheme);
+    const pairs = (rows.data ?? []).flatMap((row) => [row.region_code, colorOf(row.value)]);
     const expression = pairs.length > 0 ? ["match", ["get", "region_code"], ...pairs, NO_DATA_COLOR] : NO_DATA_COLOR;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any -- 동적 match 표현식은 스타일 스펙 제네릭과 정확히 맞추기 어려움
     map.setPaintProperty(REGIONS_FILL_LAYER_ID, "fill-color", expression as any);

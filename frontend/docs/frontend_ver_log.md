@@ -1,5 +1,14 @@
 # Frontend Version Log
 
+## [v0.10.1] - 2026-09-07
+
+### Changed
+- `frontend/src/features/map-explorer/lib/metric-color.ts` — 단계구분도 색상을 연속 보간에서 **이산 7클래스**로 교체 (인접 동 색 대비 강화)
+  - sequential: OrRd 5스톱 보간 → **YlOrRd 7클래스 + 분위수(quantile) 경계** — 각 클래스에 비슷한 수의 동이 배분되어 색 다양성이 최대화됨
+  - diverging: RdBu 5스톱 보간(도메인 중점 기준) → **RdBu 7클래스 + 0 중심 대칭** — 성장률 부호가 그대로 색 부호(음수=파랑, 0 부근=중립, 양수=빨강)
+  - API: `metricColor(value, domain, scheme)` → `makeMetricColorScale(values, scheme)` (값 분포로부터 색상 함수 생성). `map-view.tsx`의 `domainOf` 제거
+- `frontend/src/features/map-explorer/lib/metric-color.test.ts` — 분위수 클래스 배분·클램프·0 중심 대칭·빈 값 폴백 6건으로 재작성 (vitest 35건 통과)
+
 ## [v0.10.0] - 2026-09-07
 
 ### Added
