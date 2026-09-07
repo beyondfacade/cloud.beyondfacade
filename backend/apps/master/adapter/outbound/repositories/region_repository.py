@@ -16,3 +16,8 @@ class SqlAlchemyRegionRepository(RegionRepositoryPort):
                 .all()
             )
             return [to_entity(row) for row in rows]
+
+    def find(self, region_code: str) -> Region | None:
+        with session_scope() as session:
+            orm = session.get(RegionOrm, region_code)
+            return None if orm is None else to_entity(orm)

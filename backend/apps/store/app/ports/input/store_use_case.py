@@ -16,3 +16,10 @@ class StoreUseCase(ABC):
 
         full=True면 증분 커서를 무시하고 전체를 다시 받는다 (부분 적재 복구용 — 업서트라 멱등).
         """
+
+    @abstractmethod
+    def list_open_stores(self, region_code: str, industry_id: str) -> list[StoreDto]:
+        """지도 마커용 — 해당 행정동×업종의 영업 중 점포 목록 (좌표 없는 행 제외).
+
+        미등록 업종은 IndustryNotFoundError.
+        """

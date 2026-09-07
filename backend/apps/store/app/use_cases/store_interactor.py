@@ -1,12 +1,15 @@
+from dataclasses import asdict
 from datetime import date, datetime
 from itertools import batched
 
 from apps.store.app.dtos.store_dto import IngestTarget, StoreDto
 from apps.store.app.ports.input.store_use_case import StoreUseCase
 from apps.store.app.ports.output.store_port import (
+    IndustryCatalogPort,
     StorePermitGatewayPort,
     StoreRepositoryPort,
 )
+from apps.store.domain.errors import IndustryNotFoundError
 
 _CHUNK_SIZE = 500
 
@@ -16,9 +19,12 @@ class StoreInteractor(StoreUseCase):
         self,
         repository: StoreRepositoryPort,
         gateway: StorePermitGatewayPort,
+        # 수집 전용 호출부(store_collector·기존 테스트)가 조회 포트 없이 구성하도록 기본 None
+        industry_catalog: IndustryCatalogPort | None = None,
     ) -> None:
         self._repository = repository
         self._gateway = gateway
+        self._industry_catalog = industry_catalog
 
     def myself(self) -> StoreDto:
         return StoreDto(
@@ -49,3 +55,11 @@ class StoreInteractor(StoreUseCase):
             for chunk in batched(stream, _CHUNK_SIZE):
                 processed += self._repository.upsert(list(chunk))
         return processed
+
+    def list_open_stores(self, region_code: str, industry_id: str) -> list[StoreDto]:
+        if not self._industry_catalog.exists(industry_id):
+            raise IndustryNotFoundError(industry_id)
+        return [
+            StoreDto(**asdict(store))
+            for store in self._repository.list_open(region_code, industry_id)
+        ]

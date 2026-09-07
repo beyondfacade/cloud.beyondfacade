@@ -15,6 +15,8 @@ cd "${BACKEND_DIR}"
   .venv/bin/python -m apps.store.adapter.inbound.cli.store_collector
   echo "[$(date '+%Y-%m-%d %H:%M:%S')] region 공간조인 (신규분)"
   .venv/bin/python -m apps.store.adapter.inbound.cli.assign_regions
+  echo "[$(date '+%Y-%m-%d %H:%M:%S')] 지표 배치 집계 (region_industry_metric)"
+  .venv/bin/python -m apps.metric.adapter.inbound.cli.build_metrics
 } >> "${LOG_FILE}" 2>&1 || echo "[$(date '+%Y-%m-%d %H:%M:%S')] store collector 실패 (exit $?)" >> "${LOG_FILE}"
 
 tail -n 5000 "${LOG_FILE}" > "${LOG_FILE}.tmp" && mv "${LOG_FILE}.tmp" "${LOG_FILE}"

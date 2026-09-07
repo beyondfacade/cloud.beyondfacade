@@ -20,6 +20,9 @@ class FakeRepository(RegionRepositoryPort):
     def list_regions(self) -> list[Region]:
         return self._regions
 
+    def find(self, region_code: str) -> Region | None:
+        return next((r for r in self._regions if r.region_code == region_code), None)
+
 
 class FakeBoundaryReader(RegionBoundaryReaderPort):
     def __init__(self, features: dict[str, dict]) -> None:

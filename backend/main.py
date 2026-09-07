@@ -3,6 +3,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
 
 from apps.master.adapter.inbound.api.v1.region_router import router as region_router
+from apps.metric.adapter.inbound.api.v1.region_industry_metric_router import (
+    router as metric_router,
+)
 from apps.news.adapter.inbound.api.v1.news_article_router import router as news_router
 from apps.store.adapter.inbound.api.v1.store_router import router as store_router
 
@@ -15,6 +18,7 @@ app.add_middleware(
 )
 app.add_middleware(GZipMiddleware, minimum_size=1024)  # /regions/geojson 등 대형 응답 압축
 app.include_router(region_router)
+app.include_router(metric_router)
 app.include_router(news_router)
 app.include_router(store_router)
 

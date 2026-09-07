@@ -19,6 +19,16 @@ class StoreRepositoryPort(ABC):
     ) -> datetime | None:
         """증분 수집 커서 — 해당 업종×자치구의 최근 원천 갱신시점."""
 
+    @abstractmethod
+    def list_open(self, region_code: str, industry_id: str) -> list[Store]:
+        """해당 행정동×업종의 영업 중(close_date 없음)·좌표 보유 점포 목록."""
+
+
+class IndustryCatalogPort(ABC):
+    @abstractmethod
+    def exists(self, industry_id: str) -> bool:
+        """industry 마스터 등록 여부."""
+
 
 class StorePermitGatewayPort(ABC):
     @abstractmethod

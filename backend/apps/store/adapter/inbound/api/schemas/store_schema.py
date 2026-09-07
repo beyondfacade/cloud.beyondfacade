@@ -17,3 +17,14 @@ class StoreResponse(BaseModel):
     source_updated_at: datetime
     region_code: str | None = None
     subcategory_id: str | None = None
+
+
+class StoreMarkerResponse(BaseModel):
+    """지도 마커 응답 단위 (프론트엔드 계약) — 좌표 보유 영업 점포만."""
+
+    store_id: str
+    name: str
+    lat: float
+    lng: float
+    status_name: str
+    open_date: date | None

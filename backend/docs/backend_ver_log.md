@@ -1,5 +1,35 @@
 # Backend Version Log
 
+## [v0.9.0] - 2026-09-07
+
+### Added
+- **metric BC 신설** (`apps/metric/`) — region_industry_metric Fractal 11-File Set
+  - `GET /metrics/myself`(배선 검증) + `GET /metrics?industry=&metric=&year=` → `[{region_code, value}]`
+    단계구분도 프론트엔드 계약 (value None 행 제외, metric은 Strategy 테이블 디스패치)
+  - 미지원 metric 404 `METRIC_NOT_FOUND` / 미등록 industry 404 `INDUSTRY_NOT_FOUND` —
+    에러 바디 단일 형식 `{error:{code,message}}`
+  - `build_metrics.py` (CLI) — store 원천(region_code 보유분)만 읽어 행정동×업종×연도(2019~2026)
+    지표 업서트, 재실행 멱등. **첫 적재: 20,152건** (427개 행정동 × 수집 업종 6종 × 8개년)
+    - store_count: 연도 말(12-31) 기준 영업 중 / open·close_count: 당해 개폐업
+    - closure_rate·growth_rate: 전년 말 store_count 분모 (전년 0이면 None 가드)
+  - `StoreStatsGateway`·`IndustryCatalogGateway` (Driven Adapter) — cross-BC 접근은 어댑터 레이어에서만
+- 마이그레이션 `b0aeecac90e6` — `region_industry_metric` 테이블 (복합 PK region_code+industry_id+year,
+  region·industry FK, 업종×연도 조회 인덱스)
+- store BC — `GET /stores?region=&industry=` 영업 중(close_date 없음)·좌표 보유 점포 마커 목록
+  `[{store_id, name, lat, lng, status_name, open_date}]`, 미등록 industry 404 `INDUSTRY_NOT_FOUND`
+- master BC — `GET /regions/{region_code}/summary?industry=` 사이드패널 fact 카드 3장
+  (점포수 "N개" / 폐업률 "X.X%" / 성장률 "±X.X%") — 최신 연도(2026) metric 기준,
+  집계 없으면 value="데이터 없음", 미등록 region_code 404 `REGION_NOT_FOUND`
+  - `RegionMetricSummaryPort` + `MetricSummaryGateway` — metric BC UseCase 호출 (cross-BC는 어댑터에서만)
+- 테스트 24건 추가 — metric 13(빌드 계산·전년 0 가드·멱등·조회·404 바디·myself) /
+  store 4(목록·404) / master summary 8(카드 포맷·데이터 없음·404) — 전체 55 passed
+  (기지 실패 1건: test_store_ingest 실DB 커서 테스트, 기존 상태 유지)
+
+### Changed
+- `main.py`에 metric 라우터 등록
+- `scripts/store-collector.sh` 일일 크론에 assign_regions 후속으로 build_metrics 추가
+- `migrations/env.py` autogenerate 대상에 region_industry_metric ORM 등록
+
 ## [v0.8.0] - 2026-09-07
 
 ### Added
