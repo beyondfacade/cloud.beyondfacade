@@ -25,7 +25,9 @@ class OllamaQwen3EmbeddingAdapter(EmbeddingPort):
             transport: httpx.Transport (테스트용 MockTransport 주입 가능)
         """
         self.base_url = base_url
-        self.client = httpx.Client(base_url=base_url, transport=transport)
+        # 기본 httpx 타임아웃(5s)은 콜드스타트(모델 로드·GPU 상주 모델 교체) 실측 초과 —
+        # 색인 배치는 최초 요청에서 모델 로딩을 겸하므로 넉넉히 잡는다.
+        self.client = httpx.Client(base_url=base_url, transport=transport, timeout=120.0)
 
     @property
     def model_name(self) -> str:
