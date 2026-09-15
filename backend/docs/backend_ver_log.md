@@ -1,5 +1,22 @@
 # Backend Version Log
 
+## [v0.19.0] - 2026-09-15
+
+### Added
+- `apps/rag/adapter/outbound/repositories/rag_repository.py` — `SqlAlchemyRagRepository`
+  (`RagRepositoryPort` 구현): `upsert_chunks`(merge 업서트), `existing_ids`, `search`(pgvector
+  코사인 거리 정렬, score = 1 - cosine_distance)
+  - 만료 공고 필터(`exclude_expired_funding`): `apps.funding`의 `FundingProgramOrm`을 이 파일에만
+    한정해 import(플랜 승인 사항, cross-BC). `outerjoin` 조건에 `source_type == "funding"`을 넣고
+    `where(or_(source_type != "funding", is_expired == False))`로 구성해, non-funding 청크가
+    outer join NULL 때문에 통째로 드롭되는 사고를 방지
+- `tests/test_rag_repository.py` — 실 DB 기반 6건(축 벡터 코사인 정렬·기본 필터 non-funding 보존·
+  source_type 필터·만료 funding 제외·existing_ids·업서트 갱신)
+
+### Fixed
+- `apps/rag/adapter/outbound/orms/rag_chunk_orm.py` — FK 대상 `region` 테이블 ORM을 명시 import하지
+  않아 단독 실행 시 `NoReferencedTableError` 발생하던 문제 수정 (store_orm.py와 동일한 기존 관행 적용)
+
 ## [v0.18.0] - 2026-09-07
 
 ### Added

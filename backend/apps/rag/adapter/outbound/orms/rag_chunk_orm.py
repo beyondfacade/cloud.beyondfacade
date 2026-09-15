@@ -4,6 +4,8 @@ from sqlalchemy import ForeignKey, Index
 from sqlalchemy.orm import Mapped, mapped_column
 from pgvector.sqlalchemy import Vector
 
+# FK 대상(마스터 허브) 테이블이 메타데이터에 항상 존재하도록 보장
+import apps.master.adapter.outbound.orms.region_orm  # noqa: F401
 from core.matrix.grid_oracle_database_manager import OrmBase
 
 
