@@ -1,0 +1,76 @@
+@import "tailwindcss";
+@import "../styles/tokens.css";
+
+body {
+  font-family: "Pretendard Variable", Pretendard, sans-serif;
+  font-feature-settings: "tnum";
+}
+
+/* 에이전트 리포트 마크다운 — Tailwind preflight가 리셋한 요소 스타일을 토큰으로 복원한다.
+   react-markdown이 생성하는 태그를 직접 스타일링하므로 컴포넌트 쪽 코드는 그대로 둔다. */
+.report-markdown {
+  line-height: 1.65;
+}
+.report-markdown h2,
+.report-markdown h3 {
+  margin-bottom: 0.5rem;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--text-primary);
+}
+.report-markdown p {
+  color: var(--text-secondary);
+  max-width: 68ch;
+}
+.report-markdown p + p {
+  margin-top: 0.75rem;
+}
+.report-markdown strong {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+.report-markdown ul,
+.report-markdown ol {
+  margin-top: 0.5rem;
+  padding-left: 1.125rem;
+  color: var(--text-secondary);
+  list-style: disc;
+}
+.report-markdown ol {
+  list-style: decimal;
+}
+.report-markdown table {
+  margin-top: 0.75rem;
+  width: 100%;
+  border-collapse: collapse;
+  font-variant-numeric: tabular-nums;
+}
+.report-markdown th,
+.report-markdown td {
+  border-bottom: 1px solid var(--border);
+  padding: 0.5rem 0.75rem;
+  text-align: left;
+  vertical-align: top;
+}
+.report-markdown th {
+  background: var(--bg-raised);
+  font-weight: 600;
+  color: var(--text-primary);
+}
+.report-markdown td {
+  color: var(--text-secondary);
+}
+.report-markdown td:first-child {
+  color: var(--text-primary);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

@@ -1,0 +1,16 @@
+/* 시맨틱 컬러 토큰 — 강조색은 Task 10에서 market-teal(신뢰·데이터 계열)로 확정.
+   단계구분도 팔레트(metric-color.ts)는 이 토큰 체계와 분리된 별도 데이터 시각화 체계다. */
+:root {
+  --bg-base: #f6f8f8;      --bg-surface: #ffffff;   --bg-raised: #ecf1f1;
+  --text-primary: #12211f; --text-secondary: #4e5f5c;
+  --border: #dce5e4;
+  --accent: #0f766e;       --accent-fg: #ffffff;
+  --ok: #15803d;           --warn: #b45309;         --danger: #b91c1c;
+}
+[data-theme="dark"] {
+  --bg-base: #101617;      --bg-surface: #171f20;   --bg-raised: #202a2b;
+  --text-primary: #ecf3f2; --text-secondary: #9badab;
+  --border: #2c3839;
+  --accent: #2dd4bf;       --accent-fg: #06201c;
+  --ok: #4ade80;           --warn: #fbbf24;         --danger: #f87171;
+}
