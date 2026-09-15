@@ -27,9 +27,15 @@ _INDEX_EMBEDDER_REGISTRY = {
 }
 
 
-def get_rag_search_use_case() -> RagSearchUseCase:
+def get_rag_search_use_case(provider: str = "ollama") -> RagSearchUseCase:
+    """검색 UseCase. 운영 기본값은 항상 ollama(§0 혼용 구도) — provider는 평가 하네스가
+
+    query 임베더를 fp16/gemini로 스왑해 비교 평가할 때만 넘긴다(레지스트리 재사용, 어댑터
+    구성 중복 금지).
+    """
+    embedder_cls = _INDEX_EMBEDDER_REGISTRY[provider]
     return RagSearchInteractor(
-        embedder=OllamaQwen3EmbeddingAdapter(),
+        embedder=embedder_cls(),
         repository=SqlAlchemyRagRepository(),
     )
 

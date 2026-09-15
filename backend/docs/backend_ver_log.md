@@ -1,5 +1,46 @@
 # Backend Version Log
 
+## [v0.19.0] - 2026-09-15
+
+### Added
+- **`apps/rag` BC 신설** — RAG 색인·검색 전 태스크(1~7) 완주. 스펙(§0) 혼용 구도: **색인 임베더는
+  provider 선택(fp16/ollama/gemini)**, **검색(query) 임베더는 Ollama Q4 고정**(저지연·상시 가용)
+  - `rag_chunk` 테이블 — `vector(1536)` + HNSW 인덱스, source_type/source_id 복합 인덱스,
+    region_code FK(nullable)
+  - `EmbeddingPort` + 어댑터 3종: `OllamaQwen3EmbeddingAdapter`(색인 Q4 + 검색 고정),
+    `Fp16Qwen3EmbeddingAdapter`(로컬 GPU, 지연 로딩), `GeminiEmbeddingAdapter`(온라인, 429 재시도)
+    — 3개 전부 1536차원 규격 통일
+  - `build_funding_chunk`/`build_news_chunk` 순수 빌더 + `FundingRagSourceGateway`/
+    `NewsRagSourceGateway`(cross-BC 접근은 게이트웨이 파일 안에만 국한)
+  - `SqlAlchemyRagRepository` — chunk_id 업서트, 코사인 유사도 검색(`exclude_expired_funding`
+    기본 True — funding만 outerjoin, non-funding은 NULL join으로 드롭되지 않게 조건 구성)
+  - `RagIndexUseCase`/`RagSearchUseCase`(ISP로 role별 분리) + `RagIndexInteractor`/
+    `RagSearchInteractor` — 색인/검색이 서로 다른 EmbeddingPort 구현을 주입받아 혼용 구도를 코드로 강제
+  - `build_rag_index.py`(CLI, `--full`/`--provider`) + `scripts/rag-indexer.sh` 크론(매일 05:50,
+    provider=fp16 명시 — 크론이 조용히 다른 모델로 색인해 혼용 구도가 깨지는 사고 방지)
+  - **초기 색인 실행: 6,157건** (funding 1,761 + news 4,396) — **Q4(ollama)로 수행**.
+    fp16 전량 재색인은 GPU 점유(다른 상주 모델)로 보류 중 — 필요 시 수동
+    `--full --provider fp16` 실행 필요 (Task 6에서 파킹, 본 태스크에서도 동일 사유로 재확인)
+  - `get_rag_search_use_case(provider: str = "ollama")` — 레지스트리 재사용으로 검색 임베더를
+    fp16/gemini로도 스왑 가능하게 확장(운영 기본값은 그대로 ollama, 평가 하네스 전용 확장)
+- **Recall@5 평가 하네스** (`evaluate_rag.py`, CLI) — 순수 함수 `recall_at_k(relevant, ranked, k=5)`,
+  `mrr(relevant, ranked)` + `--evalset`/`--provider {ollama,fp16,gemini}` 실행 →
+  콘솔 출력 + `data/eval/results/rag_{provider}_{YYYYMMDD_HHMMSS}.json` 저장.
+  status=confirmed만 본지표, candidate 포함 전체 수치는 "(참고)" 라벨로 분리(후보 평가셋은
+  미검수라 본지표에 넣지 않음)
+- **평가셋 후보 생성** (`generate_evalset.py`, CLI) — 색인된 funding 청크를 chunk_id 오름차순
+  정렬 후 앞 50건 결정적 표본 추출 → 각 content를 Ollama `/api/chat` gemma3:12b에
+  "이 공고를 찾을 법한 자연어 질문 1개(공고명 복사 금지)" 프롬프트로 전송해 질문 생성 →
+  `data/eval/rag_evalset.jsonl`(status=candidate) 50행 생성 완료(약 54초 소요)
+  - **candidate → confirmed 승격은 사용자 검수 몫 — 이 태스크의 범위 밖**
+  - 하네스 시운전(candidate 50건, "(참고)" 수치): `--provider ollama` → **Recall@5 0.900, MRR 0.782**.
+    `--provider fp16`은 **BLOCKED-on-GPU** — 실행 시점 nvidia-smi 여유 VRAM 2.4~2.6GB
+    (fp16 로딩에 필요한 ~9GB 미달, 다른 Ollama 상주 모델이 13GB대 점유 중) — 직접
+    unload/kill 금지 방침에 따라 스킵. Task 6의 파킹 사유와 동일한 GPU 제약이 반복 관측됨
+  - `--provider gemini`는 이번 태스크에서 실행하지 않음(비용/쿼터 보존 — 사용자 지시)
+- 테스트: `tests/test_rag_eval_harness.py` (recall_at_k·mrr 순수 함수 4케이스 —
+  적중/미적중/부분적중/역순위)
+
 ## [v0.18.0] - 2026-09-07
 
 ### Added
