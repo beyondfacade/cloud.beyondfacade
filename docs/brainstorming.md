@@ -13,7 +13,7 @@
 | **영문명** | Hybrid RAG for Structuring Commercial District Data and Agent Development for Entrepreneurship Analysis |
 | **팀명** | Beyond Facade / 정책 공시 RAG 파이프라인 |
 | **팀원** | 이은상 · 김충식 · 신채연 (3명) |
-| **개발 기간** | 2026년 8월 20일 ~ 2026년 10월 27일 (10주) |
+| **개발 기간** | 2026년 8월 20일 ~ 2026년 10월 8일 (7주) |
 | **깃허브** | https://github.com/eungsangcom/Metabole |
 | **데모 사이트** | https://metabole.beyondfacade.site |
 
@@ -350,15 +350,15 @@
 
 ---
 
-## 6. MVP 범위 제안 (10주)
+## 6. MVP 범위 제안 (7주)
 
 | 주차 | 내용 |
 |---|---|
 | 1~2주 | 공공데이터 API 검증(§4.3 체크리스트), ERD 설계 |
 | 3~4주 | 데이터 수집 파이프라인 + Fractal 11-File Set 구현 (테이블 단위) |
-| 5~6주 | 전통 변수 산출 로직 + 상권×업종 분석 |
-| 7~8주 | 특이변수(코로나·금리) 통합, Hybrid RAG Chunking |
-| 9~10주 | 에이전트 응답 품질 평가 (Recall@5 목표 91.5%), 데모 배포 |
+| 5주 | 전통 변수 산출 로직 + 상권×업종 분석 |
+| 6주 | 특이변수(코로나·금리) 통합, Hybrid RAG Chunking |
+| 7주 | 에이전트 응답 품질 평가 (Recall@5 목표 91.5%), 데모 배포 |
 
 **범위에서 제외 (MVP 이후)**: 서울 외 지역(수도권 확장 포함), 확정 10종 외 업종, 권리금 등 비공공 데이터, 매출 예측 모델.
 
