@@ -40,17 +40,19 @@ def _cleanup():
 
 
 def test_search_orders_by_cosine_similarity_and_scores_self_match_near_one():
+    """source_type을 실데이터가 절대 쓰지 않는 전용 값으로 격리 — Task 6 이후 rag_chunk에
+    실 청크 수천 건이 쌓여도 이 두 축 벡터만 검색되도록 해 순위 침범에 흔들리지 않게 한다."""
     _cleanup()
     repo = SqlAlchemyRagRepository()
     try:
         repo.upsert_chunks(
             [
-                _chunk("e0", "news", "s0", _E0),
-                _chunk("e1", "news", "s1", _E1),
+                _chunk("e0", "test_axis", "s0", _E0),
+                _chunk("e1", "test_axis", "s1", _E1),
             ]
         )
 
-        hits = repo.search(embedding=_E0, top_k=2)
+        hits = repo.search(embedding=_E0, top_k=2, source_type="test_axis")
         ours = [h for h in hits if h.chunk_id.startswith(_PREFIX)]
 
         assert ours[0].chunk_id == f"{_PREFIX}e0"
