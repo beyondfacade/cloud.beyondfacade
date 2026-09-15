@@ -29,6 +29,7 @@ import apps.master.adapter.outbound.orms.industry_subcategory_orm  # noqa: F401
 import apps.master.adapter.outbound.orms.population_stat_orm  # noqa: F401
 import apps.metric.adapter.outbound.orms.region_industry_metric_orm  # noqa: F401
 import apps.news.adapter.outbound.orms.news_article_orm  # noqa: F401
+import apps.rag.adapter.outbound.orms.rag_chunk_orm  # noqa: F401
 import apps.rent.adapter.outbound.orms.rent_price_orm  # noqa: F401
 import apps.shock.adapter.outbound.orms.interest_rate_orm  # noqa: F401
 import apps.shock.adapter.outbound.orms.shock_event_industry_orm  # noqa: F401
