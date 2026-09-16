@@ -145,7 +145,12 @@ def build_tools(facts: RegionFactsPort, rag_search: RagSearchUseCase) -> list[Ag
     def run_compare_rent_vs_buy(args: dict) -> str:
         annual_rate_pct = args.get("annual_rate_pct")
         if annual_rate_pct is None:
-            annual_rate_pct = facts.latest_rates()["loan_facility"]
+            annual_rate_pct = facts.latest_rates().get("loan_facility")
+            if annual_rate_pct is None:
+                return json.dumps(
+                    {"error": "시설자금대출 금리 데이터가 없어 연금리를 지정해야 합니다"},
+                    ensure_ascii=False,
+                )
         result = compare_rent_vs_buy(
             monthly_rent_manwon=args["monthly_rent_manwon"],
             purchase_price_manwon=args["purchase_price_manwon"],

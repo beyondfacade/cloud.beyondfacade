@@ -136,3 +136,26 @@ def test_get_region_metrics_run_returns_json_string_via_fake_port():
         {"year": 2026, "store_count": 10, "closure_rate": 0.1, "growth_rate": 0.05}
     ]
     assert facts.metrics_calls == [("11010", "cafe")]
+
+
+def test_compare_rent_vs_buy_tool_returns_error_payload_when_loan_facility_rate_missing():
+    """annual_rate_pct 생략 + latest_rates()에 loan_facility 부재 → 오류 JSON(예외 아님)."""
+
+    class RatelessRegionFactsPort(FakeRegionFactsPort):
+        def latest_rates(self) -> dict:
+            return {}
+
+    tools = build_tools(RatelessRegionFactsPort(), FakeRagSearchUseCase())
+    tool = next(t for t in tools if t.spec.name == "compare_rent_vs_buy")
+
+    result = tool.run(
+        {
+            "monthly_rent_manwon": 200,
+            "purchase_price_manwon": 30000,
+            "equity_manwon": 10000,
+        }
+    )
+
+    assert json.loads(result) == {
+        "error": "시설자금대출 금리 데이터가 없어 연금리를 지정해야 합니다"
+    }
