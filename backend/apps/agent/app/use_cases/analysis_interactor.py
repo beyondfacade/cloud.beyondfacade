@@ -8,11 +8,16 @@
 - `done`: ① 뒤이은 턴의 도구 호출 목록에 그 스테이지가 더 이상 없을 때, ② 루프가 끝난 뒤
   아직 열려 있는 스테이지 전부(리포트 delta 방출 직전). 등록 순서대로 닫는다.
 
-루프는 죽지 않는다: 도구 인자가 스키마를 위반하면 재프롬프트 1회 후 스킵하고,
-도구 run이 예외를 던지면 `{"error": ...}`를 결과로 되먹인 뒤 계속 진행한다.
+한 턴 처리 순서: 인자가 유효한 도구 호출을 **먼저 전부 실행·응답**한 뒤, 스키마를 위반한
+호출만 모아 재프롬프트한다 — 재프롬프트 chat이 다른 호출의 응답 사이에 끼어들지 않도록.
+실행하지 않을 호출은 이력에 남기지 않는다(응답 없는 dangling tool_call 방지).
+
+루프는 죽지 않는다: 인자 스키마 위반은 재프롬프트 1회 후 스킵, 도구 run 예외는
+`{"error": ...}`로 되먹임, cite 콜백 예외는 그 도구의 인용만 버리고 진행한다.
 """
 
 import json
+import logging
 import re
 import uuid
 from collections.abc import Iterator
@@ -27,6 +32,8 @@ from apps.agent.app.ports.output.agent_port import (
 )
 from apps.agent.app.use_cases.agent_tools import AgentTool
 from apps.agent.domain.entities.agent_event_entity import AgentEvent
+
+LOGGER = logging.getLogger("beyondfacade.agent.loop")
 
 _MAX_TURNS = 12
 
@@ -74,6 +81,12 @@ _JSON_TYPES = {
     "array": list,
 }
 
+# 인용 제목 규칙 — 등급별 테이블 (fact: 도구+지역, signal: 출처 기관 또는 원천 ID)
+_TITLE_BY_GRADE = {
+    "fact": lambda item, fallback: fallback,
+    "signal": lambda item, fallback: item.get("org") or item.get("source_id") or fallback,
+}
+
 
 def split_report_sections(text: str) -> dict[str, str]:
     """`[SECTION:name]` 마커로 최종 텍스트를 분할한다 — 같은 마커가 겹치면 뒤엣것이 이긴다."""
@@ -109,12 +122,12 @@ def _summarize(arguments: dict) -> str:
     return ", ".join(f"{key}={value}" for key, value in arguments.items()) + " 조회"
 
 
-def _assistant_message(turn: LLMTurn) -> dict:
-    message: dict = {"role": "assistant", "content": turn.text}
-    if turn.tool_calls:
+def _assistant_message(text: str, calls: list[LLMToolCall]) -> dict:
+    """assistant 턴 메시지 — 실제로 응답할 도구 호출만 담는다(미응답 호출을 이력에 남기지 않는다)."""
+    message: dict = {"role": "assistant", "content": text}
+    if calls:
         message["tool_calls"] = [
-            {"function": {"name": call.tool_name, "arguments": call.arguments}}
-            for call in turn.tool_calls
+            {"function": {"name": call.tool_name, "arguments": call.arguments}} for call in calls
         ]
     return message
 
@@ -128,13 +141,11 @@ def _error_result(message: str) -> str:
 
 
 def _dedupe_citations(citations: list[dict]) -> list[dict]:
-    """(title, url) 기준 중복 제거 — 둘 다 없는 인용(정형 도구 cite 콜백)은 내용 전체로 식별한다."""
+    """(title, url) 기준 중복 제거 — 먼저 나온 것을 보존한다."""
     seen: set = set()
     unique: list[dict] = []
     for citation in citations:
-        key = (citation.get("title"), citation.get("url"))
-        if key == (None, None):
-            key = json.dumps(citation, sort_keys=True, ensure_ascii=False)
+        key = (citation["title"], citation["url"])
         if key in seen:
             continue
         seen.add(key)
@@ -161,6 +172,26 @@ class AnalysisInteractor(AnalysisUseCase):
         open_stages: dict[str, None] = {}  # 삽입 순서를 유지하는 열린 스테이지 집합
         final_text = ""
 
+        def execute(tool: AgentTool, arguments: dict) -> Iterator[AgentEvent]:
+            """도구 1건 실행 — 이벤트 방출 + 결과·인용 적재 (루프 지역 상태를 클로저로 공유)."""
+            if tool.stage not in open_stages:
+                open_stages[tool.stage] = None
+                yield AgentEvent("agent_status", {"agent": tool.stage, "status": "running"})
+            yield AgentEvent(
+                "tool_call",
+                {"agent": tool.stage, "tool": tool.spec.name, "summary": _summarize(arguments)},
+            )
+            try:
+                result = tool.run(arguments)
+            except Exception as error:  # 도구 실패는 LLM에 되먹이고 루프는 계속한다
+                messages.append(_tool_message(tool.spec.name, _error_result(str(error))))
+                return
+            messages.append(_tool_message(tool.spec.name, result))
+            try:
+                citations.extend(_collect_citations(tool, arguments, result, region))
+            except Exception:  # 인용 추출 실패로 스트림을 끊지 않는다 — 그 도구 인용만 버린다
+                LOGGER.warning("인용 추출 실패 — %s의 인용을 건너뛴다", tool.spec.name, exc_info=True)
+
         yield AgentEvent("agent_status", {"agent": "orchestrator", "status": "running"})
 
         for _ in range(_MAX_TURNS):
@@ -168,7 +199,7 @@ class AnalysisInteractor(AnalysisUseCase):
             if not turn.tool_calls:
                 final_text = turn.text
                 break
-            messages.append(_assistant_message(turn))
+            messages.append(_assistant_message(turn.text, turn.tool_calls))
 
             called_stages = {
                 tools_by_name[call.tool_name].stage
@@ -179,6 +210,8 @@ class AnalysisInteractor(AnalysisUseCase):
                 del open_stages[stage]
                 yield AgentEvent("agent_status", {"agent": stage, "status": "done"})
 
+            # 유효한 호출을 먼저 전부 실행·응답한다 — 재프롬프트로 이력 순서가 엉키지 않도록.
+            violations: list[tuple[AgentTool, str]] = []
             for call in turn.tool_calls:
                 tool = tools_by_name.get(call.tool_name)
                 if tool is None:
@@ -188,23 +221,17 @@ class AnalysisInteractor(AnalysisUseCase):
                         )
                     )
                     continue
-                arguments = self._resolve_arguments(tool, call, messages, specs)
+                violation = check_arguments(tool.spec.input_schema, call.arguments)
+                if violation:
+                    violations.append((tool, violation))
+                    continue
+                yield from execute(tool, call.arguments)
+
+            for tool, violation in violations:
+                arguments = self._retry_arguments(tool, violation, messages, specs)
                 if arguments is None:
                     continue
-                if tool.stage not in open_stages:
-                    open_stages[tool.stage] = None
-                    yield AgentEvent("agent_status", {"agent": tool.stage, "status": "running"})
-                yield AgentEvent(
-                    "tool_call",
-                    {"agent": tool.stage, "tool": tool.spec.name, "summary": _summarize(arguments)},
-                )
-                try:
-                    result = tool.run(arguments)
-                except Exception as error:  # 도구 실패는 LLM에 되먹이고 루프는 계속한다
-                    messages.append(_tool_message(tool.spec.name, _error_result(str(error))))
-                    continue
-                messages.append(_tool_message(tool.spec.name, result))
-                citations.extend(_collect_citations(tool, arguments, result, region))
+                yield from execute(tool, arguments)
 
         if not final_text:
             messages.append({"role": "user", "content": _FINAL_REQUEST})
@@ -233,29 +260,27 @@ class AnalysisInteractor(AnalysisUseCase):
         )
         return turn
 
-    def _resolve_arguments(
+    def _retry_arguments(
         self,
         tool: AgentTool,
-        call: LLMToolCall,
+        violation: str,
         messages: list[dict],
         specs: list[LLMToolSpec],
     ) -> dict | None:
-        """스키마 위반이면 재프롬프트 1회 — 재시도도 위반이면 None(해당 호출만 스킵)."""
-        violation = check_arguments(tool.spec.input_schema, call.arguments)
-        if violation is None:
-            return call.arguments
+        """스키마 위반을 알리고 재프롬프트 1회 — 재시도도 위반이면 None(해당 호출만 스킵).
+
+        실행하지 않을 호출은 이력에 남기지 않는다(응답 없는 dangling tool_call 방지).
+        """
         messages.append(
             _tool_message(
                 tool.spec.name, _error_result(f"{violation}. 올바른 인자로 다시 호출하세요")
             )
         )
         retry = self._chat(messages, specs)
-        messages.append(_assistant_message(retry))
-        retried = next(
-            (c for c in retry.tool_calls if c.tool_name == tool.spec.name), None
-        )
+        retried = next((c for c in retry.tool_calls if c.tool_name == tool.spec.name), None)
         if retried is None or check_arguments(tool.spec.input_schema, retried.arguments):
             return None
+        messages.append(_assistant_message(retry.text, [retried]))
         return retried.arguments
 
 
@@ -267,7 +292,20 @@ def _user_message(region: str, industry: str, question: str | None) -> str:
 
 
 def _collect_citations(tool: AgentTool, arguments: dict, result: str, region: str) -> list[dict]:
-    """도구의 cite 콜백 결과를 그대로 쓰고, 콜백이 없는 도구는 fact 인용으로 대체한다."""
+    """도구의 cite 콜백 결과를 프론트 계약 {title, url, grade} 3키로 정규화한다.
+
+    콜백이 없는 도구는 정형(fact) 인용 1건으로 대체한다.
+    """
+    fallback_title = f"{tool.spec.name}: {region}"
     if tool.cite is None:
-        return [{"title": f"{tool.spec.name}: {region}", "url": "", "grade": "fact"}]
-    return tool.cite(arguments, result)
+        return [{"title": fallback_title, "url": "", "grade": "fact"}]
+    return [
+        _normalize_citation(item, fallback_title) for item in tool.cite(arguments, result)
+    ]
+
+
+def _normalize_citation(item: dict, fallback_title: str) -> dict:
+    """cite 콜백 항목 1건 → {title, url, grade}. 등급별 제목 규칙은 테이블로 분기한다."""
+    grade = item.get("grade", "fact")
+    title_of = _TITLE_BY_GRADE.get(grade, _TITLE_BY_GRADE["fact"])
+    return {"title": title_of(item, fallback_title), "url": item.get("url") or "", "grade": grade}

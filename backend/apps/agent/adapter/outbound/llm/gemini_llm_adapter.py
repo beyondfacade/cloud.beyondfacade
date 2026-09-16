@@ -64,7 +64,7 @@ def to_gemini_contents(messages: list[dict]) -> tuple[str, list[dict]]:
                     "parts": [
                         {
                             "functionResponse": {
-                                "name": message.get("name", ""),
+                                "name": message.get("tool_name") or message.get("name", ""),
                                 "response": {"result": message["content"]},
                             }
                         }

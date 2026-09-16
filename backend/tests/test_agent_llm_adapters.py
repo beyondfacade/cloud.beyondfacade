@@ -101,13 +101,14 @@ def test_ollama_chat_without_tool_calls_returns_text_turn():
 
 
 def test_gemini_message_role_mapping():
-    """메시지 role 매핑: system→system_instruction 분리, user→user, assistant→model."""
+    """메시지 role 매핑: system→system_instruction 분리, user→user, assistant→model, tool→functionResponse."""
     from apps.agent.adapter.outbound.llm.gemini_llm_adapter import to_gemini_contents
 
     messages = [
         {"role": "system", "content": "너는 상점 안내 봇이다."},
         {"role": "user", "content": "카페 추천해줘"},
         {"role": "assistant", "content": "네, 찾아볼게요"},
+        {"role": "tool", "content": '{"store_count": 10}', "tool_name": "search_shop"},
     ]
 
     system_instruction, contents = to_gemini_contents(messages)
@@ -117,6 +118,10 @@ def test_gemini_message_role_mapping():
     assert contents[0]["parts"][0]["text"] == "카페 추천해줘"
     assert contents[1]["role"] == "model"
     assert contents[1]["parts"][0]["text"] == "네, 찾아볼게요"
+    assert contents[2]["parts"][0]["functionResponse"] == {
+        "name": "search_shop",
+        "response": {"result": '{"store_count": 10}'},
+    }
 
 
 def test_gemini_tool_spec_to_function_declarations():

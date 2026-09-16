@@ -55,6 +55,20 @@ def _final_turn(text: str = _FINAL_TEXT) -> LLMTurn:
     return LLMTurn(text=text, tool_calls=[], usage=LLMUsage(input_tokens=30, output_tokens=7))
 
 
+def _metrics_call_turn() -> LLMTurn:
+    """유효한 인자로 get_region_metrics를 1건 호출하는 턴."""
+    return LLMTurn(
+        text="",
+        tool_calls=[
+            LLMToolCall(
+                tool_name="get_region_metrics",
+                arguments={"region_code": "11680640", "industry": "cafe"},
+            )
+        ],
+        usage=LLMUsage(input_tokens=10, output_tokens=2),
+    )
+
+
 def _metrics_tool(run=None, cite=None) -> AgentTool:
     return AgentTool(
         spec=LLMToolSpec(
@@ -94,9 +108,14 @@ def _funding_tool() -> AgentTool:
 
 def test_event_order_contract_for_two_stage_tool_turn():
     """1턴 도구 2개(market·funding) → 2턴 최종 텍스트: 이벤트 순서 계약 전체."""
-    duplicated_citation = {"title": "지표", "url": "https://example.com/m", "grade": "fact"}
+    fact_citation = {
+        "grade": "fact",
+        "source": "region_industry_metric",
+        "region_code": "11680640",
+        "industry": "cafe",
+    }
     tools = [
-        _metrics_tool(cite=lambda args, result: [duplicated_citation, dict(duplicated_citation)]),
+        _metrics_tool(cite=lambda args, result: [fact_citation, dict(fact_citation)]),
         _funding_tool(),
     ]
     llm = FakeLLM(
@@ -138,10 +157,71 @@ def test_event_order_contract_for_two_stage_tool_turn():
     assert events[7].payload["markdown"] == "### 종합 판정\n\n조건부 추천."
     assert events[-1].payload["report_id"]
     assert events[-1].payload["citations"] == [
-        duplicated_citation,
+        {"title": "get_region_metrics: 역삼동", "url": "", "grade": "fact"},
         {"title": "search_funding: 역삼동", "url": "", "grade": "fact"},
     ]
     assert interactor.last_usage == LLMUsage(input_tokens=130, output_tokens=27)
+
+
+def test_callback_citations_are_normalized_to_title_url_grade():
+    """cite 콜백의 실제 출력 형태를 프론트 계약 {title, url, grade} 3키로 정규화한다."""
+    callback_output = [
+        {
+            "grade": "fact",
+            "source": "region_industry_metric",
+            "region_code": "11680640",
+            "industry": "cafe",
+        },
+        {
+            "grade": "signal",
+            "source_type": "news",
+            "source_id": "news-1",
+            "url": "https://news.example/1",
+            "org": "한국일보",
+        },
+        {
+            "grade": "signal",
+            "source_type": "funding",
+            "source_id": "F-77",
+            "url": None,
+            "org": None,
+        },
+    ]
+    llm = FakeLLM([_metrics_call_turn(), _final_turn()])
+    interactor = AnalysisInteractor(llm, [_metrics_tool(cite=lambda args, result: callback_output)])
+
+    events = list(interactor.run("역삼동", "cafe", None))
+
+    assert events[-1].payload["citations"] == [
+        {"title": "get_region_metrics: 역삼동", "url": "", "grade": "fact"},
+        {"title": "한국일보", "url": "https://news.example/1", "grade": "signal"},
+        {"title": "F-77", "url": "", "grade": "signal"},
+    ]
+
+
+def test_cite_failure_drops_citations_but_keeps_the_stream_alive():
+    """cite 콜백이 예외를 던져도 도구 결과는 이력에 남고 스트림 꼬리는 끝까지 방출된다."""
+
+    def exploding_cite(_args: dict, _result: str) -> list[dict]:
+        raise ValueError("인용 형식이 예상과 다릅니다")
+
+    llm = FakeLLM([_metrics_call_turn(), _final_turn()])
+    interactor = AnalysisInteractor(llm, [_metrics_tool(cite=exploding_cite)])
+
+    events = list(interactor.run("역삼동", "cafe", None))
+
+    assert json.loads(llm.calls[1][-1]["content"]) == {"store_count": 10}
+    assert [_signature(event) for event in events[-8:]] == [
+        ("agent_status", "market", "done"),
+        ("report_delta", "verdict"),
+        ("report_delta", "market"),
+        ("report_delta", "shock"),
+        ("report_delta", "funding"),
+        ("report_delta", "calculator"),
+        ("agent_status", "orchestrator", "done"),
+        ("report_done",),
+    ]
+    assert events[-1].payload["citations"] == []
 
 
 def test_split_report_sections_parses_five_markers():
@@ -195,8 +275,11 @@ def test_schema_violation_reprompts_once_then_skips_and_continues():
     events = list(interactor.run("역삼동", "cafe", None))
 
     assert len(llm.calls) == 3
+    assert [message["role"] for message in llm.calls[1]] == ["system", "user", "assistant", "tool"]
+    assert llm.calls[1][-1]["tool_name"] == "get_region_metrics"
     assert "industry" in llm.calls[1][-1]["content"]
-    assert llm.calls[1][-1]["role"] == "tool"
+    # 재시도도 위반 → 실행하지 않은 호출은 이력에 남기지 않는다 (dangling 방지)
+    assert llm.calls[2] == llm.calls[1]
     assert [event for event in events if event.type == "tool_call"] == []
     assert _signature(events[0]) == ("agent_status", "orchestrator", "running")
     assert _signature(events[-1]) == ("report_done",)
@@ -234,6 +317,71 @@ def test_schema_violation_retry_with_valid_arguments_runs_the_tool():
     assert executed == [{"region_code": "11680640", "industry": "cafe"}]
     assert _signature(events[1]) == ("agent_status", "market", "running")
     assert _signature(events[2]) == ("tool_call", "market", "get_region_metrics")
+    # 이력: assistant(위반 호출) → tool(위반 통보) → assistant(재시도 호출 1건) → tool(결과)
+    assert [message["role"] for message in llm.calls[2]] == [
+        "system",
+        "user",
+        "assistant",
+        "tool",
+        "assistant",
+        "tool",
+    ]
+    assert llm.calls[2][4]["tool_calls"] == [
+        {
+            "function": {
+                "name": "get_region_metrics",
+                "arguments": {"region_code": "11680640", "industry": "cafe"},
+            }
+        }
+    ]
+    assert llm.calls[2][5]["tool_name"] == "get_region_metrics"
+
+
+def test_valid_calls_are_answered_before_the_invalid_call_reprompt():
+    """한 턴에 [위반 A, 유효 B]가 오면 B를 먼저 실행·응답한 뒤 A를 재프롬프트한다."""
+    invalid = LLMToolCall(tool_name="get_region_metrics", arguments={"region_code": "11680640"})
+    valid = LLMToolCall(tool_name="search_funding", arguments={"query": "카페 창업자금"})
+    retried = LLMToolCall(
+        tool_name="get_region_metrics",
+        arguments={"region_code": "11680640", "industry": "cafe"},
+    )
+    llm = FakeLLM(
+        [
+            LLMTurn(
+                text="",
+                tool_calls=[invalid, valid],
+                usage=LLMUsage(input_tokens=10, output_tokens=2),
+            ),
+            LLMTurn(
+                text="다시 호출한다",
+                tool_calls=[retried],
+                usage=LLMUsage(input_tokens=10, output_tokens=2),
+            ),
+            _final_turn(),
+        ]
+    )
+    interactor = AnalysisInteractor(llm, [_metrics_tool(), _funding_tool()])
+
+    events = list(interactor.run("역삼동", "cafe", None))
+
+    reprompt_messages = llm.calls[1]
+    assert [message["role"] for message in reprompt_messages] == [
+        "system",
+        "user",
+        "assistant",
+        "tool",
+        "tool",
+    ]
+    assert reprompt_messages[3]["tool_name"] == "search_funding"  # 유효 호출 응답이 먼저
+    assert reprompt_messages[4]["tool_name"] == "get_region_metrics"
+    assert "industry" in reprompt_messages[4]["content"]
+    assert [_signature(event) for event in events[:5]] == [
+        ("agent_status", "orchestrator", "running"),
+        ("agent_status", "funding", "running"),
+        ("tool_call", "funding", "search_funding"),
+        ("agent_status", "market", "running"),
+        ("tool_call", "market", "get_region_metrics"),
+    ]
 
 
 def test_turn_limit_forces_a_final_report_call_and_finishes_the_contract():
