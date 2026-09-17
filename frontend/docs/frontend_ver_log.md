@@ -1,5 +1,22 @@
 # Frontend Version Log
 
+## [v0.13.1] - 2026-09-17
+
+### Fixed
+- **원격 개발 환경에서 "지도 데이터를 불러오지 못했습니다" 배너** — VS Code Remote-SSH 포트 포워딩으로 접속하면
+  브라우저가 노트북에서 돌아 `NEXT_PUBLIC_API_BASE=http://127.0.0.1:8201`이 서버가 아니라 노트북 자신을 가리켰음
+  (백엔드 로그에 브라우저 요청 0건으로 확인)
+
+### Added
+- `src/shared/backend-proxy.ts` + `next.config.ts` rewrites — `/api/backend/*` → `BACKEND_ORIGIN/*` 개발 서버 프록시.
+  브라우저는 프론트 origin(3200)만 호출. `BACKEND_ORIGIN`(서버 전용 env) 미설정 시 규칙 없음 — Vercel·mock 동작 무변경
+- `src/shared/backend-proxy.test.ts` — 규칙 생성(끝 슬래시 정규화)·미설정 시 빈 규칙 테스트 2건
+
+### Changed
+- `frontend/.env.local`(미커밋 로컬 설정) — `NEXT_PUBLIC_API_BASE=/api/backend`, `BACKEND_ORIGIN=http://127.0.0.1:8201`
+- 검증: 프록시 경유 health·geojson(5.4MB)·metrics 200, 404 에러 바디 전달, 브라우저 요청이 `/api/backend`로만 나감 —
+  vitest 23파일 68건 통과, `tsc --noEmit` 통과
+
 ## [v0.13.0] - 2026-09-17
 
 ### Added
