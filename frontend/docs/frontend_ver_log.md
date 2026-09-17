@@ -1,5 +1,43 @@
 # Frontend Version Log
 
+## [v0.13.0] - 2026-09-17
+
+### Added
+- **어린이집 지도 연결** (백엔드 v0.20.0 childcare 조회 API 소비) — 업종 `어린이집` 선택 + 행정동 클릭 시
+  - 지도: 어린이집 클러스터 마커, 팝업에 `유형 · 상태` / `정원 · 현원 (가동률)` / `입소대기` 표시
+    (상태·대기 원천 공란은 `상태 미상`·`미공개` — 0으로 추정하지 않음)
+  - 사이드패널: `어린이집 현황` 섹션(운영 시설 수·가동률(현원/정원)·입소대기 합(중복 신청 포함)·기준일)
+- `src/shared/api/types.ts` — `ChildcareCenter`, `ChildcareRegionSummary` 계약 타입
+- `src/app/api/mock/childcare-centers/route.ts`, `src/app/api/mock/childcare-center-stats/summary/route.ts` —
+  실 API 미러 mock(404 `REGION_NOT_FOUND`), `fixtures.ts`에 FNV-1a 결정적 `childcareCentersOf`·`childcareSummaryOf`
+  (요약 = 마커 목록 합산, 실 API 합산 규칙과 동일)
+- `src/features/map-explorer/components/marker-strategies.ts` — **업종별 마커 전략(Strategy)**: 조회 함수·queryKey·
+  팝업 DOM을 업종이 스스로 결정. 전용 원천 업종만 레지스트리 등록(`childcare`), 나머지는 store 점포 전략
+- `src/features/map-explorer/components/childcare-summary.tsx` — `ChildcareSummaryList`(표시)·
+  `ChildcareSummarySection`(TanStack Query `["childcare-summary", region]`)
+- `src/features/map-explorer/lib/childcare-format.ts` — `formatOccupancy`·`formatWaiting` 순수 함수
+- 테스트 12건 — mock 라우트 계약 5(200 형태·결정성·404·요약=목록 합산), 포맷 2, 마커 전략 3(어린이집 팝업·공란 표기·
+  점포 전략 폴백), 요약 목록 2(행 렌더·시설 없음 안내)
+
+- **편의점 지도 연결** (백엔드 v0.20.0 convenience 조회 API 소비) — 업종 `편의점` 선택 + 행정동 클릭 시
+  - 지도: 편의점 클러스터 마커, 팝업에 `상호 지점명` / 브랜드(미확인은 `기타 브랜드`) / 도로명주소
+  - 사이드패널: `편의점 현황` 섹션(편의점 수·브랜드별 점포 수(미확인은 `기타`)·원천 기준연월)
+  - `ConvenienceStore`·`ConvenienceRegionSummary` 타입, mock `convenience-stores`·`convenience-stores/summary` 라우트 +
+    결정적 픽스처(요약 = 목록 브랜드 집계, 실 API 정렬 규칙 동일), `marker-strategies.ts`에 `convenience_store` 전략 등록,
+    `convenience-summary.tsx`, `side-panel.tsx` 레지스트리 등록
+  - 테스트 9건 — mock 계약 5·마커 전략 2(팝업·기타 브랜드)·요약 목록 2
+  - 브라우저 실검증: 역삼1동 클러스터 149 → 개별 마커 팝업 "씨유역삼우리점 · CU · 서울특별시 강남구 역삼로19길 14",
+    사이드패널 브랜드 분포 표시 — vitest 22파일 66건 통과, `tsc --noEmit` 통과
+
+### Changed
+- `src/features/map-explorer/components/store-markers.tsx` → **`region-markers.tsx`(`RegionMarkers`)** — 점포 전용
+  클러스터 마커를 전략 주입형으로 일반화(소스/레이어 id `stores-*` → `markers-*`, 클릭 핸들러는 ref로 최신 전략 참조).
+  점포 팝업 DOM 생성은 `marker-strategies.ts`로 이동(동작 동일)
+- `src/features/map-explorer/components/side-panel.tsx` — 업종별 추가 섹션 레지스트리 `INDUSTRY_SECTIONS`
+  (조건 분기 대신 등록) — `childcare`·`convenience_store` 등록
+- 브라우저 실검증(agent-browser, 실 API 8201): 청운효자동 클러스터 4 → 개별 마커 팝업 "세종마을어린이집 · 국공립 · 정상 ·
+  정원 50 · 현원 44 (88.0%) · 입소대기 25건", 사이드패널 요약 표시. 카페 선택 시 `/stores` 마커 정상·어린이집 섹션 미표시
+
 ## [v0.12.0] - 2026-09-07
 
 ### Added

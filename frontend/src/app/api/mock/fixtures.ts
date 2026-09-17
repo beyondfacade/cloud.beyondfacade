@@ -4,6 +4,10 @@ import type { FeatureCollection, MultiPolygon } from "geojson";
 import type {
   AgentEvent,
   AgentName,
+  ChildcareCenter,
+  ChildcareRegionSummary,
+  ConvenienceRegionSummary,
+  ConvenienceStore,
   MetricKey,
   MetricRow,
   RegionSummary,
@@ -93,6 +97,101 @@ export function storesOf(regionCode: string, industryId: string): Store[] {
       status_name,
       open_date,
     }));
+}
+
+const CHILDCARE_TYPES = ["국공립", "가정", "민간", "직장"] as const;
+
+/** 행정동 경계 bbox 중심 — 어린이집 픽스처 좌표를 동 안쪽에 두기 위한 근사. */
+function regionCenter(regionCode: string): [number, number] | null {
+  const feature = SEOUL_REGIONS_GEOJSON.features.find((f) => f.properties.region_code === regionCode);
+  if (!feature) return null;
+  const points = feature.geometry.coordinates.flat(2);
+  const lngs = points.map(([lng]) => lng);
+  const lats = points.map(([, lat]) => lat);
+  return [(Math.min(...lngs) + Math.max(...lngs)) / 2, (Math.min(...lats) + Math.max(...lats)) / 2];
+}
+
+/** 행정동별 결정적 어린이집 1~6곳 — 실데이터 분포(정원 20~120, 가동률 40~100%, 대기 공란 흔함)를 흉내 낸다. */
+export function childcareCentersOf(regionCode: string): ChildcareCenter[] {
+  const center = regionCenter(regionCode);
+  if (!center) return [];
+  const count = 1 + (hashSeed("childcare-count", regionCode) % 6);
+  return Array.from({ length: count }, (_, i) => {
+    const seed = hashSeed("childcare", regionCode, i);
+    const capacity = 20 + (seed % 101);
+    const occupancy = 0.4 + unitFrom(hashSeed("occupancy", regionCode, i)) * 0.6;
+    const type = CHILDCARE_TYPES[seed % CHILDCARE_TYPES.length];
+    return {
+      center_id: `${regionCode.slice(0, 5)}${String(i + 1).padStart(6, "0")}`,
+      name: `${type === "국공립" ? "구립" : ""}시험${i + 1}어린이집`,
+      type_name: type,
+      status_name: "정상",
+      lat: center[1] + (unitFrom(hashSeed("lat", regionCode, i)) - 0.5) * 0.004,
+      lng: center[0] + (unitFrom(hashSeed("lng", regionCode, i)) - 0.5) * 0.004,
+      base_date: "2026-09-17",
+      capacity,
+      child_count: Math.round(capacity * occupancy),
+      waiting_count: seed % 4 === 0 ? null : seed % 61,
+    };
+  });
+}
+
+/** childcareCentersOf 합산 — 실 API의 ChildcareRegionSummary.of 규칙과 동일. */
+export function childcareSummaryOf(regionCode: string): ChildcareRegionSummary {
+  const centers = childcareCentersOf(regionCode);
+  const capacity = centers.reduce((sum, c) => sum + c.capacity, 0);
+  const childCount = centers.reduce((sum, c) => sum + c.child_count, 0);
+  const waitings = centers.map((c) => c.waiting_count).filter((w): w is number => w !== null);
+  return {
+    region_code: regionCode,
+    base_date: centers.length > 0 ? "2026-09-17" : null,
+    center_count: centers.length,
+    capacity,
+    child_count: childCount,
+    occupancy_rate: capacity > 0 ? Math.round((childCount / capacity) * 10000) / 10000 : null,
+    waiting_count: waitings.length > 0 ? waitings.reduce((sum, w) => sum + w, 0) : null,
+  };
+}
+
+const CONVENIENCE_BRANDS = ["GS25", "CU", "세븐일레븐", "이마트24", "미니스톱", null] as const;
+
+/** 행정동별 결정적 편의점 2~15곳 — 브랜드 미확인(null) 포함. */
+export function convenienceStoresOf(regionCode: string): ConvenienceStore[] {
+  const center = regionCenter(regionCode);
+  if (!center) return [];
+  const count = 2 + (hashSeed("convenience-count", regionCode) % 14);
+  return Array.from({ length: count }, (_, i) => {
+    const seed = hashSeed("convenience", regionCode, i);
+    const brand = CONVENIENCE_BRANDS[seed % CONVENIENCE_BRANDS.length];
+    return {
+      store_id: `MA${regionCode}${String(i + 1).padStart(4, "0")}`,
+      name: `${brand ?? "동네"}시험${i + 1}점`,
+      branch_name: null,
+      brand,
+      lat: center[1] + (unitFrom(hashSeed("cv-lat", regionCode, i)) - 0.5) * 0.004,
+      lng: center[0] + (unitFrom(hashSeed("cv-lng", regionCode, i)) - 0.5) * 0.004,
+      road_address: null,
+    };
+  });
+}
+
+/** convenienceStoresOf 브랜드 집계 — 실 API ConvenienceRegionSummary.of 정렬 규칙과 동일
+ *  (건수 내림차순·동수는 브랜드명 순, 미확인 null은 맨 뒤). */
+export function convenienceSummaryOf(regionCode: string): ConvenienceRegionSummary {
+  const stores = convenienceStoresOf(regionCode);
+  const counts = new Map<string | null, number>();
+  for (const store of stores) counts.set(store.brand, (counts.get(store.brand) ?? 0) + 1);
+  const known = [...counts]
+    .filter((entry): entry is [string, number] => entry[0] !== null)
+    .map(([brand, count]) => ({ brand, count }))
+    .sort((a, b) => b.count - a.count || a.brand.localeCompare(b.brand));
+  const unknown = counts.has(null) ? [{ brand: null, count: counts.get(null)! }] : [];
+  return {
+    region_code: regionCode,
+    store_count: stores.length,
+    brands: [...known, ...unknown],
+    source_stdr_ym: stores.length > 0 ? "202606" : null,
+  };
 }
 
 const AGENT_TOOLS: Record<Exclude<AgentName, "orchestrator">, { tool: string; summary: string }[]> = {

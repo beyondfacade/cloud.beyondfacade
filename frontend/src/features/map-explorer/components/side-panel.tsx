@@ -1,10 +1,19 @@
 "use client";
 
+import type { ComponentType } from "react";
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import { GradeBadge } from "@/shared/ui/grade-badge";
-import { industryLabel } from "@/shared/industries";
+import { industryLabel, type IndustryId } from "@/shared/industries";
 import { fetchRegionSummary } from "../api";
+import { ChildcareSummarySection } from "./childcare-summary";
+import { ConvenienceSummarySection } from "./convenience-summary";
+
+/** 전용 원천이 있는 업종의 추가 섹션 — 업종이 스스로 무엇을 보여줄지 등록한다 (조건 분기 대신 레지스트리). */
+const INDUSTRY_SECTIONS: Partial<Record<IndustryId, ComponentType<{ regionCode: string }>>> = {
+  childcare: ChildcareSummarySection,
+  convenience_store: ConvenienceSummarySection,
+};
 
 interface SidePanelProps {
   regionCode: string | null;
@@ -32,6 +41,7 @@ export function SidePanel({ regionCode, industry }: SidePanelProps) {
   });
 
   const label = industryLabel(industry);
+  const IndustrySection = INDUSTRY_SECTIONS[industry as IndustryId];
 
   return (
     <aside className="flex w-80 shrink-0 flex-col overflow-y-auto border-l border-[var(--border)] bg-[var(--bg-surface)] p-5">
@@ -84,6 +94,8 @@ export function SidePanel({ regionCode, industry }: SidePanelProps) {
               </li>
             ))}
           </ul>
+
+          {IndustrySection && <IndustrySection regionCode={regionCode} />}
 
           <Link
             href={`/analysis?region=${regionCode}&industry=${industry}`}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, type RefObject } from "react";
+import { useEffect, useRef, type RefObject } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
   Popup,
@@ -10,27 +10,23 @@ import {
   type MapLayerMouseEvent,
 } from "maplibre-gl";
 import type { FeatureCollection, Point } from "geojson";
-import { fetchStores } from "../api";
-import type { Store } from "@/shared/api/types";
 import { readAccentColor } from "./map-view";
+import { markerStrategyOf, type MarkerPoint } from "./marker-strategies";
 
-const STORES_SOURCE_ID = "stores";
-const CLUSTER_LAYER_ID = "stores-clusters";
-const CLUSTER_COUNT_LAYER_ID = "stores-cluster-count";
-const UNCLUSTERED_LAYER_ID = "stores-unclustered";
+const MARKERS_SOURCE_ID = "markers";
+const CLUSTER_LAYER_ID = "markers-clusters";
+const CLUSTER_COUNT_LAYER_ID = "markers-cluster-count";
+const UNCLUSTERED_LAYER_ID = "markers-unclustered";
 
-/** 영업 중으로 볼 수 있는 상태 — 그 외(폐업/취소류)는 popup에서 --danger로 표시. */
-const OPEN_STATUSES = new Set(["영업", "영업중"]);
+const EMPTY_FEATURE_COLLECTION: FeatureCollection<Point, MarkerPoint> = { type: "FeatureCollection", features: [] };
 
-const EMPTY_FEATURE_COLLECTION: FeatureCollection<Point, Store> = { type: "FeatureCollection", features: [] };
-
-function toGeoJSON(stores: Store[]): FeatureCollection<Point, Store> {
+function toGeoJSON(items: MarkerPoint[]): FeatureCollection<Point, MarkerPoint> {
   return {
     type: "FeatureCollection",
-    features: stores.map((store) => ({
+    features: items.map((item) => ({
       type: "Feature",
-      properties: store,
-      geometry: { type: "Point", coordinates: [store.lng, store.lat] },
+      properties: item,
+      geometry: { type: "Point", coordinates: [item.lng, item.lat] },
     })),
   };
 }
@@ -58,52 +54,33 @@ function applyThemeColors(map: MapLibreGLMap) {
   }
 }
 
-function buildPopupContent(store: Store): HTMLDivElement {
-  const container = document.createElement("div");
-  container.style.color = "var(--text-primary)";
-  container.style.fontSize = "0.8125rem";
-  container.style.lineHeight = "1.5";
-
-  const name = document.createElement("div");
-  name.textContent = store.name;
-  name.style.fontWeight = "600";
-  container.appendChild(name);
-
-  const openDate = document.createElement("div");
-  openDate.textContent = `개업일 ${store.open_date}`;
-  openDate.style.color = "var(--text-secondary)";
-  container.appendChild(openDate);
-
-  const status = document.createElement("div");
-  status.textContent = store.status_name;
-  status.style.color = OPEN_STATUSES.has(store.status_name) ? "var(--ok)" : "var(--danger)";
-  status.style.fontWeight = "600";
-  container.appendChild(status);
-
-  return container;
-}
-
-interface StoreMarkersProps {
+interface RegionMarkersProps {
   mapRef: RefObject<MapLibreGLMap | null>;
   ready: boolean;
   regionCode: string | null | undefined;
   industry: string;
 }
 
-/** 동 선택 시에만 로드되는 점포 클러스터 마커. 전 서울 로드는 성능상 금지 — regionCode 없으면 소스를 비운다. */
-export function StoreMarkers({ mapRef, ready, regionCode, industry }: StoreMarkersProps) {
+/** 동 선택 시에만 로드되는 클러스터 마커. 전 서울 로드는 성능상 금지 — regionCode 없으면 소스를 비운다.
+ *  무엇을 조회하고 팝업에 무엇을 보여줄지는 업종별 MarkerStrategy가 결정한다. */
+export function RegionMarkers({ mapRef, ready, regionCode, industry }: RegionMarkersProps) {
+  const strategy = markerStrategyOf(industry);
+  // 클릭 핸들러는 map 준비 시 한 번만 등록되므로 최신 전략을 ref로 읽는다.
+  const strategyRef = useRef(strategy);
+  strategyRef.current = strategy;
+
   const { data } = useQuery({
-    queryKey: ["stores", regionCode, industry],
-    queryFn: () => fetchStores(regionCode as string, industry),
+    queryKey: strategy.queryKey(regionCode as string, industry),
+    queryFn: () => strategy.fetch(regionCode as string, industry),
     enabled: ready && !!regionCode,
   });
 
   // 소스·레이어는 map 최초 준비 시 한 번만 추가.
   useEffect(() => {
     const map = mapRef.current;
-    if (!map || !ready || map.getSource(STORES_SOURCE_ID)) return;
+    if (!map || !ready || map.getSource(MARKERS_SOURCE_ID)) return;
 
-    map.addSource(STORES_SOURCE_ID, {
+    map.addSource(MARKERS_SOURCE_ID, {
       type: "geojson",
       data: EMPTY_FEATURE_COLLECTION,
       cluster: true,
@@ -114,7 +91,7 @@ export function StoreMarkers({ mapRef, ready, regionCode, industry }: StoreMarke
     map.addLayer({
       id: CLUSTER_LAYER_ID,
       type: "circle",
-      source: STORES_SOURCE_ID,
+      source: MARKERS_SOURCE_ID,
       filter: ["has", "point_count"],
       paint: {
         "circle-color": readAccentColor(),
@@ -126,7 +103,7 @@ export function StoreMarkers({ mapRef, ready, regionCode, industry }: StoreMarke
     map.addLayer({
       id: CLUSTER_COUNT_LAYER_ID,
       type: "symbol",
-      source: STORES_SOURCE_ID,
+      source: MARKERS_SOURCE_ID,
       filter: ["has", "point_count"],
       layout: { "text-field": "{point_count_abbreviated}", "text-size": 12 },
       paint: { "text-color": readCssVar("--accent-fg", "#ffffff") },
@@ -134,7 +111,7 @@ export function StoreMarkers({ mapRef, ready, regionCode, industry }: StoreMarke
     map.addLayer({
       id: UNCLUSTERED_LAYER_ID,
       type: "circle",
-      source: STORES_SOURCE_ID,
+      source: MARKERS_SOURCE_ID,
       filter: ["!", ["has", "point_count"]],
       paint: {
         "circle-color": readAccentColor(),
@@ -148,7 +125,7 @@ export function StoreMarkers({ mapRef, ready, regionCode, industry }: StoreMarke
       const feature = e.features?.[0] as MapGeoJSONFeature | undefined;
       const clusterId = feature?.properties?.cluster_id;
       if (!feature || typeof clusterId !== "number" || feature.geometry.type !== "Point") return;
-      const source = map.getSource<GeoJSONSource>(STORES_SOURCE_ID);
+      const source = map.getSource<GeoJSONSource>(MARKERS_SOURCE_ID);
       const zoom = await source?.getClusterExpansionZoom(clusterId);
       if (typeof zoom === "number") {
         map.easeTo({ center: feature.geometry.coordinates as [number, number], zoom });
@@ -158,10 +135,10 @@ export function StoreMarkers({ mapRef, ready, regionCode, industry }: StoreMarke
     const onPointClick = (e: MapLayerMouseEvent) => {
       const feature = e.features?.[0] as MapGeoJSONFeature | undefined;
       if (!feature || feature.geometry.type !== "Point") return;
-      const store = feature.properties as unknown as Store;
+      const item = feature.properties as unknown as MarkerPoint;
       new Popup({ closeButton: false })
         .setLngLat(feature.geometry.coordinates as [number, number])
-        .setDOMContent(buildPopupContent(store))
+        .setDOMContent(strategyRef.current.buildPopup(item))
         .addTo(map);
     };
 
@@ -194,15 +171,15 @@ export function StoreMarkers({ mapRef, ready, regionCode, industry }: StoreMarke
       if (map.getLayer(CLUSTER_COUNT_LAYER_ID)) map.removeLayer(CLUSTER_COUNT_LAYER_ID);
       if (map.getLayer(CLUSTER_LAYER_ID)) map.removeLayer(CLUSTER_LAYER_ID);
       if (map.getLayer(UNCLUSTERED_LAYER_ID)) map.removeLayer(UNCLUSTERED_LAYER_ID);
-      if (map.getSource(STORES_SOURCE_ID)) map.removeSource(STORES_SOURCE_ID);
+      if (map.getSource(MARKERS_SOURCE_ID)) map.removeSource(MARKERS_SOURCE_ID);
     };
   }, [mapRef, ready]);
 
-  // regionCode 없으면 소스를 비운다(성능 가드) — 있으면 조회된 점포로 교체.
+  // regionCode 없으면 소스를 비운다(성능 가드) — 있으면 조회된 마커로 교체.
   useEffect(() => {
     const map = mapRef.current;
     if (!map || !ready) return;
-    const source = map.getSource<GeoJSONSource>(STORES_SOURCE_ID);
+    const source = map.getSource<GeoJSONSource>(MARKERS_SOURCE_ID);
     if (!source) return;
     source.setData(regionCode && data ? toGeoJSON(data) : EMPTY_FEATURE_COLLECTION);
   }, [mapRef, ready, regionCode, data]);

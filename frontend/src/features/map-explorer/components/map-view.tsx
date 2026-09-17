@@ -8,7 +8,7 @@ import type { MetricKey } from "@/shared/api/types";
 import { useMapData } from "../hooks/use-map-data";
 import { makeMetricColorScale, NO_DATA_COLOR, type ColorScheme } from "../lib/metric-color";
 import { MapLegend } from "./map-legend";
-import { StoreMarkers } from "./store-markers";
+import { RegionMarkers } from "./region-markers";
 
 // maplibre-gl은 GeoJSON 타일링을 Web Worker에서 수행하며, 워커 스크립트 URL을 import.meta.url 기반으로
 // 런타임에 자체 계산한다. Turbopack 번들 청크의 import.meta.url은 http(s) URL이 아니어서 그 계산이
@@ -44,7 +44,7 @@ function vworldTileUrl(theme: "light" | "dark"): string {
 }
 
 /** 현재 테마의 --accent CSS 토큰을 읽는다. 토큰을 못 읽는 예외 상황의 안전 폴백은 lib의 중립색을 재사용.
- *  store-markers.tsx도 클러스터/마커 페인트 색상에 동일 토큰을 써야 하므로 export한다. */
+ *  region-markers.tsx도 클러스터/마커 페인트 색상에 동일 토큰을 써야 하므로 export한다. */
 export function readAccentColor(): string {
   return getComputedStyle(document.documentElement).getPropertyValue("--accent").trim() || NO_DATA_COLOR;
 }
@@ -193,7 +193,7 @@ export function MapView({ regionCode, metric, industry, year, onSelectRegion }: 
         </div>
       )}
       <MapLegend metric={metric} classes={scale.classes} />
-      <StoreMarkers mapRef={mapRef} ready={ready} regionCode={regionCode} industry={industry} />
+      <RegionMarkers mapRef={mapRef} ready={ready} regionCode={regionCode} industry={industry} />
     </div>
   );
 }
