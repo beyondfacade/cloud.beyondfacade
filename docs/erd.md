@@ -28,6 +28,8 @@ ERD를 한 장에 그리지 않고 **역할 계층으로 나눠** 설계한다. 
 
 ## 2. ERD 초안 (MVP 15개 테이블)
 
+> 설계 초안이다. 실구현 최종본(실DB 스키마 기준 21테이블)은 **§6**을 본다.
+
 ```mermaid
 erDiagram
     %% ── 마스터 계층 ──
@@ -355,3 +357,299 @@ erDiagram
 - [ ] 업종코드 매핑표 확정 → `industry_source_code` 시드 데이터 작성
 - [ ] Alembic 마이그레이션 초안 (마스터 → 원천 → 집계 순서로 생성)
 - [ ] 테이블별 Fractal 11-File Set 구현 순서 결정 (제안: region → industry → store → metric)
+
+---
+
+## 6. 최종 ERD — 실DB 스키마 기준 (2026-09-17)
+
+> 원천: 운영 DB `information_schema`(컬럼·PK·UK·FK) 실조회. 21테이블(`alembic_version` 제외).
+> 실선 = DB `FOREIGN KEY` 제약, 점선 = 애플리케이션 레벨 엣지(DB 제약 없음 — 사유는 §6.2).
+
+```mermaid
+erDiagram
+    %% ── 마스터 계층 ──
+    district ||--o{ region : "포함"
+    region ||--o{ population_stat : "인구"
+    industry ||--o{ industry_subcategory : "세분"
+    industry ||--o{ industry_source_code : "코드매핑"
+
+    %% ── 원천 계층: 인허가 ──
+    district ||--o{ store : "관할"
+    region |o--o{ store : "위치(공간조인)"
+    industry ||--o{ store : "업종"
+    industry_subcategory |o--o{ store : "서브카테고리"
+    store ||--o{ academy_course : "교습과정"
+    district ||--o{ tobacco_retailer : "지정관할"
+    region |o--o{ tobacco_retailer : "위치(공간조인)"
+
+    %% ── 원천 계층: 스냅샷 ──
+    region ||--o{ convenience_store : "수집 단위"
+    district ||--o{ childcare_center : "수집 단위"
+    region |o--o{ childcare_center : "위치(공간조인)"
+    childcare_center ||--o{ childcare_center_stat : "기준일별 현황"
+
+    %% ── 원천 계층: 외생 변수 ──
+    district |o--o{ rent_price : "매핑 후속"
+    shock_event ||--o{ shock_event_industry : ""
+    industry ||--o{ shock_event_industry : ""
+    shock_event ||--o{ shock_event_region : ""
+    region ||--o{ shock_event_region : ""
+    region |o--o{ news_article : "관련지역"
+    interest_rate }o..o{ rent_price : "계산기 앱 조인"
+
+    %% ── 집계 계층 ──
+    region ||--o{ region_industry_metric : ""
+    industry ||--o{ region_industry_metric : ""
+    store ||..o{ region_industry_metric : "배치 집계(개폐업)"
+    convenience_store ||..o{ region_industry_metric : "스냅샷 점포수"
+    childcare_center ||..o{ region_industry_metric : "스냅샷 점포수"
+
+    %% ── 검색 계층 (RAG) ──
+    region |o--o{ rag_chunk : "지역 필터"
+    news_article ||..o{ rag_chunk : "source_type=news"
+    funding_program ||..o{ rag_chunk : "source_type=funding"
+
+    district {
+        string district_code PK "자치구코드"
+        string name
+        string opn_authority_code UK "개방자치단체코드 - nullable"
+    }
+    region {
+        string region_code PK "행정동코드"
+        string district_code FK
+        string name
+        string geometry_ref "nullable"
+    }
+    population_stat {
+        string region_code PK, FK
+        string period PK "YYYYMM"
+        string gender PK "M/F"
+        int age_from PK "5세 구간 시작"
+        int age_to "nullable - 100세 이상"
+        int population
+    }
+    industry {
+        string industry_id PK
+        string name
+        string demand_type "수요동인 4유형"
+    }
+    industry_subcategory {
+        string subcategory_id PK
+        string industry_id FK
+        string category_axis
+        string target_group "nullable"
+    }
+    industry_source_code {
+        int id PK
+        string industry_id FK "UK(industry_id, source_system, code)"
+        string source_system
+        string code
+    }
+    store {
+        string store_id PK "MNG_NO"
+        string name
+        string industry_id FK
+        string district_code FK
+        string region_code FK "nullable"
+        string subcategory_id FK "nullable"
+        date open_date "nullable"
+        date close_date "nullable"
+        string status_code
+        string status_name
+        float lat "nullable"
+        float lng "nullable"
+        datetime source_updated_at "증분 커서"
+    }
+    academy_course {
+        string course_id PK
+        string store_id FK
+        string course_name
+        int tuition_fee "nullable"
+        string target_grade "nullable"
+    }
+    tobacco_retailer {
+        string retailer_id PK
+        string name
+        string district_code FK
+        string region_code FK "nullable"
+        string status_code
+        string status_name
+        date designated_date "nullable"
+        date permit_date "nullable"
+        date close_date "nullable"
+        date cancel_date "nullable"
+        float lat "nullable"
+        float lng "nullable"
+        string road_address "nullable"
+        string jibun_address "nullable"
+        datetime source_updated_at
+    }
+    convenience_store {
+        string store_id PK "bizesId"
+        string name
+        string branch_name "nullable"
+        string brand "nullable - 상호 추출"
+        string region_code FK
+        float lat "nullable"
+        float lng "nullable"
+        string road_address "nullable"
+        string jibun_address "nullable"
+        string source_stdr_ym
+        date first_seen_on
+        date last_seen_on
+    }
+    childcare_center {
+        string center_id PK "stcode"
+        string name
+        string type_name
+        string status_name "nullable"
+        string district_code FK
+        string region_code FK "nullable"
+        string address
+        string zipcode "nullable"
+        string tel "nullable"
+        float lat "nullable"
+        float lng "nullable"
+        date approved_on "nullable"
+        date paused_from "nullable"
+        date paused_until "nullable"
+        date abolished_on "nullable"
+        date first_seen_on
+        date last_seen_on
+    }
+    childcare_center_stat {
+        string center_id PK, FK
+        date base_date PK
+        int capacity
+        int child_count
+        int waiting_count "nullable"
+        int class_count
+        int staff_count
+    }
+    rent_price {
+        string id PK "building_type:cls_id:period"
+        string building_type
+        string cls_id
+        string region_name
+        string region_path
+        int region_level
+        string district_code FK "nullable"
+        string period "YYYYQn"
+        float rent_per_m2 "nullable"
+        float vacancy_rate "nullable"
+        string rent_statbl_id "nullable"
+        string vacancy_statbl_id "nullable"
+    }
+    interest_rate {
+        string id PK "rate_type:period"
+        string rate_type
+        string period "YYYYMM"
+        float rate
+        string unit
+        string stat_code
+        string item_code
+    }
+    shock_event {
+        string event_id PK
+        string layer
+        string name
+        date start_date
+        date end_date "nullable"
+        string scope
+        string source
+        string source_url "nullable"
+        string description "nullable"
+    }
+    shock_event_industry {
+        string event_id PK, FK
+        string industry_id PK, FK
+        string severity
+    }
+    shock_event_region {
+        string event_id PK, FK
+        string region_code PK, FK
+    }
+    news_article {
+        string article_id PK "sha1(url) 20자리"
+        string title
+        string description
+        datetime published_at
+        string url UK
+        string matched_keyword
+        string press "nullable"
+        string region_code FK "nullable"
+    }
+    funding_program {
+        string program_id PK "pblancId"
+        string source
+        string title
+        string org
+        string url UK
+        string apply_period
+        string exec_org "nullable"
+        string field_category "nullable"
+        string field_subcategory "nullable"
+        string target_text "nullable"
+        string hashtags "nullable"
+        date apply_begin "nullable"
+        date deadline "nullable"
+        string summary "nullable"
+        datetime posted_at "nullable"
+        datetime source_updated_at "nullable"
+        boolean is_expired
+    }
+    region_industry_metric {
+        string region_code PK, FK
+        string industry_id PK, FK
+        int year PK
+        int store_count
+        int open_count "nullable - 스냅샷 원천"
+        int close_count "nullable - 스냅샷 원천"
+        float closure_rate "nullable"
+        float growth_rate "nullable"
+    }
+    rag_chunk {
+        string chunk_id PK
+        string source_type "news / funding"
+        string source_id "원천 PK - 다형 참조, IX(source_type, source_id)"
+        string content
+        vector embedding "vector(1536) - nullable"
+        string embedded_by "nullable - 임베딩 모델명"
+        datetime published_at "nullable"
+        string org "nullable"
+        string url "nullable"
+        string region_code FK "nullable"
+    }
+```
+
+### 6.1 적재 현황 (2026-09-17, `pg_stat_user_tables` 추정치)
+
+| 계층 | 테이블 (행 수) |
+|---|---|
+| 마스터 | district 25 · region 427 · industry 10 · industry_subcategory 8 · industry_source_code 9 · population_stat 142,632 |
+| 원천(인허가) | store 348,792 · academy_course 64,415 · tobacco_retailer 95,402 |
+| 원천(스냅샷) | convenience_store 9,395 · childcare_center 3,940 · childcare_center_stat 3,940 |
+| 원천(외생) | rent_price 3,638 · interest_rate 365 · shock_event 26 · shock_event_industry 107 · shock_event_region **0** · news_article 4,951 · funding_program 1,849 |
+| 집계 | region_industry_metric 21,005 |
+| 검색 | rag_chunk 6,645 (news 4,796 · funding 1,849, 전건 임베딩) |
+
+### 6.2 초안(§2) 대비 차이
+
+| 구분 | 내용 |
+|---|---|
+| **추가** | `rag_chunk` — RAG 검색 청크(pgvector 1536차원). §2 초안에 없던 검색 계층 |
+| **미구현** | `sales_estimate`(추정매출), `funding_program_industry`(공고↔업종 M:N) — 테이블 없음 |
+| **스키마 변경** | `region_industry_metric` — 대리키 `id`·`subcategory_id`·`survival_rate_3y` 없음, `period`(YYYYQ) → `year`(int), PK = (region_code, industry_id, year) 복합키 |
+| **스키마 변경** | `district.opn_authority_code`(UK) 추가, `industry_source_code.id`는 int + UK(industry_id, source_system, code) |
+| **스키마 변경** | `shock_event.source`·`description`, `shock_event_industry.severity` 추가 |
+| **유보 유지** | `news_article.event_id` — shock_event 승격 시 추가 (§2 주석 그대로) |
+
+**점선(애플리케이션 레벨) 엣지 사유:**
+- `rag_chunk.source_id` — `source_type`에 따라 `news_article` 또는 `funding_program`의 PK를 가리키는 다형 참조라 단일 FK 제약을 걸 수 없다.
+- `region_industry_metric` ← store / convenience_store / childcare_center — 배치 집계(`apps/metric` 게이트웨이)로 생성되는 파생 관계이고 행 단위 참조가 아니다.
+- `interest_rate` ↔ `rent_price` — §4 역정규화 목록의 계산기 앱 조인.
+
+**§13 연결 원칙 점검 결과 (DB FK 기준):**
+- `funding_program` — DB FK가 하나도 없다. `rag_chunk` 다형 참조로만 연결되며, 업종 허브 연결을 맡을 `funding_program_industry`가 미구현이다 → **후속 구현 대상**.
+- `interest_rate` — DB FK 없음. §4에 근거를 명시한 의도된 예외.
+- `shock_event_region` — 테이블·FK는 있으나 적재 0건.
