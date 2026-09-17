@@ -24,7 +24,7 @@ class RegionIndustryMetricOrm(OrmBase):
     )
     year: Mapped[int] = mapped_column(primary_key=True)
     store_count: Mapped[int]  # 해당 연도 말(12-31) 기준 영업 중 점포 수
-    open_count: Mapped[int]  # 당해 개업 수
-    close_count: Mapped[int]  # 당해 폐업 수
+    open_count: Mapped[int | None]  # 당해 개업 수 — 스냅샷 원천(어린이집·편의점)은 NULL
+    close_count: Mapped[int | None]  # 당해 폐업 수 — 스냅샷 원천은 NULL
     closure_rate: Mapped[float | None]  # close_count ÷ 전년 말 store_count
     growth_rate: Mapped[float | None]  # (open_count − close_count) ÷ 전년 말 store_count

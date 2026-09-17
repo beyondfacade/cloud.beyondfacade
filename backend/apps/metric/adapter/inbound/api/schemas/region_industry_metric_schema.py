@@ -6,8 +6,8 @@ class RegionIndustryMetricResponse(BaseModel):
     industry_id: str
     year: int
     store_count: int
-    open_count: int
-    close_count: int
+    open_count: int | None
+    close_count: int | None
     closure_rate: float | None
     growth_rate: float | None
 

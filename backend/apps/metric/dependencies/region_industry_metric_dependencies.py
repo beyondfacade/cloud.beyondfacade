@@ -3,6 +3,10 @@
 from apps.metric.adapter.outbound.gateways.industry_catalog_gateway import (
     IndustryCatalogGateway,
 )
+from apps.metric.adapter.outbound.gateways.snapshot_store_count_gateways import (
+    ChildcareStoreCountGateway,
+    ConvenienceStoreCountGateway,
+)
 from apps.metric.adapter.outbound.gateways.store_stats_gateway import StoreStatsGateway
 from apps.metric.adapter.outbound.repositories.region_industry_metric_repository import (
     SqlAlchemyRegionIndustryMetricRepository,
@@ -20,4 +24,5 @@ def get_region_industry_metric_use_case() -> RegionIndustryMetricUseCase:
         repository=SqlAlchemyRegionIndustryMetricRepository(),
         store_stats=StoreStatsGateway(),
         industry_catalog=IndustryCatalogGateway(),
+        snapshot_counts=[ChildcareStoreCountGateway(), ConvenienceStoreCountGateway()],
     )

@@ -1,3 +1,4 @@
+from collections import Counter
 from dataclasses import dataclass
 
 # 브랜드 키워드 사전 (§5 dict 디스패치 — if/elif 대신 순서 있는 매핑, 느슨한 키워드는 뒤로).
@@ -42,3 +43,34 @@ class ConvenienceStore:
     road_address: str | None  # rdnmAdr
     jibun_address: str | None  # lnoAdr
     source_stdr_ym: str  # 원천 기준연월 (header stdrYm — 소실 분석 시 빈티지 구분용)
+
+
+@dataclass(frozen=True)
+class BrandCount:
+    brand: str | None  # None = 미확인(기타) 브랜드
+    count: int
+
+
+@dataclass(frozen=True)
+class ConvenienceRegionSummary:
+    """행정동 현행 편의점 수·브랜드 분포 — 사이드패널 카드 단위 (경쟁밀도 축)."""
+
+    region_code: str
+    store_count: int
+    brands: tuple[BrandCount, ...]  # 건수 내림차순(동수는 브랜드명 순), 미확인(None)은 맨 뒤
+    source_stdr_ym: str | None  # 원천 기준연월 중 최신 — 점포 없으면 None
+
+    @classmethod
+    def of(cls, region_code: str, stores: list[ConvenienceStore]) -> "ConvenienceRegionSummary":
+        counts = Counter(store.brand for store in stores)
+        known = sorted(
+            (BrandCount(brand, count) for brand, count in counts.items() if brand is not None),
+            key=lambda b: (-b.count, b.brand),
+        )
+        unknown = [BrandCount(None, counts[None])] if None in counts else []
+        return cls(
+            region_code=region_code,
+            store_count=len(stores),
+            brands=tuple(known + unknown),
+            source_stdr_ym=max((s.source_stdr_ym for s in stores), default=None),
+        )

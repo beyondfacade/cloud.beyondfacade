@@ -30,6 +30,7 @@ class Settings(BaseSettings):
     # 브이월드 인증키에 등록된 서비스URL — 데이터·WFS API는 domain 불일치 시 INCORRECT_KEY
     vworld_service_domain: str = "beyondfacade.cloud"
     gemini_api_key: str = ""
+    childcare_api_key: str = ""  # 어린이집정보공개포털 운영계정 키 (일 1,000회)
 
 
 @lru_cache

@@ -1,5 +1,77 @@
 # Backend Version Log
 
+## [v0.20.0] - 2026-09-17
+
+### Added
+- **childcare BC 신설** (`apps/childcare/`) — 어린이집 축: 정원 대비 현원(가동률)·입소대기 직접 관측
+  (brainstorming §3.5 "어린이집은 가동률이 그대로 보인다"). convenience 전례대로 소비 라우터가 아직
+  없어 entity+ORM+ports+interactor+gateway+repository+CLI 구성 (라우터 후속)
+  - **원천**: 어린이집정보공개포털 cpmsapi030 × 자치구 25회/스냅샷 (`CHILDCARE_API_KEY` 운영계정 —
+    일 1,000회 한도의 2.5%). https 전용(http는 빈 응답), XML, 1회 호출에 구 전체 반환(페이징 없음 —
+    최다 송파 274건), 인증 실패도 HTTP 200 + `<errcode>` 본문 → 게이트웨이가 RuntimeError로 전파
+  - `childcare_center` 테이블 — 시설. PK=stcode, district FK 필수(요청 arcode), region FK nullable
+    (좌표 공간조인 — store `RegionIndex` 읽기 전용 재사용, tobacco 전례), 유형·상태·주소·좌표·
+    인가/휴지/폐지일, 관측 필드 first/last_seen_on(재수집 시 first_seen·region_code 보존)
+  - `childcare_center_stat` 테이블 — PK(center_id, base_date=datastdrdt) 기준일별 정원·현원·
+    입소대기·반 수·보육교직원 수. **시설 행에 덮어쓰지 않는 근거**: 현원·대기는 시점마다 변해
+    덮어쓰면 가동률 추이가 복구 불가로 소실
+  - 실데이터 기반 결정: `crchcnt`=`CHILD_CNT_TOT`, `chcrtescnt`=`EM_CNT_TOT` 전수 일치(중복 필드 1개만
+    저장), `EW_CNT_TOT` 공란은 NULL 보존("0" 표기 실측 0건이라 0 추정 금지), 상태 공란 3건(현원 0)
+    NULL 보존, 대표자명(가정 어린이집 개인 실명) 미수집, 연령별 세부는 1NF상 age_band 행 테이블로 후속
+  - **공간조인 가드**: 판정 행정동이 등록 자치구 밖(region_code 앞 5자리 불일치)이면 미기입 —
+    동작구 등록 시설 좌표가 시청 인근(중구)을 가리키는 원천 오류 실측
+  - 마이그레이션 `8236d5263b60` — 두 테이블 + `ix_childcare_center_region_last_seen`
+    (autogenerate가 잡은 rag_chunk HNSW 인덱스 삭제 오탐은 제거)
+  - **첫 실적재: 3,940건** (API 25회, 실패 구 0): 상태 정상 3,805·재개 72·휴지 60·공란 3,
+    유형 국공립 1,851·가정 985·민간 711·직장 299·법인·단체등 57·협동 21·사회복지법인 16.
+    좌표 결측 7, region 기입 3,912(미판정 21 — 자치구 불일치·경계 밖), 행정동 426/427 커버.
+    서울 가동률 67.8%(현원 130,019/정원 191,788, 정원 초과 0) — 구별 최저 종로 56.9%·최고 성북 76.5%.
+    입소대기 채움 3,415건, 최다 송파 위례새솔어린이집 692명(정원 230)
+  - `scripts/childcare-collector.sh` + 크론 등록 (매주 월 05:30) — 로그 `logs/childcare-collector.log`
+  - `core/matrix/grid_keymaker_secret_manager.py` — `childcare_api_key` 설정 추가
+  - 테스트 11건 — 게이트웨이 XML 픽스처(실응답 사본 필드 매핑·공란 대기/좌표/상태 None·errcode 전파)
+    + 실DB 업서트(first/last_seen·같은 기준일 멱등·새 기준일 이력 누적·소실 시 last_seen 정지·
+    상태 공란 적재·재수집 시 region_code 보존) + 공간조인 자치구 가드 순수 함수
+    — 전체 193건 중 192 passed (기지 실패 1건: test_store_ingest 실DB 커서 테스트, 기존 상태 유지)
+- **childcare 조회 API 2종** (지도 마커·사이드패널 소비처 — 1테이블 1라우터, §12 11-File Set 완비)
+  - `GET /childcare-centers/myself`, `GET /childcare-centers?region=` — 운영 중·좌표 보유 시설 +
+    시설별 최신 현황(유형·상태·정원·현원·입소대기·기준일) 마커 계약
+  - `GET /childcare-center-stats/myself`, `GET /childcare-center-stats/summary?region=` — 행정동 운영 중
+    시설 최신 현황 합계(시설 수·정원·현원·가동률·입소대기 합·기준일). 합산 규칙은 도메인
+    `ChildcareRegionSummary.of`(정원 0이면 가동률 None, 대기 전 시설 공란이면 None)
+  - 미등록 행정동은 404 `REGION_NOT_FOUND` (`RegionCatalogGateway` — master region 존재 확인, 어댑터 레이어 cross-BC)
+  - **운영 중 판정 = 자치구 최신 관측일(max last_seen_on)에 관측된 시설** — 전역 최대가 아니라 자치구 단위라
+    한 구 수집이 실패해도 그 구 시설이 지도에서 사라지지 않음. 조인 쿼리 `operating_centers_with_latest_stat`을
+    조회 리포지토리 2종이 공유
+  - 실서버 검증: 청운효자동 4곳·가동률 62.1%·입소대기 108건, 미등록 region 404
+  - 테스트 9건 — myself 배선 2·마커/요약 계약·404 에러 바디·도메인 합산 2(Fake 포트) + 실DB 리포지토리 2
+    (소실 시설 제외·좌표 없는 시설은 마커 제외/요약 포함·시설별 최신 기준일 선택)
+    — 전체 202건 중 201 passed (기지 실패 1건 동일)
+- **convenience 조회 API** (`apps/convenience` — v0.18.0 수집 전용 BC에 지도 소비처 추가, §12 11-File Set 완비)
+  - `GET /convenience-stores/myself`, `GET /convenience-stores?region=` — 좌표 보유 현행 편의점 마커
+    (상호·지점명·브랜드·좌표·도로명주소)
+  - `GET /convenience-stores/summary?region=` — 행정동 현행 편의점 수·브랜드 분포(건수 내림차순·동수는 브랜드명 순,
+    미확인 None은 맨 뒤)·원천 기준연월. 합산 규칙은 도메인 `ConvenienceRegionSummary.of`
+  - 미등록 행정동 404 `REGION_NOT_FOUND` (BC별 `RegionCatalogGateway` — BC 간 직접 import 금지로 childcare와 별도)
+  - **현행 판정 = 행정동 최신 관측일(max last_seen_on)** — 수집 단위가 행정동이라 동 단위 판정
+  - 실서버 검증: 역삼1동 149곳(GS25 54·세븐일레븐 49·CU 34·이마트24 7·미니스톱 2·기타 3, 기준 202606), 미등록 region 404
+  - 테스트 7건 — myself 배선·마커 계약(좌표 없는 행 제외)·요약 계약·404·도메인 정렬/빈 목록(Fake 포트) +
+    실DB 리포지토리 1(소실 점포·이전 스냅샷 제외) — 전체 209건 중 208 passed (기지 실패 1건 동일)
+- **어린이집·편의점 점포수 지표** (`apps/metric`) — 단계구분도 `점포수`·사이드패널 점포수 카드가 두 업종에서도 채워짐
+  - `SnapshotStoreCountPort` + `ChildcareStoreCountGateway`·`ConvenienceStoreCountGateway` — 조회 API와 같은 현행 판정
+    (어린이집 자치구 최신 관측·region 기입분, 편의점 행정동 최신 관측)으로 행정동별 현행 점포수, 연도 = 최신 관측일 연도
+  - `RegionIndustryMetricInteractor.build`가 store 원천 연도 집계에 스냅샷 점포수를 합류 (`snapshot_counts` 주입, 기본 빈 목록)
+  - **개폐업 수·폐업률·성장률은 0이 아니라 NULL** — 스냅샷 원천은 개폐업 이력이 없다(어린이집: 원천이 폐지 시설 미반환,
+    편의점: 상가정보 업소번호 재생성 이력). 과거 연도(2019~2025)도 복원 불가라 관측 연도(2026)에만 적재.
+    편의점 담배소매인(`tobacco_retailer`) 지정·취소일 대체 산출은 검토 후 채택하지 않음(슈퍼·가판 혼재)
+  - 마이그레이션 `e2a08b1e8f19` — `region_industry_metric.open_count`/`close_count` nullable
+    (autogenerate의 rag_chunk HNSW 인덱스 삭제 오탐 제거)
+  - 재집계 21,005건: childcare 2026 426개 동·합계 3,912(= region 기입 시설 수), convenience_store 2026 427개 동·합계 9,395
+    (= 적재 점포 수) — 청운효자동 어린이집 점포수 4개·역삼1동 편의점 149개 카드 실확인, 폐업률 조회는 빈 배열
+  - 반영 주기: `build_metrics`는 store-collector 크론(매일 04:20) 후속 — 월요일 스냅샷(05:30·05:40)은 다음 날 지표에 반영
+  - 테스트 4건 — 스냅샷 점포수 합류(개폐업·비율 None, 점포수 조회값·폐업률 빈 배열)·대상 연도 밖 제외(Fake 포트) +
+    실DB 게이트웨이 2(소실·region 미기입 제외) — 전체 213건 중 212 passed (기지 실패 1건 동일)
+
 ## [v0.19.0] - 2026-09-15
 
 ### Added

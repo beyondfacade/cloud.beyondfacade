@@ -1,9 +1,13 @@
 """metric build 검증 — 연도별 지표 계산(폐업률·성장률·전년 0 가드)과 멱등성 (Fake 포트)."""
 
-from apps.metric.app.dtos.region_industry_metric_dto import YearlyStoreStat
+from apps.metric.app.dtos.region_industry_metric_dto import (
+    SnapshotStoreCount,
+    YearlyStoreStat,
+)
 from apps.metric.app.ports.output.region_industry_metric_port import (
     IndustryCatalogPort,
     RegionIndustryMetricRepositoryPort,
+    SnapshotStoreCountPort,
     StoreStatsPort,
 )
 from apps.metric.app.use_cases.region_industry_metric_interactor import (
@@ -138,3 +142,46 @@ def test_build_is_idempotent():
 
     assert first == second
     assert repository.rows == snapshot
+
+
+class FakeSnapshotCounts(SnapshotStoreCountPort):
+    def __init__(self, counts: list[SnapshotStoreCount]) -> None:
+        self._counts = counts
+
+    def current_counts(self) -> list[SnapshotStoreCount]:
+        return self._counts
+
+
+def test_build_adds_snapshot_store_count_without_open_close_or_rates():
+    """스냅샷 원천(어린이집·편의점)은 현행 점포수만 — 개폐업 이력이 없어 0이 아니라 None으로 남긴다."""
+    repository = FakeRepository()
+    interactor = RegionIndustryMetricInteractor(
+        repository=repository,
+        store_stats=FakeStoreStats([]),
+        industry_catalog=FakeIndustryCatalog({"childcare", "convenience_store"}),
+        snapshot_counts=[
+            FakeSnapshotCounts([SnapshotStoreCount("1111051500", "childcare", 2026, 4)]),
+            FakeSnapshotCounts([SnapshotStoreCount("1168064000", "convenience_store", 2026, 149)]),
+        ],
+    )
+    processed = interactor.build([2025, 2026])
+
+    assert processed == 2
+    childcare = repository.rows[("1111051500", "childcare", 2026)]
+    assert childcare.store_count == 4
+    assert (childcare.open_count, childcare.close_count) == (None, None)
+    assert (childcare.closure_rate, childcare.growth_rate) == (None, None)
+    assert repository.rows[("1168064000", "convenience_store", 2026)].store_count == 149
+    assert [v.value for v in interactor.list_metric_values("childcare", "store_count", 2026)] == [4.0]
+    assert interactor.list_metric_values("childcare", "closure_rate", 2026) == []
+
+
+def test_build_skips_snapshot_counts_outside_target_years():
+    repository = FakeRepository()
+    interactor = RegionIndustryMetricInteractor(
+        repository=repository,
+        store_stats=FakeStoreStats([]),
+        industry_catalog=FakeIndustryCatalog({"childcare"}),
+        snapshot_counts=[FakeSnapshotCounts([SnapshotStoreCount("1111051500", "childcare", 2027, 4)])],
+    )
+    assert interactor.build([2026]) == 0

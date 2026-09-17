@@ -2,7 +2,10 @@
 
 from abc import ABC, abstractmethod
 
-from apps.metric.app.dtos.region_industry_metric_dto import YearlyStoreStat
+from apps.metric.app.dtos.region_industry_metric_dto import (
+    SnapshotStoreCount,
+    YearlyStoreStat,
+)
 from apps.metric.domain.entities.region_industry_metric_entity import (
     RegionIndustryMetric,
 )
@@ -30,6 +33,12 @@ class StoreStatsPort(ABC):
     @abstractmethod
     def yearly_stats(self, years: list[int]) -> list[YearlyStoreStat]:
         """연도별 행정동×업종 store 원천 카운트 (region_code 보유 점포만)."""
+
+
+class SnapshotStoreCountPort(ABC):
+    @abstractmethod
+    def current_counts(self) -> list[SnapshotStoreCount]:
+        """스냅샷 원천의 행정동×업종 현행 점포수 (region_code 보유분만)."""
 
 
 class IndustryCatalogPort(ABC):

@@ -1,4 +1,4 @@
-from collections.abc import Callable
+from collections.abc import Callable, Sequence
 from dataclasses import asdict
 
 from apps.metric.app.dtos.region_industry_metric_dto import (
@@ -11,6 +11,7 @@ from apps.metric.app.ports.input.region_industry_metric_use_case import (
 from apps.metric.app.ports.output.region_industry_metric_port import (
     IndustryCatalogPort,
     RegionIndustryMetricRepositoryPort,
+    SnapshotStoreCountPort,
     StoreStatsPort,
 )
 from apps.metric.domain.entities.region_industry_metric_entity import (
@@ -39,10 +40,12 @@ class RegionIndustryMetricInteractor(RegionIndustryMetricUseCase):
         repository: RegionIndustryMetricRepositoryPort,
         store_stats: StoreStatsPort,
         industry_catalog: IndustryCatalogPort,
+        snapshot_counts: Sequence[SnapshotStoreCountPort] = (),
     ) -> None:
         self._repository = repository
         self._store_stats = store_stats
         self._industry_catalog = industry_catalog
+        self._snapshot_counts = snapshot_counts
 
     def myself(self) -> RegionIndustryMetricDto:
         return RegionIndustryMetricDto(
@@ -81,6 +84,22 @@ class RegionIndustryMetricInteractor(RegionIndustryMetricUseCase):
                     ),
                 )
             )
+        # 스냅샷 원천(어린이집·편의점)은 개폐업 이력이 없다 — 현행 점포수만, 개폐업·비율은 0이 아니라 None
+        metrics.extend(
+            RegionIndustryMetric(
+                region_code=count.region_code,
+                industry_id=count.industry_id,
+                year=count.year,
+                store_count=count.store_count,
+                open_count=None,
+                close_count=None,
+                closure_rate=None,
+                growth_rate=None,
+            )
+            for source in self._snapshot_counts
+            for count in source.current_counts()
+            if count.year in target_years
+        )
         return self._repository.upsert(metrics)
 
     def list_metric_values(

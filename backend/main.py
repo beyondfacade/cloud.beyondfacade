@@ -2,6 +2,15 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
 
+from apps.childcare.adapter.inbound.api.v1.childcare_center_router import (
+    router as childcare_center_router,
+)
+from apps.childcare.adapter.inbound.api.v1.childcare_center_stat_router import (
+    router as childcare_center_stat_router,
+)
+from apps.convenience.adapter.inbound.api.v1.convenience_store_router import (
+    router as convenience_store_router,
+)
 from apps.funding.adapter.inbound.api.v1.funding_program_router import (
     router as funding_router,
 )
@@ -21,6 +30,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 app.add_middleware(GZipMiddleware, minimum_size=1024)  # /regions/geojson 등 대형 응답 압축
+app.include_router(childcare_center_router)
+app.include_router(childcare_center_stat_router)
+app.include_router(convenience_store_router)
 app.include_router(funding_router)
 app.include_router(region_router)
 app.include_router(metric_router)

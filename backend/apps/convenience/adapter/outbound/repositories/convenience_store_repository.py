@@ -1,12 +1,15 @@
 from datetime import date
 
+from sqlalchemy import func, select
 from sqlalchemy.dialects.postgresql import insert
 
+from apps.convenience.adapter.outbound.orm_mappers.convenience_store_orm_mapper import to_entity
 from apps.convenience.adapter.outbound.orms.convenience_store_orm import (
     ConvenienceStoreOrm,
 )
 from apps.convenience.app.ports.output.convenience_store_port import (
     ConvenienceSnapshotRepositoryPort,
+    ConvenienceStoreQueryRepositoryPort,
 )
 from apps.convenience.domain.entities.convenience_store_entity import ConvenienceStore
 from core.matrix.grid_oracle_database_manager import session_scope
@@ -29,7 +32,9 @@ def _row_values(store: ConvenienceStore, observed_on: date) -> dict:
     }
 
 
-class SqlAlchemyConvenienceStoreRepository(ConvenienceSnapshotRepositoryPort):
+class SqlAlchemyConvenienceStoreRepository(
+    ConvenienceSnapshotRepositoryPort, ConvenienceStoreQueryRepositoryPort
+):
     def upsert(self, stores: list[ConvenienceStore], observed_on: date) -> int:
         """PK(bizesId) 멱등 업서트 — 기존 행은 first_seen_on(최초 관측)만 보존하고
         원천 컬럼·last_seen_on을 갱신. 소실 행은 건드리지 않아 last_seen_on이 멈춘다."""
@@ -51,3 +56,21 @@ class SqlAlchemyConvenienceStoreRepository(ConvenienceSnapshotRepositoryPort):
                 )
             )
         return len(deduped)
+
+    def list_current(self, region_code: str) -> list[ConvenienceStore]:
+        """행정동 최신 관측일에 관측된 점포 — 수집 단위가 행정동이라 동 단위 최신으로 판정."""
+        latest_seen = (
+            select(func.max(ConvenienceStoreOrm.last_seen_on))
+            .where(ConvenienceStoreOrm.region_code == region_code)
+            .scalar_subquery()
+        )
+        statement = (
+            select(ConvenienceStoreOrm)
+            .where(
+                ConvenienceStoreOrm.region_code == region_code,
+                ConvenienceStoreOrm.last_seen_on == latest_seen,
+            )
+            .order_by(ConvenienceStoreOrm.store_id)
+        )
+        with session_scope() as session:
+            return [to_entity(row) for row in session.execute(statement).scalars().all()]

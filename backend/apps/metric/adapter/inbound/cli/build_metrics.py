@@ -1,6 +1,7 @@
 """지역×업종 연도별 지표 배치 러너 (Driving Adapter, CLI).
 
-- 입력: store 테이블의 region_code 보유분만 읽는다 — 외부 API 호출 없음
+- 입력: store 테이블의 region_code 보유분 + 스냅샷 원천(childcare_center·convenience_store) 현행 점포수
+  — 외부 API 호출 없음. 스냅샷 원천은 개폐업 이력이 없어 관측 연도의 점포수만 채운다(개폐업·비율 NULL)
 - 산출: region_industry_metric (행정동×업종×연도 2019~2026) 업서트 — 재실행 멱등
 - 일일 증분 크론(store-collector)의 assign_regions 후속 실행을 전제로 설계
 

@@ -46,6 +46,9 @@ erDiagram
     district ||--o{ tobacco_retailer : "지정관할(보조 테이블)"
     region |o--o{ tobacco_retailer : "위치(공간조인 후 채움)"
     region ||--o{ convenience_store : "수집 단위(보조 테이블)"
+    district ||--o{ childcare_center : "수집 단위(보조 테이블)"
+    region |o--o{ childcare_center : "위치(공간조인 후 채움)"
+    childcare_center ||--o{ childcare_center_stat : "기준일별 현황"
     shock_event ||--o{ shock_event_industry : ""
     industry ||--o{ shock_event_industry : ""
     shock_event ||--o{ shock_event_region : ""
@@ -168,6 +171,34 @@ erDiagram
         date first_seen_on "최초 관측일 - 신규 출점 신호"
         date last_seen_on "최근 관측일 - 정지 시 소실(폐점 추정 후보)"
     }
+    childcare_center {
+        string center_id PK "stcode 어린이집 코드 - cpmsapi030 실측 유일"
+        string name "crname"
+        string type_name "crtypename 국공립/가정/민간/직장/법인·단체등/협동/사회복지법인"
+        string status_name "crstatusname 정상/재개/휴지 - 공란 nullable"
+        string district_code FK "요청 arcode 5자리"
+        string region_code FK "좌표 공간조인 - 등록 자치구 밖 판정은 미기입 - nullable"
+        string address "craddr"
+        string zipcode "nullable"
+        string tel "crtelno - nullable"
+        float lat "la WGS84 - nullable"
+        float lng "lo"
+        date approved_on "crcnfmdt 인가일"
+        date paused_from "crpausebegindt 휴지 시작 - nullable"
+        date paused_until "crpauseenddt 휴지 종료 - nullable"
+        date abolished_on "crabldt 폐지일 - nullable(원천이 폐지 시설 미반환)"
+        date first_seen_on "최초 관측일"
+        date last_seen_on "최근 관측일 - 정지 시 소실(폐원 추정 후보)"
+    }
+    childcare_center_stat {
+        string center_id PK "FK childcare_center"
+        date base_date PK "datastdrdt 원천 기준일"
+        int capacity "crcapat 정원"
+        int child_count "crchcnt 현원 = CHILD_CNT_TOT"
+        int waiting_count "EW_CNT_TOT 입소대기 - 공란 nullable"
+        int class_count "CLASS_CNT_TOT 반 수"
+        int staff_count "chcrtescnt 보육교직원 = EM_CNT_TOT"
+    }
     interest_rate {
         string id PK "rate_type:period - ECOS 실응답 기반"
         string rate_type "base 기준금리 - 시리즈 확장 대비"
@@ -223,8 +254,8 @@ erDiagram
         string subcategory_id FK "nullable"
         string period "YYYYQ"
         int store_count
-        int open_count
-        int close_count
+        int open_count "nullable - 스냅샷 원천(어린이집·편의점)은 개폐업 이력 없음"
+        int close_count "nullable - 동일"
         float growth_rate
         float closure_rate
         float survival_rate_3y
@@ -265,6 +296,19 @@ erDiagram
   이행 종속이라 두지 않음(3NF — store 전례). `brand`는 상호 기반 추출 역정규화(브랜드 분포
   조회 축 — 원본 상호 보존으로 재추출 가능). 관측 필드 `first_seen_on`/`last_seen_on`은
   broker 전례의 스냅샷 소실 패턴 — 소실(last_seen 정지)="폐점 추정 후보"의 후속 분석 근거.
+- `childcare_center` / `childcare_center_stat` — **MVP 15테이블 밖 보조 테이블 2종 추가**
+  (2026-09-17, 어린이집 축). 원천은 어린이집정보공개포털 cpmsapi030 × 자치구 25회
+  (운영계정 실응답 73필드 기반 — 서울 3,940건 실적재). 원천이 폐지 시설을 반환하지 않아
+  인허가 개폐업 이력이 없으므로 **store에 합치지 않음**(convenience 근거와 동일 — open/close 지표 오염).
+  §13 연결 원칙: `district_code` FK 필수(요청 arcode) + `region_code` FK nullable(좌표 공간조인,
+  등록 자치구 밖 판정은 좌표 오류로 보고 미기입 — tobacco 전례)로 마스터 허브 연결, stat은
+  center FK로 연결 — 고립 없음.
+  **시설/현황 분리 근거(2NF·이력)**: 정원·현원·대기·반·교직원은 (시설, 기준일)에 종속되고 시점마다
+  변한다 — 시설 행에 덮어쓰면 가동률 추이가 복구 불가로 소실되므로 PK(center_id, base_date) 이력 행.
+  **1NF**: 연령별 반·아동·대기(CLASS/CHILD/EW_CNT_00~05…)와 교직원 직종·근속 분포(EM_CNT_*)는
+  컬럼 나열이 되므로 이번에는 수집하지 않음 — 소비처가 생기면 age_band 행 테이블로 추가.
+  `sidoname`/`sigunname`은 district 경유 이행 종속이라 두지 않음(3NF). 대표자명(CRREPNAME)은
+  가정 어린이집에서 개인 실명이라 미수집.
 
 ---
 
