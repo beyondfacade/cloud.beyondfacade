@@ -1,5 +1,12 @@
 # Frontend Version Log
 
+## [v0.14.0] - 2026-09-21
+
+### Changed
+- **AI 분석 탭 실 SSE 전환** — `ANALYSIS_API_BASE=/api/mock` 상수·TODO 제거. 분석 POST·EventSource가
+  `config.apiBase`(`NEXT_PUBLIC_API_BASE=/api/backend`)를 따름. 훅 로직 무변경(계약 동일).
+- 테스트: mock 고정 계약을 "config.apiBase를 따른다"로 반전
+
 ## [v0.13.1] - 2026-09-17
 
 ### Fixed
