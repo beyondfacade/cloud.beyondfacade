@@ -1,5 +1,22 @@
 # Backend Version Log
 
+## [v0.21.0] - 2026-09-21
+
+### Added
+- **agent BC SSE 분석 API** — `POST /analysis` + `GET /analysis/{id}/events` + `GET /analysis/myself`
+  - Composition Root `analysis_dependencies`: 모델 레지스트리 `gemma3|gemini` (요청당
+    AnalysisInteractor 인스턴스 — `last_usage` 가변 상태 격리)
+  - 로컬 기본 배선: API 키 `gemma3` → Ollama **`gemma4:12b`** (현행 `gemma3:12b`는 tools
+    capability 없음 — `registry.ollama.ai/.../gemma3:12b does not support tools`)
+  - 영속화: `analysis_report` + `llm_usage` (마이그레이션 `a1b2c3d4e5f6`, down=`e2a08b1e8f19`)
+  - 프로세스 수명 `_PENDING`으로 mock 대칭 analysis_id 보관; `report_done.report_id` = analysis_id
+  - 테스트 4건 (`test_agent_router`) — Fake UseCase로 POST·SSE 프레임 순서·404·myself
+  - 스모크(8299, 역삼1동 카페): ~23s, input 14377 / output 719 tokens, DB 1+1행 확인
+
+### Changed (소급 — T8~T10은 선행 커밋, 본 버전에서 API 노출로 마감)
+- T8 LLM 어댑터(Ollama·Gemini) · T9 도구 7종 · T10 AnalysisInteractor 단일 루프가
+  HTTP/SSE·영속화와 연결됨
+
 ## [v0.20.0] - 2026-09-17
 
 ### Added
