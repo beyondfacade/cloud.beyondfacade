@@ -14,6 +14,7 @@ from apps.convenience.adapter.inbound.api.v1.convenience_store_router import (
 from apps.funding.adapter.inbound.api.v1.funding_program_router import (
     router as funding_router,
 )
+from apps.agent.adapter.inbound.api.v1.analysis_router import router as analysis_router
 from apps.master.adapter.inbound.api.v1.region_router import router as region_router
 from apps.metric.adapter.inbound.api.v1.region_industry_metric_router import (
     router as metric_router,
@@ -30,6 +31,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 app.add_middleware(GZipMiddleware, minimum_size=1024)  # /regions/geojson 등 대형 응답 압축
+app.include_router(analysis_router)
 app.include_router(childcare_center_router)
 app.include_router(childcare_center_stat_router)
 app.include_router(convenience_store_router)

@@ -22,6 +22,8 @@ from core.matrix.grid_oracle_database_manager import OrmBase
 import apps.childcare.adapter.outbound.orms.childcare_center_orm  # noqa: F401
 import apps.childcare.adapter.outbound.orms.childcare_center_stat_orm  # noqa: F401
 import apps.convenience.adapter.outbound.orms.convenience_store_orm  # noqa: F401
+import apps.agent.adapter.outbound.orms.analysis_report_orm  # noqa: F401
+import apps.agent.adapter.outbound.orms.llm_usage_orm  # noqa: F401
 import apps.funding.adapter.outbound.orms.funding_program_orm  # noqa: F401
 import apps.master.adapter.outbound.orms.district_orm  # noqa: F401
 import apps.master.adapter.outbound.orms.region_orm  # noqa: F401
