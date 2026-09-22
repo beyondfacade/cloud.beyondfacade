@@ -1,5 +1,11 @@
 # Frontend Version Log
 
+## [v0.14.2] - 2026-09-22
+
+### Fixed
+- **딥링크 `?region=` 지도 이동** — GeoJSON 행정동 bbox로 `fitBounds` (진입·선택 시).
+  순수 함수 `bboxOfRegion` + 단위 테스트.
+
 ## [v0.14.1] - 2026-09-22
 
 ### Fixed

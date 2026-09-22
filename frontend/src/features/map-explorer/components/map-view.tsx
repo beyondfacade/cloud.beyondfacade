@@ -7,6 +7,7 @@ import { config } from "@/shared/config";
 import type { MetricKey } from "@/shared/api/types";
 import { useMapData } from "../hooks/use-map-data";
 import { makeMetricColorScale, NO_DATA_COLOR, type ColorScheme } from "../lib/metric-color";
+import { bboxOfRegion } from "../lib/region-bbox";
 import { MapLegend } from "./map-legend";
 import { RegionMarkers } from "./region-markers";
 
@@ -153,6 +154,21 @@ export function MapView({ regionCode, metric, industry, year, onSelectRegion }: 
     const source = map.getSource<GeoJSONSource>(REGIONS_SOURCE_ID);
     source?.setData(geojson.data);
   }, [ready, geojson.data]);
+
+  // 딥링크·선택 행정동으로 카메라 이동 (fitBounds).
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !ready || !geojson.data || !regionCode) return;
+    const bbox = bboxOfRegion(geojson.data as GeoJSON.FeatureCollection, regionCode);
+    if (!bbox) return;
+    map.fitBounds(
+      [
+        [bbox[0], bbox[1]],
+        [bbox[2], bbox[3]],
+      ],
+      { padding: 64, maxZoom: 14, duration: 800 },
+    );
+  }, [ready, geojson.data, regionCode]);
 
   // 단계구분도 색칠 — rows/metric 변경 시 fill-color 갱신.
   useEffect(() => {
