@@ -31,6 +31,19 @@ export function useAgentReport() {
     setLoading(false);
   };
 
+  /** 스트림 중단 시 running 슬롯이 화면에 남지 않도록 error로 내린다. */
+  const failStream = (message: string) => {
+    setState((prev) => {
+      const agents = { ...prev.agents };
+      for (const name of Object.keys(agents) as (keyof typeof agents)[]) {
+        if (agents[name].status === "running") {
+          agents[name] = { ...agents[name], status: "error" };
+        }
+      }
+      return { ...prev, agents, error: message };
+    });
+  };
+
   const start = useCallback(async (params: StartAnalysisParams) => {
     if (loadingRef.current) return; // 진행 중이면 재진입 무시
     loadingRef.current = true;
@@ -51,8 +64,7 @@ export function useAgentReport() {
           try {
             ev = JSON.parse((e as MessageEvent).data) as AgentEvent;
           } catch {
-            // 손상된 SSE payload — onerror와 동일한 에러 경로에 합류.
-            setState((prev) => ({ ...prev, error: "분석 스트림 데이터를 해석하지 못했습니다." }));
+            failStream("분석 스트림 데이터를 해석하지 못했습니다.");
             source.close();
             finish();
             return;
@@ -66,7 +78,7 @@ export function useAgentReport() {
       }
 
       source.onerror = () => {
-        setState((prev) => ({ ...prev, error: "분석 스트림 연결에 실패했습니다." }));
+        failStream("분석 스트림 연결에 실패했습니다.");
         source.close();
         finish();
       };

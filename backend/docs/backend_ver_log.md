@@ -8,6 +8,10 @@
 - **SGIS CLI** 미매칭만 남은 대기열에서 크론 무한루프 방지 (`geocoded==0` → exit 2)
 - **SGIS 전량 지오코딩 완료** — 학원 25,504·중개 25,299 좌표, assign_regions·build_metrics 합류 (metric 3,408·3,416행)
 
+### Fixed
+- **`GET /stores` 500** — `Store`에 추가한 `road_address`/`jibun_address`가 `StoreDto(**asdict)`에 없어 TypeError.
+  DTO·응답 스키마에 동일 필드 추가
+
 ## [v0.22.0] - 2026-09-22
 
 ### Added

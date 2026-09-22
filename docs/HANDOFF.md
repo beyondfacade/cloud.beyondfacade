@@ -1,6 +1,6 @@
 # HANDOFF — 남은 작업
 
-> 작성: 2026-09-17 · 기준 커밋 `089b95e` (main) · 백엔드 v0.20.0 / 프론트 v0.13.1
+> 작성: 2026-09-22 · `feature/analysis-api` · 백엔드 v0.22.x / 프론트 v0.14.4
 
 ## 1. 현재 상태 요약
 
@@ -42,7 +42,7 @@
 
 - [x] **어린이집·편의점 선택 시 "데이터 없음" 표시 정리** — FE v0.14.1/v0.14.3 (스냅샷 업종 안내 + 폐업률·성장률 카드 유지)
 - [x] 딥링크(`?region=`) 지도 이동 — FE v0.14.2 fitBounds
-- [ ] 포스트MVP 잔여: 스트림 에러 시 에이전트 상태 stale, 테마 새로고침 시 light 리셋, Pretendard CDN 셀프호스팅, `readAccentColor` lib 분리, AnalysisForm select 전환, maplibre 워커 재벤더링 자동화
+- [x] 포스트MVP 잔여 (v0.14.4): 스트림 stale·테마 유지·Pretendard 셀프호스트·`readAccentColor` lib·AnalysisForm select·maplibre 워커 postinstall
 
 ### 2-4. 배포·인프라
 
@@ -56,7 +56,7 @@
 ### 2-5. 정리
 
 - [ ] 미커밋 파일: `docs/jekyll.md`(수정), `docs/superpowers/plans/2026-08-25-frontend-mvp.md`·`docs/프로젝트_산출물_구조.md`(미추적) — 커밋 여부 결정
-- [ ] 플랜·스펙 문서의 버전 표기(v0.20.0/v0.13.0)가 실제와 어긋남 — Task 11~12 진행 시 함께 정정
+- [x] 플랜·스펙 문서의 버전 표기 — rag-agent 설계/플랜에 실제 버전(BE v0.21+/FE v0.14+) 주석
 - [ ] 원장의 deferred minor 10건 — 최종 리뷰에서 머지 전 처리 여부 분류
 - [x] `test_latest_source_updated_at_returns_cursor` — 실DB 오염 회피(미래 커서 시각)
 

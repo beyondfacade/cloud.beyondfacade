@@ -12,6 +12,7 @@ import { SNAPSHOT_INDUSTRIES } from "../lib/map-state";
 import { MapLegend } from "./map-legend";
 import { RegionMarkers } from "./region-markers";
 import type { IndustryId } from "@/shared/industries";
+import { readAccentColor } from "@/shared/lib/accent-color";
 
 // maplibre-gl은 GeoJSON 타일링을 Web Worker에서 수행하며, 워커 스크립트 URL을 import.meta.url 기반으로
 // 런타임에 자체 계산한다. Turbopack 번들 청크의 import.meta.url은 http(s) URL이 아니어서 그 계산이
@@ -44,12 +45,6 @@ function currentTheme(): "light" | "dark" {
 function vworldTileUrl(theme: "light" | "dark"): string {
   const layer = theme === "dark" ? "midnight" : "Base";
   return `https://api.vworld.kr/req/wmts/1.0.0/${config.vworldKey}/${layer}/{z}/{y}/{x}.png`;
-}
-
-/** 현재 테마의 --accent CSS 토큰을 읽는다. 토큰을 못 읽는 예외 상황의 안전 폴백은 lib의 중립색을 재사용.
- *  region-markers.tsx도 클러스터/마커 페인트 색상에 동일 토큰을 써야 하므로 export한다. */
-export function readAccentColor(): string {
-  return getComputedStyle(document.documentElement).getPropertyValue("--accent").trim() || NO_DATA_COLOR;
 }
 
 interface MapViewProps {
@@ -122,7 +117,7 @@ export function MapView({ regionCode, metric, industry, year, onSelectRegion }: 
         type: "line",
         source: REGIONS_SOURCE_ID,
         filter: ["==", ["get", "region_code"], NO_SELECTION],
-        paint: { "line-color": readAccentColor(), "line-width": 2 },
+        paint: { "line-color": readAccentColor(NO_DATA_COLOR), "line-width": 2 },
       });
       map.on("click", REGIONS_FILL_LAYER_ID, (e) => {
         const code = e.features?.[0]?.properties?.region_code;
@@ -145,7 +140,7 @@ export function MapView({ regionCode, metric, industry, year, onSelectRegion }: 
       const source = map.getSource<RasterTileSource>(TILE_SOURCE_ID);
       source?.setTiles([vworldTileUrl(currentTheme())]);
       if (map.getLayer(REGIONS_LINE_LAYER_ID)) {
-        map.setPaintProperty(REGIONS_LINE_LAYER_ID, "line-color", readAccentColor());
+        map.setPaintProperty(REGIONS_LINE_LAYER_ID, "line-color", readAccentColor(NO_DATA_COLOR));
       }
     }
     const observer = new MutationObserver(applyTheme);
@@ -190,7 +185,7 @@ export function MapView({ regionCode, metric, industry, year, onSelectRegion }: 
   useEffect(() => {
     const map = mapRef.current;
     if (!map || !ready) return;
-    map.setPaintProperty(REGIONS_LINE_LAYER_ID, "line-color", readAccentColor());
+    map.setPaintProperty(REGIONS_LINE_LAYER_ID, "line-color", readAccentColor(NO_DATA_COLOR));
     // eslint-disable-next-line @typescript-eslint/no-explicit-any -- FilterSpecification은 maplibre-gl 공개 API로 노출되지 않음
     map.setFilter(REGIONS_LINE_LAYER_ID, ["==", ["get", "region_code"], regionCode ?? NO_SELECTION] as any);
   }, [ready, regionCode]);

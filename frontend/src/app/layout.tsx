@@ -8,11 +8,14 @@ export const metadata: Metadata = {
   description: "행정동 단위 상권 지표를 지도에서 탐색하고, AI 에이전트 분석 리포트를 확인합니다.",
 };
 
+const THEME_BOOT =
+  "(function(){try{var t=localStorage.getItem('metabole-theme');if(t==='dark'||t==='light')document.documentElement.dataset.theme=t;}catch(e){}})();";
+
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="ko" data-theme="light">
+    <html lang="ko" data-theme="light" suppressHydrationWarning>
       <head>
-        <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/variable/pretendardvariable-dynamic-subset.min.css" />
+        <script dangerouslySetInnerHTML={{ __html: THEME_BOOT }} />
       </head>
       <body className="bg-[var(--bg-base)] text-[var(--text-primary)] min-h-[100dvh] flex flex-col">
         <TopBar />

@@ -85,6 +85,35 @@ it("SSE payload가 JSON이 아니면 error 상태로 합류하고 스트림을 �
   expect(result.current.loading).toBe(false);
 });
 
+it("SSE onerror 시 running 에이전트 슬롯을 error로 내린다", async () => {
+  FakeEventSource.instances = [];
+  vi.stubGlobal("EventSource", FakeEventSource as unknown as typeof EventSource);
+  stubFetch({ analysis_id: "abc" });
+
+  const { result } = renderHook(() => useAgentReport());
+
+  act(() => {
+    result.current.start({ region: "1168064000", industry: "cafe" });
+  });
+  await waitFor(() => expect(FakeEventSource.instances).toHaveLength(1));
+
+  const source = FakeEventSource.instances[0];
+  act(() =>
+    source.emit(
+      "agent_status",
+      JSON.stringify({ type: "agent_status", agent: "orchestrator", status: "running" }),
+    ),
+  );
+  expect(result.current.state.agents.orchestrator.status).toBe("running");
+
+  act(() => source.onerror?.());
+
+  expect(result.current.state.error).toBeTruthy();
+  expect(result.current.state.agents.orchestrator.status).toBe("error");
+  expect(result.current.loading).toBe(false);
+  expect(source.closed).toBe(true);
+});
+
 it("분석 POST·SSE는 config.apiBase(NEXT_PUBLIC_API_BASE)를 따른다", async () => {
   vi.stubEnv("NEXT_PUBLIC_API_BASE", "http://localhost:8201");
   vi.resetModules();

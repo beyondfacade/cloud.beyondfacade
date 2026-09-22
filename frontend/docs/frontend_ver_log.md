@@ -1,5 +1,17 @@
 # Frontend Version Log
 
+## [v0.14.4] - 2026-09-22
+
+### Fixed
+- **스트림 에러 시 에이전트 슬롯 stale** — SSE onerror·JSON 파싱 실패 때 `running` → `error`
+- **테마 새로고침 light 리셋** — `localStorage(metabole-theme)` + layout 부트 스크립트
+
+### Changed
+- **Pretendard CDN → 셀프호스트** — `pretendard` 패키지 CSS import (`globals.css`)
+- **AnalysisForm 업종 select** — `INDUSTRIES` 목록
+- **`readAccentColor` → `shared/lib/accent-color.ts`** (map-view export 제거)
+- **maplibre 워커 벤더 자동화** — `scripts/vendor-maplibre-worker.sh` + `postinstall`
+
 ## [v0.14.3] - 2026-09-22
 
 ### Changed

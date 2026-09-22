@@ -17,6 +17,8 @@ class StoreDto:
     source_updated_at: datetime
     region_code: str | None = None
     subcategory_id: str | None = None
+    road_address: str | None = None
+    jibun_address: str | None = None
 
 
 @dataclass(frozen=True)
