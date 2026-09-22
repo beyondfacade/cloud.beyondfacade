@@ -75,10 +75,14 @@ def test_ingest_upserts_new_and_changed_rows():
 
 
 def test_latest_source_updated_at_returns_cursor():
+    """실DB karaoke×종로 행과 섞여도 테스트 행이 max가 되도록 먼 미래 시각 사용."""
     _cleanup()
     repository = SqlAlchemyStoreRepository()
-    StoreInteractor(repository, FakeGateway([_store(1, updated=3)])).ingest([_TARGET])
+    future = datetime(2099, 1, 15, 12, 0)
+    store = _store(1, updated=3)
+    store.source_updated_at = future
+    StoreInteractor(repository, FakeGateway([store])).ingest([_TARGET])
 
     cursor = repository.latest_source_updated_at(_TARGET.industry_id, _TARGET.district_code)
-    assert cursor == datetime(2026, 8, 3, 12, 0)
+    assert cursor == future
     _cleanup()

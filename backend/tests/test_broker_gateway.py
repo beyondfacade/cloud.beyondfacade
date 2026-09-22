@@ -89,6 +89,8 @@ def test_to_store_maps_fields(monkeypatch):
     assert (store.status_code, store.status_name) == ("open", "영업중")
     assert (store.lat, store.lng) == (None, None)  # 원천에 좌표 없음 — SGIS 지오코딩 후속
     assert store.source_updated_at == datetime(2026, 9, 7)
+    assert store.road_address == "서울특별시 강남구 선릉로 431"
+    assert store.jibun_address == "서울특별시 강남구 역삼동 708-26"
 
 
 def test_status_dict_dispatch_preserves_unknown_code(monkeypatch):

@@ -33,4 +33,6 @@ class StoreOrm(OrmBase):
     status_name: Mapped[str]
     lat: Mapped[float | None]
     lng: Mapped[float | None]
+    road_address: Mapped[str | None] = mapped_column(nullable=True)
+    jibun_address: Mapped[str | None] = mapped_column(nullable=True)
     source_updated_at: Mapped[datetime]

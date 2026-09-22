@@ -18,6 +18,8 @@ def to_orm(entity: Store) -> StoreOrm:
         status_name=entity.status_name,
         lat=entity.lat,
         lng=entity.lng,
+        road_address=entity.road_address,
+        jibun_address=entity.jibun_address,
         source_updated_at=entity.source_updated_at,
     )
 
@@ -36,5 +38,7 @@ def to_entity(orm: StoreOrm) -> Store:
         status_name=orm.status_name,
         lat=orm.lat,
         lng=orm.lng,
+        road_address=orm.road_address,
+        jibun_address=orm.jibun_address,
         source_updated_at=orm.source_updated_at,
     )

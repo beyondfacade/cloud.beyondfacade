@@ -160,5 +160,7 @@ class SeoulAcademyGateway(AcademyGatewayPort):
             lng=None,
             source_updated_at=datetime(load_date.year, load_date.month, load_date.day),
             subcategory_id=_FIELD_SUBCATEGORIES.get((item.get("FLD_NM") or "").strip()),
+            road_address=(item.get("ROAD_NM_ADDR") or "").strip() or None,
+            jibun_address=None,  # 학원 API에 지번 필드 없음
         )
         return AcademyRecord(store=store, courses=_build_courses(store_id, item))

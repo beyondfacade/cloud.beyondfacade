@@ -1,5 +1,18 @@
 # Backend Version Log
 
+## [v0.22.0] - 2026-09-22
+
+### Added
+- **SGIS 지오코딩 파이프라인** — 학원·부동산중개 lat/lng NULL 대기열 해소용
+  - `store.road_address` / `jibun_address` 컬럼 (마이그레이션 `b2c3d4e5f6a7`)
+  - 학원 게이트웨이 `ROAD_NM_ADDR`, 중개 게이트웨이 `rdnmadr`/`mnnmadr` 적재
+  - `SgisGeocodingGateway` (토큰 4h + UTM-K EPSG:5179→WGS84) + `GeocodeStoresInteractor`
+  - CLI: `python -m apps.store.adapter.inbound.cli.geocode_stores [--limit N] [--industry …]`
+  - 업서트 시 원천 좌표 NULL이면 기존 지오코딩·공간조인 결과 보존 (학원 재수집 좌표 소실 방지)
+  - 테스트: `test_sgis_geocoding_gateway` · `test_geocode_stores` · 게이트웨이 주소 필드 단언
+- **선행 조건**: `SGIS_SERVICE_ID` / `SGIS_SECURITY_KEY` — 현재 `.env` 공란이면 CLI가 즉시 실패.
+  키 설정 후 수집(주소 채움) → geocode_stores → assign_regions → build_metrics 순
+
 ## [v0.21.1] - 2026-09-22
 
 ### Changed

@@ -110,4 +110,6 @@ class MolitBrokerGateway(BrokerGatewayPort):
             lat=None,  # 원천에 좌표 없음 — SGIS 지오코딩 후속 대상
             lng=None,
             source_updated_at=_to_source_updated_at(item.get("lastUpdtDt")),
+            road_address=(item.get("rdnmadr") or "").strip() or None,
+            jibun_address=(item.get("mnnmadr") or "").strip() or None,
         )
