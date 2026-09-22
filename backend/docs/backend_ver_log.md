@@ -1,5 +1,15 @@
 # Backend Version Log
 
+## [v0.21.1] - 2026-09-22
+
+### Changed
+- **Gemini LLM 기본 모델** `gemini-2.0-flash` → `gemini-2.5-flash`
+  (2.0 폐기 404; 3.6-flash는 thought_signature 요구로 현 어댑터 보류)
+- **에이전트 두뇌 비교 평가 결과** — 시나리오 10 × gemma4:12b vs gemini-2.5-flash
+  - 섹션 완성률 50% vs **90%**, 평균 소요 ~40s vs **~17s**, 자동 규칙 위반 0/10 양쪽
+  - 비교표: `data/eval/results/agent_compare.md` (원본 jsonl force-add)
+  - 두뇌 채택(A Gemini / B 로컬 / C 혼합)은 사용자 결정
+
 ## [v0.21.0] - 2026-09-21
 
 ### Added
