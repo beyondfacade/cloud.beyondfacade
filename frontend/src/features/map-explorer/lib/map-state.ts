@@ -1,5 +1,5 @@
 import type { MetricKey } from "@/shared/api/types";
-import { INDUSTRIES } from "@/shared/industries";
+import { INDUSTRIES, type IndustryId } from "@/shared/industries";
 
 export const METRICS = ["closure_rate", "growth_rate", "store_count"] as const;
 
@@ -11,6 +11,25 @@ export const METRIC_LABELS: Record<(typeof METRICS)[number], string> = {
   growth_rate: "성장률",
   store_count: "점포수",
 };
+
+/**
+ * 스냅샷 원천 업종 — 개폐업 이력이 없어 폐업률·성장률이 NULL.
+ * 지도 코로플레스·컨트롤은 점포수만 노출한다 (HANDOFF §2-3).
+ */
+export const SNAPSHOT_INDUSTRIES = new Set<IndustryId>(["childcare", "convenience_store"]);
+
+export function metricsForIndustry(industry: string): readonly MetricKey[] {
+  if (SNAPSHOT_INDUSTRIES.has(industry as IndustryId)) {
+    return ["store_count"];
+  }
+  return METRICS;
+}
+
+/** 업종에 없는 지표면 store_count(스냅샷) 또는 기본 폐업률로 보정. */
+export function coerceMetric(industry: string, metric: MetricKey): MetricKey {
+  const allowed = metricsForIndustry(industry);
+  return allowed.includes(metric) ? metric : allowed[0];
+}
 
 export interface MapState {
   industry: string;
@@ -38,14 +57,20 @@ export function serializeMapState(state: MapState): string {
 }
 
 export function parseMapState(sp: URLSearchParams): MapState {
-  const industry = sp.get("industry");
-  const metric = sp.get("metric");
+  const industryRaw = sp.get("industry");
+  const industry = INDUSTRIES.includes(industryRaw as IndustryId)
+    ? industryRaw!
+    : DEFAULT_STATE.industry;
+  const metricRaw = sp.get("metric");
+  const metric = METRICS.includes(metricRaw as MetricKey)
+    ? (metricRaw as MetricKey)
+    : DEFAULT_STATE.metric;
   const year = sp.get("year");
   const region = sp.get("region");
 
   return {
-    industry: INDUSTRIES.includes(industry as any) ? industry! : DEFAULT_STATE.industry,
-    metric: METRICS.includes(metric as any) ? (metric as MetricKey) : DEFAULT_STATE.metric,
+    industry,
+    metric: coerceMetric(industry, metric),
     year: YEARS.includes(Number(year)) ? Number(year) : DEFAULT_STATE.year,
     region: region || null,
   };

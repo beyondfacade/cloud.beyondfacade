@@ -1,5 +1,5 @@
 import { expect, it } from "vitest";
-import { parseMapState, serializeMapState, YEARS } from "./map-state";
+import { metricsForIndustry, parseMapState, serializeMapState, YEARS } from "./map-state";
 
 it("YEARS는 2019~2026 8개년을 제공한다 (백엔드 지표 범위와 일치)", () => {
   expect(YEARS).toEqual([2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026]);
@@ -24,7 +24,16 @@ it("직렬화→파싱 라운드트립이 보존된다", () => {
   expect(parseMapState(new URLSearchParams(serializeMapState(s)))).toEqual(s);
 });
 
-it("알 수 없는 값은 기본값으로 강제된다", () => {
-  expect(parseMapState(new URLSearchParams("industry=hack&metric=x"))
-    .industry).toBe("cafe");
+it("어린이집·편의점은 폐업률 URL이어도 점포수로 보정한다", () => {
+  expect(
+    parseMapState(new URLSearchParams("industry=childcare&metric=closure_rate")).metric,
+  ).toBe("store_count");
+  expect(
+    parseMapState(new URLSearchParams("industry=convenience_store&metric=growth_rate")).metric,
+  ).toBe("store_count");
+});
+
+it("metricsForIndustry는 스냅샷 업종에 점포수만 반환한다", () => {
+  expect(metricsForIndustry("childcare")).toEqual(["store_count"]);
+  expect(metricsForIndustry("cafe")).toEqual(["closure_rate", "growth_rate", "store_count"]);
 });

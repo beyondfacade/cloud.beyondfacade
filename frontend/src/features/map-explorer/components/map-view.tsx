@@ -189,7 +189,9 @@ export function MapView({ regionCode, metric, industry, year, onSelectRegion }: 
           role="status"
           className="absolute top-3 left-1/2 z-10 -translate-x-1/2 rounded-md border border-[var(--border)] bg-[var(--bg-surface)] px-3 py-2 text-sm text-[var(--text-secondary)] shadow-md"
         >
-          해당 업종·연도의 지표 데이터가 없습니다.
+          {metric === "store_count"
+            ? "해당 업종·연도의 점포수 지표가 없습니다."
+            : "해당 업종·연도의 지표 데이터가 없습니다."}
         </div>
       )}
       <MapLegend metric={metric} classes={scale.classes} />

@@ -6,6 +6,7 @@ import { useQuery } from "@tanstack/react-query";
 import { GradeBadge } from "@/shared/ui/grade-badge";
 import { industryLabel, type IndustryId } from "@/shared/industries";
 import { fetchRegionSummary } from "../api";
+import { SNAPSHOT_INDUSTRIES } from "../lib/map-state";
 import { ChildcareSummarySection } from "./childcare-summary";
 import { ConvenienceSummarySection } from "./convenience-summary";
 
@@ -14,6 +15,9 @@ const INDUSTRY_SECTIONS: Partial<Record<IndustryId, ComponentType<{ regionCode: 
   childcare: ChildcareSummarySection,
   convenience_store: ConvenienceSummarySection,
 };
+
+/** 스냅샷 업종에서 숨길 카드 라벨 — 원천에 개폐업 이력이 없어 값이 항상 "데이터 없음". */
+const SNAPSHOT_HIDDEN_CARD_LABELS = new Set(["폐업률", "성장률"]);
 
 interface SidePanelProps {
   regionCode: string | null;
@@ -42,6 +46,11 @@ export function SidePanel({ regionCode, industry }: SidePanelProps) {
 
   const label = industryLabel(industry);
   const IndustrySection = INDUSTRY_SECTIONS[industry as IndustryId];
+  const isSnapshot = SNAPSHOT_INDUSTRIES.has(industry as IndustryId);
+  const cards =
+    summary.data?.cards.filter(
+      (card) => !(isSnapshot && SNAPSHOT_HIDDEN_CARD_LABELS.has(card.label)),
+    ) ?? [];
 
   return (
     <aside className="flex w-80 shrink-0 flex-col overflow-y-auto border-l border-[var(--border)] bg-[var(--bg-surface)] p-5">
@@ -63,7 +72,7 @@ export function SidePanel({ regionCode, industry }: SidePanelProps) {
 
       {regionCode && summary.isError && (
         <div role="alert" className="my-auto flex flex-col items-center gap-2 px-4 text-center">
-          <span className="text-sm font-medium text-[var(--danger)]">데이터 없음</span>
+          <span className="text-sm font-medium text-[var(--danger)]">불러오기 실패</span>
           <span className="text-sm leading-relaxed text-[var(--text-secondary)]">
             <span className="tabular-nums">{regionCode}</span> 행정동의 {label} 지표를 불러오지 못했습니다.
           </span>
@@ -82,7 +91,7 @@ export function SidePanel({ regionCode, industry }: SidePanelProps) {
           </header>
 
           <ul className="mt-5 flex flex-col divide-y divide-[var(--border)] border-y border-[var(--border)]">
-            {summary.data.cards.map((card) => (
+            {cards.map((card) => (
               <li key={card.label} className="flex items-start justify-between gap-3 py-3">
                 <div className="flex min-w-0 flex-col gap-0.5">
                   <span className="text-xs text-[var(--text-secondary)]">{card.label}</span>
@@ -94,6 +103,12 @@ export function SidePanel({ regionCode, industry }: SidePanelProps) {
               </li>
             ))}
           </ul>
+
+          {isSnapshot && (
+            <p className="mt-3 text-xs leading-relaxed text-[var(--text-secondary)]">
+              폐업률·성장률은 스냅샷 원천이라 산출하지 않습니다. 아래 현황을 참고하세요.
+            </p>
+          )}
 
           {IndustrySection && <IndustrySection regionCode={regionCode} />}
 
