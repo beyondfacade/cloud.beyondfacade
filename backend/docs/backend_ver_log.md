@@ -6,6 +6,7 @@
 - **RAG fp16 전량 재색인** — 7,505건 `embedded_by=qwen3-embedding-4b-fp16` (혼용 Q4 해소)
 - **평가(참고)** candidate 50 — Recall@5 0.900 / MRR 0.791 (`data/eval/results/rag_fp16_*.json`)
 - **SGIS CLI** 미매칭만 남은 대기열에서 크론 무한루프 방지 (`geocoded==0` → exit 2)
+- **SGIS 전량 지오코딩 완료** — 학원 25,504·중개 25,299 좌표, assign_regions·build_metrics 합류 (metric 3,408·3,416행)
 
 ## [v0.22.0] - 2026-09-22
 

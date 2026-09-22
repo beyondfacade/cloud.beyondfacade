@@ -26,8 +26,9 @@
 
 ### 2-2. 데이터 계층
 
-- [x] **SGIS 지오코딩** (v0.22.0) — 키는 localhostdaegu `.env`에서 이관. 주소 재수집 완료.
-  전량 `geocode_stores` 실행 중 → 완료 후 `assign_regions` → `build_metrics` (미매칭만 남으면 CLI exit 2)
+- [x] **SGIS 지오코딩** (v0.22.0) — 완료.
+  학원 25,504·중개 25,299 좌표 / 행정동 배정 25,504·25,281 / `region_industry_metric` 3,408·3,416행.
+  미매칭 잔여 학원 4·중개 2. (워크트리에 `data/geojson` 심링크 필요 — 본진 `data/geojson` 참조)
 - [x] **fp16 전량 재색인** — 7,505건 전부 `qwen3-embedding-4b-fp16` (343.8s).
   (참고) candidate 50건 Recall@5 **0.900** / MRR 0.791 — confirmed 0건이라 본지표 미산출
 - [ ] **RAG 평가셋 검수 (사용자 작업)** — `data/eval/rag_evalset.jsonl` candidate 50건 → confirmed 승격해야 Recall@5 본지표 산출 가능
