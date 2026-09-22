@@ -8,8 +8,10 @@ import type { MetricKey } from "@/shared/api/types";
 import { useMapData } from "../hooks/use-map-data";
 import { makeMetricColorScale, NO_DATA_COLOR, type ColorScheme } from "../lib/metric-color";
 import { bboxOfRegion } from "../lib/region-bbox";
+import { SNAPSHOT_INDUSTRIES } from "../lib/map-state";
 import { MapLegend } from "./map-legend";
 import { RegionMarkers } from "./region-markers";
+import type { IndustryId } from "@/shared/industries";
 
 // maplibre-gl은 GeoJSON 타일링을 Web Worker에서 수행하며, 워커 스크립트 URL을 import.meta.url 기반으로
 // 런타임에 자체 계산한다. Turbopack 번들 청크의 import.meta.url은 http(s) URL이 아니어서 그 계산이
@@ -70,6 +72,10 @@ export function MapView({ regionCode, metric, industry, year, onSelectRegion }: 
   const loadError = geojson.isError || rows.isError;
   // 실 API는 데이터 미보유 업종·연도에 200 + 빈 배열을 반환한다 — 빈 지도임을 명시.
   const noData = rows.isSuccess && rows.data.length === 0;
+  const snapshotNoRate =
+    noData &&
+    SNAPSHOT_INDUSTRIES.has(industry as IndustryId) &&
+    (metric === "closure_rate" || metric === "growth_rate");
 
   // 색상 스케일 — fill-color 페인트와 범례가 같은 경계(classes)를 공유하는 단일 원천.
   const scale = useMemo(
@@ -205,9 +211,11 @@ export function MapView({ regionCode, metric, industry, year, onSelectRegion }: 
           role="status"
           className="absolute top-3 left-1/2 z-10 -translate-x-1/2 rounded-md border border-[var(--border)] bg-[var(--bg-surface)] px-3 py-2 text-sm text-[var(--text-secondary)] shadow-md"
         >
-          {metric === "store_count"
-            ? "해당 업종·연도의 점포수 지표가 없습니다."
-            : "해당 업종·연도의 지표 데이터가 없습니다."}
+          {snapshotNoRate
+            ? "스냅샷 원천이라 이 지표는 아직 없습니다. 점포수를 선택해 보세요."
+            : metric === "store_count"
+              ? "해당 업종·연도의 점포수 지표가 없습니다."
+              : "해당 업종·연도의 지표 데이터가 없습니다."}
         </div>
       )}
       <MapLegend metric={metric} classes={scale.classes} />

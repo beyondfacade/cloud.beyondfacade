@@ -1,12 +1,7 @@
 "use client";
 
 import { INDUSTRIES, INDUSTRY_LABELS } from "@/shared/industries";
-import {
-  METRIC_LABELS,
-  YEARS,
-  metricsForIndustry,
-  type MapState,
-} from "../lib/map-state";
+import { METRICS, METRIC_LABELS, YEARS, type MapState } from "../lib/map-state";
 
 const FIELD =
   "rounded-md border border-[var(--border)] bg-[var(--bg-surface)] px-2.5 py-1.5 text-sm text-[var(--text-primary)] transition-colors hover:border-[var(--accent)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]";
@@ -19,20 +14,13 @@ interface ControlBarProps {
 }
 
 export function ControlBar({ state, onChange }: ControlBarProps) {
-  const metrics = metricsForIndustry(state.industry);
-
   return (
     <div className="flex flex-wrap items-end gap-x-6 gap-y-3 border-b border-[var(--border)] bg-[var(--bg-surface)] px-5 py-3">
       <label className="flex flex-col gap-1.5">
         <span className={LEGEND}>업종</span>
         <select
           value={state.industry}
-          onChange={(e) => {
-            const industry = e.target.value;
-            const allowed = metricsForIndustry(industry);
-            const metric = allowed.includes(state.metric) ? state.metric : allowed[0];
-            onChange({ ...state, industry, metric });
-          }}
+          onChange={(e) => onChange({ ...state, industry: e.target.value })}
           className={FIELD}
         >
           {INDUSTRIES.map((ind) => (
@@ -52,7 +40,7 @@ export function ControlBar({ state, onChange }: ControlBarProps) {
           aria-labelledby="metric-legend"
           className="flex gap-0.5 rounded-md border border-[var(--border)] bg-[var(--bg-raised)] p-0.5"
         >
-          {metrics.map((m) => {
+          {METRICS.map((m) => {
             const selected = state.metric === m;
             return (
               <button

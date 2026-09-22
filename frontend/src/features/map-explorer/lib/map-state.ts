@@ -13,23 +13,10 @@ export const METRIC_LABELS: Record<(typeof METRICS)[number], string> = {
 };
 
 /**
- * 스냅샷 원천 업종 — 개폐업 이력이 없어 폐업률·성장률이 NULL.
- * 지도 코로플레스·컨트롤은 점포수만 노출한다 (HANDOFF §2-3).
+ * 스냅샷 원천 업종 — 개폐업 이력이 없어 폐업률·성장률이 NULL일 수 있음.
+ * 지표 UI는 3종 모두 노출하고, 값 없음은 사이드패널·지도 배너로 안내한다.
  */
 export const SNAPSHOT_INDUSTRIES = new Set<IndustryId>(["childcare", "convenience_store"]);
-
-export function metricsForIndustry(industry: string): readonly MetricKey[] {
-  if (SNAPSHOT_INDUSTRIES.has(industry as IndustryId)) {
-    return ["store_count"];
-  }
-  return METRICS;
-}
-
-/** 업종에 없는 지표면 store_count(스냅샷) 또는 기본 폐업률로 보정. */
-export function coerceMetric(industry: string, metric: MetricKey): MetricKey {
-  const allowed = metricsForIndustry(industry);
-  return allowed.includes(metric) ? metric : allowed[0];
-}
 
 export interface MapState {
   industry: string;
@@ -57,20 +44,14 @@ export function serializeMapState(state: MapState): string {
 }
 
 export function parseMapState(sp: URLSearchParams): MapState {
-  const industryRaw = sp.get("industry");
-  const industry = INDUSTRIES.includes(industryRaw as IndustryId)
-    ? industryRaw!
-    : DEFAULT_STATE.industry;
-  const metricRaw = sp.get("metric");
-  const metric = METRICS.includes(metricRaw as MetricKey)
-    ? (metricRaw as MetricKey)
-    : DEFAULT_STATE.metric;
+  const industry = sp.get("industry");
+  const metric = sp.get("metric");
   const year = sp.get("year");
   const region = sp.get("region");
 
   return {
-    industry,
-    metric: coerceMetric(industry, metric),
+    industry: INDUSTRIES.includes(industry as IndustryId) ? industry! : DEFAULT_STATE.industry,
+    metric: METRICS.includes(metric as MetricKey) ? (metric as MetricKey) : DEFAULT_STATE.metric,
     year: YEARS.includes(Number(year)) ? Number(year) : DEFAULT_STATE.year,
     region: region || null,
   };
