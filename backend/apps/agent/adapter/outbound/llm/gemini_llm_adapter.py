@@ -86,7 +86,7 @@ def to_function_declarations(tools: list[LLMToolSpec]) -> list[dict]:
 class GeminiLLMAdapter(LLMGatewayPort):
     """Gemini generateContent 기반 LLM 어댑터."""
 
-    def __init__(self, model: str = "gemini-2.0-flash", api_key: str | None = None) -> None:
+    def __init__(self, model: str = "gemini-2.5-flash", api_key: str | None = None) -> None:
         self.model_name = model
         self._client = genai.Client(api_key=api_key or get_settings().gemini_api_key)
         self._last_request_at: float | None = None
