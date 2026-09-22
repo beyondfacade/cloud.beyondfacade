@@ -1,5 +1,12 @@
 # Backend Version Log
 
+## [v0.22.1] - 2026-09-22
+
+### Changed
+- **RAG fp16 전량 재색인** — 7,505건 `embedded_by=qwen3-embedding-4b-fp16` (혼용 Q4 해소)
+- **평가(참고)** candidate 50 — Recall@5 0.900 / MRR 0.791 (`data/eval/results/rag_fp16_*.json`)
+- **SGIS CLI** 미매칭만 남은 대기열에서 크론 무한루프 방지 (`geocoded==0` → exit 2)
+
 ## [v0.22.0] - 2026-09-22
 
 ### Added

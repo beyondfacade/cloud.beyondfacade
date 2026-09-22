@@ -53,6 +53,9 @@ def main() -> None:
         f" / 미매칭 {result.unmatched} (API {gateway.call_count}회)",
         flush=True,
     )
+    # 크론·래퍼가 미매칭만 남은 대기열에서 무한 재시도하지 않도록
+    if result.attempted and result.geocoded == 0:
+        raise SystemExit(2)
 
 
 if __name__ == "__main__":
