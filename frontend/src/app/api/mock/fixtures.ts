@@ -7,6 +7,9 @@ import type {
   ChildcareCenter,
   ChildcareRegionSummary,
   ConvenienceRegionSummary,
+  IntentCandidate,
+  IntentDiagnosis,
+  IntentResult,
   ConvenienceStore,
   MetricKey,
   MetricRow,
@@ -17,6 +20,9 @@ import type {
   SummaryCard,
 } from "@/shared/api/types";
 import { STORE_SAMPLES } from "./store-samples";
+import { INDUSTRY_LABELS, type IndustryId } from "@/shared/industries";
+import { neighborhoodTypeLabel } from "@/shared/neighborhood";
+import { SEOUL_DISTRICTS, districtOf } from "@/shared/seoul-districts";
 
 type RegionProperties = { region_code: string; name: string };
 
@@ -367,4 +373,141 @@ export function changeMetricRows(metric: RegionMetricKey, yearQuarter: string): 
     region_code,
     value: Math.round(min + unitFrom(hashSeed(metric, yearQuarter, region_code)) * (max - min)),
   }));
+}
+
+// ---------------------------------------------------------------------------
+// 관문 mock 파서 — 백엔드 apps/intent 규칙 경로의 미러. LLM 경로는 "홍대"→서교동 한 건만 흉내 낸다.
+// ---------------------------------------------------------------------------
+
+/** 번호·'제'·구분점을 지운 기본 이름 — 사람은 "역삼동"이라 말하고 마스터는 "역삼1동"이다 (백엔드 master_dictionary.base_name). */
+function baseName(name: string): string {
+  return name.replace(/[제\d.·]+/g, "");
+}
+
+const REGION_INDEX: Map<string, IntentCandidate[]> = (() => {
+  const index = new Map<string, IntentCandidate[]>();
+  for (const { region_code, name } of REGIONS) {
+    const entry: IntentCandidate = {
+      region_code, region_name: name, district_code: districtOf(region_code),
+      district_name: SEOUL_DISTRICTS[districtOf(region_code)] ?? "",
+    };
+    for (const key of new Set([name, baseName(name)])) {
+      const bucket = index.get(key) ?? [];
+      bucket.push(entry);
+      index.set(key, bucket);
+    }
+  }
+  return index;
+})();
+const REGION_NAMES_LONGEST_FIRST = [...REGION_INDEX.keys()].sort((a, b) => b.length - a.length);
+const DISTRICT_NAMES_LONGEST_FIRST = Object.entries(SEOUL_DISTRICTS).sort((a, b) => b[1].length - a[1].length);
+
+const INDUSTRY_SYNONYMS: Record<string, IndustryId> = {
+  카페: "cafe", 커피: "cafe", 디저트: "cafe", 편의점: "convenience_store", 미용실: "hair_salon", 헤어: "hair_salon",
+  노래방: "karaoke", PC방: "pc_bang", 피시방: "pc_bang", 헬스장: "gym", 헬스: "gym", 당구장: "billiard",
+  부동산: "real_estate", 공인중개: "real_estate", 학원: "academy", 교습소: "academy", 어린이집: "childcare",
+};
+
+const AMOUNT = /(\d+(?:\.\d+)?)\s*(억|천만|천|만)/g;
+const SCALE: Record<string, number> = { 억: 100_000_000, 천만: 10_000_000, 천: 10_000_000, 만: 10_000 };
+
+/** 단위 붙은 첫 금액부터, 공백만 사이에 두고 이어지는 더 작은 단위를 합산 (1억 5천 → 1.5억). 맨숫자는 금액이 아니다. */
+function parseBudget(text: string): number | null {
+  const cleaned = text.replaceAll(",", "");
+  let total: number | null = null, prevEnd = 0, prevScale = 0;
+  for (const m of cleaned.matchAll(AMOUNT)) {
+    const scale = SCALE[m[2]];
+    if (total !== null && (cleaned.slice(prevEnd, m.index).trim() || scale >= prevScale)) break;
+    total = (total ?? 0) + Math.round(Number(m[1]) * scale);
+    prevEnd = (m.index ?? 0) + m[0].length; prevScale = scale;
+  }
+  return total;
+}
+
+const HOUR_BAND_KO: Record<string, string> = {
+  "00_06": "새벽(00~06시)", "06_11": "아침(06~11시)", "11_14": "점심(11~14시)",
+  "14_17": "오후(14~17시)", "17_21": "저녁(17~21시)", "21_24": "밤(21~24시)",
+};
+const BANDS = Object.keys(HOUR_BAND_KO);
+
+/** 받침 유무로 은/는. 한글이 아니면 '는'. */
+function topic(word: string): string {
+  const last = word.charCodeAt(word.length - 1);
+  if (last < 0xac00 || last > 0xd7a3) return `${word}는`;
+  return (last - 0xac00) % 28 === 0 ? `${word}는` : `${word}은`;
+}
+
+export function intentDiagnosisOf(regionCode: string, industryId: string): IntentDiagnosis | null {
+  const region = REGIONS.find((r) => r.region_code === regionCode);
+  if (!region) return null;
+  const profile = regionProfileOf(regionCode, LATEST_PROFILE_QUARTER);
+  const type = neighborhoodTypeLabel(profile.neighborhood_type);
+  const band = BANDS[hashSeed("peak", regionCode, industryId) % BANDS.length];
+  const industryName = INDUSTRY_LABELS[industryId as IndustryId] ?? industryId;
+  return {
+    type_code: profile.neighborhood_type,
+    type_name: type.name,
+    time_label: profile.time_label,
+    peak_sales_band: band,
+    sentence: `${topic(region.name)} ${type.name}이고, ${topic(industryName)} ${HOUR_BAND_KO[band]}에 돈이 돕니다.`,
+    year_quarter: LATEST_PROFILE_QUARTER,
+    hour_gap_quarter: "20254",
+  };
+}
+
+function withDiagnosis(r: IntentResult): IntentResult {
+  const intent_type = r.region_code && r.industry_id ? "A" : r.region_code ? "B" : "C";
+  const diagnosis = intent_type === "A" ? intentDiagnosisOf(r.region_code!, r.industry_id!) : null;
+  return { ...r, intent_type, diagnosis };
+}
+
+/** 두 번째 형태 — 파서를 건너뛰고 진단만. */
+export function intentOfCodes(regionCode: string, industryId: string): IntentResult {
+  const region = REGIONS.find((r) => r.region_code === regionCode) ?? null;
+  return withDiagnosis({
+    intent_type: "A", region_code: region?.region_code ?? null, region_name: region?.name ?? null,
+    district_code: region ? districtOf(region.region_code) : null, industry_id: industryId, budget_krw: null,
+    missing: region ? ["budget"] : ["region", "budget"], candidates: [], diagnosis: null, source: "rule",
+  });
+}
+
+/** 첫 번째 형태 — 문장 파싱. 규칙 경로 미러 + "홍대"만 LLM 경로 흉내. */
+export function intentOfText(text: string): IntentResult {
+  let regions: IntentCandidate[] = [];
+  let districtCode: string | null = null;
+  for (const name of REGION_NAMES_LONGEST_FIRST) {
+    if (text.includes(name)) { regions = REGION_INDEX.get(name) ?? []; break; }
+  }
+  for (const [code, name] of DISTRICT_NAMES_LONGEST_FIRST) {
+    if (text.includes(name)) { districtCode = code; break; }
+  }
+  if (regions.length > 1 && districtCode) regions = regions.filter((r) => r.district_code === districtCode);
+
+  let source: IntentResult["source"] = "rule";
+  if (regions.length === 0 && text.includes("홍대")) {
+    // LLM 폴백 미러 — 랜드마크 한 건만
+    regions = REGION_INDEX.get("서교동") ?? [];
+    source = "llm";
+  }
+
+  const industry = Object.entries(INDUSTRY_SYNONYMS).find(([word]) => text.includes(word))?.[1] ?? null;
+  const budget = parseBudget(text);
+  const picked = regions.length === 1 ? regions[0] : null;
+  const missing: IntentResult["missing"] = [];
+  if (!picked) missing.push("region");
+  if (!industry) missing.push("industry");
+  if (!budget) missing.push("budget");
+
+  return withDiagnosis({
+    intent_type: "C",
+    region_code: picked?.region_code ?? null,
+    region_name: picked?.region_name ?? null,
+    district_code: picked?.district_code ?? districtCode,
+    industry_id: industry,
+    budget_krw: budget,
+    missing,
+    candidates: regions.length > 1 ? regions : [],
+    diagnosis: null,
+    source,
+  });
 }

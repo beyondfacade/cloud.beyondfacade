@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { ThemeToggle } from "@/shared/ui/theme-toggle";
@@ -7,7 +8,12 @@ function Arrow({ diagonal = false }: { diagonal?: boolean }) {
   return <span aria-hidden="true">{diagonal ? "↗" : "→"}</span>;
 }
 
-export function LandingPage() {
+interface LandingPageProps {
+  /** 히어로 카피 아래 슬롯 — 관문 입력창이 여기 들어온다. 조립은 app/page.tsx가 한다 (feature 간 직접 import 금지). */
+  hero?: ReactNode;
+}
+
+export function LandingPage({ hero }: LandingPageProps = {}) {
   return (
     <div className={`${styles.landing} bg-[var(--landing-bg)] text-[var(--landing-ink)]`}>
       <a className={styles.skipLink} href="#main">본문으로 건너뛰기</a>
@@ -29,6 +35,7 @@ export function LandingPage() {
             <p className={`${styles.eyebrow} text-[var(--landing-accent)]`}><span aria-hidden="true" /> SEOUL COMMERCIAL ATLAS</p>
             <h1 id="hero-title">서울의 변화 속에서,<br />내 가게의<br /><span className="text-[var(--landing-accent)]">자리를 찾다.</span></h1>
             <p className={`${styles.heroDescription} text-[var(--landing-muted)]`}>거리마다 다른 가능성, 데이터로 한 걸음 더 가까이.<br className={styles.desktopBreak} /> 동네의 상권을 살펴보고 나만의 다음을 그려보세요.</p>
+            {hero}
             <div className={styles.heroActions}>
               <Link href="/map" prefetch={false} className={`${styles.primaryLink} bg-[var(--landing-accent)] text-[var(--landing-on-accent)]`}>상권 탐색하기 <Arrow /></Link>
               <a href="#how-it-works" className={styles.secondaryLink}>어떻게 시작하나요? <span aria-hidden="true">↓</span></a>

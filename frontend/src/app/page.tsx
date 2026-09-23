@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
+import { IntentGate } from "@/features/intent-gate/components/intent-gate";
 import { LandingPage } from "@/features/landing/components/landing-page";
 
 export const metadata: Metadata = {
@@ -19,5 +20,6 @@ export default async function Home({ searchParams }: {
     }
     redirect(`/map?${forwarded.toString()}`);
   }
-  return <LandingPage />;
+  // 관문은 랜딩 히어로 슬롯에 들어간다 — 두 feature를 잇는 곳은 여기뿐이다 (§14)
+  return <LandingPage hero={<IntentGate />} />;
 }

@@ -24,6 +24,8 @@ export interface MapState {
   metric: MapMetricKey;
   year: number;
   region: string | null;
+  /** 관문에서 온 예산(원). 지도는 소비하지 않지만 실어두지 않으면 첫 상태 변경 때 URL에서 사라진다 — T3 프리필 원천. */
+  budget: number | null;
 }
 
 export const DEFAULT_STATE: MapState = {
@@ -31,6 +33,7 @@ export const DEFAULT_STATE: MapState = {
   metric: "closure_rate",
   year: 2026,
   region: null,
+  budget: null,
 };
 
 export function serializeMapState(state: MapState): string {
@@ -41,6 +44,9 @@ export function serializeMapState(state: MapState): string {
   if (state.region) {
     params.set("region", state.region);
   }
+  if (state.budget) {
+    params.set("budget", String(state.budget));
+  }
   return params.toString();
 }
 
@@ -49,11 +55,13 @@ export function parseMapState(sp: URLSearchParams): MapState {
   const metric = sp.get("metric");
   const year = sp.get("year");
   const region = sp.get("region");
+  const budget = Number(sp.get("budget"));
 
   return {
     industry: INDUSTRIES.includes(industry as IndustryId) ? industry! : DEFAULT_STATE.industry,
     metric: METRICS.includes(metric as MapMetricKey) ? (metric as MapMetricKey) : DEFAULT_STATE.metric,
     year: YEARS.includes(Number(year)) ? Number(year) : DEFAULT_STATE.year,
     region: region || null,
+    budget: Number.isInteger(budget) && budget > 0 ? budget : null,
   };
 }

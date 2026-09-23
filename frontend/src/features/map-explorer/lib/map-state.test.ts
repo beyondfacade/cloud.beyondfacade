@@ -11,6 +11,7 @@ it("기본값: 파라미터 없으면 cafe/closure_rate/2026/null", () => {
     metric: "closure_rate",
     year: 2026,
     region: null,
+    budget: null,
   });
 });
 
@@ -20,8 +21,21 @@ it("직렬화→파싱 라운드트립이 보존된다", () => {
     metric: "growth_rate" as const,
     year: 2021,
     region: "1168051500",
+    budget: null,
   };
   expect(parseMapState(new URLSearchParams(serializeMapState(s)))).toEqual(s);
+});
+
+it("관문에서 온 budget은 지표를 바꿔도 URL에 남는다 (T3 프리필 원천)", () => {
+  const landed = parseMapState(new URLSearchParams("region=1168064000&industry=cafe&budget=50000000"));
+  expect(landed.budget).toBe(50_000_000);
+  const changed = serializeMapState({ ...landed, metric: "growth_rate" });
+  expect(new URLSearchParams(changed).get("budget")).toBe("50000000");
+});
+
+it("budget이 숫자가 아니거나 0 이하이면 버린다", () => {
+  expect(parseMapState(new URLSearchParams("budget=abc")).budget).toBeNull();
+  expect(parseMapState(new URLSearchParams("budget=0")).budget).toBeNull();
 });
 
 it("알 수 없는 값은 기본값으로 강제된다", () => {

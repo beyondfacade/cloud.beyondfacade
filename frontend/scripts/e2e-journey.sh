@@ -50,6 +50,35 @@ echo "API 베이스: $API_BASE"
 
 AB close >/dev/null 2>&1 || true
 
+# [0/8] 채팅 관문 — 홈 입력창에 문장을 넣고 /map?region= 착지까지. 실 백엔드면 진단 문장을 거쳐
+# 1.5초 뒤 자동 이동한다(diagnosis-line.tsx). 관문 검증만 하고 이후 단계는 기존대로 /map을 직접 연다.
+# 입력은 agent-browser 버전에 따라 fill 명령이 달라 React의 onChange가 확실히 잡히는 native setter로 넣는다.
+echo "[0/8] 채팅 관문(/) — 문장 입력 → /map?region 착지"
+AB set viewport "$VIEWPORT_W" "$VIEWPORT_H" >/dev/null
+AB open "$BASE_URL/" >/dev/null
+AB wait --load networkidle >/dev/null
+AB wait --text "찾아보기" >/dev/null
+cat <<'JS' | AB eval --stdin >/dev/null
+(() => {
+  const input = document.getElementById("intent-text");
+  const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value").set;
+  setter.call(input, "역삼1동에 카페, 예산 5천");
+  input.dispatchEvent(new Event("input", { bubbles: true }));
+  input.form.requestSubmit();
+})()
+JS
+GATE_DEADLINE=$((SECONDS + 30))
+while :; do
+  GATE_URL="$(AB get url)"
+  if [[ "$GATE_URL" == *"/map?"*"region=${DONG_CODE}"* ]]; then break; fi
+  if (( SECONDS > GATE_DEADLINE )); then
+    echo "오류: 관문이 30초 안에 /map?region=${DONG_CODE}로 착지하지 않았습니다 (현재 URL: $GATE_URL)" >&2
+    exit 1
+  fi
+  sleep 1
+done
+echo "  관문 착지 확인: $GATE_URL"
+
 echo "[1/8] 지도 탐색(/map) 오픈"
 AB set viewport "$VIEWPORT_W" "$VIEWPORT_H" >/dev/null
 AB open "$BASE_URL/map" >/dev/null

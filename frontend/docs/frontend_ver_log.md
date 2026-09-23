@@ -2,6 +2,55 @@
 
 > 2026-09-23 T0-2 병합에서 v0.14.x 충돌로 우리 쪽 4항목(랜딩·E2E·동네 프로필·영업 지속 개월)을 v0.15.0·v0.15.1·v0.16.0·v0.17.0으로 재번호했다. 해당 커밋 메시지의 번호는 병합 전 번호다.
 
+## [v0.18.0] - 2026-09-23
+
+### Added
+- **채팅 관문** (`features/intent-gate/`) — 랜딩 히어로에 입력창 하나. "역삼동에 카페, 예산 5천" 한
+  문장으로 동·업종·예산을 잡고 되묻기 칩을 거쳐 `/map?region&industry&budget`에 착지한다.
+  설계서 `docs/superpowers/specs/2026-09-23-chat-first-direction.md` §4-2·§5-2·§5-3·§7.
+  백엔드 `POST /intent`(v0.31.0) 두 형태를 그대로 쓴다
+  - `api.ts` — `parseIntent(text)` · `diagnoseIntent(region_code, industry_id)` · `fetchRegionList()`.
+    경계 GeoJSON 타입은 map-explorer에서 import하지 않고 최소 형태를 지역 선언했다(§14)
+  - `lib/intent-url.ts` — 순수 함수. 진단 문장은 URL에 싣지 않는다(패널이 같은 데이터를 다시 읽는다)
+  - `components/intent-gate.tsx` — 상태 기계 idle → pending → clarifyRegion(candidates|districts|dongs)
+    → clarifyIndustry → done. 칩 선택은 재제출이 아니라 응답 객체를 채워 진행하고, **A가 완성되면
+    두 번째 형태로 한 번 더 호출해 진단을 받는다.** 진단 실패는 착지를 막지 않는다.
+    react-query를 쓰지 않는다 — 랜딩은 Provider 밖에서도 렌더돼야 하고(테스트·정적) 관문 한 번에
+    캐시가 필요 없다
+  - `components/intent-form.tsx`·`clarify-chips.tsx`·`diagnosis-line.tsx`(1.5초 뒤 자동 이동, 클릭 즉시)
+  - **조립은 `app/page.tsx`가 한다** — `LandingPage`에 `hero` 슬롯 prop 하나만 더했다. 랜딩 feature는
+    intent-gate를 모른다(§14 feature 간 직접 import 금지)
+- `shared/seoul-districts.ts` — 자치구 25개 코드↔이름(백엔드 `district`와 대조). 관문의 구 칩과
+  mock 파서가 함께 쓴다. 행정동 코드 앞 5자리가 구 코드다
+- `shared/api/types.ts` — `IntentResult`·`IntentCandidate`·`IntentDiagnosis` (추가만)
+- **`MapState.budget`** — 관문에서 온 예산을 실어 `serializeMapState`가 잃지 않게 한다. 지도는
+  소비하지 않지만(T3 프리필 원천) 없으면 지표 한 번 바꾸는 순간 URL에서 사라진다
+- mock `/api/mock/intent` — 실 API 미러. 백엔드 `master_dictionary.base_name`(번호·'제'·구분점
+  제거) 규칙을 TS로 옮겨 "역삼동"→역삼1동·2동 후보를 그대로 재현한다. LLM 경로는 "홍대"→서교동
+  한 건만 흉내. 두 번째 형태·400 `INTENT_TEXT_EMPTY` 포함
+- `scripts/e2e-journey.sh` — `[0/8] 채팅 관문` 단계 추가(홈 입력 → `/map?region=` 착지 30초 대기).
+  입력은 agent-browser 버전에 따라 fill이 달라 native setter + `input` 이벤트로 넣는다
+
+### 문구 결정
+- **후보 칩이 주 경로다.** "역삼동"·"신사동"처럼 사람이 말하는 동 이름 다수가 번호 동으로 갈라진다
+  (역삼1동·2동, 신사동 4곳). 그래서 후보 칩 라벨은 "강남구 역삼1동"처럼 구를 앞에 붙인다
+- 우회로 둘 — 동을 모르면 "아직 몰라요 — 지도에서 고를게요"(C유형, 업종만 싣는다), 업종을 모르면
+  "잘 몰라요 — 동네부터 볼게요"(B유형, 패널이 동네 프로필을 연다)
+- 예시 칩 셋 — "역삼동에 카페, 예산 5천"(후보 경로) · "연남동에서 뭘 하면 좋을까"(B) ·
+  "홍대 근처 미용실"(LLM 경로 시연)
+
+### Validation
+- 테스트 20건 추가 — 상태 전이 7(A 진단→자동 이동·후보 칩→진단·업종 우회→B·구→동 2단·동 우회→C·
+  실패 알림·예시 칩) · `intent-url` 3 · mock 계약 7 · `MapState.budget` 왕복 2 · 홈 관문 렌더 1.
+  `tsc --noEmit` clean, vitest **133/133**(34파일)
+- 실 백엔드 프록시: `curl POST /api/backend/intent {"text":"역삼1동에 카페, 예산 5천"}` →
+  A · 1168064000 · "역삼1동은 낮 인구 우위형이고, 카페는 점심(11~14시)에 돈이 돕니다."
+- **브라우저 E2E는 실행하지 못했다.** 3200 dev 서버가 홈·`/map` 모두 500 — T0-2로 들어온
+  `e1c51c8`이 `pretendard`를 `package.json`에 넣었는데 `node_modules`에 설치되지 않은 채 서버가
+  떠 있었다(`globals.css` `@import` 해석 실패, 이번 변경과 무관). `npm install`로 설치했지만
+  Turbopack이 시작 시점 해석을 캐시해 재기동 전에는 안 풀린다. **`npm run dev` 재기동 후
+  `npm run e2e`를 돌리면 관문 단계부터 검증된다** (`bash -n`은 통과)
+
 ## [v0.17.0] - 2026-09-23
 
 ### Added

@@ -104,3 +104,36 @@ export interface RegionProfile {
   facility_total: number | null;
   resident_total: number | null;
 }
+
+/** 관문 되묻기 후보 — "역삼동"처럼 사람이 말하는 이름이 번호 동 여럿으로 갈라질 때 (POST /intent). */
+export interface IntentCandidate {
+  region_code: string;
+  region_name: string;
+  district_code: string;
+  district_name: string;
+}
+
+/** 한 줄 진단 — LLM이 아니라 어휘 테이블로 조립된 결정론 문장. peak는 gap이 아니라 매출 강도 최대 구간. */
+export interface IntentDiagnosis {
+  type_code: string;
+  type_name: string;
+  time_label: string | null;
+  peak_sales_band: string | null;
+  sentence: string;
+  year_quarter: string;
+  hour_gap_quarter: string | null;
+}
+
+/** POST /intent 응답. A 동+업종 · B 동만 · C 동 없음. `source`는 어느 경로가 채웠나(rule|llm). */
+export interface IntentResult {
+  intent_type: "A" | "B" | "C";
+  region_code: string | null;
+  region_name: string | null;
+  district_code: string | null;
+  industry_id: string | null;
+  budget_krw: number | null;
+  missing: ("region" | "industry" | "budget")[];
+  candidates: IntentCandidate[];
+  diagnosis: IntentDiagnosis | null;
+  source: "rule" | "llm";
+}

@@ -1,0 +1,20 @@
+.gate { margin-top: 30px; }
+.form { display: flex; flex-direction: column; gap: 10px; }
+.form label { font-size: 12px; letter-spacing: -.2px; }
+.box { display: flex; gap: 8px; border: 1px solid var(--landing-border); border-radius: 12px; padding: 6px 6px 6px 16px; background: var(--landing-card); transition: box-shadow .2s; }
+.box:focus-within { box-shadow: 0 8px 22px var(--landing-shadow); }
+.box input { flex: 1; min-width: 0; background: transparent; border: 0; outline: none; font-size: 15px; color: var(--landing-ink); }
+.box input::placeholder { color: var(--landing-muted); }
+.box button { display: inline-flex; align-items: center; gap: 8px; border-radius: 8px; padding: 12px 16px; font-size: 13px; font-weight: 650; white-space: nowrap; background: var(--landing-accent); color: var(--landing-on-accent); }
+.box button:disabled { opacity: .55; cursor: default; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.chip { border: 1px solid var(--landing-border); border-radius: 999px; padding: 7px 12px; font-size: 12px; background: var(--landing-card); color: var(--landing-ink); transition: border-color .15s; }
+.chip:hover { border-color: var(--landing-accent); }
+.chipEscape { border-style: dashed; color: var(--landing-muted); }
+.prompt { margin-top: 18px; font-size: 13px; line-height: 1.6; }
+.prompt p { margin: 0 0 2px; font-weight: 600; }
+.diagnosis { margin-top: 18px; padding: 14px 16px; border-left: 3px solid var(--landing-accent); background: var(--landing-panel); border-radius: 0 10px 10px 0; }
+.diagnosis p { margin: 0; font-size: 14px; line-height: 1.7; word-break: keep-all; }
+.diagnosis a { display: inline-flex; gap: 8px; margin-top: 8px; font-size: 12px; font-weight: 650; color: var(--landing-accent); }
+.error { margin-top: 12px; font-size: 12px; color: var(--danger); }
+@media (max-width: 560px) { .box { flex-direction: column; padding: 10px; } .box input { padding: 6px 4px; } }
