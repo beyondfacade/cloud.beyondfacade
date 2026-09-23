@@ -1,4 +1,4 @@
-"""agent_tools — 도구 레지스트리 7종 + 월세vs매입 계산기 단위 테스트 (Fake 포트, DB 없음)."""
+"""agent_tools — 도구 레지스트리 8종 + 월세vs매입 계산기 단위 테스트 (Fake 포트, DB 없음)."""
 
 import json
 
@@ -41,6 +41,29 @@ class FakeRegionFactsPort(RegionFactsPort):
 
     def latest_rates(self) -> dict:
         return {"loan_facility": 4.5}
+
+    def neighborhood_profile(self, region_code: str) -> dict:
+        return {
+            "region_code": region_code,
+            "year_quarter": "20262",
+            "type_code": "office",
+            "type_name": "낮 인구 우위형",
+            "type_reason": "직장인구가 상주인구의 5.9배로 서울 상위 10%입니다.",
+            "time_label": "낮(11~17시)",
+            "peak_block": "낮(11~17시)",
+            "trough_block": "밤(21~06시)",
+            "footfall_age_mix": [{"age": "30", "share": 0.24}, {"age": "20", "share": 0.22}],
+            "worker_resident_ratio": 5.93,
+            "weekend_index": 0.7,
+            "night_index": 0.64,
+            "fnb_share": 0.016,
+            "facility_total": 542,
+            "resident_total": 34082,
+            "commerce_change": {"code": "LL", "name": "다이나믹", "operating_months": 110.0},
+            "top_facilities": [{"type": "버스정거장", "count": 120}],
+            "apartment_avg_price_won": 307439893,
+            "caveats": ["아파트 평균 시가는 참고값이다."],
+        }
 
 
 class FakeRagSearchUseCase(RagSearchUseCase):
@@ -97,8 +120,8 @@ def test_compare_rent_vs_buy_monthly_interest_exceeds_rent_gives_none_breakeven(
     assert result["breakeven_years"] is None
 
 
-def test_build_tools_returns_7_tools_with_correct_name_and_stage():
-    """7종 도구 name/stage 정확 매핑."""
+def test_build_tools_returns_8_tools_with_correct_name_and_stage():
+    """8종 도구 name/stage 정확 매핑."""
     tools = _build_tools()
 
     by_name = {tool.spec.name: tool.stage for tool in tools}
@@ -106,6 +129,7 @@ def test_build_tools_returns_7_tools_with_correct_name_and_stage():
     assert by_name == {
         "get_region_metrics": "market",
         "get_region_summary": "market",
+        "get_neighborhood_profile": "market",
         "get_population": "market",
         "search_shocks": "shock",
         "search_news": "shock",
@@ -159,3 +183,47 @@ def test_compare_rent_vs_buy_tool_returns_error_payload_when_loan_facility_rate_
     assert json.loads(result) == {
         "error": "시설자금대출 금리 데이터가 없어 연금리를 지정해야 합니다"
     }
+
+
+def test_get_neighborhood_profile_run_returns_market_slot_material():
+    """market 여섯 슬롯이 각각 기댈 키가 도구 결과에 있다 (설계서 §7-4 출력 계약)."""
+    tools = _build_tools()
+    tool = next(t for t in tools if t.spec.name == "get_neighborhood_profile")
+
+    payload = json.loads(tool.run({"region_code": "1168064000"}))
+
+    assert payload["type_name"] == "낮 인구 우위형"  # 한 줄 요약
+    assert payload["type_reason"]  # 동네 설명
+    assert payload["footfall_age_mix"][0]["age"] == "30"  # 고객 구성
+    assert (payload["peak_block"], payload["trough_block"]) == (
+        "낮(11~17시)",
+        "밤(21~06시)",
+    )  # 시간대 특성
+    assert payload["weekend_index"] is not None and payload["night_index"] is not None  # 주의점
+    assert payload["commerce_change"]["name"] == "다이나믹"  # 확인할 것
+    assert payload["apartment_avg_price_won"] == 307439893
+
+
+def test_get_neighborhood_profile_carries_caveats_so_llm_does_not_misread():
+    """해석 금지 사항을 수치와 함께 넘긴다 — 결측을 0으로 읽는 실수를 막는다."""
+    tools = _build_tools()
+    tool = next(t for t in tools if t.spec.name == "get_neighborhood_profile")
+
+    payload = json.loads(tool.run({"region_code": "1168064000"}))
+
+    assert payload["caveats"]
+
+
+def test_get_neighborhood_profile_cites_the_derived_table():
+    tools = _build_tools()
+    tool = next(t for t in tools if t.spec.name == "get_neighborhood_profile")
+
+    citations = tool.cite({"region_code": "1168064000"}, "{}")
+
+    assert citations == [
+        {
+            "grade": "fact",
+            "source": "region_profile_quarter",
+            "region_code": "1168064000",
+        }
+    ]

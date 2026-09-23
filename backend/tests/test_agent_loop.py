@@ -455,3 +455,21 @@ def test_tool_run_exception_is_fed_back_as_error_and_loop_continues():
     ]
     assert _signature(events[-1]) == ("report_done",)
     assert events[-1].payload["citations"] == []
+
+
+def test_시스템_프롬프트가_market_슬롯_여섯을_순서대로_고정한다():
+    """market 섹션은 자유 서술이 아니다 — 라벨 6종이 선언된 순서 그대로 있어야 한다 (설계서 §7-4)."""
+    from apps.agent.app.use_cases.analysis_interactor import SYSTEM_PROMPT
+
+    labels = ["한 줄 요약", "동네 설명", "고객 구성", "시간대 특성", "주의점", "확인할 것"]
+    positions = [SYSTEM_PROMPT.find(f"**{label}**") for label in labels]
+
+    assert all(position > 0 for position in positions), "선언되지 않은 슬롯이 있다"
+    assert positions == sorted(positions), "슬롯 순서가 계약과 다르다"
+
+
+def test_시스템_프롬프트가_없는_수치를_지어내지_못하게_한다():
+    from apps.agent.app.use_cases.analysis_interactor import SYSTEM_PROMPT
+
+    assert "지어내지 않는다" in SYSTEM_PROMPT
+    assert "caveats" in SYSTEM_PROMPT

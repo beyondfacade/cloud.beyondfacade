@@ -89,7 +89,7 @@ def _fact_citation(source: str, **extra: object) -> list[dict]:
 
 
 def build_tools(facts: RegionFactsPort, rag_search: RagSearchUseCase) -> list[AgentTool]:
-    """7종 도구를 조립한다 — 이름/분기는 registry(리스트) 하나로, if/elif 없이."""
+    """8종 도구를 조립한다 — 이름/분기는 registry(리스트) 하나로, if/elif 없이."""
 
     def run_get_region_metrics(args: dict) -> str:
         result = facts.metrics(args["region_code"], args["industry"])
@@ -112,6 +112,13 @@ def build_tools(facts: RegionFactsPort, rag_search: RagSearchUseCase) -> list[Ag
             region_code=args["region_code"],
             industry_id=args["industry_id"],
         )
+
+    def run_get_neighborhood_profile(args: dict) -> str:
+        result = facts.neighborhood_profile(args["region_code"])
+        return json.dumps(result, ensure_ascii=False)
+
+    def cite_get_neighborhood_profile(args: dict, _result: str) -> list[dict]:
+        return _fact_citation("region_profile_quarter", region_code=args["region_code"])
 
     def run_get_population(args: dict) -> str:
         result = facts.population(args["region_code"])
@@ -193,6 +200,25 @@ def build_tools(facts: RegionFactsPort, rag_search: RagSearchUseCase) -> list[Ag
             stage="market",
             run=run_get_region_summary,
             cite=cite_get_region_summary,
+        ),
+        AgentTool(
+            spec=LLMToolSpec(
+                name="get_neighborhood_profile",
+                description=(
+                    "행정동의 동네 유형·시간대 특성과 판정 근거, 유동인구 연령 구성, 상권 변화 지표, "
+                    "집객시설 구성, 아파트 평균 시가를 조회한다. market 섹션 여섯 슬롯의 재료다."
+                ),
+                input_schema={
+                    "type": "object",
+                    "properties": {
+                        "region_code": {"type": "string", "description": "행정동 코드"},
+                    },
+                    "required": ["region_code"],
+                },
+            ),
+            stage="market",
+            run=run_get_neighborhood_profile,
+            cite=cite_get_neighborhood_profile,
         ),
         AgentTool(
             spec=LLMToolSpec(
