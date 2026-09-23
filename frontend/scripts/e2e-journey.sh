@@ -181,6 +181,10 @@ if [[ "$STORE_REQUESTS" != *"region=${SELECTED_REGION}"* ]]; then
 fi
 
 echo "[5/8] [AI 분석] 클릭"
+# 사이드패널이 길어져(동네 프로필 섹션) CTA가 패널 스크롤 영역 아래로 밀린다. 화면 밖 요소를 클릭하면
+# agent-browser는 조용히 빗나가고 URL이 안 바뀐다(2026-09-23 재현: top 1208px / 뷰포트 577px). 먼저 보이게 한다.
+# 상단 바에도 "AI 분석" 탭이 있으므로 href로 사이드패널 링크를 특정한다.
+AB eval "document.querySelector('a[href^=\"/analysis?\"]')?.scrollIntoView({block:'center'})" >/dev/null
 AB find text "AI 분석 →" click >/dev/null
 AB wait --text "분석 시작" >/dev/null
 
