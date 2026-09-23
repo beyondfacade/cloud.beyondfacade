@@ -8,5 +8,9 @@ from apps.agent.domain.entities.agent_event_entity import AgentEvent
 
 class AnalysisUseCase(ABC):
     @abstractmethod
+    def myself(self) -> dict:
+        """라우터 배선 검증용 — DB 없이 하드코딩 최소 데이터."""
+
+    @abstractmethod
     def run(self, region: str, industry: str, question: str | None) -> Iterator[AgentEvent]:
         """지역×업종(+선택 질문) 분석을 실행하며 SSE 이벤트를 순서대로 흘려보낸다."""

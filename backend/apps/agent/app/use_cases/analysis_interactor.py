@@ -172,6 +172,14 @@ class AnalysisInteractor(AnalysisUseCase):
         self._tools = tools
         self.last_usage = LLMUsage(input_tokens=0, output_tokens=0)
 
+    def myself(self) -> dict:
+        return {
+            "analysis_id": "myself",
+            "region_code": "myself",
+            "industry": "myself",
+            "model": getattr(self._llm, "model_name", "gemma3"),
+        }
+
     def run(self, region: str, industry: str, question: str | None) -> Iterator[AgentEvent]:
         report_id = uuid.uuid4().hex
         self.last_usage = LLMUsage(input_tokens=0, output_tokens=0)

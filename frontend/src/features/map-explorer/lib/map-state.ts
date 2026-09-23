@@ -1,5 +1,5 @@
 import type { MapMetricKey } from "@/shared/api/types";
-import { INDUSTRIES } from "@/shared/industries";
+import { INDUSTRIES, type IndustryId } from "@/shared/industries";
 
 export const METRICS = ["closure_rate", "growth_rate", "store_count", "operating_months"] as const;
 
@@ -12,6 +12,12 @@ export const METRIC_LABELS: Record<(typeof METRICS)[number], string> = {
   store_count: "점포수",
   operating_months: "영업 지속 개월",
 };
+
+/**
+ * 스냅샷 원천 업종 — 개폐업 이력이 없어 폐업률·성장률이 NULL일 수 있음.
+ * 지표 UI는 3종 모두 노출하고, 값 없음은 사이드패널·지도 배너로 안내한다.
+ */
+export const SNAPSHOT_INDUSTRIES = new Set<IndustryId>(["childcare", "convenience_store"]);
 
 export interface MapState {
   industry: string;
@@ -45,8 +51,8 @@ export function parseMapState(sp: URLSearchParams): MapState {
   const region = sp.get("region");
 
   return {
-    industry: INDUSTRIES.includes(industry as any) ? industry! : DEFAULT_STATE.industry,
-    metric: METRICS.includes(metric as any) ? (metric as MapMetricKey) : DEFAULT_STATE.metric,
+    industry: INDUSTRIES.includes(industry as IndustryId) ? industry! : DEFAULT_STATE.industry,
+    metric: METRICS.includes(metric as MapMetricKey) ? (metric as MapMetricKey) : DEFAULT_STATE.metric,
     year: YEARS.includes(Number(year)) ? Number(year) : DEFAULT_STATE.year,
     region: region || null,
   };

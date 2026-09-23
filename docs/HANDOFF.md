@@ -1,17 +1,17 @@
 # HANDOFF — 남은 작업
 
-> 작성: 2026-09-17 · 기준 커밋 `089b95e` (main) · 백엔드 v0.20.0 / 프론트 v0.13.1
+> 작성: 2026-09-22 · `feature/analysis-api` · 백엔드 v0.22.x / 프론트 v0.14.4
 
 ## 1. 현재 상태 요약
 
 | 영역 | 상태 |
 |---|---|
 | 지도 탐색 | 실 API 연결 완료 — 업종 10종 지표, 어린이집·편의점 마커·사이드패널·점포수 지표까지 동작 |
-| AI 분석 탭 | **아직 mock** — 프론트가 `/api/mock` 고정. 백엔드 RAG·에이전트 루프(Task 1~10)는 코드만 있고 API 미노출 |
-| 수집 크론 | store 매일 04:20(+지표 집계) · funding 05:10 · rag 색인 05:50 · 어린이집 월 05:30 · 편의점 월 05:40 · 뉴스 매시 10분 |
-| 도커 | 백엔드 이미지 v0.20.0으로 재빌드, `beyondfacade-api` 8200 기동 중 (API 키 미탑재 — 조회 전용) |
+| AI 분석 탭 | ✅ 실 SSE (`feature/analysis-api`, FE v0.14.x) — 두뇌 A/B/C 팀 결정 대기 |
+| 수집 크론 | store 매일 04:20(+지표·지오코딩) · funding 05:10 · rag 색인 05:50 · 어린이집 월 05:30 · 편의점 월 05:40 · 뉴스 매시 10분 |
+| 도커 | 백엔드 이미지 v0.20.0, `beyondfacade-api` 8200 (조회 전용) — compose 프론트 포트 3200 정합 |
 | 로컬 개발 서버 | 백엔드 uvicorn 8201(--reload), 프론트 next dev 3200 (`/api/backend` 프록시 → 8201) |
-| 원격 | `089b95e`(프록시 수정) **미푸시** |
+| 원격 | `feature/analysis-api` 푸시됨 · PR #1 |
 
 ## 2. 남은 작업 (우선순위순)
 
@@ -26,11 +26,11 @@
 
 ### 2-2. 데이터 계층
 
-- [x] **SGIS 지오코딩 구현** (feature/analysis-api v0.22.0) — 게이트웨이·CLI·store 주소 컬럼 완료.
-  **차단 2건**: (1) `SGIS_SERVICE_ID`/`SGIS_SECURITY_KEY`가 `.env`에 비어 있음(기존 HANDOFF "설정돼 있음"은 오기재).
-  (2) 기존 적재분 주소 0건 — `academy_collector`·`broker_collector` 재실행으로 주소 채운 뒤
-  `geocode_stores` → `assign_regions` → `build_metrics`
-- [ ] **fp16 전량 재색인** — RAG 코퍼스 6,157건이 전부 Q4 임베딩(혼용 구도 미복원). GPU 여유 시 `python -m apps.rag.adapter.inbound.cli.build_rag_index --full --provider fp16` 1회 + fp16 Recall@5 측정
+- [x] **SGIS 지오코딩** (v0.22.0) — 완료.
+  학원 25,504·중개 25,299 좌표 / 행정동 배정 25,504·25,281 / `region_industry_metric` 3,408·3,416행.
+  미매칭 잔여 학원 4·중개 2. (워크트리에 `data/geojson` 심링크 필요 — 본진 `data/geojson` 참조)
+- [x] **fp16 전량 재색인** — 7,505건 전부 `qwen3-embedding-4b-fp16` (343.8s).
+  (참고) candidate 50건 Recall@5 **0.900** / MRR 0.791 — confirmed 0건이라 본지표 미산출
 - [ ] **RAG 평가셋 검수 (사용자 작업)** — `data/eval/rag_evalset.jsonl` candidate 50건 → confirmed 승격해야 Recall@5 본지표 산출 가능
 - [ ] **어린이집 폐업률** — 원천이 폐지 시설을 주지 않아 주간 스냅샷의 소실(`last_seen_on` 정지)로만 산출 가능. 몇 달 누적 후 산출 방식 결정
 - [ ] 연령별 인구 2026.07분 1파일 추가 (공표 확인 후)
@@ -42,11 +42,11 @@
 
 - [x] **어린이집·편의점 선택 시 "데이터 없음" 표시 정리** — FE v0.14.1/v0.14.3 (스냅샷 업종 안내 + 폐업률·성장률 카드 유지)
 - [x] 딥링크(`?region=`) 지도 이동 — FE v0.14.2 fitBounds
-- [ ] 포스트MVP 잔여: 스트림 에러 시 에이전트 상태 stale, 테마 새로고침 시 light 리셋, Pretendard CDN 셀프호스팅, `readAccentColor` lib 분리, AnalysisForm select 전환, maplibre 워커 재벤더링 자동화
+- [x] 포스트MVP 잔여 (v0.14.4): 스트림 stale·테마 유지·Pretendard 셀프호스트·`readAccentColor` lib·AnalysisForm select·maplibre 워커 postinstall
 
 ### 2-4. 배포·인프라
 
-- [ ] `feature/analysis-api` 머지·푸시 (AI 분석·SGIS·FE v0.14.x)
+- [x] `feature/analysis-api` 푸시 + [PR #1](https://github.com/beyondfacade/cloud.beyondfacade/pull/1) — main 머지는 리뷰 후
 - [ ] **Vercel 앱 배포** — CLI 계정(`amysoo02-7611s-projects`)에 Metabole 프로젝트 없음.
   `beyondfacade.cloud` / `metabole.beyondfacade.cloud` = GitHub Pages(문서) 200.
   앱은 Vercel 프로젝트 신설 + `NEXT_PUBLIC_API_BASE` + 백엔드 터널 필요
@@ -56,9 +56,9 @@
 ### 2-5. 정리
 
 - [ ] 미커밋 파일: `docs/jekyll.md`(수정), `docs/superpowers/plans/2026-08-25-frontend-mvp.md`·`docs/프로젝트_산출물_구조.md`(미추적) — 커밋 여부 결정
-- [ ] 플랜·스펙 문서의 버전 표기(v0.20.0/v0.13.0)가 실제와 어긋남 — Task 11~12 진행 시 함께 정정
+- [x] 플랜·스펙 문서의 버전 표기 — rag-agent 설계/플랜에 실제 버전(BE v0.21+/FE v0.14+) 주석
 - [ ] 원장의 deferred minor 10건 — 최종 리뷰에서 머지 전 처리 여부 분류
-- [ ] 기지 실패 테스트 `tests/test_store_ingest.py::test_latest_source_updated_at_returns_cursor` (전체 213건 중 이것만 실패, 기존 상태)
+- [x] `test_latest_source_updated_at_returns_cursor` — 실DB 오염 회피(미래 커서 시각)
 
 ## 3. 작업 시 주의
 

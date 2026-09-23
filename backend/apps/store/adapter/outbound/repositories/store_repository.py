@@ -1,23 +1,34 @@
 from datetime import date, datetime
 
-from sqlalchemy import func, select, update
+from sqlalchemy import and_, func, or_, select, update
 
 from apps.store.adapter.outbound.orm_mappers.store_orm_mapper import to_entity, to_orm
 from apps.store.adapter.outbound.orms.store_orm import StoreOrm
 from apps.store.app.ports.output.broker_snapshot_port import StoreSnapshotRepositoryPort
+from apps.store.app.ports.output.store_geocode_port import StoreGeocodeRepositoryPort
 from apps.store.app.ports.output.store_port import StoreRepositoryPort
 from apps.store.domain.entities.store_entity import Store
 from core.matrix.grid_oracle_database_manager import session_scope
 
 
-class SqlAlchemyStoreRepository(StoreRepositoryPort, StoreSnapshotRepositoryPort):
+class SqlAlchemyStoreRepository(
+    StoreRepositoryPort, StoreSnapshotRepositoryPort, StoreGeocodeRepositoryPort
+):
     def upsert(self, stores: list[Store]) -> int:
         if not stores:
             return 0
         deduped = {s.store_id: s for s in stores}  # 배치 내 동일 관리번호는 마지막 것만
         with session_scope() as session:
             for store in deduped.values():
-                session.merge(to_orm(store))
+                orm = to_orm(store)
+                existing = session.get(StoreOrm, store.store_id)
+                # 원천에 좌표가 없는 업종(학원·중개) — 재수집이 지오코딩·공간조인 결과를 지우지 않음
+                if existing is not None and orm.lat is None and existing.lat is not None:
+                    orm.lat = existing.lat
+                    orm.lng = existing.lng
+                    if orm.region_code is None:
+                        orm.region_code = existing.region_code
+                session.merge(orm)
         return len(deduped)
 
     def latest_source_updated_at(
@@ -92,3 +103,44 @@ class SqlAlchemyStoreRepository(StoreRepositoryPort, StoreSnapshotRepositoryPort
                 .all()
             )
             return [to_entity(row) for row in rows]
+
+    def list_pending(
+        self, industry_ids: list[str], limit: int | None = None
+    ) -> list[Store]:
+        if not industry_ids:
+            return []
+        with session_scope() as session:
+            stmt = (
+                select(StoreOrm)
+                .where(
+                    StoreOrm.industry_id.in_(industry_ids),
+                    StoreOrm.lat.is_(None),
+                    or_(
+                        StoreOrm.road_address.is_not(None),
+                        StoreOrm.jibun_address.is_not(None),
+                    ),
+                )
+                .order_by(StoreOrm.store_id)
+            )
+            if limit is not None:
+                stmt = stmt.limit(limit)
+            rows = session.execute(stmt).scalars().all()
+            return [to_entity(row) for row in rows]
+
+    def update_coordinates(
+        self, updates: list[tuple[str, float, float]]
+    ) -> int:
+        if not updates:
+            return 0
+        with session_scope() as session:
+            count = 0
+            for store_id, lat, lng in updates:
+                result = session.execute(
+                    update(StoreOrm)
+                    .where(
+                        and_(StoreOrm.store_id == store_id, StoreOrm.lat.is_(None))
+                    )
+                    .values(lat=lat, lng=lng)
+                )
+                count += result.rowcount
+            return count

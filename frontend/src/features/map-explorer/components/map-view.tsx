@@ -7,8 +7,12 @@ import { config } from "@/shared/config";
 import type { MapMetricKey } from "@/shared/api/types";
 import { useMapData } from "../hooks/use-map-data";
 import { makeMetricColorScale, NO_DATA_COLOR, type ColorScheme } from "../lib/metric-color";
+import { bboxOfRegion } from "../lib/region-bbox";
+import { SNAPSHOT_INDUSTRIES } from "../lib/map-state";
 import { MapLegend } from "./map-legend";
 import { RegionMarkers } from "./region-markers";
+import type { IndustryId } from "@/shared/industries";
+import { readAccentColor } from "@/shared/lib/accent-color";
 
 // maplibre-gl은 GeoJSON 타일링을 Web Worker에서 수행하며, 워커 스크립트 URL을 import.meta.url 기반으로
 // 런타임에 자체 계산한다. Turbopack 번들 청크의 import.meta.url은 http(s) URL이 아니어서 그 계산이
@@ -45,12 +49,6 @@ function vworldTileUrl(theme: "light" | "dark"): string {
   return `https://api.vworld.kr/req/wmts/1.0.0/${config.vworldKey}/${layer}/{z}/{y}/{x}.png`;
 }
 
-/** 현재 테마의 --accent CSS 토큰을 읽는다. 토큰을 못 읽는 예외 상황의 안전 폴백은 lib의 중립색을 재사용.
- *  region-markers.tsx도 클러스터/마커 페인트 색상에 동일 토큰을 써야 하므로 export한다. */
-export function readAccentColor(): string {
-  return getComputedStyle(document.documentElement).getPropertyValue("--accent").trim() || NO_DATA_COLOR;
-}
-
 interface MapViewProps {
   regionCode?: string | null;
   metric: MapMetricKey;
@@ -71,6 +69,10 @@ export function MapView({ regionCode, metric, industry, year, onSelectRegion }: 
   const loadError = geojson.isError || rows.isError;
   // 실 API는 데이터 미보유 업종·연도에 200 + 빈 배열을 반환한다 — 빈 지도임을 명시.
   const noData = rows.isSuccess && rows.data.length === 0;
+  const snapshotNoRate =
+    noData &&
+    SNAPSHOT_INDUSTRIES.has(industry as IndustryId) &&
+    (metric === "closure_rate" || metric === "growth_rate");
 
   // 색상 스케일 — fill-color 페인트와 범례가 같은 경계(classes)를 공유하는 단일 원천.
   const scale = useMemo(
@@ -117,7 +119,7 @@ export function MapView({ regionCode, metric, industry, year, onSelectRegion }: 
         type: "line",
         source: REGIONS_SOURCE_ID,
         filter: ["==", ["get", "region_code"], NO_SELECTION],
-        paint: { "line-color": readAccentColor(), "line-width": 2 },
+        paint: { "line-color": readAccentColor(NO_DATA_COLOR), "line-width": 2 },
       });
       map.on("click", REGIONS_FILL_LAYER_ID, (e) => {
         const code = e.features?.[0]?.properties?.region_code;
@@ -140,7 +142,7 @@ export function MapView({ regionCode, metric, industry, year, onSelectRegion }: 
       const source = map.getSource<RasterTileSource>(TILE_SOURCE_ID);
       source?.setTiles([vworldTileUrl(currentTheme())]);
       if (map.getLayer(REGIONS_LINE_LAYER_ID)) {
-        map.setPaintProperty(REGIONS_LINE_LAYER_ID, "line-color", readAccentColor());
+        map.setPaintProperty(REGIONS_LINE_LAYER_ID, "line-color", readAccentColor(NO_DATA_COLOR));
       }
     }
     const observer = new MutationObserver(applyTheme);
@@ -156,6 +158,21 @@ export function MapView({ regionCode, metric, industry, year, onSelectRegion }: 
     source?.setData(geojson.data);
   }, [ready, geojson.data]);
 
+  // 딥링크·선택 행정동으로 카메라 이동 (fitBounds).
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !ready || !geojson.data || !regionCode) return;
+    const bbox = bboxOfRegion(geojson.data as GeoJSON.FeatureCollection, regionCode);
+    if (!bbox) return;
+    map.fitBounds(
+      [
+        [bbox[0], bbox[1]],
+        [bbox[2], bbox[3]],
+      ],
+      { padding: 64, maxZoom: 14, duration: 800 },
+    );
+  }, [ready, geojson.data, regionCode]);
+
   // 단계구분도 색칠 — rows/metric 변경 시 fill-color 갱신.
   useEffect(() => {
     const map = mapRef.current;
@@ -170,7 +187,7 @@ export function MapView({ regionCode, metric, industry, year, onSelectRegion }: 
   useEffect(() => {
     const map = mapRef.current;
     if (!map || !ready) return;
-    map.setPaintProperty(REGIONS_LINE_LAYER_ID, "line-color", readAccentColor());
+    map.setPaintProperty(REGIONS_LINE_LAYER_ID, "line-color", readAccentColor(NO_DATA_COLOR));
     // eslint-disable-next-line @typescript-eslint/no-explicit-any -- FilterSpecification은 maplibre-gl 공개 API로 노출되지 않음
     map.setFilter(REGIONS_LINE_LAYER_ID, ["==", ["get", "region_code"], regionCode ?? NO_SELECTION] as any);
   }, [ready, regionCode]);
@@ -191,7 +208,11 @@ export function MapView({ regionCode, metric, industry, year, onSelectRegion }: 
           role="status"
           className="absolute top-3 left-1/2 z-10 -translate-x-1/2 rounded-md border border-[var(--border)] bg-[var(--bg-surface)] px-3 py-2 text-sm text-[var(--text-secondary)] shadow-md"
         >
-          해당 업종·연도의 지표 데이터가 없습니다.
+          {snapshotNoRate
+            ? "스냅샷 원천이라 이 지표는 아직 없습니다. 점포수를 선택해 보세요."
+            : metric === "store_count"
+              ? "해당 업종·연도의 점포수 지표가 없습니다."
+              : "해당 업종·연도의 지표 데이터가 없습니다."}
         </div>
       )}
       <MapLegend metric={metric} classes={scale.classes} />

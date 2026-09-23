@@ -74,6 +74,14 @@ def test_to_record_maps_store_fields_and_subcategory():
     assert store.source_updated_at == datetime(2023, 10, 18)
 
 
+def test_to_record_captures_road_address():
+    record = SeoulAcademyGateway(district_codes=_DISTRICTS)._to_record(
+        {**_ITEM, "ROAD_NM_ADDR": "서울특별시 동대문구 왕산로 1"}
+    )
+    assert record.store.road_address == "서울특별시 동대문구 왕산로 1"
+    assert record.store.jibun_address is None
+
+
 def test_to_record_unmapped_field_leaves_subcategory_null():
     record = SeoulAcademyGateway(district_codes=_DISTRICTS)._to_record(
         {**_ITEM, "FLD_NM": "종합(대)"}

@@ -19,3 +19,5 @@ class Store:
     source_updated_at: datetime  # 데이터갱신시점(DAT_UPDT_PNT) — 증분 수집 커서
     region_code: str | None = None  # 행정동 — 경계 공간조인 후 채움
     subcategory_id: str | None = None
+    road_address: str | None = None  # 도로명 — SGIS 지오코딩 대기열
+    jibun_address: str | None = None  # 지번 — 도로명 결측 시 폴백

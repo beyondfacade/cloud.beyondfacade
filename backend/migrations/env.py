@@ -25,6 +25,8 @@ import apps.commerce.adapter.outbound.orms.region_commerce_sales_breakdown_orm  
 import apps.commerce.adapter.outbound.orms.region_commerce_sales_orm  # noqa: F401
 import apps.commerce.adapter.outbound.orms.region_commerce_store_orm  # noqa: F401
 import apps.convenience.adapter.outbound.orms.convenience_store_orm  # noqa: F401
+import apps.agent.adapter.outbound.orms.analysis_report_orm  # noqa: F401
+import apps.agent.adapter.outbound.orms.llm_usage_orm  # noqa: F401
 import apps.funding.adapter.outbound.orms.funding_program_orm  # noqa: F401
 import apps.master.adapter.outbound.orms.district_orm  # noqa: F401
 import apps.master.adapter.outbound.orms.region_orm  # noqa: F401

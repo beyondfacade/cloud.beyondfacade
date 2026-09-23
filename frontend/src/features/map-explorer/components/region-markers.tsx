@@ -10,7 +10,7 @@ import {
   type MapLayerMouseEvent,
 } from "maplibre-gl";
 import type { FeatureCollection, Point } from "geojson";
-import { readAccentColor } from "./map-view";
+import { readAccentColor } from "@/shared/lib/accent-color";
 import { markerStrategyOf, type MarkerPoint } from "./marker-strategies";
 
 const MARKERS_SOURCE_ID = "markers";

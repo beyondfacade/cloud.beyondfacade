@@ -6,6 +6,7 @@ import { useQuery } from "@tanstack/react-query";
 import { GradeBadge } from "@/shared/ui/grade-badge";
 import { industryLabel, type IndustryId } from "@/shared/industries";
 import { fetchRegionSummary } from "../api";
+import { SNAPSHOT_INDUSTRIES } from "../lib/map-state";
 import { ChildcareSummarySection } from "./childcare-summary";
 import { ConvenienceSummarySection } from "./convenience-summary";
 import { NeighborhoodProfileSection } from "./neighborhood-profile";
@@ -44,6 +45,7 @@ export function SidePanel({ regionCode, industry }: SidePanelProps) {
 
   const label = industryLabel(industry);
   const IndustrySection = INDUSTRY_SECTIONS[industry as IndustryId];
+  const isSnapshot = SNAPSHOT_INDUSTRIES.has(industry as IndustryId);
 
   return (
     <aside className={styles.brief} aria-label="선택한 동네의 상권 정보">
@@ -74,7 +76,8 @@ export function SidePanel({ regionCode, industry }: SidePanelProps) {
         <div role="alert" className={styles.emptyBrief}>
           <span className={styles.emptyIcon} aria-hidden="true">—</span>
           <h2>잠시, 정보를 확인할 수 없어요.</h2>
-          <span className="text-xs font-medium text-[var(--danger)]">데이터 없음</span>
+          {/* "데이터 없음"은 스냅샷 업종 안내와 뜻이 겹친다 — 조회 실패는 실패라고 말한다 (v0.14.1) */}
+          <span className="text-xs font-medium text-[var(--danger)]">불러오기 실패</span>
           <span className="text-sm leading-relaxed text-[var(--text-secondary)]">
             <span className="tabular-nums">{regionCode}</span> 행정동의 {label} 지표를 불러오지 못했습니다.
           </span>
@@ -105,6 +108,13 @@ export function SidePanel({ regionCode, industry }: SidePanelProps) {
               </li>
             ))}
           </ul>
+
+          {isSnapshot && (
+            <p className="mt-3 text-xs leading-relaxed text-[var(--text-secondary)]">
+              폐업률·성장률은 스냅샷 원천이라 아직 값이 없을 수 있습니다. 점포수와 아래 현황을 함께
+              참고하세요.
+            </p>
+          )}
 
           {/* 업종과 무관한 동네 맥락이 먼저, 업종 상세가 뒤 */}
           <NeighborhoodProfileSection regionCode={regionCode} />

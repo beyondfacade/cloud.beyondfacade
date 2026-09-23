@@ -476,6 +476,57 @@
   (상권분석 점포 수 ↔ `region_industry_metric.store_count` 모집단 괴리, cafe·gym 매핑 판정,
   HANDOFF 첫 질문 시범 답변)는 후속
 - `docs/erd.md` §6 갱신은 이번 작업 범위 밖으로 남겨 둠
+## [v0.22.1] - 2026-09-22
+
+### Changed
+- **RAG fp16 전량 재색인** — 7,505건 `embedded_by=qwen3-embedding-4b-fp16` (혼용 Q4 해소)
+- **평가(참고)** candidate 50 — Recall@5 0.900 / MRR 0.791 (`data/eval/results/rag_fp16_*.json`)
+- **SGIS CLI** 미매칭만 남은 대기열에서 크론 무한루프 방지 (`geocoded==0` → exit 2)
+- **SGIS 전량 지오코딩 완료** — 학원 25,504·중개 25,299 좌표, assign_regions·build_metrics 합류 (metric 3,408·3,416행)
+
+### Fixed
+- **`GET /stores` 500** — `Store`에 추가한 `road_address`/`jibun_address`가 `StoreDto(**asdict)`에 없어 TypeError.
+  DTO·응답 스키마에 동일 필드 추가
+
+## [v0.22.0] - 2026-09-22
+
+### Added
+- **SGIS 지오코딩 파이프라인** — 학원·부동산중개 lat/lng NULL 대기열 해소용
+  - `store.road_address` / `jibun_address` 컬럼 (마이그레이션 `b2c3d4e5f6a7`)
+  - 학원 게이트웨이 `ROAD_NM_ADDR`, 중개 게이트웨이 `rdnmadr`/`mnnmadr` 적재
+  - `SgisGeocodingGateway` (토큰 4h + UTM-K EPSG:5179→WGS84) + `GeocodeStoresInteractor`
+  - CLI: `python -m apps.store.adapter.inbound.cli.geocode_stores [--limit N] [--industry …]`
+  - 업서트 시 원천 좌표 NULL이면 기존 지오코딩·공간조인 결과 보존 (학원 재수집 좌표 소실 방지)
+  - 테스트: `test_sgis_geocoding_gateway` · `test_geocode_stores` · 게이트웨이 주소 필드 단언
+- **선행 조건**: `SGIS_SERVICE_ID` / `SGIS_SECURITY_KEY` — 현재 `.env` 공란이면 CLI가 즉시 실패.
+  키 설정 후 수집(주소 채움) → geocode_stores → assign_regions → build_metrics 순
+
+## [v0.21.1] - 2026-09-22
+
+### Changed
+- **Gemini LLM 기본 모델** `gemini-2.0-flash` → `gemini-2.5-flash`
+  (2.0 폐기 404; 3.6-flash는 thought_signature 요구로 현 어댑터 보류)
+- **에이전트 두뇌 비교 평가 결과** — 시나리오 10 × gemma4:12b vs gemini-2.5-flash
+  - 섹션 완성률 50% vs **90%**, 평균 소요 ~40s vs **~17s**, 자동 규칙 위반 0/10 양쪽
+  - 비교표: `data/eval/results/agent_compare.md` (원본 jsonl force-add)
+  - 두뇌 채택(A Gemini / B 로컬 / C 혼합)은 사용자 결정
+
+## [v0.21.0] - 2026-09-21
+
+### Added
+- **agent BC SSE 분석 API** — `POST /analysis` + `GET /analysis/{id}/events` + `GET /analysis/myself`
+  - Composition Root `analysis_dependencies`: 모델 레지스트리 `gemma3|gemini` (요청당
+    AnalysisInteractor 인스턴스 — `last_usage` 가변 상태 격리)
+  - 로컬 기본 배선: API 키 `gemma3` → Ollama **`gemma4:12b`** (현행 `gemma3:12b`는 tools
+    capability 없음 — `registry.ollama.ai/.../gemma3:12b does not support tools`)
+  - 영속화: `analysis_report` + `llm_usage` (마이그레이션 `a1b2c3d4e5f6`, down=`e2a08b1e8f19`)
+  - 프로세스 수명 `_PENDING`으로 mock 대칭 analysis_id 보관; `report_done.report_id` = analysis_id
+  - 테스트 4건 (`test_agent_router`) — Fake UseCase로 POST·SSE 프레임 순서·404·myself
+  - 스모크(8299, 역삼1동 카페): ~23s, input 14377 / output 719 tokens, DB 1+1행 확인
+
+### Changed (소급 — T8~T10은 선행 커밋, 본 버전에서 API 노출로 마감)
+- T8 LLM 어댑터(Ollama·Gemini) · T9 도구 7종 · T10 AnalysisInteractor 단일 루프가
+  HTTP/SSE·영속화와 연결됨
 
 ## [v0.20.0] - 2026-09-17
 
