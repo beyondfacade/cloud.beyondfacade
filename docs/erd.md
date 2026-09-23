@@ -360,9 +360,10 @@ erDiagram
 
 ---
 
-## 6. 최종 ERD — 실DB 스키마 기준 (2026-09-17)
+## 6. 최종 ERD — 실DB 스키마 기준 (2026-09-23)
 
-> 원천: 운영 DB `information_schema`(컬럼·PK·UK·FK) 실조회. 21테이블(`alembic_version` 제외).
+> 원천: 운영 DB `information_schema`(컬럼·PK·UK·FK) 실조회. **36테이블**(`alembic_version` 제외).
+> 2026-09-17의 21테이블에 commerce 3·neighborhood 8·metric 파생 2·agent 2 = **15테이블**을 더했다(T0-4).
 > 실선 = DB `FOREIGN KEY` 제약, 점선 = 애플리케이션 레벨 엣지(DB 제약 없음 — 사유는 §6.2).
 
 ```mermaid
@@ -408,6 +409,38 @@ erDiagram
     region |o--o{ rag_chunk : "지역 필터"
     news_article ||..o{ rag_chunk : "source_type=news"
     funding_program ||..o{ rag_chunk : "source_type=funding"
+
+    %% ── 원천 계층: 서울 상권분석서비스 — 업종 실적 (commerce, 동×업종×분기) ──
+    region |o--o{ region_commerce_sales : "region_code (옛 행정동 3개 NULL)"
+    region |o--o{ region_commerce_store : ""
+    region |o--o{ region_commerce_sales_breakdown : ""
+    region_commerce_sales ||--o{ region_commerce_sales_breakdown : "복합 FK (adstrd, code, quarter)"
+    industry_source_code }o..o{ region_commerce_sales : "source_system=seoul_commercial 코드매핑"
+
+    %% ── 원천 계층: 서울 상권분석서비스 — 동네 맥락 (neighborhood, 동×분기, 업종 축 없음) ──
+    region |o--o{ region_footfall_quarter : ""
+    region |o--o{ region_population_quarter : ""
+    region |o--o{ region_household_quarter : ""
+    region |o--o{ region_housing_average_quarter : ""
+    region |o--o{ region_facility_quarter : ""
+    region |o--o{ region_spending_quarter : ""
+    region |o--o{ region_commerce_change : ""
+    seoul_commerce_change_baseline ||--o{ region_commerce_change : "year_quarter (2NF 분리)"
+
+    %% ── 파생 계층 (metric 확장, 배치 재생성) ──
+    region ||--o{ region_profile_quarter : ""
+    region ||--o{ region_industry_hour_gap_quarter : ""
+    industry ||--o{ region_industry_hour_gap_quarter : ""
+    region_footfall_quarter ||..o{ region_profile_quarter : "4분기 평활 판정"
+    region_population_quarter ||..o{ region_profile_quarter : ""
+    region_spending_quarter ||..o{ region_profile_quarter : ""
+    region_facility_quarter ||..o{ region_profile_quarter : ""
+    region_footfall_quarter ||..o{ region_industry_hour_gap_quarter : "시간강도"
+    region_commerce_sales_breakdown ||..o{ region_industry_hour_gap_quarter : "시간강도"
+
+    %% ── 에이전트 계층 ──
+    analysis_report ||--o{ llm_usage : "턴별 토큰"
+    region |o..o{ analysis_report : "region_code (FK 없음)"
 
     district {
         string district_code PK "자치구코드"
@@ -620,25 +653,165 @@ erDiagram
         string url "nullable"
         string region_code FK "nullable"
     }
+    region_commerce_sales {
+        string adstrd_code PK "원천 행정동 8자리"
+        string service_industry_code PK "CS 코드"
+        string year_quarter PK "YYYYQ"
+        string region_code FK "nullable - 의도된 역정규화"
+        bigint sales_amount "nullable"
+        bigint sales_count "nullable"
+    }
+    region_commerce_store {
+        string adstrd_code PK
+        string service_industry_code PK
+        string year_quarter PK
+        string region_code FK "nullable"
+        int store_count "nullable"
+        int similar_industry_store_count "nullable"
+        float open_rate "nullable"
+        int open_store_count "nullable"
+        float close_rate "nullable"
+        int close_store_count "nullable"
+        int franchise_store_count "nullable"
+    }
+    region_commerce_sales_breakdown {
+        string adstrd_code PK, FK "복합 FK → region_commerce_sales"
+        string service_industry_code PK, FK
+        string year_quarter PK, FK
+        string dim_type PK "dow|hour|gender|age|weekpart"
+        string dim_key PK "00_06 등 정규화 표기"
+        string region_code FK "nullable"
+        bigint amount "nullable"
+        bigint count "nullable"
+    }
+    region_footfall_quarter {
+        string adstrd_code PK
+        string year_quarter PK
+        string dim_type PK "total|gender|age|hour|dow"
+        string dim_key PK
+        string region_code FK "nullable"
+        bigint headcount "nullable"
+    }
+    region_population_quarter {
+        string adstrd_code PK
+        string year_quarter PK
+        string population_type PK "worker|resident"
+        string dim_type PK "total|gender|age|gender_age"
+        string dim_key PK
+        string region_code FK "nullable"
+        bigint headcount "nullable - 직장은 414동뿐"
+    }
+    region_household_quarter {
+        string adstrd_code PK
+        string year_quarter PK
+        string dim_type PK "household|apartment_complex|area|price"
+        string dim_key PK
+        string region_code FK "nullable"
+        bigint value "nullable - apartment 가구수는 전행 0"
+    }
+    region_housing_average_quarter {
+        string adstrd_code PK
+        string year_quarter PK
+        string region_code FK "nullable"
+        float avg_area_m2 "nullable"
+        bigint avg_price "원 - nullable, 편차 극단"
+    }
+    region_facility_quarter {
+        string adstrd_code PK
+        string year_quarter PK
+        string facility_type PK "total + 19종"
+        string region_code FK "nullable"
+        int facility_count "nullable - total ≠ 19종 합"
+    }
+    region_spending_quarter {
+        string adstrd_code PK
+        string year_quarter PK
+        string spending_category PK "total + 10종"
+        string region_code FK "nullable"
+        bigint amount "원 - 가맹점 결제(발생지)"
+    }
+    seoul_commerce_change_baseline {
+        string year_quarter PK
+        float seoul_operating_months "nullable"
+        float seoul_closed_months "nullable"
+    }
+    region_commerce_change {
+        string adstrd_code PK
+        string year_quarter PK, FK "→ seoul_commerce_change_baseline"
+        string change_code "HH|HL|LH|LL - nullable"
+        string change_name "nullable - code에 함수종속(§13 예외)"
+        float operating_months "nullable"
+        float closed_months "nullable"
+        string region_code FK "nullable"
+    }
+    region_profile_quarter {
+        string region_code PK, FK
+        string year_quarter PK
+        string neighborhood_type "office|campus|dining|hub|residential|mixed"
+        text type_reason "실측 수치가 박힌 근거 문장"
+        string time_label "morning|day|evening|night|flat - nullable"
+        string peak_block "nullable"
+        string trough_block "nullable"
+        float worker_resident_ratio "nullable - 직장 결측 동"
+        float weekend_index "nullable"
+        float night_index "00_06 시간강도 - nullable"
+        float footfall_20s_share "nullable"
+        float fnb_share "nullable"
+        int facility_total "nullable"
+        int resident_total "nullable"
+    }
+    region_industry_hour_gap_quarter {
+        string region_code PK, FK
+        string industry_id PK, FK
+        string year_quarter PK
+        string hour_band PK "00_06 … 21_24"
+        float footfall_intensity "1.0 = 24h 균등"
+        float sales_intensity
+        float gap "sales − footfall"
+    }
+    analysis_report {
+        string id PK "analysis_id uuid"
+        string region_code "FK 없음"
+        string industry
+        string question "nullable"
+        text report_md
+        text citations_json
+        string model
+        datetime created_at
+    }
+    llm_usage {
+        int id PK
+        string analysis_id FK
+        string model
+        int input_tokens
+        int output_tokens
+        int latency_ms
+        datetime created_at
+    }
 ```
 
-### 6.1 적재 현황 (2026-09-17, `pg_stat_user_tables` 추정치)
+### 6.1 적재 현황 (2026-09-23, `count(*)` 실측)
 
 | 계층 | 테이블 (행 수) |
 |---|---|
-| 마스터 | district 25 · region 427 · industry 10 · industry_subcategory 8 · industry_source_code 9 · population_stat 142,632 |
-| 원천(인허가) | store 348,792 · academy_course 64,415 · tobacco_retailer 95,402 |
-| 원천(스냅샷) | convenience_store 9,395 · childcare_center 3,940 · childcare_center_stat 3,940 |
-| 원천(외생) | rent_price 3,638 · interest_rate 365 · shock_event 26 · shock_event_industry 107 · shock_event_region **0** · news_article 4,951 · funding_program 1,849 |
-| 집계 | region_industry_metric 21,005 |
-| 검색 | rag_chunk 6,645 (news 4,796 · funding 1,849, 전건 임베딩) |
+| 마스터 | district 25 · region 427 · industry 10 · industry_subcategory 8 · industry_source_code 25 · population_stat 142,632 |
+| 원천(인허가) | store 348,996 · academy_course 64,415 · tobacco_retailer 95,402 |
+| 원천(스냅샷) | convenience_store 9,395 · childcare_center 3,940 · childcare_center_stat 7,880 |
+| 원천(외생) | rent_price 3,638 · interest_rate 365 · shock_event 26 · shock_event_industry 107 · shock_event_region **0** · news_article 5,808 · funding_program 2,032 |
+| 원천(상권분석 — 업종 실적) | region_commerce_sales 343,167 · region_commerce_store 704,470 · region_commerce_sales_breakdown **7,892,841** |
+| 원천(상권분석 — 동네 맥락) | region_footfall_quarter 205,700 · region_population_quarter 387,618 · region_household_quarter 149,353 · region_housing_average_quarter 9,331 · region_facility_quarter 187,000 · region_spending_quarter 102,850 · region_commerce_change 9,350 · seoul_commerce_change_baseline 22 |
+| 집계·파생 | region_industry_metric 27,829 · region_profile_quarter 9,284 · region_industry_hour_gap_quarter 342,078 |
+| 검색 | rag_chunk 7,695 |
+| 에이전트 | analysis_report 7 · llm_usage 7 |
+
+상권분석서비스 계열 11테이블 합계 **약 999만 행**(설계서 `2026-09-23-commerce-bc-design.md`·`…-neighborhood-bc-design.md`). 파생 2종은 `python -m apps.metric.adapter.inbound.cli.build_region_profiles`로 배치 재생성한다(33초, 멱등).
 
 ### 6.2 초안(§2) 대비 차이
 
 | 구분 | 내용 |
 |---|---|
 | **추가** | `rag_chunk` — RAG 검색 청크(pgvector 1536차원). §2 초안에 없던 검색 계층 |
-| **미구현** | `sales_estimate`(추정매출), `funding_program_industry`(공고↔업종 M:N) — 테이블 없음 |
+| **미구현** | `funding_program_industry`(공고↔업종 M:N) — 테이블 없음. `sales_estimate`(추정매출)는 `region_commerce_sales`로 구현됨(2026-09-23) |
 | **스키마 변경** | `region_industry_metric` — 대리키 `id`·`subcategory_id`·`survival_rate_3y` 없음, `period`(YYYYQ) → `year`(int), PK = (region_code, industry_id, year) 복합키 |
 | **스키마 변경** | `district.opn_authority_code`(UK) 추가, `industry_source_code.id`는 int + UK(industry_id, source_system, code) |
 | **스키마 변경** | `shock_event.source`·`description`, `shock_event_industry.severity` 추가 |
@@ -648,6 +821,10 @@ erDiagram
 - `rag_chunk.source_id` — `source_type`에 따라 `news_article` 또는 `funding_program`의 PK를 가리키는 다형 참조라 단일 FK 제약을 걸 수 없다.
 - `region_industry_metric` ← store / convenience_store / childcare_center — 배치 집계(`apps/metric` 게이트웨이)로 생성되는 파생 관계이고 행 단위 참조가 아니다.
 - `interest_rate` ↔ `rent_price` — §4 역정규화 목록의 계산기 앱 조인.
+- `region_profile_quarter` · `region_industry_hour_gap_quarter` ← neighborhood·commerce 원천 — 배치 파생(`apps/metric`이 게이트웨이로 읽어 매 배치 임계값을 재계산). 행 단위 참조가 아니다.
+- `industry_source_code` ↔ `region_commerce_sales` — `service_industry_code`가 CS 코드이고 업종 매핑은 `source_system='seoul_commercial'` 행을 경유한다(cafe 3·hair_salon 3·academy 4 코드 합산). 원천 코드를 PK로 보존해야 하므로 FK를 걸지 않는다.
+- `analysis_report.region_code` — 리포트는 삭제된 지역에도 남아야 하는 이력 데이터라 FK 없음.
+- `region_code`가 nullable인 상권분석 11테이블 — 원천에만 있는 옛 행정동 3개(`11230536` 용신동·`11680740` 일원2동·`11740520` 상일동)를 버리지 않고 NULL로 보존한다. 조회 시 `region_code IS NOT NULL`이 원칙.
 
 **§13 연결 원칙 점검 결과 (DB FK 기준):**
 - `funding_program` — DB FK가 하나도 없다. `rag_chunk` 다형 참조로만 연결되며, 업종 허브 연결을 맡을 `funding_program_industry`가 미구현이다 → **후속 구현 대상**.
