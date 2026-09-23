@@ -2,6 +2,35 @@
 
 > 2026-09-23 T0-2 병합에서 v0.14.x 충돌로 우리 쪽 4항목(랜딩·E2E·동네 프로필·영업 지속 개월)을 v0.15.0·v0.15.1·v0.16.0·v0.17.0으로 재번호했다. 해당 커밋 메시지의 번호는 병합 전 번호다.
 
+## [v0.22.0] - 2026-09-24
+
+### Added
+- **`/plan` — 그래서 얼마가 필요한가** (`features/plan/`). 설계서 `docs/superpowers/specs/2026-09-23-finance-plan-design.md` §5.
+  무대(①②)의 다음 층. 관문·사이드패널에서 `region·industry·budget`을 받아 실측 프리필 → 서버 계산 →
+  최초안/현재안 비교로 이어진다
+  - `lib/form-defaults.ts` — URL `budget` → 자기자본, 프리필(월매출·임대료·원가율·금리) 적용, 면적 기본 33㎡,
+    `월세 = rent_per_m2 × 면적 × 1,000` 반올림. 채우지 못한 금액은 0 + `unconfirmed` 기록(유효한 0원과 구분)
+  - **프리필 배지** `source-badge.tsx` — 값 옆에 출처 한 줄("실측 · 20254 · 603점포" / "R-ONE 강남 권역 · 2026Q2" /
+    "업종 평균 근사" / "ECOS · 202607") + 단서 보조문·title. 값을 채우되 어디서 온 값인지 항상 보인다(후보.md 항목 1)
+  - `result-figures.tsx` — **헤드라인은 `external_funding_need`("자기자본 외 조달 필요")**. 희망대출은 아직 빌리지
+    않은 돈이라 부족액이 0원이어도 상담 주제는 남는다. **"충분합니다" 류 문구 금지를 테스트로 고정**
+  - `plan-comparison.tsx` — 최초안 vs 현재안 표 + 상담할 안 선택 + 변경 이유(사용자가 쓴다, 추정하지 않는다).
+    **수정 후 미계산이면 잠금** + "아래 결과는 이전 입력 기준이에요"
+  - `lib/plan-draft.ts` — 대구 `consultation-draft.ts` 이식. `sessionStorage` 키 `beyondfacade.plan.v1`,
+    첫 성공 계산이 최초안으로 고정. 저장·복원은 try/catch, 구조·비율 검증 실패면 null
+  - `lib/finance-engine.ts` — 대구 `engine.py`의 TS 이식. **mock 라우트 전용**이며 화면은 서버 결과만 믿는다.
+    시연 사례 2건(월세 250만 → BEP 900만·조달 3,160만·부족 660만 / 월세 100만 → BEP 525만·부족 0·조달 2,260만)이
+    파이썬 엔진과 같은 수임을 테스트로 고정
+  - 진입: 사이드패널 sticky CTA에 **"자금 계획 →"**(`/plan?region&industry&budget`, `budget`은 `MapState`),
+    관문 진단 한 줄에도 같은 링크(`planUrl`, A유형만). feature 간 import 없이 각자 URL 조립
+  - mock `/api/mock/finance/{simulate,prefill}` — 실 API 미러(§15). simulate는 FastAPI와 같은 422 규칙,
+    prefill은 없는 동·업종 404·매출 없는 업종 null
+
+### Validation
+- 테스트 32건 추가(lib 15 · 컴포넌트 10 · mock 6 · intent-url 1) → vitest **224/224**(56파일), `tsc` clean
+- 실 dev 서버(3200→8201): `/plan?region=1168064000&industry=cafe&budget=50000000` 200, SSR에 헤드라인
+  "자기자본 외 조달 필요"; 프록시 `/finance/prefill` 200. E2E 실행 안 함(`bash -n`만)
+
 ## [v0.21.0] - 2026-09-23
 
 ### Added

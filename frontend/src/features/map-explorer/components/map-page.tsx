@@ -46,7 +46,7 @@ export function MapPage() {
             />
           </div>
         </section>
-        <SidePanel regionCode={state.region} industry={state.industry} />
+        <SidePanel regionCode={state.region} industry={state.industry} budget={state.budget} />
       </div>
     </main>
   );

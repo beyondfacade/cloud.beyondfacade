@@ -6,6 +6,7 @@ import type {
   AgentName,
   CategoryRow,
   ChildcareCenter,
+  FinancePrefill,
   ChildcareRegionSummary,
   ConvenienceRegionSummary,
   IntentCandidate,
@@ -600,5 +601,39 @@ export function hourGapOf(regionCode: string, industryId: string, yearQuarter: s
       hour_band, footfall_intensity: footfall[i], sales_intensity: sales[i],
       gap: Number((sales[i] - footfall[i]).toFixed(3)),
     })),
+  };
+}
+
+/** 재무 프리필 — 실 API(§4-3 계약) 미러. 값은 결정적, basis·caveat 형태는 백엔드 응답과 같다.
+ *  실측 규모(역삼1동 카페 월 2,613만·강남 권역 65.5천원/㎡)에 맞춘 범위. */
+export function financePrefillOf(regionCode: string, industryId: string): FinancePrefill {
+  const u = unitFrom(hashSeed("finance-prefill", regionCode, industryId));
+  const storeCount = 40 + Math.floor(u * 600);
+  const monthly = Math.round(9_000_000 + u * 20_000_000);
+  const rent = Math.round((35 + u * 40) * 100) / 100;
+  const COST: Record<string, number> = { cafe: 0.35, hair_salon: 0.25, gym: 0.15, billiard: 0.2, karaoke: 0.2, pc_bang: 0.2, academy: 0.3, childcare: 0.3, convenience_store: 0.7, real_estate: 0.1 };
+  const hasSales = industryId !== "childcare"; // 어린이집은 매출 원천이 없다
+  return {
+    region_code: regionCode,
+    industry_id: industryId,
+    expected_monthly_revenue: {
+      value: hasSales ? monthly : null,
+      basis: hasSales
+        ? { year_quarter: "20254", quarterly_sales: monthly * 3 * storeCount, store_count: storeCount, source_codes: ["CS100010"] }
+        : { year_quarter: "", quarterly_sales: 0, store_count: 0, source_codes: [] },
+      caveat: hasSales
+        ? `이 동 같은 업종 ${storeCount}곳의 분기 매출을 점포 수로 나눈 평균입니다. 편차가 크고 신규 점포는 평균 아래서 시작하는 경우가 많습니다.`
+        : "이 동네엔 이 업종의 매출 자료가 없습니다.",
+      unit: "원/월",
+    },
+    rent_per_m2: {
+      value: rent,
+      basis: { region_path: "서울>강남", building_type: "medium_large", period: "2026Q2", level: "권역", small_per_m2: Math.round((rent - 1) * 100) / 100, source: "R-ONE" },
+      caveat: "행정동 단위 임대료 자료가 없어 강남 권역(R-ONE, 중대형 상가) 평균입니다. 실제 매물과 다를 수 있습니다.",
+      unit: "천원/㎡/월",
+    },
+    cost_ratio: { value: COST[industryId] ?? 0.4, basis: { kind: "industry_benchmark", industry_id: industryId }, caveat: "업종 평균 근사값입니다. 원가 구조를 알면 고치세요.", unit: null },
+    loan_rate: { value: 0.0405, basis: { rate_type: "loan_facility", period: "202607", rate_pct: 4.05, source: "ECOS" }, caveat: "공시 평균 금리입니다. 실제 심사 금리와 다릅니다.", unit: "비율" },
+    equity: null,
   };
 }

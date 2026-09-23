@@ -23,6 +23,8 @@ const INDUSTRY_SECTIONS: Partial<Record<IndustryId, ComponentType<{ regionCode: 
 
 interface SidePanelProps {
   regionCode: string | null;
+  /** 관문에서 온 예산(원) — 자금 계획 링크에 실어 보낸다. */
+  budget?: number | null;
   industry: string;
 }
 
@@ -39,7 +41,7 @@ function SkeletonRows() {
   );
 }
 
-export function SidePanel({ regionCode, industry }: SidePanelProps) {
+export function SidePanel({ regionCode, industry, budget = null }: SidePanelProps) {
   const summary = useQuery({
     queryKey: ["region-summary", regionCode, industry],
     queryFn: () => fetchRegionSummary(regionCode!, industry),
@@ -131,10 +133,16 @@ export function SidePanel({ regionCode, industry }: SidePanelProps) {
           {IndustrySection && <IndustrySection regionCode={regionCode} />}
 
           {/* 패널이 길어져 CTA가 접힌다 — 스크롤 영역 하단에 붙인다 (E2E [5/8] 재현 근거) */}
-          <div className={styles.briefCta}>
+          <div className={`${styles.briefCta} flex gap-2`}>
+            <Link
+              href={`/plan?region=${regionCode}&industry=${industry}${budget ? `&budget=${budget}` : ""}`}
+              className="block flex-1 rounded-lg border border-[var(--accent)] px-4 py-3.5 text-center text-sm font-semibold text-[var(--accent)] transition-opacity hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)] active:translate-y-px"
+            >
+              자금 계획 →
+            </Link>
             <Link
               href={`/analysis?region=${regionCode}&industry=${industry}`}
-              className="block rounded-lg bg-[var(--accent)] px-4 py-3.5 text-center text-sm font-semibold text-[var(--accent-fg)] transition-opacity hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)] active:translate-y-px"
+              className="block flex-1 rounded-lg bg-[var(--accent)] px-4 py-3.5 text-center text-sm font-semibold text-[var(--accent-fg)] transition-opacity hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)] active:translate-y-px"
             >
               AI 분석 →
             </Link>

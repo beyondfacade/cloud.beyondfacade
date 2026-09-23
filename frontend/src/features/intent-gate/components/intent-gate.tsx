@@ -6,7 +6,7 @@ import type { IntentResult } from "@/shared/api/types";
 import { INDUSTRY_LABELS } from "@/shared/industries";
 import { SEOUL_DISTRICTS, districtOf } from "@/shared/seoul-districts";
 import { diagnoseIntent, fetchRegionList, parseIntent } from "../api";
-import { intentToUrl } from "../lib/intent-url";
+import { intentToUrl, planUrl } from "../lib/intent-url";
 import { ClarifyChips, type ChipOption } from "./clarify-chips";
 import { DiagnosisLine } from "./diagnosis-line";
 import { IntentForm } from "./intent-form";
@@ -161,7 +161,7 @@ export function IntentGate() {
       )}
 
       {phase.kind === "done" && phase.sentence && (
-        <DiagnosisLine sentence={phase.sentence} href={phase.href} onNavigate={navigate} />
+        <DiagnosisLine sentence={phase.sentence} href={phase.href} planHref={planUrl(phase.draft)} onNavigate={navigate} />
       )}
     </div>
   );

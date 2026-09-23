@@ -201,3 +201,69 @@ export interface IntentResult {
   diagnosis: IntentDiagnosis | null;
   source: "rule" | "llm";
 }
+
+/** 재무 엔진 입력 13필드 (POST /finance/simulate). 금액은 원 단위 정수, 비율은 0 이상 1 미만 소수.
+ *  대구 분화본 `FinanceInput`과 같은 이름·단위 — 두 프로젝트가 같은 수를 내야 서로 검산이 된다. */
+export interface FinanceInput {
+  deposit: number;
+  key_money: number;
+  interior_cost: number;
+  equipment_cost: number;
+  monthly_rent: number;
+  monthly_payroll: number;
+  monthly_insurance: number;
+  cost_ratio: number;
+  fee_ratio: number;
+  equity: number;
+  desired_loan: number;
+  loan_rate: number;
+  expected_monthly_revenue: number;
+}
+
+export interface FinanceScenario {
+  name: string; // 비관 | 기준 | 낙관
+  monthly_revenue: number;
+  variable_cost: number;
+  operating_profit: number;
+  payback_months: number | null; // 영업이익 ≤ 0 이면 회수 불가
+  runway_months: number | null; // 영업이익 ≥ 0 이거나 가용현금 없으면 null
+}
+
+export interface StressResult {
+  rate_delta: number; // 0.01 | 0.02
+  monthly_fixed: number;
+  base_operating_profit: number;
+}
+
+/** 재무 엔진 결과. 헤드라인은 `funding_gap`(희망대출 반영 후 부족액)이 아니라
+ *  `external_funding_need`(자기자본 외 조달 필요)다 — 희망대출은 아직 빌리지 않은 돈이다. */
+export interface FinanceResult {
+  capex: number;
+  monthly_fixed: number;
+  bep_revenue: number;
+  funding_gap: number;
+  reserve_months: number;
+  operating_reserve: number;
+  total_required_funds: number;
+  external_funding_need: number;
+  scenarios: FinanceScenario[];
+  stress: StressResult[];
+}
+
+/** 프리필 값 하나 + 출처 + 단서 (GET /finance/prefill). 화면은 값을 채우되 어디서 온 값인지 항상 보인다. */
+export interface PrefillValue<B extends Record<string, unknown> = Record<string, unknown>> {
+  value: number | null;
+  basis: B;
+  caveat: string;
+  unit: string | null;
+}
+
+export interface FinancePrefill {
+  region_code: string;
+  industry_id: string;
+  expected_monthly_revenue: PrefillValue<{ year_quarter: string; quarterly_sales: number; store_count: number; source_codes: string[] }>;
+  rent_per_m2: PrefillValue<{ region_path: string; building_type: string; period: string; level: string; small_per_m2?: number | null; source?: string }>;
+  cost_ratio: PrefillValue<{ kind: string; industry_id?: string }>;
+  loan_rate: PrefillValue<{ rate_type: string; period: string; rate_pct?: number; source?: string }>;
+  equity: null; // 관문의 budget이 URL로 온다 — 서버는 채우지 않는다
+}
