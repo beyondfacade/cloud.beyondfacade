@@ -59,3 +59,30 @@ export function makeMetricColorScale(values: number[], scheme: ColorScheme): Met
   if (values.length === 0) return { colorOf: () => NO_DATA_COLOR, classes: [] };
   return scheme === "sequential" ? sequentialScale(values) : divergingScale(values);
 }
+
+/** 범주 단계구분도 한 클래스 — 색과 코드. 범례가 이름으로 바꿔 띄운다(코드→이름은 shared/neighborhood). */
+export interface CategoryColorClass {
+  color: string;
+  code: string;
+}
+
+export interface CategoryColorScale {
+  colorOf: (code: string) => string;
+  classes: CategoryColorClass[];
+}
+
+/** 범주 스케일 — 분위수 스케일과 **별도 함수**다. 코드를 숫자에 우겨넣지 않는다 (map-metric-contract §5).
+ *  colorOf와 classes가 같은 palette 객체를 공유해 지도 색과 범례 색이 어긋나지 않는다.
+ *  classes는 `order` 순의 전체 키다 — 범주 범례는 구간이 아니라 키(key)라 데이터에 없는 유형도 보인다.
+ *  코드가 하나도 없으면(데이터 없음) 빈 classes — 숫자 스케일과 같은 규칙으로 범례가 숨는다. */
+export function makeCategoryColorScale(
+  codes: string[],
+  palette: Record<string, string>,
+  order: readonly string[],
+): CategoryColorScale {
+  if (codes.length === 0) return { colorOf: () => NO_DATA_COLOR, classes: [] };
+  return {
+    colorOf: (code) => palette[code] ?? NO_DATA_COLOR,
+    classes: order.map((code) => ({ code, color: palette[code] ?? NO_DATA_COLOR })),
+  };
+}

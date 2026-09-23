@@ -8,8 +8,18 @@ export type AgentEvent =
 
 export type MetricKey = "closure_rate" | "growth_rate" | "store_count";
 
-/** 업종 축이 없는 동 단위 분기 지표 (GET /commerce-changes). 업종을 바꿔도 값이 같다. */
-export type RegionMetricKey = "operating_months";
+/** 업종 축이 없는 동 단위 분기 지표. 업종을 바꿔도 값이 같다.
+ *  operating_months → GET /commerce-changes (숫자), neighborhood_type → GET /profiles/types (범주). */
+export type RegionMetricKey = "operating_months" | "neighborhood_type";
+
+/** GET /commerce-changes 가 지원하는 지표 (동×분기 숫자). */
+export type CommerceChangeMetricKey = "operating_months";
+
+/** 숫자 계약({region_code, value})으로 오는 지표. 범례 값 표기·분위수 스케일의 대상. */
+export type NumericMetricKey = MetricKey | "operating_months";
+
+/** 범주 계약({region_code, type_code})으로 오는 지표. 숫자 계약과 경로가 다르다 (map-metric-contract §5). */
+export type CategoricalMetricKey = "neighborhood_type";
 
 /** 지도 단계구분도가 그릴 수 있는 전체 지표. 원천은 둘로 갈리지만 응답 형태는 {region_code, value}로 같다. */
 export type MapMetricKey = MetricKey | RegionMetricKey;
@@ -17,6 +27,12 @@ export type MapMetricKey = MetricKey | RegionMetricKey;
 export interface MetricRow {
   region_code: string;
   value: number;
+}
+
+/** 범주 단계구분도 행 (GET /profiles/types). 한 타입에 value/category를 섞어 null로 두지 않는다. */
+export interface CategoryRow {
+  region_code: string;
+  type_code: string; // office | campus | dining | hub | residential | mixed
 }
 
 export interface SummaryCard {

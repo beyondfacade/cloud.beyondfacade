@@ -4,6 +4,7 @@ import type { FeatureCollection, MultiPolygon } from "geojson";
 import type {
   AgentEvent,
   AgentName,
+  CategoryRow,
   ChildcareCenter,
   ChildcareRegionSummary,
   ConvenienceRegionSummary,
@@ -13,7 +14,7 @@ import type {
   ConvenienceStore,
   MetricKey,
   MetricRow,
-  RegionMetricKey,
+  CommerceChangeMetricKey,
   RegionProfile,
   RegionSummary,
   Store,
@@ -361,13 +362,13 @@ export function regionProfileOf(regionCode: string, yearQuarter: string): Region
 }
 
 /** 동 단위 분기 지표 — 실측 분포(최소 31 · 중앙 117 · 최대 206개월)에 맞춰 결정적으로 만든다. */
-const REGION_METRIC_RANGES: Record<RegionMetricKey, [number, number]> = {
+const REGION_METRIC_RANGES: Record<CommerceChangeMetricKey, [number, number]> = {
   operating_months: [31, 206],
 };
 
 export const LATEST_CHANGE_QUARTER = "20262";
 
-export function changeMetricRows(metric: RegionMetricKey, yearQuarter: string): MetricRow[] {
+export function changeMetricRows(metric: CommerceChangeMetricKey, yearQuarter: string): MetricRow[] {
   const [min, max] = REGION_METRIC_RANGES[metric];
   return REGIONS.map(({ region_code }) => ({
     region_code,
@@ -510,4 +511,12 @@ export function intentOfText(text: string): IntentResult {
     diagnosis: null,
     source,
   });
+}
+
+/** 유형 단계구분도 — 실 API `GET /profiles/types` 미러. 프로필 픽스처의 유형을 그대로 쓴다(결정적). */
+export function profileTypeRows(yearQuarter: string): CategoryRow[] {
+  return REGIONS.map(({ region_code }) => ({
+    region_code,
+    type_code: regionProfileOf(region_code, yearQuarter).neighborhood_type,
+  }));
 }

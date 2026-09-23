@@ -1,13 +1,14 @@
 import type { FeatureCollection, MultiPolygon, Polygon } from "geojson";
 import { apiGet } from "@/shared/api/client";
 import type {
+  CategoryRow,
   ChildcareCenter,
   ChildcareRegionSummary,
   ConvenienceRegionSummary,
   ConvenienceStore,
   MetricKey,
   MetricRow,
-  RegionMetricKey,
+  CommerceChangeMetricKey,
   RegionProfile,
   RegionSummary,
   Store,
@@ -63,10 +64,16 @@ export function fetchRegionProfile(regionCode: string, yearQuarter?: string): Pr
 
 /** 동 단위 분기 지표 — 분기를 생략하면 백엔드가 최신 분기를 쓴다. 업종 파라미터가 없다. */
 export function fetchCommerceChangeMetrics(
-  metric: RegionMetricKey,
+  metric: CommerceChangeMetricKey,
   yearQuarter?: string,
 ): Promise<MetricRow[]> {
   const params = new URLSearchParams({ metric });
   if (yearQuarter) params.set("year_quarter", yearQuarter);
   return apiGet<MetricRow[]>(`/commerce-changes?${params.toString()}`);
+}
+
+/** 유형 단계구분도 — 범주 계약. 분기를 생략하면 최신 분기. 업종 파라미터가 없다. */
+export function fetchProfileTypes(yearQuarter?: string): Promise<CategoryRow[]> {
+  const query = yearQuarter ? `?${new URLSearchParams({ year_quarter: yearQuarter })}` : "";
+  return apiGet<CategoryRow[]>(`/profiles/types${query}`);
 }

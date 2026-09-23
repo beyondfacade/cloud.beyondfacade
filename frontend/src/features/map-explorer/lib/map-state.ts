@@ -1,12 +1,13 @@
 import type { MapMetricKey } from "@/shared/api/types";
 import { INDUSTRIES, type IndustryId } from "@/shared/industries";
 
-export const METRICS = ["closure_rate", "growth_rate", "store_count", "operating_months"] as const;
+export const METRICS = ["neighborhood_type", "closure_rate", "growth_rate", "store_count", "operating_months"] as const;
 
 export const YEARS = Array.from({ length: 8 }, (_, i) => 2019 + i);
 
 /** 화면 표기용 한국어 라벨. URL 파라미터·API 값은 영문 id를 그대로 쓴다. */
 export const METRIC_LABELS: Record<(typeof METRICS)[number], string> = {
+  neighborhood_type: "동네 유형",
   closure_rate: "폐업률",
   growth_rate: "성장률",
   store_count: "점포수",
@@ -28,9 +29,11 @@ export interface MapState {
   budget: number | null;
 }
 
+// 기본 지표는 동네 유형이다 — 창업자가 처음 묻는 건 "어디가 망하나"가 아니라 "어디가 어떤 곳이냐"다.
+// 관문(T1)이 동 선택 상태로 내려놓을 때도 지도는 유형으로 색칠돼 있어야 패널 서사와 이어진다.
 export const DEFAULT_STATE: MapState = {
   industry: "cafe",
-  metric: "closure_rate",
+  metric: "neighborhood_type",
   year: 2026,
   region: null,
   budget: null,

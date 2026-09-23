@@ -4,9 +4,11 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Map as MapLibreGLMap, setWorkerUrl, type GeoJSONSource, type RasterTileSource } from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { config } from "@/shared/config";
-import type { MapMetricKey } from "@/shared/api/types";
+import type { CategoryRow, MapMetricKey, MetricRow } from "@/shared/api/types";
 import { useMapData } from "../hooks/use-map-data";
-import { makeMetricColorScale, NO_DATA_COLOR, type ColorScheme } from "../lib/metric-color";
+import { NEIGHBORHOOD_TYPES } from "@/shared/neighborhood";
+import { makeCategoryColorScale, makeMetricColorScale, NO_DATA_COLOR } from "../lib/metric-color";
+import { neighborhoodPalette, type MapTheme } from "../lib/neighborhood-palette";
 import { bboxOfRegion } from "../lib/region-bbox";
 import { SNAPSHOT_INDUSTRIES } from "../lib/map-state";
 import { MapLegend } from "./map-legend";
@@ -32,15 +34,7 @@ const REGIONS_FILL_LAYER_ID = "regions-fill";
 const REGIONS_LINE_LAYER_ID = "regions-line";
 const NO_SELECTION = "__none__";
 
-const SCHEME_BY_METRIC: Record<MapMetricKey, ColorScheme> = {
-  closure_rate: "sequential",
-  growth_rate: "diverging",
-  store_count: "sequential",
-  // 길게 버티는 쪽이 좋다는 한 방향 척도라 발산형이 아니다
-  operating_months: "sequential",
-};
-
-function currentTheme(): "light" | "dark" {
+function currentTheme(): MapTheme {
   return document.documentElement.dataset.theme === "dark" ? "dark" : "light";
 }
 
@@ -64,7 +58,7 @@ export function MapView({ regionCode, metric, industry, year, onSelectRegion }: 
   onSelectRegionRef.current = onSelectRegion;
   const [ready, setReady] = useState(false);
 
-  const { geojson, rows } = useMapData(metric, industry, year);
+  const { geojson, rows, source } = useMapData(metric, industry, year);
   // 경계/지표 fetch 실패는 무음 빈 지도가 아니라 배너로 알린다 (side-panel의 role="alert" 관행과 일관).
   const loadError = geojson.isError || rows.isError;
   // 실 API는 데이터 미보유 업종·연도에 200 + 빈 배열을 반환한다 — 빈 지도임을 명시.
@@ -74,11 +68,21 @@ export function MapView({ regionCode, metric, industry, year, onSelectRegion }: 
     SNAPSHOT_INDUSTRIES.has(industry as IndustryId) &&
     (metric === "closure_rate" || metric === "growth_rate");
 
+  // 범주 팔레트는 테마마다 다르다 — 테마가 바뀌면 fill-color를 다시 칠해야 하므로 상태로 든다.
+  const [theme, setTheme] = useState<MapTheme>("light");
+  useEffect(() => setTheme(currentTheme()), []);
+
   // 색상 스케일 — fill-color 페인트와 범례가 같은 경계(classes)를 공유하는 단일 원천.
-  const scale = useMemo(
-    () => makeMetricColorScale((rows.data ?? []).map((row) => row.value), SCHEME_BY_METRIC[metric]),
-    [rows.data, metric],
-  );
+  // 원천의 kind가 숫자면 분위수/발산 스케일, 범주면 범주 팔레트 — 두 함수는 섞이지 않는다.
+  const scale = useMemo(() => {
+    const data = rows.data ?? [];
+    if (source.kind === "categorical") {
+      const codes = (data as CategoryRow[]).map((row) => row.type_code);
+      return { kind: "categorical" as const, ...makeCategoryColorScale(codes, neighborhoodPalette(theme), NEIGHBORHOOD_TYPES) };
+    }
+    const values = (data as MetricRow[]).map((row) => row.value);
+    return { kind: "numeric" as const, ...makeMetricColorScale(values, source.scheme) };
+  }, [rows.data, source, theme]);
 
   // 맵 최초 생성 — unmount 시 정리.
   useEffect(() => {
@@ -144,6 +148,7 @@ export function MapView({ regionCode, metric, industry, year, onSelectRegion }: 
       if (map.getLayer(REGIONS_LINE_LAYER_ID)) {
         map.setPaintProperty(REGIONS_LINE_LAYER_ID, "line-color", readAccentColor(NO_DATA_COLOR));
       }
+      setTheme(currentTheme()); // 범주 팔레트 재적용 — scale이 theme을 의존해 fill 효과가 다시 돈다
     }
     const observer = new MutationObserver(applyTheme);
     observer.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
@@ -177,7 +182,10 @@ export function MapView({ regionCode, metric, industry, year, onSelectRegion }: 
   useEffect(() => {
     const map = mapRef.current;
     if (!map || !ready) return;
-    const pairs = (rows.data ?? []).flatMap((row) => [row.region_code, scale.colorOf(row.value)]);
+    const pairs =
+      scale.kind === "categorical"
+        ? ((rows.data ?? []) as CategoryRow[]).flatMap((row) => [row.region_code, scale.colorOf(row.type_code)])
+        : ((rows.data ?? []) as MetricRow[]).flatMap((row) => [row.region_code, scale.colorOf(row.value)]);
     const expression = pairs.length > 0 ? ["match", ["get", "region_code"], ...pairs, NO_DATA_COLOR] : NO_DATA_COLOR;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any -- 동적 match 표현식은 스타일 스펙 제네릭과 정확히 맞추기 어려움
     map.setPaintProperty(REGIONS_FILL_LAYER_ID, "fill-color", expression as any);
@@ -215,7 +223,7 @@ export function MapView({ regionCode, metric, industry, year, onSelectRegion }: 
               : "해당 업종·연도의 지표 데이터가 없습니다."}
         </div>
       )}
-      <MapLegend metric={metric} classes={scale.classes} />
+      <MapLegend metric={metric} scale={scale} />
       <RegionMarkers mapRef={mapRef} ready={ready} regionCode={regionCode} industry={industry} />
     </div>
   );

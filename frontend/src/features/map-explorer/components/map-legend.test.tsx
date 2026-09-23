@@ -15,24 +15,34 @@ const CLASSES: MetricColorClass[] = [
 ];
 
 it("구간 라벨과 '데이터 없음' 행을 목록으로 렌더링한다", () => {
-  render(<MapLegend metric="closure_rate" classes={CLASSES} />);
+  render(<MapLegend metric="closure_rate" scale={{ kind: "numeric", classes: CLASSES }} />);
   expect(screen.getAllByRole("listitem")).toHaveLength(3); // 구간 2 + 데이터 없음 1
   expect(screen.getByText("2.0% ~ 5.0%")).toBeInTheDocument();
   expect(screen.getByText("데이터 없음")).toBeInTheDocument();
 });
 
 it("classes가 비어 있으면 아무것도 렌더링하지 않는다", () => {
-  const { container } = render(<MapLegend metric="closure_rate" classes={[]} />);
+  const { container } = render(<MapLegend metric="closure_rate" scale={{ kind: "numeric", classes: [] }} />);
   expect(container).toBeEmptyDOMElement();
 });
 
 it("동 단위 지표에는 업종과 무관하다는 단서를 붙인다", () => {
   // 업종을 바꿔도 색이 안 변하는 이유를 범례가 말해준다
-  render(<MapLegend metric="operating_months" classes={CLASSES} />);
+  render(<MapLegend metric="operating_months" scale={{ kind: "numeric", classes: CLASSES }} />);
   expect(screen.getByText("업종 구분 없는 동 전체 평균")).toBeInTheDocument();
 });
 
 it("업종 지표에는 그 단서를 붙이지 않는다", () => {
-  render(<MapLegend metric="closure_rate" classes={CLASSES} />);
+  render(<MapLegend metric="closure_rate" scale={{ kind: "numeric", classes: CLASSES }} />);
   expect(screen.queryByText("업종 구분 없는 동 전체 평균")).toBeNull();
+});
+
+it("범주 범례는 값 구간 대신 유형 이름 6줄 + 괄호 설명을 띄운다", () => {
+  const classes = ["office", "campus", "dining", "hub", "residential", "mixed"].map((code) => ({ code, color: "#123456" }));
+  render(<MapLegend metric="neighborhood_type" scale={{ kind: "categorical", classes }} />);
+  expect(screen.getAllByRole("listitem")).toHaveLength(7); // 유형 6 + 데이터 없음 1
+  expect(screen.getByText("낮 인구 우위형")).toBeInTheDocument();
+  expect(screen.getByText("(주택가)")).toBeInTheDocument();
+  expect(screen.getByText("동네 유형")).toBeInTheDocument();
+  expect(screen.queryByText(/~/)).toBeNull();
 });

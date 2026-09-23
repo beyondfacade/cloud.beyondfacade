@@ -5,10 +5,10 @@ it("YEARS는 2019~2026 8개년을 제공한다 (백엔드 지표 범위와 일�
   expect(YEARS).toEqual([2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026]);
 });
 
-it("기본값: 파라미터 없으면 cafe/closure_rate/2026/null", () => {
+it("기본값: 파라미터 없으면 cafe/neighborhood_type/2026/null — 첫 질문은 '어디가 어떤 곳이냐'다", () => {
   expect(parseMapState(new URLSearchParams())).toEqual({
     industry: "cafe",
-    metric: "closure_rate",
+    metric: "neighborhood_type",
     year: 2026,
     region: null,
     budget: null,
@@ -39,7 +39,9 @@ it("budget이 숫자가 아니거나 0 이하이면 버린다", () => {
 });
 
 it("알 수 없는 값은 기본값으로 강제된다", () => {
-  expect(parseMapState(new URLSearchParams("industry=hack&metric=x")).industry).toBe("cafe");
+  const parsed = parseMapState(new URLSearchParams("industry=hack&metric=x"));
+  expect(parsed.industry).toBe("cafe");
+  expect(parsed.metric).toBe("neighborhood_type");
 });
 
 it("어린이집·편의점도 폐업률·성장률 URL을 그대로 유지한다", () => {

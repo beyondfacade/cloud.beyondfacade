@@ -1,11 +1,11 @@
 import { LATEST_CHANGE_QUARTER, changeMetricRows } from "../fixtures";
-import type { RegionMetricKey } from "@/shared/api/types";
+import type { CommerceChangeMetricKey } from "@/shared/api/types";
 
-const SUPPORTED_METRICS: RegionMetricKey[] = ["operating_months"];
+const SUPPORTED_METRICS: CommerceChangeMetricKey[] = ["operating_months"];
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
-  const metric = (searchParams.get("metric") ?? "") as RegionMetricKey;
+  const metric = (searchParams.get("metric") ?? "") as CommerceChangeMetricKey;
   const yearQuarter = searchParams.get("year_quarter") ?? LATEST_CHANGE_QUARTER;
 
   // metrics 라우트와 대칭 — 미지원 metric은 500이 아니라 404다. 업종 파라미터는 받지 않는다

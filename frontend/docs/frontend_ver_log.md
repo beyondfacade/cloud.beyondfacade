@@ -2,6 +2,40 @@
 
 > 2026-09-23 T0-2 병합에서 v0.14.x 충돌로 우리 쪽 4항목(랜딩·E2E·동네 프로필·영업 지속 개월)을 v0.15.0·v0.15.1·v0.16.0·v0.17.0으로 재번호했다. 해당 커밋 메시지의 번호는 병합 전 번호다.
 
+## [v0.19.0] - 2026-09-23
+
+### Added
+- **유형 단계구분도** — 지도가 동네 유형 6종으로 색칠된다. 백엔드 `GET /profiles/types`(v0.32.0 2/4)의
+  범주 계약 첫 구현. 무대 설계서 `docs/superpowers/specs/2026-09-23-map-stage-design.md` §3
+  - **범주형은 숫자와 섞지 않는다** (`map-metric-contract` §5). `shared/api/types.ts`에 `CategoryRow
+    {region_code, type_code}`를 따로 두고, `MetricSource`를 `kind: "numeric" | "categorical"` 판별
+    합집합으로 나눴다. 한 타입에 value/category를 두고 한쪽을 null로 두면 타입이 거짓말한다
+  - `lib/metric-color.ts` — `makeCategoryColorScale(codes, palette, order)`를 **분위수 스케일과 별도
+    함수**로. `colorOf`와 `classes`가 같은 팔레트를 봐 지도 색과 범례 색이 어긋나지 않는다. 범주
+    범례는 구간이 아니라 **키**라 `order` 순 전체 유형을 보여준다(데이터에 없는 유형도)
+  - `lib/neighborhood-palette.ts` — 라이트/다크 두 벌. **주거형이 422동 중 60%라 지도를 지배한다 →
+    주거형을 가장 옅게**(라이트 `#d9d4c7` 명도 0.66 최고, 다크 `#3d4250` 명도 0.05 최저), 나머지 5종이
+    튄다. UI 토큰과 분리된 데이터 시각화 체계(tokens.css 상단 선언과 같은 원칙). 원칙은 상대 명도
+    계산으로 테스트에 고정
+  - `map-view.tsx` — `source.kind`로 스케일 함수를 고른다. `match` 표현식은 그대로. 테마 `MutationObserver`가
+    `theme` 상태를 갱신해 범주 팔레트가 다크에서 다시 칠해진다(실측: 다크 전환 시 `#6ea0e6`·`#b48ae6`)
+  - `map-legend.tsx` — `scale` prop(판별 합집합)을 받아 범주면 **유형 이름 6줄 + 괄호 설명**, 숫자면 값
+    구간. 단서 "업종 구분 없는 동네 성격" 추가
+  - **기본 지표를 동네 유형으로** (`DEFAULT_STATE.metric`). 창업자가 처음 묻는 건 "어디가 망하나"가
+    아니라 "어디가 어떤 곳이냐"이고, 관문이 동 선택 상태로 내려놓을 때 지도가 유형으로 색칠돼 있어야
+    패널 서사와 이어진다
+  - 색 스킴을 `METRIC_SOURCES`로 옮겼다(`map-view`의 `SCHEME_BY_METRIC` 제거) — 지표당 아는 자리를
+    하나 줄인다(`map-metric-contract` §6의 다섯 중 하나)
+  - `CommerceChangeMetricKey` 타입 분리 — `RegionMetricKey`에 유형이 들어오며 `fetchCommerceChangeMetrics`가
+    범주 키를 받을 수 있게 되는 것을 막는다
+  - mock `/api/mock/profiles/types` — 실 API 미러, 단일 프로필 mock과 같은 원천(결정적)
+
+### Validation
+- 테스트 15건 추가(팔레트 5 · 범주 스케일 3 · 범례 1 · 원천 3 · 상태 2(갱신) · mock 3) — vitest **148/148**,
+  `tsc` clean. E2E는 기본 지표·범례 문구를 전제하지 않아 변경 없음(`bash -n`만)
+- 실 dev 서버(3200 → 8201): `/map` 파라미터 없이 열면 범례 "동네 유형" 6줄 + 데이터 없음, 라이트 팔레트
+  적용, `data-theme=dark` 전환 시 다크 팔레트로 재도색 확인
+
 ## [v0.18.3] - 2026-09-23
 
 ### Fixed
