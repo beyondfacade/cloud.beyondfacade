@@ -21,6 +21,7 @@ from core.matrix.grid_oracle_database_manager import OrmBase
 # autogenerate 대상 — 모든 BC의 ORM 모듈을 여기 등록한다 (import만 하면 metadata에 잡힌다)
 import apps.childcare.adapter.outbound.orms.childcare_center_orm  # noqa: F401
 import apps.childcare.adapter.outbound.orms.childcare_center_stat_orm  # noqa: F401
+import apps.commerce.adapter.outbound.orms.region_commerce_sales_breakdown_orm  # noqa: F401
 import apps.commerce.adapter.outbound.orms.region_commerce_sales_orm  # noqa: F401
 import apps.commerce.adapter.outbound.orms.region_commerce_store_orm  # noqa: F401
 import apps.convenience.adapter.outbound.orms.convenience_store_orm  # noqa: F401
@@ -32,6 +33,14 @@ import apps.master.adapter.outbound.orms.industry_source_code_orm  # noqa: F401
 import apps.master.adapter.outbound.orms.industry_subcategory_orm  # noqa: F401
 import apps.master.adapter.outbound.orms.population_stat_orm  # noqa: F401
 import apps.metric.adapter.outbound.orms.region_industry_metric_orm  # noqa: F401
+import apps.neighborhood.adapter.outbound.orms.region_commerce_change_orm  # noqa: F401
+import apps.neighborhood.adapter.outbound.orms.region_facility_quarter_orm  # noqa: F401
+import apps.neighborhood.adapter.outbound.orms.region_footfall_quarter_orm  # noqa: F401
+import apps.neighborhood.adapter.outbound.orms.region_household_quarter_orm  # noqa: F401
+import apps.neighborhood.adapter.outbound.orms.region_housing_average_quarter_orm  # noqa: F401
+import apps.neighborhood.adapter.outbound.orms.region_population_quarter_orm  # noqa: F401
+import apps.neighborhood.adapter.outbound.orms.region_spending_quarter_orm  # noqa: F401
+import apps.neighborhood.adapter.outbound.orms.seoul_commerce_change_baseline_orm  # noqa: F401
 import apps.news.adapter.outbound.orms.news_article_orm  # noqa: F401
 import apps.rag.adapter.outbound.orms.rag_chunk_orm  # noqa: F401
 import apps.rent.adapter.outbound.orms.rent_price_orm  # noqa: F401
