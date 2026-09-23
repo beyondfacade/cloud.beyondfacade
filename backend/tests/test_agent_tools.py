@@ -1,8 +1,8 @@
-"""agent_tools — 도구 레지스트리 8종 + 월세vs매입 계산기 단위 테스트 (Fake 포트, DB 없음)."""
+"""agent_tools — 도구 레지스트리 9종 + 월세vs매입 계산기 단위 테스트 (Fake 포트, DB 없음)."""
 
 import json
 
-from apps.agent.app.ports.output.agent_port import RegionFactsPort
+from apps.agent.app.ports.output.agent_port import FinanceFactsPort, RegionFactsPort
 from apps.agent.app.use_cases.agent_tools import build_tools, compare_rent_vs_buy
 from apps.rag.app.ports.input.rag_use_case import RagSearchUseCase
 from apps.rag.domain.entities.rag_chunk_entity import RagHit
@@ -83,8 +83,31 @@ class FakeRagSearchUseCase(RagSearchUseCase):
         return []
 
 
-def _build_tools() -> list:
-    return build_tools(FakeRegionFactsPort(), FakeRagSearchUseCase())
+class FakeFinanceFactsPort(FinanceFactsPort):
+    """엔진을 흉내 내지 않는다 — 받은 입력을 기록하고 고정 결과를 돌려준다."""
+
+    def __init__(self) -> None:
+        self.inputs: list[dict] = []
+
+    def simulate(self, input: dict) -> dict:
+        self.inputs.append(input)
+        return {
+            "capex": 50_000_000,
+            "monthly_fixed": 3_500_000,
+            "bep_revenue": 9_000_000,
+            "funding_gap": 6_600_000,
+            "reserve_months": 6,
+            "operating_reserve": 21_600_000,
+            "total_required_funds": 71_600_000,
+            "external_funding_need": 31_600_000,
+            "scenarios": [],
+            "stress": [],
+            "assumptions": "공시 평균 금리 기반 예상치",
+        }
+
+
+def _build_tools(finance: FinanceFactsPort | None = None) -> list:
+    return build_tools(FakeRegionFactsPort(), FakeRagSearchUseCase(), finance or FakeFinanceFactsPort())
 
 
 def test_compare_rent_vs_buy_calculates_expected_values():
@@ -130,8 +153,8 @@ def test_compare_rent_vs_buy_monthly_interest_exceeds_rent_gives_none_breakeven(
     assert result["breakeven_years"] is None
 
 
-def test_build_tools_returns_8_tools_with_correct_name_and_stage():
-    """8종 도구 name/stage 정확 매핑."""
+def test_build_tools_returns_9_tools_with_correct_name_and_stage():
+    """9종 도구 name/stage 정확 매핑."""
     tools = _build_tools()
 
     by_name = {tool.spec.name: tool.stage for tool in tools}
@@ -144,6 +167,7 @@ def test_build_tools_returns_8_tools_with_correct_name_and_stage():
         "search_shocks": "shock",
         "search_news": "shock",
         "search_funding": "funding",
+        "run_finance_simulation": "funding",
         "compare_rent_vs_buy": "funding",
     }
 
@@ -160,7 +184,7 @@ def test_every_tool_input_schema_declares_required_params():
 def test_get_region_metrics_run_returns_json_string_via_fake_port():
     """get_region_metrics.run은 RegionFactsPort.metrics 결과를 압축 JSON 문자열로 반환한다."""
     facts = FakeRegionFactsPort()
-    tools = build_tools(facts, FakeRagSearchUseCase())
+    tools = build_tools(facts, FakeRagSearchUseCase(), FakeFinanceFactsPort())
     tool = next(t for t in tools if t.spec.name == "get_region_metrics")
 
     result = tool.run({"region_code": "11010", "industry": "cafe"})
@@ -179,7 +203,7 @@ def test_compare_rent_vs_buy_tool_returns_error_payload_when_loan_facility_rate_
         def latest_rates(self) -> dict:
             return {}
 
-    tools = build_tools(RatelessRegionFactsPort(), FakeRagSearchUseCase())
+    tools = build_tools(RatelessRegionFactsPort(), FakeRagSearchUseCase(), FakeFinanceFactsPort())
     tool = next(t for t in tools if t.spec.name == "compare_rent_vs_buy")
 
     result = tool.run(
@@ -252,3 +276,39 @@ def test_get_neighborhood_profile_carries_benchmarks_for_comparison():
         "weekend_index", "night_index", "fnb_share", "worker_resident_ratio"
     }
     assert benchmarks["type_count"] == 36
+
+
+_ENGINE_INPUT = {
+    "deposit": 20_000_000, "key_money": 0, "interior_cost": 20_000_000, "equipment_cost": 10_000_000,
+    "monthly_rent": 2_500_000, "monthly_payroll": 900_000, "monthly_insurance": 100_000,
+    "cost_ratio": 0.57, "fee_ratio": 0.03, "equity": 40_000_000, "desired_loan": 25_000_000,
+    "loan_rate": 0.048, "expected_monthly_revenue": 8_000_000,
+}
+
+
+def test_run_finance_simulation_passes_13_fields_and_returns_headline_keys():
+    """계산은 finance BC가 한다 — 도구는 입력을 그대로 넘기고 결과 표를 JSON으로 돌려준다."""
+    finance = FakeFinanceFactsPort()
+    tool = next(t for t in _build_tools(finance) if t.spec.name == "run_finance_simulation")
+
+    payload = json.loads(tool.run(dict(_ENGINE_INPUT)))
+
+    assert finance.inputs == [_ENGINE_INPUT]
+    assert payload["external_funding_need"] == 31_600_000  # 헤드라인
+    assert payload["funding_gap"] == 6_600_000  # 보조 — 0이어도 "충분"이 아니다
+    assert {"total_required_funds", "bep_revenue", "monthly_fixed", "capex", "scenarios", "stress"} <= set(payload)
+    assert "예상치" in payload["assumptions"]
+
+
+def test_run_finance_simulation_requires_all_13_fields_and_cites_the_engine():
+    tool = next(t for t in _build_tools() if t.spec.name == "run_finance_simulation")
+
+    assert set(tool.spec.input_schema["required"]) == set(_ENGINE_INPUT)
+    assert tool.stage == "funding"  # SSE agent_status 어휘는 market|shock|funding — calculator 스테이지는 없다
+    assert tool.cite({}, "{}") == [{"grade": "fact", "source": "finance_engine"}]
+
+
+def test_compare_rent_vs_buy_is_kept_alongside_the_engine_tool():
+    names = {t.spec.name for t in _build_tools()}
+
+    assert {"compare_rent_vs_buy", "run_finance_simulation"} <= names

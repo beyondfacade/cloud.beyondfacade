@@ -48,6 +48,24 @@
   금리 loan_facility 202607 4.05% → 0.0405, 원가율 0.35. childcare → 월매출 null. 404 둘 확인.
   `/finance/simulate` 시연 사례 → 위 수치 그대로
 
+### Added — (2/2) 리포트 `calculator`가 finance 엔진을 도구로 읽는다 · E2E 9단계 (T3-3)
+- **도구 `run_finance_simulation`** (8종 → 9종) — 13개 입력을 finance BC 유스케이스에 그대로 넘기고
+  결과 표(`external_funding_need`·`total_required_funds`·`funding_gap`·`bep_revenue`·`monthly_fixed`·
+  `capex`·`scenarios`·`stress` + `assumptions`)를 JSON으로 돌려준다. 계산은 finance BC가, LLM은 인용만
+- **별도 포트 `FinanceFactsPort`** — `RegionFactsPort`에 얹지 않았다. 그쪽은 동·업종의 사실 조회고
+  이쪽은 사용자가 준 13개 입력의 계산이라 역할이 다르다(ISP). Fake도 각자 작다. 게이트웨이
+  `finance_facts_gateway.py`가 cross-BC 호출을 안에 가둔다
+- **stage는 `funding`** — SSE `agent_status` 어휘가 프론트 `AgentName` 합집합(`market|shock|funding`)에
+  묶여 있어 `calculator` 스테이지를 새로 내면 진행 패널이 모르는 값을 받는다. `compare_rent_vs_buy`와
+  같은 `funding`. `compare_rent_vs_buy`는 남긴다 — 매입 질문에 여전히 답한다
+- `SYSTEM_PROMPT`에 `[calculator 섹션 출력 계약]` — 표의 수치를 그대로 인용하고 다시 계산하지 않는다,
+  헤드라인은 `external_funding_need`, `funding_gap`이 0이어도 "충분합니다"라고 쓰지 않는다(부족액 0원
+  함정), 입력이 없으면 `/plan` 계산값 기준 안내
+- E2E `[9/9]` 단계 **추가만**(`frontend/scripts/e2e-journey.sh`, 실행은 부모 세션) — `/plan?region&industry&budget`
+  → 프리필(자기자본 50,000,000·월매출 > 0, 최대 15초) → 필수 빈칸 native setter → "계산하기" → "총 준비자금"
+  렌더 → `[data-headline]` 숫자 확인. 셀렉터: `form[aria-label="자금 계획 입력"]` · `input[name=…]` · `[data-headline]`
+- 테스트 4건 추가(도구 입력 전달·헤드라인 키, 13필드 필수·stage·cite, 두 도구 공존, 프롬프트 계약)
+
 ## [v0.32.0] - 2026-09-23 (T2 무대 — 4/4 완료)
 
 > 이 항목은 무대 설계서(`docs/superpowers/specs/2026-09-23-map-stage-design.md`)의 백엔드 조각을 순서대로

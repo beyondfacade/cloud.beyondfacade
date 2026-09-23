@@ -6,6 +6,7 @@ AnalysisInteractor.last_usage는 가변 인스턴스 상태이므로 요청마�
 
 from collections.abc import Callable
 
+from apps.agent.adapter.outbound.gateways.finance_facts_gateway import FinanceFactsGateway
 from apps.agent.adapter.outbound.gateways.region_facts_gateway import RegionFactsGateway
 from apps.agent.adapter.outbound.llm.gemini_llm_adapter import GeminiLLMAdapter
 from apps.agent.adapter.outbound.llm.ollama_llm_adapter import OllamaLLMAdapter
@@ -32,7 +33,7 @@ def build_analysis_use_case(model: str = "gemma3") -> AnalysisUseCase:
         llm_factory = _LLM_REGISTRY[model]
     except KeyError as error:
         raise ValueError(f"지원하지 않는 모델: {model}") from error
-    tools = build_tools(RegionFactsGateway(), get_rag_search_use_case())
+    tools = build_tools(RegionFactsGateway(), get_rag_search_use_case(), FinanceFactsGateway())
     return AnalysisInteractor(llm=llm_factory(), tools=tools)
 
 

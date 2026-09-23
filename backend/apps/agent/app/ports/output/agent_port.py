@@ -74,3 +74,15 @@ class RegionFactsPort(ABC):
     @abstractmethod
     def neighborhood_profile(self, region_code: str) -> dict:
         """최신 분기 동네 프로필 + market 섹션 슬롯 6종의 재료 (없으면 빈 dict)."""
+
+
+class FinanceFactsPort(ABC):
+    """Driven Port — finance BC 결정론 엔진 호출 (cross-BC 접근은 구현체 안에서만).
+
+    `RegionFactsPort`에 얹지 않는다 — 그쪽은 동·업종의 사실 조회고, 이쪽은 사용자가 준 13개 입력의
+    계산이다. 역할이 다르면 인터페이스도 나눈다(ISP). Fake도 각자 작아진다.
+    """
+
+    @abstractmethod
+    def simulate(self, input: dict) -> dict:
+        """엔진 입력 13필드(원 단위 정수·비율 소수) → 결과 dict. 계산은 서버(finance BC)가 한다."""

@@ -481,3 +481,14 @@ def test_시스템_프롬프트가_동네_설명과_주의점을_벤치마크와
 
     assert "benchmarks" in SYSTEM_PROMPT
     assert "비교 기준 없는 절대값" in SYSTEM_PROMPT
+
+
+def test_시스템_프롬프트가_calculator_절에서_엔진_수치를_그대로_인용하게_한다():
+    """비용 계산은 다시 계산하지 않고 표를 인용한다. 부족액 0원 함정 — '충분합니다'를 쓰지 않는다."""
+    from apps.agent.app.use_cases.analysis_interactor import SYSTEM_PROMPT
+
+    assert "[calculator 섹션 출력 계약]" in SYSTEM_PROMPT
+    assert "run_finance_simulation" in SYSTEM_PROMPT
+    assert "다시 계산하지 않는다" in SYSTEM_PROMPT
+    assert "external_funding_need" in SYSTEM_PROMPT
+    assert "\"충분합니다\"라고 쓰지 않는다" in SYSTEM_PROMPT

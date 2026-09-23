@@ -254,6 +254,58 @@ if (( ${REPORT_LEN:-0} < 200 )); then
 fi
 echo "  리포트 본문 ${REPORT_LEN}자 확인"
 
+# [9/9] 자금 계획(/plan) — 관문의 budget이 자기자본으로, 실측 월매출이 프리필로 들어오고 서버 계산이 렌더되는지.
+# 프리필은 react-query로 뒤늦게 도착하므로 최대 15초 기다린다. 필수 빈칸(보증금·인테리어·희망대출)은
+# 사용자 몫이라 native setter로 채운다([0/8]과 같은 이유 — React onChange가 확실히 잡힌다).
+echo "[9/9] 자금 계획(/plan) 프리필·계산"
+AB open "$BASE_URL/plan?region=${SELECTED_REGION}&industry=${INDUSTRY}&budget=50000000" >/dev/null
+AB wait --load networkidle >/dev/null
+AB wait --text "계산하기" >/dev/null
+PLAN_DEADLINE=$((SECONDS + 15))
+while :; do
+  PREFILL_STATE="$(cat <<'JS' | AB eval --stdin
+(() => {
+  const form = document.querySelector('form[aria-label="자금 계획 입력"]');
+  const v = (n) => Number(form?.querySelector(`input[name="${n}"]`)?.value ?? "");
+  return JSON.stringify({ equity: v("equity"), revenue: v("expected_monthly_revenue") });
+})()
+JS
+)"
+  if [[ "$PREFILL_STATE" == *'"equity":50000000'* ]] && [[ "$PREFILL_STATE" != *'"revenue":0'* ]]; then break; fi
+  if (( SECONDS > PLAN_DEADLINE )); then
+    echo "오류: /plan 프리필이 15초 안에 도착하지 않았습니다 (상태: $PREFILL_STATE)." >&2
+    exit 1
+  fi
+  sleep 1
+done
+echo "  프리필 확인: $PREFILL_STATE"
+cat <<'JS' | AB eval --stdin >/dev/null
+(() => {
+  const form = document.querySelector('form[aria-label="자금 계획 입력"]');
+  const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value").set;
+  for (const [name, value] of [["deposit", "20000000"], ["interior_cost", "20000000"], ["desired_loan", "25000000"]]) {
+    const input = form.querySelector(`input[name="${name}"]`);
+    setter.call(input, value);
+    input.dispatchEvent(new Event("input", { bubbles: true }));
+  }
+})()
+JS
+AB find text "계산하기" click >/dev/null
+AB wait --text "총 준비자금" >/dev/null
+HEADLINE="$(cat <<'JS' | AB eval --stdin
+(() => {
+  const el = document.querySelector("[data-headline]");
+  return el ? (el.textContent ?? "").replace(/[^0-9]/g, "") : "";
+})()
+JS
+)"
+HEADLINE="$(echo "$HEADLINE" | tr -cd '0-9')"
+if [[ -z "$HEADLINE" ]]; then
+  echo "오류: 계산 결과의 '자기자본 외 조달 필요' 헤드라인이 렌더되지 않았습니다." >&2
+  exit 1
+fi
+echo "  자기자본 외 조달 필요 헤드라인 확인 (${HEADLINE})"
+
 echo "성공: E2E 여정 완료 (리포트 텍스트 확인됨)"
 if [[ "$CLICK_XFAIL" == "1" ]]; then
   echo "XFAIL: 폴리곤 클릭 (지도 렌더링 버그) — E2E_XFAIL_CLICK=1로 폴백 내비게이션 사용, 실제 클릭 경로는 검증되지 않았습니다."
