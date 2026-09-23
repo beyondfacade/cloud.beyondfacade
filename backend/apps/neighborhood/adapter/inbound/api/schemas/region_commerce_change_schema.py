@@ -1,6 +1,13 @@
 from pydantic import BaseModel
 
 
+class SeoulBaselineResponse(BaseModel):
+    """같은 분기의 서울 전체 평균 — 동의 값 옆에 놓는 비교 기준."""
+
+    operating_months: float | None
+    closed_months: float | None
+
+
 class RegionCommerceChangeResponse(BaseModel):
     region_code: str
     year_quarter: str
@@ -8,6 +15,7 @@ class RegionCommerceChangeResponse(BaseModel):
     change_name: str | None  # 정체 | 상권축소 | 상권확장 | 다이나믹
     operating_months: float | None  # 운영 영업 개월 평균
     closed_months: float | None  # 폐업 영업 개월 평균
+    seoul: SeoulBaselineResponse | None = None  # baseline 행이 없는 분기면 null
 
 
 class ChangeMetricValueResponse(BaseModel):

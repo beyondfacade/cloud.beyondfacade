@@ -34,6 +34,34 @@
   배치 전 빈 목록. 실DB 422행, 분포 주거 251 · 먹자 55 · 낮인구 36 · 혼합 32 · 생활중심 25 · 대학가 23
   — v0.26.0 실측과 동일
 
+### Added — (3/4) 프로필 4블록 강도 컬럼 · `GET /commerce-changes/{region_code}` 상세 (T2-3)
+- **`region_profile_quarter`에 `block_morning`·`block_day`·`block_evening`·`block_night` 컬럼 4개**
+  (마이그레이션 `e6f7a8b9c0d1`, 부모 `c5d6e7f8a9b0`, nullable 추가만, head 1개 유지 — 리포지토리
+  `alembic.ini`로 바로 적용). 패널 "하루가 어떻게 흐르나" 막대 4개의 원천이다. 배치가 4분기 평활한
+  시간대 6구간에서 `block_intensities()`로 **한 번만** 계산해 넣는다 — 화면이 원값으로 시간당
+  보정을 다시 하면 두 곳 중 하나가 언젠가 틀린다(무대 설계서 §5-1)
+- 응답 `RegionProfileResponse.block_intensities: {morning, day, evening, night} | null` — 낱개
+  컬럼을 내보내지 않고 인바운드 매퍼가 묶는다. **넷 중 하나라도 없으면 통째로 null**(부분 막대는
+  오독을 낳는다). 배치 재실행 전 행은 null
+- **배치 재실행 32초, 9,284행 전부 채움(행 수 불변, 멱등).** 역삼1동 20262: 아침 0.974 · 낮 1.400 ·
+  저녁 1.138 · 밤 0.687 — 정점 낮·바닥 밤이 `peak_block`/`trough_block`과 일치. **9,284행 전부에서
+  블록 최대 = `peak_block` 불일치 0건**(같은 원천에서 나왔으니 당연해야 하고, 실제로 그렇다)
+- 재실행이 처음엔 `number of parameters must be between 0 and 65535`로 죽었다 — 레포지토리
+  `_BATCH=4000`이 14컬럼 기준(56,000)이었는데 18컬럼이 되며 72,000이 됐다. **3,000으로**(54,000).
+  컬럼을 더할 때 이 상수를 같이 봐야 한다는 뜻이라 주석에 셈을 적었다
+- **`GET /commerce-changes/{region_code}?year_quarter=`** — 상세 계약(`map-metric-contract` §3-2).
+  `{region_code, year_quarter, change_code, change_name, operating_months, closed_months,
+  seoul: {operating_months, closed_months} | null}`. 분기 생략 시 그 동의 최신, 없으면 404
+  `COMMERCE_CHANGE_NOT_FOUND`. 목록·`myself`보다 뒤에 선언(테스트로 고정)
+- **서울 평균을 동봉한다** — "영업 110개월"은 "서울 118"이 옆에 있어야 읽힌다. baseline은 다른
+  테이블이라 **별도 포트** `SeoulCommerceChangeBaselineQueryPort`(ISP) + 레포지토리. baseline
+  orm_mapper가 예약해 둔 읽기 방향(`to_entity`)을 여기서 열었다. `RegionCommerceChangeQueryPort`에
+  `find`·`find_latest` 추가, 인터랙터가 둘을 합친다(`find_with_baseline`)
+- 실DB: 역삼1동 → 20262 · LL 다이나믹 · 영업 110 / 폐업 48 · 서울 118 / 54. 20211 지정 → 영업 83 /
+  서울 94. 없는 동 404
+- 테스트 7건 추가(블록 채움·정점 일치 1, 응답 형태 2, 상세 4) — 전체 **391 통과**. `domain/`·
+  `app/`에 프레임워크 import 없음
+
 ## [v0.31.0] - 2026-09-23
 
 ### Added

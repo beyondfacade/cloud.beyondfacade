@@ -40,3 +40,8 @@ class RegionProfileQuarterOrm(OrmBase):
     fnb_share: Mapped[float | None] = mapped_column(Float)
     facility_total: Mapped[int | None] = mapped_column(Integer)
     resident_total: Mapped[int | None] = mapped_column(Integer)
+    # 4블록 시간당 강도 — 1.0 = 24시간 균등. 패널 막대가 이 값을 그대로 그린다 (v0.32.0, 무대 설계서 §5-1)
+    block_morning: Mapped[float | None] = mapped_column(Float)
+    block_day: Mapped[float | None] = mapped_column(Float)
+    block_evening: Mapped[float | None] = mapped_column(Float)
+    block_night: Mapped[float | None] = mapped_column(Float)

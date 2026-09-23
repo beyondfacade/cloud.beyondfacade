@@ -15,3 +15,11 @@ class RegionCommerceChangeQueryPort(ABC):
     @abstractmethod
     def list_by_quarter(self, year_quarter: str) -> list[RegionCommerceChange]:
         """해당 분기의 전 행정동 행을 region_code 순으로 반환한다 (region_code 보유분만)."""
+
+    @abstractmethod
+    def find(self, region_code: str, year_quarter: str) -> RegionCommerceChange | None:
+        """동×분기 단건 — 없으면 None."""
+
+    @abstractmethod
+    def find_latest(self, region_code: str) -> RegionCommerceChange | None:
+        """그 동의 가장 최근 분기 행 — 없으면 None. 화면은 최신이 언제인지 모른다."""

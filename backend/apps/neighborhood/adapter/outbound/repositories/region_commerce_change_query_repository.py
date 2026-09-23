@@ -40,3 +40,23 @@ class SqlAlchemyRegionCommerceChangeQueryRepository(RegionCommerceChangeQueryPor
                 .all()
             )
             return [to_entity(row) for row in rows]
+
+    def find(self, region_code: str, year_quarter: str) -> RegionCommerceChange | None:
+        with session_scope() as session:
+            orm = session.execute(
+                select(RegionCommerceChangeOrm).where(
+                    RegionCommerceChangeOrm.region_code == region_code,
+                    RegionCommerceChangeOrm.year_quarter == year_quarter,
+                )
+            ).scalar_one_or_none()
+            return None if orm is None else to_entity(orm)
+
+    def find_latest(self, region_code: str) -> RegionCommerceChange | None:
+        with session_scope() as session:
+            orm = session.execute(
+                select(RegionCommerceChangeOrm)
+                .where(RegionCommerceChangeOrm.region_code == region_code)
+                .order_by(RegionCommerceChangeOrm.year_quarter.desc())
+                .limit(1)
+            ).scalar_one_or_none()
+            return None if orm is None else to_entity(orm)

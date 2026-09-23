@@ -1,6 +1,15 @@
 from pydantic import BaseModel
 
 
+class BlockIntensitiesResponse(BaseModel):
+    """4블록 시간당 강도 — 1.0 = 24시간 균등. 배치가 계산한 값이라 화면은 보정을 다시 하지 않는다."""
+
+    morning: float
+    day: float
+    evening: float
+    night: float
+
+
 class RegionProfileResponse(BaseModel):
     """동네 프로필 응답 — 판정과 근거 수치를 함께 준다 (프론트엔드 계약).
 
@@ -23,6 +32,7 @@ class RegionProfileResponse(BaseModel):
     fnb_share: float | None
     facility_total: int | None
     resident_total: int | None
+    block_intensities: BlockIntensitiesResponse | None = None  # 넷 중 하나라도 없으면 null
 
 
 class ProfileMetricValueResponse(BaseModel):

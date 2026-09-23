@@ -27,7 +27,11 @@ from apps.metric.domain.services.typology import (
     classify,
     derive_thresholds,
 )
-from apps.metric.domain.value_objects.hour_band import HOUR_BANDS, band_intensities
+from apps.metric.domain.value_objects.hour_band import (
+    HOUR_BANDS,
+    band_intensities,
+    block_intensities,
+)
 from apps.metric.domain.value_objects.year_quarter import quarter_window
 
 # Strategy (GoF) — metric 이름 → 값 추출. 파생 계층의 숫자 컬럼 전부를 연다.
@@ -86,6 +90,8 @@ class _Smoothed:
             sum(dow[day] for day in _WEEKDAYS) / len(_WEEKDAYS),
         )
         self.night_index = band_intensities(self.hours).get("00_06")
+        # 4블록 강도 — 패널 막대의 원천. 여기서 한 번만 계산한다 (무대 설계서 §5-1)
+        self.blocks = block_intensities(self.hours)
         self.footfall_20s_share = _ratio(
             _mean([o.footfall_20s for o in observations]),
             _mean([o.footfall_age_total for o in observations]),
@@ -141,6 +147,10 @@ class RegionProfileInteractor(RegionProfileUseCase):
             fnb_share=0.22,
             facility_total=1,
             resident_total=1,
+            block_morning=1.0,
+            block_day=1.0,
+            block_evening=1.0,
+            block_night=1.0,
         )
 
     def build(self, quarters: list[str]) -> int:
@@ -187,13 +197,14 @@ class RegionProfileInteractor(RegionProfileUseCase):
                 label_inputs[region_code],
                 thresholds,
                 flatness_threshold,
+                smoothed[region_code].blocks,
             )
             for region_code in sorted(present)
         ]
 
     @staticmethod
     def _profile(
-        region_code, target, typology_input, label_input, thresholds, flatness_threshold
+        region_code, target, typology_input, label_input, thresholds, flatness_threshold, blocks
     ) -> RegionProfile:
         verdict = classify(typology_input, thresholds)
         label = label_time(label_input, flatness_threshold)
@@ -212,6 +223,10 @@ class RegionProfileInteractor(RegionProfileUseCase):
             fnb_share=typology_input.fnb_share,
             facility_total=typology_input.facility_total,
             resident_total=typology_input.resident_total,
+            block_morning=blocks.get("morning"),
+            block_day=blocks.get("day"),
+            block_evening=blocks.get("evening"),
+            block_night=blocks.get("night"),
         )
 
     def list_metric_values(

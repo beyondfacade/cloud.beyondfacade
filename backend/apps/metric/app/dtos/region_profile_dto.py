@@ -18,6 +18,10 @@ class RegionProfileDto:
     fnb_share: float | None
     facility_total: int | None
     resident_total: int | None
+    block_morning: float | None = None
+    block_day: float | None = None
+    block_evening: float | None = None
+    block_night: float | None = None
 
 
 @dataclass

@@ -188,3 +188,21 @@ def test_재실행해도_행_수가_늘지_않고_값이_갱신된다():
 
     assert repository.upsert_calls == 2
     assert len(repository.rows) == 1
+
+
+def test_4블록_강도가_채워지고_정점_블록이_peak_block과_일치한다():
+    # 낮(11~17시)에 몰린 시간대 — 막대의 원천은 배치가 한 번만 계산한 값이다 (무대 설계서 §5-1)
+    낮정점 = {"00_06": 3, "06_11": 20, "11_14": 30, "14_17": 28, "17_21": 15, "21_24": 4}
+    repository, _, _ = _build([_observation("11110", "20211", footfall_by_hour=낮정점)], ["20211"])
+
+    profile = repository.find("11110", "20211")
+    assert profile is not None
+    blocks = {
+        "morning": profile.block_morning,
+        "day": profile.block_day,
+        "evening": profile.block_evening,
+        "night": profile.block_night,
+    }
+    assert all(value is not None for value in blocks.values())
+    assert max(blocks, key=lambda k: blocks[k]) == profile.peak_block == "day"
+    assert min(blocks, key=lambda k: blocks[k]) == profile.trough_block == "night"

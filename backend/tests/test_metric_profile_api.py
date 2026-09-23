@@ -75,6 +75,14 @@ def client() -> TestClient:
             [
                 _profile("20253"),
                 _profile("20261", neighborhood_type="mixed", worker_resident_ratio=None),
+                _profile(
+                    "20242",
+                    block_morning=0.8,
+                    block_day=1.6,
+                    block_evening=1.1,
+                    block_night=0.7,
+                ),
+                _profile("20241", block_morning=0.8, block_day=1.6, block_evening=1.1),
             ]
         ),
         observations=UnusedObservations(),
@@ -219,3 +227,24 @@ def test_유형_목록은_배치_전이면_빈_목록이다():
     )
 
     assert interactor.list_types(None) == []
+
+
+# --- 4블록 강도 (무대 설계서 §5-1) ---
+
+
+def test_블록_넷이_다_있으면_block_intensities_객체로_묶어_준다(client):
+    body = client.get("/profiles/1168064000", params={"year_quarter": "20242"}).json()
+
+    assert body["block_intensities"] == {
+        "morning": pytest.approx(0.8),
+        "day": pytest.approx(1.6),
+        "evening": pytest.approx(1.1),
+        "night": pytest.approx(0.7),
+    }
+    assert "block_day" not in body  # 낱개 컬럼은 응답에 내보내지 않는다
+
+
+def test_블록이_하나라도_없으면_block_intensities는_null이다(client):
+    # 배치 재실행 전 행(전부 None)과 일부만 있는 행 — 부분 막대는 오독을 낳는다
+    assert client.get("/profiles/1168064000", params={"year_quarter": "20253"}).json()["block_intensities"] is None
+    assert client.get("/profiles/1168064000", params={"year_quarter": "20241"}).json()["block_intensities"] is None

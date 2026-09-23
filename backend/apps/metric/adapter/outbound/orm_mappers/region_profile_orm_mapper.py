@@ -20,6 +20,10 @@ _COLUMNS: tuple[str, ...] = (
     "fnb_share",
     "facility_total",
     "resident_total",
+    "block_morning",
+    "block_day",
+    "block_evening",
+    "block_night",
 )
 
 

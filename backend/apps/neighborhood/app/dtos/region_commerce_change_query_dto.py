@@ -4,6 +4,14 @@ from dataclasses import dataclass
 
 
 @dataclass
+class SeoulBaselineDto:
+    """같은 분기의 서울 전체 평균 — "110개월"은 "서울 117"이 옆에 있어야 읽힌다 (무대 설계서 §5-2)."""
+
+    operating_months: float | None
+    closed_months: float | None
+
+
+@dataclass
 class RegionCommerceChangeDto:
     region_code: str
     year_quarter: str
@@ -11,6 +19,7 @@ class RegionCommerceChangeDto:
     change_name: str | None
     operating_months: float | None
     closed_months: float | None
+    seoul: SeoulBaselineDto | None = None  # baseline 행이 없는 분기면 None
 
 
 @dataclass

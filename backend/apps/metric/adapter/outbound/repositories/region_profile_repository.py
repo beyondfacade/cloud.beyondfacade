@@ -13,7 +13,7 @@ from apps.metric.domain.entities.region_profile_entity import RegionProfile
 from core.matrix.grid_oracle_database_manager import session_scope
 
 _PK = ("region_code", "year_quarter")
-_BATCH = 4000  # 14컬럼 × 4000 = 56,000 파라미터 < psycopg 한도 65,535
+_BATCH = 3000  # 18컬럼 × 3000 = 54,000 파라미터 < psycopg 한도 65,535 (블록 4컬럼 추가로 4000이면 72,000 초과)
 
 
 class SqlAlchemyRegionProfileRepository(RegionProfileRepositoryPort):

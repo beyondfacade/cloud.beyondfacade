@@ -24,3 +24,9 @@ class RegionCommerceChangeQueryUseCase(ABC):
 
         분기를 생략하면 가장 최근 분기를 쓴다. 미지원 metric은 MetricNotFoundError.
         """
+
+    @abstractmethod
+    def find_with_baseline(
+        self, region_code: str, year_quarter: str | None
+    ) -> RegionCommerceChangeDto | None:
+        """상세 — 동×분기 행 + 같은 분기 서울 평균. 분기 생략 시 그 동의 최신. 없으면 None."""

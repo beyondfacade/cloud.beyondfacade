@@ -24,3 +24,9 @@ class RegionProfile:
     fnb_share: float | None
     facility_total: int | None
     resident_total: int | None
+    # 4블록 시간당 강도(아침·낮·저녁·밤). 배치가 4분기 평활한 시간대에서 계산한다 — 화면이 원값으로
+    # 보정을 다시 하면 두 곳 중 하나가 언젠가 틀린다 (무대 설계서 §5-1)
+    block_morning: float | None = None
+    block_day: float | None = None
+    block_evening: float | None = None
+    block_night: float | None = None
