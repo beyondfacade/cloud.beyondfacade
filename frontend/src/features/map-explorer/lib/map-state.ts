@@ -1,7 +1,7 @@
-import type { MetricKey } from "@/shared/api/types";
+import type { MapMetricKey } from "@/shared/api/types";
 import { INDUSTRIES } from "@/shared/industries";
 
-export const METRICS = ["closure_rate", "growth_rate", "store_count"] as const;
+export const METRICS = ["closure_rate", "growth_rate", "store_count", "operating_months"] as const;
 
 export const YEARS = Array.from({ length: 8 }, (_, i) => 2019 + i);
 
@@ -10,11 +10,12 @@ export const METRIC_LABELS: Record<(typeof METRICS)[number], string> = {
   closure_rate: "폐업률",
   growth_rate: "성장률",
   store_count: "점포수",
+  operating_months: "영업 지속 개월",
 };
 
 export interface MapState {
   industry: string;
-  metric: MetricKey;
+  metric: MapMetricKey;
   year: number;
   region: string | null;
 }
@@ -45,7 +46,7 @@ export function parseMapState(sp: URLSearchParams): MapState {
 
   return {
     industry: INDUSTRIES.includes(industry as any) ? industry! : DEFAULT_STATE.industry,
-    metric: METRICS.includes(metric as any) ? (metric as MetricKey) : DEFAULT_STATE.metric,
+    metric: METRICS.includes(metric as any) ? (metric as MapMetricKey) : DEFAULT_STATE.metric,
     year: YEARS.includes(Number(year)) ? Number(year) : DEFAULT_STATE.year,
     region: region || null,
   };

@@ -8,6 +8,12 @@ export type AgentEvent =
 
 export type MetricKey = "closure_rate" | "growth_rate" | "store_count";
 
+/** 업종 축이 없는 동 단위 분기 지표 (GET /commerce-changes). 업종을 바꿔도 값이 같다. */
+export type RegionMetricKey = "operating_months";
+
+/** 지도 단계구분도가 그릴 수 있는 전체 지표. 원천은 둘로 갈리지만 응답 형태는 {region_code, value}로 같다. */
+export type MapMetricKey = MetricKey | RegionMetricKey;
+
 export interface MetricRow {
   region_code: string;
   value: number;

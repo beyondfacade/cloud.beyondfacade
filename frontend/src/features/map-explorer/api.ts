@@ -7,6 +7,7 @@ import type {
   ConvenienceStore,
   MetricKey,
   MetricRow,
+  RegionMetricKey,
   RegionProfile,
   RegionSummary,
   Store,
@@ -58,4 +59,14 @@ export function fetchConvenienceSummary(regionCode: string): Promise<Convenience
 export function fetchRegionProfile(regionCode: string, yearQuarter?: string): Promise<RegionProfile> {
   const query = yearQuarter ? `?${new URLSearchParams({ year_quarter: yearQuarter })}` : "";
   return apiGet<RegionProfile>(`/profiles/${regionCode}${query}`);
+}
+
+/** 동 단위 분기 지표 — 분기를 생략하면 백엔드가 최신 분기를 쓴다. 업종 파라미터가 없다. */
+export function fetchCommerceChangeMetrics(
+  metric: RegionMetricKey,
+  yearQuarter?: string,
+): Promise<MetricRow[]> {
+  const params = new URLSearchParams({ metric });
+  if (yearQuarter) params.set("year_quarter", yearQuarter);
+  return apiGet<MetricRow[]>(`/commerce-changes?${params.toString()}`);
 }

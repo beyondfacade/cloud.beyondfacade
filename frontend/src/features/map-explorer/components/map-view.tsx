@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Map as MapLibreGLMap, setWorkerUrl, type GeoJSONSource, type RasterTileSource } from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { config } from "@/shared/config";
-import type { MetricKey } from "@/shared/api/types";
+import type { MapMetricKey } from "@/shared/api/types";
 import { useMapData } from "../hooks/use-map-data";
 import { makeMetricColorScale, NO_DATA_COLOR, type ColorScheme } from "../lib/metric-color";
 import { MapLegend } from "./map-legend";
@@ -28,10 +28,12 @@ const REGIONS_FILL_LAYER_ID = "regions-fill";
 const REGIONS_LINE_LAYER_ID = "regions-line";
 const NO_SELECTION = "__none__";
 
-const SCHEME_BY_METRIC: Record<MetricKey, ColorScheme> = {
+const SCHEME_BY_METRIC: Record<MapMetricKey, ColorScheme> = {
   closure_rate: "sequential",
   growth_rate: "diverging",
   store_count: "sequential",
+  // 길게 버티는 쪽이 좋다는 한 방향 척도라 발산형이 아니다
+  operating_months: "sequential",
 };
 
 function currentTheme(): "light" | "dark" {
@@ -51,7 +53,7 @@ export function readAccentColor(): string {
 
 interface MapViewProps {
   regionCode?: string | null;
-  metric: MetricKey;
+  metric: MapMetricKey;
   industry: string;
   year: number;
   onSelectRegion: (code: string) => void;

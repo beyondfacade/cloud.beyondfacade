@@ -10,6 +10,7 @@ import type {
   ConvenienceStore,
   MetricKey,
   MetricRow,
+  RegionMetricKey,
   RegionProfile,
   RegionSummary,
   Store,
@@ -351,4 +352,19 @@ export function regionProfileOf(regionCode: string, yearQuarter: string): Region
     facility_total: facility,
     resident_total: 3_000 + Math.floor(unit * 40_000),
   };
+}
+
+/** 동 단위 분기 지표 — 실측 분포(최소 31 · 중앙 117 · 최대 206개월)에 맞춰 결정적으로 만든다. */
+const REGION_METRIC_RANGES: Record<RegionMetricKey, [number, number]> = {
+  operating_months: [31, 206],
+};
+
+export const LATEST_CHANGE_QUARTER = "20262";
+
+export function changeMetricRows(metric: RegionMetricKey, yearQuarter: string): MetricRow[] {
+  const [min, max] = REGION_METRIC_RANGES[metric];
+  return REGIONS.map(({ region_code }) => ({
+    region_code,
+    value: Math.round(min + unitFrom(hashSeed(metric, yearQuarter, region_code)) * (max - min)),
+  }));
 }
