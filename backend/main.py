@@ -17,6 +17,9 @@ from apps.funding.adapter.inbound.api.v1.funding_program_router import (
 from apps.agent.adapter.inbound.api.v1.analysis_router import router as analysis_router
 from apps.intent.adapter.inbound.api.v1.intent_router import router as intent_router
 from apps.master.adapter.inbound.api.v1.region_router import router as region_router
+from apps.metric.adapter.inbound.api.v1.region_industry_hour_gap_router import (
+    router as hour_gap_router,
+)
 from apps.metric.adapter.inbound.api.v1.region_industry_metric_router import (
     router as metric_router,
 )
@@ -47,6 +50,7 @@ app.include_router(intent_router)
 app.include_router(region_router)
 app.include_router(metric_router)
 app.include_router(region_profile_router)
+app.include_router(hour_gap_router)
 app.include_router(commerce_change_router)
 app.include_router(news_router)
 app.include_router(shock_router)

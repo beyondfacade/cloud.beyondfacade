@@ -1,5 +1,26 @@
 # Backend Version Log
 
+## [v0.32.0] - 2026-09-23 (진행 중 — T2 무대)
+
+> 이 항목은 무대 설계서(`docs/superpowers/specs/2026-09-23-map-stage-design.md`)의 백엔드 조각을 순서대로
+> 담는다. (1/4) hour-gaps → (2/4) `/profiles/types` → (3/4) `/commerce-changes/{region}` 상세 → (4/4) 리포트
+> `benchmarks`. 뒤 조각이 같은 항목에 절을 덧붙인다.
+
+### Added — (1/4) `GET /hour-gaps` 시간대 어긋남 상세 계약 (T2-4)
+- metric BC `region_industry_hour_gap` 프랙탈의 인바운드 3파일(schema·inbound mapper·router).
+  v0.26.0이 만든 34만 행이 화면으로 나가는 첫 길이다. `myself`로 배선을 먼저 확인했다(§12)
+- `GET /hour-gaps?region=&industry=&year_quarter=` → 동×업종×분기 **한 객체에 6구간**
+  `{region_code, industry_id, year_quarter, bands[{hour_band, footfall_intensity, sales_intensity, gap}]}`.
+  단계구분도가 아니라 패널 차트라 상세 계약(`map-metric-contract` §3-2)을 쓴다 — 계약이 맞지 않으면
+  계약을 늘리는 게 아니라 다른 계약을 쓴다
+- **분기 생략 시 그 조합의 최신**(`list_latest_bands`, v0.31.0이 추가). 응답에 `year_quarter`를 반드시
+  싣는다 — 매출 원천은 20254까지라 프로필(20262)과 다르다
+- 조합에 행이 없으면 404 `HOUR_GAP_NOT_FOUND`. `region`·`industry` 누락은 422 그대로
+- 유스케이스·포트는 손대지 않았다. 빈 목록 → 404 판정은 라우터 몫이다
+- 테스트 7건 (`tests/test_metric_hour_gap_api.py`) — myself·분기 생략 시 최신·분기 지정·6행 순서와 gap
+  산식·없는 조합 404·없는 분기 404·파라미터 누락 422. 전체 380 통과
+- 실DB: 역삼1동×카페 → 20254, 6행, 매출 강도 최대 `11_14`(v0.26.0 검증과 일치). childcare(매출 없음) → 404
+
 ## [v0.31.0] - 2026-09-23
 
 ### Added
