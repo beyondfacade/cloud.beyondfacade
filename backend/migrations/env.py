@@ -33,6 +33,8 @@ import apps.master.adapter.outbound.orms.industry_source_code_orm  # noqa: F401
 import apps.master.adapter.outbound.orms.industry_subcategory_orm  # noqa: F401
 import apps.master.adapter.outbound.orms.population_stat_orm  # noqa: F401
 import apps.metric.adapter.outbound.orms.region_industry_metric_orm  # noqa: F401
+import apps.metric.adapter.outbound.orms.region_industry_hour_gap_quarter_orm  # noqa: F401
+import apps.metric.adapter.outbound.orms.region_profile_quarter_orm  # noqa: F401
 import apps.neighborhood.adapter.outbound.orms.region_commerce_change_orm  # noqa: F401
 import apps.neighborhood.adapter.outbound.orms.region_facility_quarter_orm  # noqa: F401
 import apps.neighborhood.adapter.outbound.orms.region_footfall_quarter_orm  # noqa: F401
