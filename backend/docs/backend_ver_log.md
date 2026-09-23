@@ -1,5 +1,60 @@
 # Backend Version Log
 
+## [v0.31.0] - 2026-09-23
+
+### Added
+- **intent BC 신설** (`apps/intent/`) — 한 문장을 받아 동·업종·예산을 뽑고 한 줄 진단을 붙이는
+  관문. 설계서 `docs/superpowers/specs/2026-09-23-chat-first-direction.md`. 대구 분화본
+  (`cloud.localhostdaegu` `apps/intent`)의 관문 구조를 가져오되 서울은 동 단위로 라우팅한다
+  - **ERD 테이블이 없다.** §12 "1 테이블 = 1 프랙탈"의 의도적 예외 — 파싱은 상태가 없다. 마스터
+    (`region`·`district`·`industry`)와 파생(`region_profile_quarter`·`region_industry_hour_gap_quarter`)을
+    읽을 뿐 쓰지 않으므로 entity·orm·orm_mapper·repository가 없고, 읽기 포트 셋(마스터 사전·파생
+    사실·LLM 추출)과 게이트웨이가 있다. `intent_log`는 되묻기 비율이 궁금해질 때 승격한다
+  - `GET /intent/myself` — §12 배선 검증 · `POST /intent` — 두 형태(`text` / `region_code`+`industry_id`)
+  - **추출기 체인** (`domain/services/extractors.py`, Chain of Responsibility) — Region → Industry →
+    Budget → (app 계층) LlmFallback. 사전은 생성자 주입이라 도메인이 DB를 모른다
+    · 동 이름은 **정확 이름 + 기본 이름** 둘로 색인한다. 사람은 "역삼동"이라 말하고 마스터는
+      "역삼1동"이다 — `[제\d.·]+`를 지운 기본 이름으로 후보(역삼1동·역삼2동)를 만들어 되묻는다
+    · 동명이동은 텍스트의 구 이름으로 좁히고, 못 좁히면 `candidates`. 실측: "신사동"은 정확 이름
+      2개(강남·관악) + 기본 이름 2개(은평 신사제1·2동) = **후보 4개**
+    · 예산은 대구 `_parse_budget` 이식 — `1억 5천`→150,000,000, `2층` 같은 맨숫자는 금액이 아니다
+  - **LLM 폴백은 `region` 결측이고 후보도 없을 때만** 1콜(JSON 모드, temperature 0). 프롬프트에
+    행정동 이름 427개를 넣어 "홍대 → 서교동"처럼 **마스터에 있는 이름으로만** 옮기게 하고, 그래도
+    준 값은 인터랙터가 마스터로 검증해 없는 동·업종은 버린다. `source`는 LLM 값이 하나라도
+    채택됐을 때만 `"llm"`. 키 없음·타임아웃·어떤 예외든 None → 규칙 응답(관문은 LLM 장애로
+    죽지 않는다). **deadline은 3초가 아니라 10초** — Gemini가 허용하는 최소값이다(아래 Fixed)
+  - **한 줄 진단** (`domain/services/diagnosis.py`) — LLM이 아니라 어휘 테이블 조립. **정점은
+    gap이 아니라 매출 강도 최대 구간** — v0.26.0에서 어긋남의 부호는 절대값이 아니라 상대 순위에
+    있음이 확인됐다. 세 예외: 혼합형("뚜렷한 특징이 없는 혼합형이고"), 재건축 동(유형 대신
+    `type_reason` 그대로 — 억지로 유형을 붙이지 않는다), 매출 행 없음(뒤 절 생략). 은/는은
+    받침 규칙 함수. 어휘 사본 `neighborhood_vocabulary.py`는 agent BC와 같은 판단(`quarter_dimension`
+    전례) — 유형 이름을 바꾸면 agent·intent·프론트 셋 다 고친다
+- **metric BC** — `RegionIndustryHourGapRepositoryPort.latest_quarter(region_code, industry_id)` +
+  `RegionIndustryHourGapUseCase.list_latest_bands`. 관문도 화면도 어느 분기가 최신인지 모른다
+  (매출 원천은 20254까지, 프로필은 20262까지 — 진단 응답에 둘 다 적는다)
+
+### Fixed
+- Gemini `HttpOptions(timeout=3000)`이 `400 INVALID_ARGUMENT — Minimum allowed deadline is 10s`로
+  거부돼 LLM 경로가 한 번도 돌지 않았다(실호출에서 발견). 설계서의 3초는 API 최소값 10초로 바꿨다
+
+### Validation
+- 테스트 38건 추가 (`tests/test_intent_{parser,diagnosis,interactor,router,llm_adapter}.py` +
+  metric 1건) — A·B·C, 번호 동 후보, 동명이동(구 언급 유무), `1억 5천`, 맨숫자 무시, 긴 이름 우선,
+  동의어·영문, LLM 호출 조건·검증 탈락·실패 폴백·`source`, 진단 4경우, 라우터 두 형태·400·404.
+  전체 **373 passed / 0 failed**. `domain/`·`app/`에 FastAPI·SQLAlchemy·HTTP 클라이언트 import 없음
+- 실호출(8201, 실DB·실Gemini):
+  · "역삼동에 카페, 예산 5천" → C, 후보 역삼1동·역삼2동, cafe, 50,000,000, rule
+  · "연남동에서 뭘 하면 좋을까" → B 연남동, rule
+  · "홍대 근처 미용실" → **A 서교동, source llm**, "서교동은 먹자·나들이형이고, 미용실은
+    오후(14~17시)에 돈이 돕니다."
+  · "신사동 노래방" → C, 후보 4개(강남·관악·은평×2)
+  · "역삼1동 카페" → A, "역삼1동은 낮 인구 우위형이고, 카페는 점심(11~14시)에 돈이 돕니다."
+    (20262 / 20254)
+  · 두 번째 형태 강남구 신사동×노래방 → "신사동은 낮 인구 우위형이고, 노래방은 밤(21~24시)에
+    돈이 돕니다." · 빈 문장 → 400 `INTENT_TEXT_EMPTY`
+  · "테헤란로 카페 예산 3천" → LLM이 동을 null로 답해(역삼1·2동·삼성1동에 걸침) C, rule — 정직한
+    결측이다. 상권명→동 매핑은 T1-3 이후 `intent_log`가 알려줄 것
+
 ## [v0.30.0] - 2026-09-23
 
 ### Added

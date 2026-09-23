@@ -15,6 +15,7 @@ from apps.funding.adapter.inbound.api.v1.funding_program_router import (
     router as funding_router,
 )
 from apps.agent.adapter.inbound.api.v1.analysis_router import router as analysis_router
+from apps.intent.adapter.inbound.api.v1.intent_router import router as intent_router
 from apps.master.adapter.inbound.api.v1.region_router import router as region_router
 from apps.metric.adapter.inbound.api.v1.region_industry_metric_router import (
     router as metric_router,
@@ -42,6 +43,7 @@ app.include_router(childcare_center_router)
 app.include_router(childcare_center_stat_router)
 app.include_router(convenience_store_router)
 app.include_router(funding_router)
+app.include_router(intent_router)
 app.include_router(region_router)
 app.include_router(metric_router)
 app.include_router(region_profile_router)

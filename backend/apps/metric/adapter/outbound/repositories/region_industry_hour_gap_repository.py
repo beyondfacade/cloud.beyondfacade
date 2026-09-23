@@ -44,6 +44,18 @@ class SqlAlchemyRegionIndustryHourGapRepository(RegionIndustryHourGapRepositoryP
                 count += len(values)
         return count
 
+    def latest_quarter(self, region_code: str, industry_id: str) -> str | None:
+        with session_scope() as session:
+            return session.execute(
+                select(RegionIndustryHourGapQuarterOrm.year_quarter)
+                .where(
+                    RegionIndustryHourGapQuarterOrm.region_code == region_code,
+                    RegionIndustryHourGapQuarterOrm.industry_id == industry_id,
+                )
+                .order_by(RegionIndustryHourGapQuarterOrm.year_quarter.desc())
+                .limit(1)
+            ).scalar_one_or_none()
+
     def list_bands(
         self, region_code: str, industry_id: str, year_quarter: str
     ) -> list[RegionIndustryHourGap]:

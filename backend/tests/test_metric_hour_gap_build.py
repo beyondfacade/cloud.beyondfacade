@@ -37,6 +37,10 @@ class FakeRepository(RegionIndustryHourGapRepositoryPort):
             if key[:3] == (region_code, industry_id, year_quarter)
         ]
 
+    def latest_quarter(self, region_code, industry_id):
+        quarters = [k[2] for k in self.rows if k[:2] == (region_code, industry_id)]
+        return max(quarters) if quarters else None
+
 
 class FakeFootfall(RegionFootfallHourPort):
     def __init__(self, rows: list[RegionHourValues]) -> None:
@@ -155,3 +159,18 @@ def test_재실행해도_행_수가_늘지_않는다():
     interactor.build(["20251"])
 
     assert len(repository.rows) == 6
+
+
+def test_최신_분기_6구간은_분기를_몰라도_꺼낼_수_있다():
+    footfall = [RegionHourValues("11110", q, dict(_UNIFORM)) for q in ("20251", "20252")]
+    sales = [RegionIndustryHourSales("11110", "cafe", q, dict(_UNIFORM)) for q in ("20251", "20252")]
+    repository = FakeRepository()
+    interactor = RegionIndustryHourGapInteractor(
+        repository=repository, footfall=FakeFootfall(footfall), sales=FakeSales(sales)
+    )
+    interactor.build(["20251", "20252"])
+
+    bands = interactor.list_latest_bands("11110", "cafe")
+
+    assert len(bands) == 6 and {b.year_quarter for b in bands} == {"20252"}
+    assert interactor.list_latest_bands("11110", "karaoke") == []

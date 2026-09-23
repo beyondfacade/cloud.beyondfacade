@@ -15,6 +15,12 @@ class RegionIndustryHourGapUseCase(ABC):
         """분기 목록의 시간대 어긋남을 재계산·업서트하고 처리 건수를 반환한다 (멱등)."""
 
     @abstractmethod
+    def list_latest_bands(
+        self, region_code: str, industry_id: str
+    ) -> list[RegionIndustryHourGapDto]:
+        """그 동×업종의 가장 최근 분기 6구간 — 화면·관문은 최신이 언제인지 모른다. 없으면 빈 리스트."""
+
+    @abstractmethod
     def list_bands(
         self, region_code: str, industry_id: str, year_quarter: str
     ) -> list[RegionIndustryHourGapDto]:

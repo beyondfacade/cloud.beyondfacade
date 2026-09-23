@@ -22,6 +22,10 @@ class RegionIndustryHourGapRepositoryPort(ABC):
     ) -> list[RegionIndustryHourGap]:
         """해당 동×업종×분기의 6구간을 시간 순으로 반환한다."""
 
+    @abstractmethod
+    def latest_quarter(self, region_code: str, industry_id: str) -> str | None:
+        """그 동×업종에 어긋남 행이 있는 가장 최근 분기 — 없으면 None. 매출 원천은 20254까지다."""
+
 
 class RegionFootfallHourPort(ABC):
     @abstractmethod

@@ -69,6 +69,12 @@ class RegionIndustryHourGapInteractor(RegionIndustryHourGapUseCase):
             )
         return self._repository.upsert(gaps)
 
+    def list_latest_bands(
+        self, region_code: str, industry_id: str
+    ) -> list[RegionIndustryHourGapDto]:
+        quarter = self._repository.latest_quarter(region_code, industry_id)
+        return [] if quarter is None else self.list_bands(region_code, industry_id, quarter)
+
     def list_bands(
         self, region_code: str, industry_id: str, year_quarter: str
     ) -> list[RegionIndustryHourGapDto]:
