@@ -21,6 +21,9 @@ from apps.metric.adapter.inbound.api.v1.region_industry_metric_router import (
 from apps.metric.adapter.inbound.api.v1.region_profile_router import (
     router as region_profile_router,
 )
+from apps.neighborhood.adapter.inbound.api.v1.region_commerce_change_router import (
+    router as commerce_change_router,
+)
 from apps.news.adapter.inbound.api.v1.news_article_router import router as news_router
 from apps.shock.adapter.inbound.api.v1.shock_event_router import router as shock_router
 from apps.store.adapter.inbound.api.v1.store_router import router as store_router
@@ -40,6 +43,7 @@ app.include_router(funding_router)
 app.include_router(region_router)
 app.include_router(metric_router)
 app.include_router(region_profile_router)
+app.include_router(commerce_change_router)
 app.include_router(news_router)
 app.include_router(shock_router)
 app.include_router(store_router)

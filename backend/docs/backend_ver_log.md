@@ -1,5 +1,36 @@
 # Backend Version Log
 
+## [v0.29.0] - 2026-09-23
+
+### Added
+- **neighborhood BC 첫 라우터** (`GET /commerce-changes/...`) — v0.25.0이 "소비 라우터가 아직
+  없다"며 미뤄둔 인바운드 계층을 상권 변화 지표부터 연다. 지도에 **평균 영업 지속 개월**을
+  올리기 위한 공급원이다
+  - `GET /commerce-changes/myself` — §12의 배선 검증
+  - `GET /commerce-changes?metric=operating_months&year_quarter=20262` — 단계구분도용
+    `{region_code, value}` 목록. **분기를 생략하면 최신 분기.** 미지원 metric은 404
+    `METRIC_NOT_FOUND` (metric BC `/metrics`와 대칭)
+  - **적재 포트와 조회 포트를 나눴다 (ISP).** 호출자가 CLI와 라우터로 다르고 계약도 다르다 —
+    `RegionCommerceChangeQueryUseCase` / `RegionCommerceChangeQueryPort` 한 쌍을 새로 둔다.
+    적재 포트는 손대지 않았다
+  - metric 디스패치는 `_METRIC_EXTRACTORS` 테이블(GoF Strategy, metric BC 전례) — if/elif 없음
+  - **값이 없는 동은 행을 만들지 않는다.** 원천 공란을 0으로 내보내면 지도에서 "가장 빨리 닫는
+    동네"로 색칠된다. `region_code` NULL인 옛 행정동 3개도 제외한다
+  - 프랙탈 추가분: query dto · query 포트 2종 · query 인터랙터 · query 레포지토리 · schema ·
+    inbound mapper · router · dependencies + `domain/errors.py`
+  - `main.py`에 라우터 등록
+
+### 왜 `/metrics`에 합치지 않았나
+`region_industry_metric`은 **업종×연도**, 상권 변화 지표는 **동×분기**다. 축이 다르다. 업종마다
+같은 값을 9벌 복제하거나 연도를 분기로 우겨넣는 대신 축이 맞는 곳에 둔다. 응답 형태를
+`{region_code, value}`로 맞춰 화면의 색 스케일·범례는 그대로 재사용된다.
+
+### Validation
+- 테스트 7건 (`tests/test_neighborhood_change_query.py`) — 배선, 분기 생략 시 최신, 응답 형태,
+  값 없는 동 제외, 미지원 metric 404, 도메인 예외, 적재 전 빈 목록
+- 실DB 확인: 422행, 최소 31 · 중앙값 117 · 최대 206개월 (DB 직접 집계와 일치)
+- 테스트 314 통과 / 1 실패(`test_store_ingest.py`, 기존 건)
+
 ## [v0.28.0] - 2026-09-23
 
 ### Added
