@@ -6,6 +6,7 @@ from dataclasses import asdict
 
 from apps.metric.app.dtos.region_profile_dto import (
     ProfileMetricValueDto,
+    ProfileTypeDto,
     RegionProfileDto,
     RegionQuarterObservation,
 )
@@ -227,6 +228,15 @@ class RegionProfileInteractor(RegionProfileUseCase):
             # 결측을 0으로 내보내면 지도가 그 동을 척도의 한쪽 끝으로 색칠한다
             for entity in self._repository.list_by_quarter(quarter)
             if (value := extractor(entity)) is not None
+        ]
+
+    def list_types(self, year_quarter: str | None) -> list[ProfileTypeDto]:
+        quarter = year_quarter or self._repository.latest_quarter()
+        if quarter is None:
+            return []  # 배치 전
+        return [
+            ProfileTypeDto(region_code=entity.region_code, type_code=entity.neighborhood_type)
+            for entity in self._repository.list_by_quarter(quarter)
         ]
 
     def find(self, region_code: str, year_quarter: str) -> RegionProfileDto | None:

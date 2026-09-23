@@ -4,6 +4,7 @@ from abc import ABC, abstractmethod
 
 from apps.metric.app.dtos.region_profile_dto import (
     ProfileMetricValueDto,
+    ProfileTypeDto,
     RegionProfileDto,
 )
 
@@ -27,6 +28,13 @@ class RegionProfileUseCase(ABC):
         """단계구분도용 — 해당 분기의 행정동별 지표값 (값 None 행 제외).
 
         분기를 생략하면 가장 최근 분기를 쓴다. 미지원 metric은 MetricNotFoundError.
+        """
+
+    @abstractmethod
+    def list_types(self, year_quarter: str | None) -> list[ProfileTypeDto]:
+        """유형 단계구분도용 — 해당 분기의 행정동별 유형 코드 (범주 계약, 숫자 계약과 경로 분리).
+
+        분기를 생략하면 가장 최근 분기를 쓴다. 배치 전이면 빈 목록.
         """
 
     @abstractmethod

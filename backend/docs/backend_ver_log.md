@@ -21,6 +21,19 @@
   산식·없는 조합 404·없는 분기 404·파라미터 누락 422. 전체 380 통과
 - 실DB: 역삼1동×카페 → 20254, 6행, 매출 강도 최대 `11_14`(v0.26.0 검증과 일치). childcare(매출 없음) → 404
 
+### Added — (2/4) `GET /profiles/types` 유형 단계구분도 범주 계약 (T2-1)
+- **범주형은 경로를 나눈다** (`map-metric-contract` §5). `GET /profiles?metric=`은 `{region_code, value}`
+  숫자 계약 그대로 두고, 유형은 `GET /profiles/types?year_quarter=` → `[{region_code, type_code}]`로
+  따로 낸다. 한 응답에 value/category를 두고 한쪽을 null로 두면 타입이 거짓말한다
+- 같은 `region_profile_quarter`를 같은 라우터가 서빙하므로 §12(라우터 하나·테이블 하나)는 그대로다.
+  유스케이스 `list_types(year_quarter)`, 레포지토리 `list_by_quarter`·`latest_quarter` 재사용 — **포트
+  변경 없음**. `type_code`는 코드다 — 이름·색은 프론트엔드가 갖는다
+- 경로는 `/{region_code}`보다 **먼저 선언**한다. 아니면 `types`가 행정동 코드로 잡혀 404가 난다
+  (`/myself`와 같은 이유, 테스트로 고정)
+- 테스트 4건 추가(`tests/test_metric_profile_api.py`) — 응답 형태, 분기 생략 시 최신, 경로 오인 없음,
+  배치 전 빈 목록. 실DB 422행, 분포 주거 251 · 먹자 55 · 낮인구 36 · 혼합 32 · 생활중심 25 · 대학가 23
+  — v0.26.0 실측과 동일
+
 ## [v0.31.0] - 2026-09-23
 
 ### Added

@@ -30,3 +30,10 @@ class ProfileMetricValueResponse(BaseModel):
 
     region_code: str
     value: float
+
+
+class ProfileTypeResponse(BaseModel):
+    """유형 단계구분도 응답 단위 — 범주 계약 {region_code, type_code}. 숫자 계약과 경로가 다르다."""
+
+    region_code: str
+    type_code: str  # office | campus | dining | hub | residential | mixed

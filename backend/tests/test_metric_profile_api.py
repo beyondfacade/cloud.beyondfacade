@@ -187,3 +187,35 @@ def test_적재_전이면_빈_목록이다():
     )
 
     assert interactor.list_metric_values("night_index", None) == []
+
+
+# --- 유형 단계구분도 (범주 계약 — `map-metric-contract` §5, 무대 설계서 §3-1) ---
+
+
+def test_유형_목록은_region_code와_type_code_쌍이다(client):
+    response = client.get("/profiles/types", params={"year_quarter": "20253"})
+
+    assert response.status_code == 200
+    assert response.json() == [{"region_code": "1168064000", "type_code": "office"}]
+
+
+def test_유형_목록도_분기를_생략하면_최신_분기를_쓴다(client):
+    body = client.get("/profiles/types").json()
+
+    assert body == [{"region_code": "1168064000", "type_code": "mixed"}]
+
+
+def test_types_경로가_행정동_코드로_오인되지_않는다(client):
+    # `/{region_code}`보다 먼저 선언돼야 한다 — 아니면 404 REGION_PROFILE_NOT_FOUND가 난다
+    response = client.get("/profiles/types")
+
+    assert response.status_code == 200
+    assert isinstance(response.json(), list)
+
+
+def test_유형_목록은_배치_전이면_빈_목록이다():
+    interactor = RegionProfileInteractor(
+        repository=FakeRepository([]), observations=UnusedObservations()
+    )
+
+    assert interactor.list_types(None) == []

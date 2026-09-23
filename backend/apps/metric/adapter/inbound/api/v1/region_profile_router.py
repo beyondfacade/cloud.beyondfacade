@@ -3,11 +3,13 @@ from fastapi.responses import JSONResponse
 
 from apps.metric.adapter.inbound.api.schemas.region_profile_schema import (
     ProfileMetricValueResponse,
+    ProfileTypeResponse,
     RegionProfileResponse,
 )
 from apps.metric.adapter.inbound.mappers.region_profile_mapper import (
     to_metric_value_response,
     to_response,
+    to_type_response,
 )
 from apps.metric.app.ports.input.region_profile_use_case import RegionProfileUseCase
 from apps.metric.dependencies.region_profile_dependencies import (
@@ -31,6 +33,19 @@ def myself(
     use_case: RegionProfileUseCase = Depends(get_region_profile_use_case),
 ) -> RegionProfileResponse:
     return to_response(use_case.myself())
+
+
+# `/{region_code}`보다 먼저 선언해야 'types'가 행정동 코드로 잡히지 않는다 (`/myself`와 같은 이유)
+@router.get("/types", response_model=list[ProfileTypeResponse])
+def list_types(
+    year_quarter: str | None = None,
+    use_case: RegionProfileUseCase = Depends(get_region_profile_use_case),
+) -> list[ProfileTypeResponse]:
+    """유형 단계구분도용 — 범주 계약. 숫자 계약(`GET /profiles?metric=`)과 경로를 나눈다.
+
+    한 응답에 value/category를 섞어 한쪽을 null로 두지 않는다 (`map-metric-contract` §5).
+    """
+    return [to_type_response(dto) for dto in use_case.list_types(year_quarter)]
 
 
 @router.get("", response_model=list[ProfileMetricValueResponse])

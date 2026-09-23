@@ -31,6 +31,18 @@ class ProfileMetricValueDto:
     value: float
 
 
+@dataclass
+class ProfileTypeDto:
+    """유형 단계구분도 응답 단위 — {region_code, type_code}.
+
+    숫자 계약(`{region_code, value}`)과 **경로를 나눈다**(`map-metric-contract` §5). 한 객체에
+    value/category를 두고 한쪽을 null로 두면 타입이 거짓말한다.
+    """
+
+    region_code: str
+    type_code: str  # office | campus | dining | hub | residential | mixed
+
+
 @dataclass(frozen=True)
 class RegionQuarterObservation:
     """판정 입력 단위 = 행정동×분기의 동네 맥락 원자료 한 묶음.
