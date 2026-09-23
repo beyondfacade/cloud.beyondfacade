@@ -1,5 +1,53 @@
 # Backend Version Log
 
+## [v0.33.0] - 2026-09-23
+
+### Added
+- **finance BC 신설** (`apps/finance/`) — 창업 자금 계획. 무대(①②)의 다음 층 "그래서 얼마가 필요한가".
+  설계서 `docs/superpowers/specs/2026-09-23-finance-plan-design.md`. 대구 분화본(`cloud.localhostdaegu`
+  `apps/finance`)의 판단 셋을 가져온다 — 계산은 코드가·설명만 AI가, 금융연계는 상품 매칭이 아니라 조정한
+  계획, 헤드라인은 부족액이 아니라 **자기자본 외 조달 필요**(부족액 0원 함정)
+  - **ERD 테이블이 없다.** intent BC와 같은 §12 예외 — 계산은 상태가 없다. 프리필은 commerce·rent·
+    shock·master를 읽을 뿐 쓰지 않고 계획 초안은 브라우저 `sessionStorage`에 산다. 로그인이 생기면
+    `finance_plan`과 함께 승격
+  - **엔진 이식** `domain/services/engine.py` — 대구 `engine.py`를 산식 한 글자 바꾸지 않고 옮겼다. 두
+    프로젝트가 같은 수를 내야 서로 검산이 된다. 대구 테스트 5건 이식 + **시연 대본 사례**를 고정: 월세
+    250만 → BEP 900만·총 준비자금 7,160만·조달 필요 3,160만·부족액 660만 / 월세 100만 → BEP 525만·
+    부족액 0·**조달 필요 2,260만은 남는다**
+  - `GET /finance/myself` — §12 배선 검증. 시연 사례를 엔진에 실제로 통과시켜 왕복 ·
+    `POST /finance/simulate` — 대구 검증 규칙 그대로(음수·변동비율 ≥ 1 → 422). 서버가 계산한다
+  - **`GET /finance/prefill?region=&industry=`** — 이 버전의 새 것. 값마다 `basis`(출처)·`caveat`(단서)
+    (`docs/후보.md` 항목 1). 원천 셋, 포트 셋(ISP):
+    · **월매출** `RevenueFactsPort` — `industry_source_code`(seoul_commercial)의 CS 코드 **전부** 합산
+      (`sales_amount` 합 ÷ `store_count` 합), 두 테이블 모두 있는 최신 분기, 인터랙터가 ÷3. 대구가 매출
+      자료가 없어 못 한 것이다. 매출 없는 조합은 404가 아니라 값 null
+    · **임대료** `RentFactsPort` — R-ONE은 상권 83·권역 4 단위라 동 매핑이 없다. `domain/value_objects/
+      rent_zones.py`에 **구 → 권역 매핑표 25구**(적재된 상권 83개 `region_path`를 구별로 대조). 강남=강남·
+      서초, 도심=종로·중구, 영등포신촌=영등포·마포·서대문, 나머지 18구=기타. **송파(잠실)·용산(이태원)도
+      R-ONE에서는 기타**다. 한계: 혜화동(종로)·약수역(중구)은 R-ONE 기타지만 구 단위로 도심에 묶인다.
+      권역 `region_level=2` 최신 분기, 중대형 기본·소규모 동봉, 단위 천원/㎡/월
+    · **금리** `LoanRateFactsPort` — ECOS `loan_facility`(시설자금, 상가 관련 최근접) 최신, 비율로
+    · **원가율** `domain/value_objects/cost_ratios.py` 10업종 — 겹치는 6종은 대구 값, academy 0.20·
+      childcare 0.30·convenience_store 0.72·real_estate 0.05는 근거를 주석에(전부 근사)
+    · **자기자본**은 서버가 채우지 않는다 — 관문의 `budget`이 URL로 온다
+  - `MasterLookupPort` — region → 구 코드(없으면 404 `REGION_NOT_FOUND`), industry 존재(404
+    `INDUSTRY_NOT_FOUND`)
+  - `main.py`에 라우터 등록
+
+### `sales_amount`는 분기 합이다 — 판정 근거
+원천 컬럼명이 `당월_매출_금액`이라 혼동을 주고 설계서(`commerce-bc-design` §4-1)도 원문만 적었다.
+① 원천 파일이 `기준_년분기_코드` 단위로만 온다. ② 역삼1동 카페(3코드) 20254 = 473억 / 603점포 → ÷3
+하면 **2,613만/월·점포**로 현실적이고 월 값이면 7,839만으로 비현실적. ③ 서울 전체(매핑 업종, 점포
+120,803) 점포당 ÷3 = **월 1,123만**, 월 값으로 읽으면 3,368만. 게이트웨이 docstring에 같은 근거.
+
+### Validation
+- 테스트 28건 추가(`tests/test_finance_{engine,prefill,router}.py`) → 전체 **425 passed**.
+  `domain/`·`app/`에 프레임워크 import 없음
+- 실DB: `/finance/prefill?region=1168064000&industry=cafe` → 월매출 **26,129,731원**(basis 20254 ·
+  473억 · 603점포 · CS100006/08/10), 임대료 강남 권역 2026Q2 중대형 65.51·소규모 64.56 천원/㎡,
+  금리 loan_facility 202607 4.05% → 0.0405, 원가율 0.35. childcare → 월매출 null. 404 둘 확인.
+  `/finance/simulate` 시연 사례 → 위 수치 그대로
+
 ## [v0.32.0] - 2026-09-23 (T2 무대 — 4/4 완료)
 
 > 이 항목은 무대 설계서(`docs/superpowers/specs/2026-09-23-map-stage-design.md`)의 백엔드 조각을 순서대로

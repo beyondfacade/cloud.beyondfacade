@@ -11,6 +11,7 @@ from apps.childcare.adapter.inbound.api.v1.childcare_center_stat_router import (
 from apps.convenience.adapter.inbound.api.v1.convenience_store_router import (
     router as convenience_store_router,
 )
+from apps.finance.adapter.inbound.api.v1.finance_router import router as finance_router
 from apps.funding.adapter.inbound.api.v1.funding_program_router import (
     router as funding_router,
 )
@@ -45,6 +46,7 @@ app.include_router(analysis_router)
 app.include_router(childcare_center_router)
 app.include_router(childcare_center_stat_router)
 app.include_router(convenience_store_router)
+app.include_router(finance_router)
 app.include_router(funding_router)
 app.include_router(intent_router)
 app.include_router(region_router)
