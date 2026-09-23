@@ -24,7 +24,7 @@
 |---|---|---|
 | 구조 | 입력창 → `POST /intent` → 되묻기 칩 → `/map?…` 착지 | **같다** |
 | 파서 | 순수 규칙(랜드마크 16 + 동·구 + 업종 동의어 + 예산 정규식) | 규칙 먼저, **랜드마크·자유문만 LLM 1콜** |
-| 지역 키 | (동 이름, 구 코드) 쌍 — 동명이동이 많다 | **동 이름 하나** — 427개 중 중복은 `신사동`(강남·관악) 하나 |
+| 지역 키 | (동 이름, 구 코드) 쌍 — 동명이동이 많다 | **동 이름 하나** — 정확 이름 427개 중 중복은 `신사동`(강남·관악) 하나. 단 사람은 "역삼동"이라 말하고 마스터는 역삼1동·2동이라, **기본 이름(번호·'제' 제거) 색인**을 더해 후보로 되묻는다(T1-1 구현에서 확정) |
 | 라우팅 단위 | 구(`district`) | **동(`region`)** — 구는 되묻기 칩에만 쓴다 |
 | 응답 | 의도·코드·결측 | + **`diagnosis` 한 줄** + `source`(rule/llm) |
 | 상태 | URL | URL — `budget`을 `MapState`에 실어 잃지 않는다 |
@@ -99,7 +99,7 @@
 text ─▶ RegionExtractor ─▶ IndustryExtractor ─▶ BudgetExtractor ─▶ (결측 && 잔여 텍스트) ─▶ LlmExtractor
 ```
 
-각 추출기는 자기 몫만 채우고 다음으로 넘긴다. if/elif가 아니라 리스트다.
+각 추출기는 자기 몫만 채우고 다음으로 넘긴다. if/elif가 아니라 리스트다. 추상 `IntentExtractor`와 규칙 추출기 셋은 `domain/`, `LlmFallbackExtractor`는 포트가 필요해 `app/use_cases/`에 둔다 — 체인 리스트에는 같이 들어간다.
 
 **RegionExtractor** — 마스터 `region.name` 427개 + `district.name` 25개. 긴 이름 우선(`달서구`가 `서구`보다
 먼저 — 대구의 교훈). 동이 맞으면 `region_code`+`district_code`, 구만 맞으면 `district_code`.
@@ -116,7 +116,7 @@ text ─▶ RegionExtractor ─▶ IndustryExtractor ─▶ BudgetExtractor ─�
 ("테헤란로 카페", "홍대 근처"). JSON 모드 1콜, 스키마 `{ region_name: string|null, industry_id:
 string|null, budget_krw: int|null }`. **LLM이 준 값은 마스터로 검증한다** — `region_name`이 427개에
 없으면 버리고, `industry_id`가 10종에 없으면 버린다. 검증 통과분만 채우고 `source: "llm"`.
-호출은 타임아웃 3초, 실패하면 규칙 결과로 응답한다(관문이 LLM 장애로 죽지 않는다).
+호출은 타임아웃 **10초**(Gemini가 허용하는 최소 deadline — 3초로 두면 `400 INVALID_ARGUMENT`로 조용히 규칙 폴백만 돈다, T1-1 실호출에서 발견), 실패하면 규칙 결과로 응답한다(관문이 LLM 장애로 죽지 않는다).
 
 랜드마크 사전은 두지 않는다. 서울은 수백 개라 규칙으로 못 덮고, LLM이 "홍대 → 서교동"을 안다.
 자주 나오는 것은 나중에 `intent_log`가 알려줄 것이다.
@@ -131,7 +131,7 @@ string|null, budget_krw: int|null }`. **LLM이 준 값은 마스터로 검증한
 
 ### 5-3. 되묻기
 
-- `region` 결측, `candidates` 있음 → 후보 칩(신사동 둘)
+- `region` 결측, `candidates` 있음 → 후보 칩. **주 경로다** — "역삼동"·"신사동"처럼 사람이 말하는 동 이름 다수가 번호 동으로 갈라진다(역삼1동·2동, 신사동 4곳)
 - `region` 결측, `district_code` 있음 → 그 구의 동 칩(15~27개). 구까지 없으면 25구 칩 → 동 칩 2단
 - `industry` 결측 → 업종 칩 10 + "잘 몰라요 — 동네부터 볼게요"(B로 착지)
 - 칩 선택은 재제출이 아니다. 클라이언트가 응답 객체를 채워 `intentToUrl`로 바로 간다(대구와 같음).
