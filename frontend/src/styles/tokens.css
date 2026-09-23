@@ -1,16 +1,23 @@
 /* 시맨틱 컬러 토큰 — 강조색은 Task 10에서 market-teal(신뢰·데이터 계열)로 확정.
    단계구분도 팔레트(metric-color.ts)는 이 토큰 체계와 분리된 별도 데이터 시각화 체계다. */
 :root {
-  --bg-base: #f6f8f8;      --bg-surface: #ffffff;   --bg-raised: #ecf1f1;
-  --text-primary: #12211f; --text-secondary: #4e5f5c;
-  --border: #dce5e4;
-  --accent: #0f766e;       --accent-fg: #ffffff;
+  --bg-base: #f7f6f2;      --bg-surface: #fffefa;   --bg-raised: #eeeee6;
+  --text-primary: #233d36; --text-secondary: #58675f;
+  --border: #e1e5dc;
+  --accent: #176e5b;       --accent-fg: #ffffff;
   --ok: #15803d;           --warn: #b45309;         --danger: #b91c1c;
+  /* The atlas landing and workspaces share one semantic palette. */
+  --landing-bg: var(--bg-base);        --landing-card: var(--bg-surface);
+  --landing-ink: var(--text-primary);   --landing-muted: var(--text-secondary);
+  --landing-accent: var(--accent);     --landing-on-accent: var(--accent-fg);
+  --landing-border: var(--border);     --landing-panel: var(--bg-raised);
+  --landing-halo: #e0e9dc;      --landing-shadow: #26483a12;
 }
 [data-theme="dark"] {
-  --bg-base: #101617;      --bg-surface: #171f20;   --bg-raised: #202a2b;
-  --text-primary: #ecf3f2; --text-secondary: #9badab;
-  --border: #2c3839;
-  --accent: #2dd4bf;       --accent-fg: #06201c;
+  --bg-base: #17221f;      --bg-surface: #25362f;   --bg-raised: #1d2c25;
+  --text-primary: #e8eee4; --text-secondary: #adbbb1;
+  --border: #34473d;
+  --accent: #8cceb8;       --accent-fg: #16392e;
   --ok: #4ade80;           --warn: #fbbf24;         --danger: #f87171;
+  --landing-halo: #314b3e;      --landing-shadow: #00000024;
 }

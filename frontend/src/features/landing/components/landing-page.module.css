@@ -1,0 +1,175 @@
+.landing {
+  overflow: clip;
+  min-height: 100dvh;
+  --page-gutter: clamp(24px, 4.45vw, 80px);
+}
+
+.landing a:focus-visible,
+.landing button:focus-visible {
+  outline: 2px solid var(--landing-accent);
+  outline-offset: 6px;
+}
+
+.skipLink {
+  position: absolute;
+  top: 12px;
+  left: 24px;
+  z-index: 10;
+  padding: 12px 20px;
+  background: var(--landing-card);
+  transform: translateY(-160%);
+}
+.skipLink:focus { transform: translateY(0); }
+
+.header, .hero, .about, .howTo, .footer {
+  max-width: 1440px;
+  margin-inline: auto;
+  padding-inline: var(--page-gutter);
+}
+.header {
+  height: 106px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.brand { display: flex; align-items: center; gap: 12px; font-size: 22px; font-weight: 730; letter-spacing: -.7px; }
+.brandMark { display: grid; place-items: center; width: 39px; height: 39px; border-radius: 12px 12px 12px 3px; font-family: Georgia, serif; font-size: 29px; font-weight: 600; padding-bottom: 3px; }
+.brandCaption { display: block; margin-top: 2px; font-size: 10px; font-weight: 500; letter-spacing: .5px; }
+.navigation { display: flex; align-items: center; gap: 30px; font-size: 13px; font-weight: 550; }
+.headerExplore { display: flex; align-items: center; gap: 24px; border-bottom: 1px solid var(--landing-ink); padding-block: 7px; }
+.headerExplore span { font-size: 21px; }
+
+.hero { display: grid; grid-template-columns: 1fr 1fr; align-items: center; min-height: 660px; padding-top: 40px; padding-bottom: 70px; }
+.heroCopy { position: relative; z-index: 2; }
+.eyebrow { font-size: 10px; line-height: 1.5; font-weight: 650; letter-spacing: 2px; display: flex; align-items: center; gap: 9px; }
+.eyebrow > span { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+.hero h1 { margin-top: 27px; font-size: clamp(44px, 4.2vw, 62px); font-weight: 740; line-height: 1.23; letter-spacing: -.072em; word-break: keep-all; }
+.heroDescription { margin-top: 28px; font-size: 14px; line-height: 1.9; letter-spacing: -.3px; word-break: keep-all; }
+.heroActions { display: flex; align-items: center; gap: 24px; margin-top: 32px; }
+.primaryLink { display: inline-flex; align-items: center; justify-content: space-between; gap: 34px; border-radius: 8px; padding: 17px 22px; font-size: 14px; font-weight: 650; transition: transform .2s, box-shadow .2s; }
+.primaryLink > span { font-size: 20px; line-height: 1; }
+.primaryLink:hover { transform: translateY(-2px); box-shadow: 0 8px 20px var(--landing-shadow); }
+.secondaryLink { display: inline-flex; gap: 14px; align-items: center; font-size: 12px; padding-block: 12px; }
+.secondaryLink:hover, .aboutLink:hover, .textLink:hover, .footer a:hover { text-decoration: underline; text-underline-offset: 6px; }
+.heroNote { margin-top: 23px; font-size: 10px; letter-spacing: .3px; }
+
+.heroVisual { position: relative; width: 119%; margin-left: -11%; aspect-ratio: 1.14; isolation: isolate; }
+.visualHalo { position: absolute; z-index: -1; width: 75%; height: 73%; left: 13%; top: 13%; border-radius: 50%; background: radial-gradient(ellipse, var(--landing-halo), transparent 70%); }
+.heroVisual::after { content: ""; position: absolute; z-index: -1; width: 63%; height: 8%; bottom: 24%; left: 21%; background: var(--landing-shadow); border-radius: 50%; filter: blur(22px); }
+.diorama { position: relative; width: 100%; height: auto; animation: revealModel 1.1s cubic-bezier(.2,.6,.3,1) both; }
+.locationPin { position: absolute; width: 10.5%; height: auto; left: 37%; top: 7%; animation: floatPin 4s ease-in-out infinite; }
+.visualIndex { position: absolute; right: 13%; top: 7%; font-size: 8px; line-height: 1.7; letter-spacing: 1.5px; }
+.visualLabel { position: absolute; display: flex; align-items: center; gap: 11px; padding: 12px 17px; border: 1px solid var(--landing-border); border-radius: 10px; font-size: 12px; font-weight: 650; line-height: 1.5; box-shadow: 0 8px 25px var(--landing-shadow); animation: revealLabel .7s both; }
+.visualLabel small { display: block; font-size: 9px; margin-top: 2px; font-weight: 450; }
+.labelIcon { font-size: 26px; line-height: 1; }
+.labelExplore { left: 3%; top: 27%; animation-delay: .2s; }
+.labelCompare { right: 0; top: 48%; animation-delay: .35s; }
+.labelAnalysis { left: 22%; bottom: 12%; animation-delay: .5s; }
+.heroVisual figcaption { position: absolute; right: 11%; bottom: 3%; font-size: 9px; letter-spacing: -.1px; }
+
+.about { display: grid; grid-template-columns: 1.18fr 1fr 1fr 1fr; gap: 36px; padding-block: 50px 57px; border-top-width: 1px; }
+.sectionIntro .eyebrow { font-size: 9px; letter-spacing: 1.7px; }
+.about h2 { margin-top: 14px; font-size: 27px; line-height: 1.4; font-weight: 650; letter-spacing: -1.2px; }
+.feature { padding-top: 3px; }
+.featureNumber { font-size: 9px; font-weight: 600; letter-spacing: 1.2px; }
+.feature h3 { margin-top: 23px; font-size: 16px; font-weight: 650; letter-spacing: -.6px; }
+.feature p { margin-top: 12px; font-size: 12px; line-height: 1.9; word-break: keep-all; }
+
+.howTo { display: grid; grid-template-columns: 1fr 1fr; gap: 80px; padding-block: 68px; }
+.howTo h2 { margin-top: 19px; font-size: 33px; font-weight: 650; line-height: 1.4; letter-spacing: -1.4px; word-break: keep-all; }
+.textLink { display: inline-flex; align-items: center; gap: 36px; margin-top: 25px; font-size: 13px; font-weight: 650; }
+.textLink span { font-size: 21px; }
+.steps { display: grid; gap: 26px; padding-top: 2px; }
+.steps li { display: flex; gap: 22px; align-items: flex-start; }
+.steps li > span { font-size: 11px; padding-top: 3px; font-weight: 600; letter-spacing: 1px; }
+.steps h3 { font-size: 15px; font-weight: 620; letter-spacing: -.3px; }
+.steps p { font-size: 12px; margin-top: 7px; line-height: 1.7; word-break: keep-all; }
+.footer { display: flex; align-items: center; justify-content: space-between; gap: 30px; min-height: 112px; font-size: 9px; letter-spacing: 1px; }
+.footerBrand { font-size: 16px; font-weight: 700; letter-spacing: -.5px; }
+.footerBrand span { margin-left: 18px; font-size: 10px; font-weight: 450; letter-spacing: 0; }
+.footer a { display: flex; gap: 20px; font-size: 11px; letter-spacing: 0; }
+
+@keyframes revealModel { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes revealLabel { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes floatPin { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+
+@media (min-width: 1441px) {
+  .header, .hero, .about, .howTo, .footer { max-width: 1520px; }
+}
+@media (max-width: 1100px) {
+  .navigation { gap: 22px; }
+  .hero { min-height: 600px; padding-top: 32px; padding-bottom: 50px; }
+  .hero h1 { font-size: 44px; }
+  .heroDescription { font-size: 12px; }
+  .heroActions { gap: 16px; }
+  .primaryLink { padding: 16px; gap: 22px; font-size: 13px; }
+  .secondaryLink { font-size: 10px; gap: 7px; }
+  .heroVisual { width: 123%; margin-left: -14%; }
+  .visualLabel { padding: 10px 12px; font-size: 10px; gap: 8px; }
+  .visualLabel small { font-size: 8px; }
+  .labelIcon { font-size: 23px; }
+  .labelCompare { right: 2%; }
+  .about { gap: 24px; grid-template-columns: 1fr 1fr; }
+  .feature:nth-child(n + 3) { padding-top: 20px; }
+  .howTo { gap: 45px; }
+  .howTo h2 { font-size: 29px; }
+}
+@media (max-width: 760px) {
+  .header { height: 88px; }
+  .brand { font-size: 19px; gap: 9px; }
+  .brandMark { width: 34px; height: 34px; font-size: 25px; border-radius: 10px 10px 10px 3px; }
+  .brandCaption { font-size: 8px; }
+  .navigation { gap: 17px; font-size: 12px; }
+  .navigation button { padding: 4px 7px; font-size: 11px; }
+  .aboutLink { display: none; }
+  .headerExplore { gap: 9px; }
+  .hero { grid-template-columns: 1fr; min-height: auto; padding-top: 32px; padding-bottom: 25px; }
+  .hero h1 { font-size: clamp(40px, 8.7vw, 62px); margin-top: 23px; line-height: 1.23; }
+  .eyebrow { font-size: 9px; letter-spacing: 1.65px; }
+  .heroDescription { margin-top: 23px; font-size: 13px; line-height: 1.9; }
+  .heroActions { margin-top: 24px; gap: 22px; flex-wrap: wrap; }
+  .primaryLink { padding: 16px 19px; gap: 32px; font-size: 13px; }
+  .secondaryLink { font-size: 11px; gap: 9px; }
+  .heroNote { margin-top: 18px; font-size: 9px; }
+  .heroVisual { width: calc(100% + 36px); max-width: 620px; margin: 14px auto 0; left: -18px; }
+  .visualIndex { font-size: 6px; right: 13%; top: 5%; }
+  .visualLabel { font-size: 10px; padding: 9px 11px; gap: 8px; }
+  .visualLabel small { font-size: 8px; }
+  .labelIcon { font-size: 21px; }
+  .labelExplore { left: 1%; top: 25%; }
+  .labelCompare { right: 0; top: 49%; }
+  .labelAnalysis { left: 16%; bottom: 10%; }
+  .heroVisual figcaption { bottom: 0; right: 8%; font-size: 8px; }
+  .locationPin { width: 12%; top: 5%; }
+  .diorama, .locationPin, .visualLabel { animation: none; }
+  .primaryLink { transition: none; }
+  .primaryLink:hover { transform: none; }
+  .about { grid-template-columns: 1fr; gap: 0; padding-top: 36px; padding-bottom: 37px; }
+  .about h2 { font-size: 29px; }
+  .feature, .feature:nth-child(n + 3) { margin-top: 27px; padding-top: 23px; border-top: 1px solid var(--landing-border); }
+  .feature h3 { margin-top: 11px; font-size: 17px; }
+  .feature p { margin-top: 8px; font-size: 13px; }
+  .feature p br { display: none; }
+  .howTo { grid-template-columns: 1fr; gap: 39px; padding-block: 40px 44px; }
+  .howTo h2 { font-size: 29px; }
+  .steps { gap: 26px; }
+  .steps li { gap: 18px; }
+  .steps p { font-size: 12px; }
+  .footer { padding-block: 28px; min-height: auto; flex-wrap: wrap; gap: 20px; }
+  .footerBrand { flex-basis: 100%; }
+  .footerBrand span { margin-left: 13px; }
+  .footer > span:nth-child(2) { font-size: 8px; }
+}
+@media (max-width: 380px) {
+  .navigation { gap: 10px; }
+  .hero h1 { font-size: 37px; }
+  .heroActions { gap: 13px; }
+  .primaryLink { gap: 23px; padding-inline: 16px; }
+  .desktopBreak { display: none; }
+  .brandCaption { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .diorama, .locationPin, .visualLabel { animation: none; }
+  .primaryLink { transition: none; }
+  .primaryLink:hover { transform: none; }
+}

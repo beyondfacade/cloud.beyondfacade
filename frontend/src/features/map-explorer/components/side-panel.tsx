@@ -9,6 +9,7 @@ import { fetchRegionSummary } from "../api";
 import { ChildcareSummarySection } from "./childcare-summary";
 import { ConvenienceSummarySection } from "./convenience-summary";
 import { NeighborhoodProfileSection } from "./neighborhood-profile";
+import styles from "./map-workspace.module.css";
 
 /** 전용 원천이 있는 업종의 추가 섹션 — 업종이 스스로 무엇을 보여줄지 등록한다 (조건 분기 대신 레지스트리). */
 const INDUSTRY_SECTIONS: Partial<Record<IndustryId, ComponentType<{ regionCode: string }>>> = {
@@ -45,26 +46,35 @@ export function SidePanel({ regionCode, industry }: SidePanelProps) {
   const IndustrySection = INDUSTRY_SECTIONS[industry as IndustryId];
 
   return (
-    <aside className="flex w-80 shrink-0 flex-col overflow-y-auto border-l border-[var(--border)] bg-[var(--bg-surface)] p-5">
+    <aside className={styles.brief} aria-label="선택한 동네의 상권 정보">
+      <p className={styles.eyebrow}>DISTRICT BRIEF</p>
       {!regionCode && (
-        <div className="my-auto flex flex-col items-center gap-2 px-4 text-center">
-          <span className="text-sm font-medium text-[var(--text-primary)]">선택된 행정동 없음</span>
-          <span className="text-sm leading-relaxed text-[var(--text-secondary)]">
-            지도에서 행정동을 클릭하면 {label} 지표와 신호가 여기에 표시됩니다.
+        <div className={styles.emptyBrief}>
+          <span className={styles.emptyIcon} aria-hidden="true">
+            <svg width="32" height="32" viewBox="0 0 32 32" fill="none"><circle cx="16" cy="16" r="12" stroke="currentColor" strokeWidth="1.25" /><path d="m20.5 11.5-3 6-6 3 3-6 6-3Z" stroke="currentColor" strokeWidth="1.25" strokeLinejoin="round" /><path d="M16 2v4m0 20v4M2 16h4m20 0h4" stroke="currentColor" strokeWidth="1.25" /></svg>
           </span>
+          <h2>어느 동네가 궁금하세요?</h2>
+          <span className={styles.emptyStatus}>선택된 행정동 없음</span>
+          <p>
+            지도에서 행정동을 클릭하면 {label} 지표와 신호가 여기에 표시됩니다.
+          </p>
+          <span className={styles.emptyGuide}>동네 선택 → 지표 확인 → AI 분석</span>
         </div>
       )}
 
       {regionCode && summary.isPending && (
-        <div role="status" aria-label="불러오는 중">
+        <div role="status" aria-label="불러오는 중" className={styles.loadingBrief}>
+          <p className="mb-6 text-sm text-[var(--text-secondary)]">동네의 정보를 살펴보고 있어요.</p>
           <div className="mb-5 h-5 w-24 rounded bg-[var(--bg-raised)]" aria-hidden />
           <SkeletonRows />
         </div>
       )}
 
       {regionCode && summary.isError && (
-        <div role="alert" className="my-auto flex flex-col items-center gap-2 px-4 text-center">
-          <span className="text-sm font-medium text-[var(--danger)]">데이터 없음</span>
+        <div role="alert" className={styles.emptyBrief}>
+          <span className={styles.emptyIcon} aria-hidden="true">—</span>
+          <h2>잠시, 정보를 확인할 수 없어요.</h2>
+          <span className="text-xs font-medium text-[var(--danger)]">데이터 없음</span>
           <span className="text-sm leading-relaxed text-[var(--text-secondary)]">
             <span className="tabular-nums">{regionCode}</span> 행정동의 {label} 지표를 불러오지 못했습니다.
           </span>
@@ -73,8 +83,8 @@ export function SidePanel({ regionCode, industry }: SidePanelProps) {
 
       {regionCode && summary.data && (
         <>
-          <header className="flex flex-col gap-0.5">
-            <h2 className="text-lg font-semibold tracking-tight text-[var(--text-primary)]">
+          <header className={styles.briefHeading}>
+            <h2>
               {summary.data.name}
             </h2>
             <p className="text-xs text-[var(--text-secondary)]">
@@ -82,12 +92,12 @@ export function SidePanel({ regionCode, industry }: SidePanelProps) {
             </p>
           </header>
 
-          <ul className="mt-5 flex flex-col divide-y divide-[var(--border)] border-y border-[var(--border)]">
+          <ul className={styles.briefMetrics}>
             {summary.data.cards.map((card) => (
-              <li key={card.label} className="flex items-start justify-between gap-3 py-3">
-                <div className="flex min-w-0 flex-col gap-0.5">
+              <li key={card.label}>
+                <div className="flex min-w-0 flex-col gap-2">
                   <span className="text-xs text-[var(--text-secondary)]">{card.label}</span>
-                  <span className="text-sm leading-snug tabular-nums text-[var(--text-primary)]">
+                  <span className={styles.metricValue}>
                     {card.value}
                   </span>
                 </div>
@@ -103,7 +113,7 @@ export function SidePanel({ regionCode, industry }: SidePanelProps) {
 
           <Link
             href={`/analysis?region=${regionCode}&industry=${industry}`}
-            className="mt-6 rounded-md bg-[var(--accent)] px-3 py-2.5 text-center text-sm font-semibold text-[var(--accent-fg)] transition-opacity hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)] active:translate-y-px"
+            className="mt-7 rounded-lg bg-[var(--accent)] px-4 py-3.5 text-center text-sm font-semibold text-[var(--accent-fg)] transition-opacity hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)] active:translate-y-px"
           >
             AI 분석 →
           </Link>

@@ -17,7 +17,7 @@ export function ConvenienceSummaryList({ summary }: { summary: ConvenienceRegion
     <>
       <div className="flex flex-col gap-0.5 border-t border-[var(--border)] py-3">
         <span className="text-xs text-[var(--text-secondary)]">편의점 수</span>
-        <span className="text-sm tabular-nums text-[var(--text-primary)]">{summary.store_count}곳</span>
+        <span className="py-1 text-xl font-medium tracking-tight tabular-nums text-[var(--text-primary)]">{summary.store_count}곳</span>
       </div>
       <ul className="flex flex-col divide-y divide-[var(--border)] border-y border-[var(--border)]" aria-label="브랜드별 점포 수">
         {summary.brands.map((row) => (
@@ -44,8 +44,8 @@ export function ConvenienceSummarySection({ regionCode }: { regionCode: string }
   });
 
   return (
-    <section className="mt-6 flex flex-col gap-2" aria-label="편의점 현황">
-      <h3 className="text-sm font-semibold text-[var(--text-primary)]">편의점 현황</h3>
+    <section className="mt-7 flex flex-col gap-3" aria-label="편의점 현황">
+      <h3 className="text-sm font-semibold tracking-tight text-[var(--text-primary)]">편의점 현황</h3>
       {summary.isPending && <div className="h-24 rounded bg-[var(--bg-raised)]" role="status" aria-label="불러오는 중" />}
       {summary.isError && (
         <p role="alert" className="text-sm text-[var(--danger)]">

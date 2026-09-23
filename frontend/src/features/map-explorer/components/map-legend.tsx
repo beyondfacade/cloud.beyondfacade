@@ -36,12 +36,12 @@ interface MapLegendProps {
 export function MapLegend({ metric, classes }: MapLegendProps) {
   if (classes.length === 0) return null;
   return (
-    <div className="absolute right-3 bottom-9 z-10 rounded-md border border-[var(--border)] bg-[var(--bg-surface)] px-3 py-2.5 shadow-md">
+    <div className="absolute right-4 bottom-10 z-10 rounded-xl border border-[var(--border)] bg-[var(--bg-surface)] px-4 py-3">
       <p className="text-xs font-semibold text-[var(--text-primary)]">{METRIC_LABELS[metric]}</p>
       {NOTE_BY_METRIC[metric] && (
         <p className="mt-0.5 text-[10px] text-[var(--text-secondary)]">{NOTE_BY_METRIC[metric]}</p>
       )}
-      <ul className="mt-1.5 flex flex-col gap-1">
+      <ul className="mt-2.5 flex flex-col gap-2">
         {classes.map(({ color, from, to }) => (
           <li key={color} className="flex items-center gap-2 text-[11px] leading-none tabular-nums text-[var(--text-secondary)]">
             <span aria-hidden className="h-3 w-3 shrink-0 rounded-[2px]" style={{ backgroundColor: color }} />

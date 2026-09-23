@@ -1,0 +1,110 @@
+.workspace {
+  width: 100%;
+  max-width: 1440px;
+  margin-inline: auto;
+  padding: 46px clamp(24px, 4.45vw, 64px) 64px;
+  color: var(--text-primary);
+}
+
+.pageHeader { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; margin-bottom: 36px; }
+.eyebrow { font-size: 9px; font-weight: 650; line-height: 1.7; letter-spacing: 1.65px; }
+.pageHeader h1 { margin-top: 15px; font-size: clamp(27px, 3vw, 39px); line-height: 1.35; letter-spacing: -.06em; font-weight: 730; word-break: keep-all; }
+.pageDescription { margin-top: 13px; font-size: 13px; line-height: 1.8; word-break: keep-all; }
+.pageEdition { display: flex; align-items: center; gap: 24px; flex-shrink: 0; padding-bottom: 3px; font-size: 11px; }
+.pageEdition > span { font-size: 30px; font-weight: 300; }
+.mobileBreak { display: none; }
+.workspaceGrid { display: grid; grid-template-columns: 320px minmax(0, 1fr); gap: 28px; align-items: start; }
+.sidebar { display: grid; gap: 27px; min-width: 0; }
+.contextPanel { padding: 25px 24px; border: 1px solid var(--border); border-radius: 12px; }
+.panelHeading { display: flex; align-items: center; gap: 12px; }
+.panelNumber { font-size: 11px; letter-spacing: .8px; font-weight: 650; }
+.panelHeading h2 { font-size: 17px; font-weight: 650; letter-spacing: -.7px; }
+.panelDescription { margin-block: 13px 25px; font-size: 12px; line-height: 1.85; word-break: keep-all; }
+.form, .formFields { display: flex; flex-direction: column; gap: 18px; }
+.field { width: 100%; min-width: 0; padding: 12px; border-radius: 6px; font-size: 13px; line-height: 1.5; letter-spacing: 0; }
+.fieldHint { font-size: 11px; line-height: 1.65; letter-spacing: 0; overflow-wrap: anywhere; }
+.submitButton { display: flex; align-items: center; justify-content: space-between; gap: 20px; width: 100%; padding: 13px 17px; border-radius: 7px; font-size: 13px; font-weight: 650; cursor: pointer; }
+.submitButton > span { font-size: 20px; line-height: 1; }
+.error { margin-top: 16px; font-size: 13px; line-height: 1.7; overflow-wrap: anywhere; }
+.progressPanel { padding: 0 12px; }
+.progressPanel .panelHeading { margin-bottom: 13px; }
+.progressItem { padding-block: 15px; overflow-wrap: anywhere; }
+.statusLabel { padding: 3px 8px; background: var(--bg-raised); border-radius: 4px; font-size: 10px; white-space: nowrap; }
+.reportColumn { min-width: 0; }
+.reportSheet { min-width: 0; border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+.reportMasthead { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-inline: 34px; padding-block: 23px; border-bottom: 1px solid var(--border); font-size: 10px; }
+.reportMasthead > span:first-child { font-size: 9px; letter-spacing: 1.6px; font-weight: 650; }
+.emptySheet { display: flex; flex-direction: column; min-height: 687px; }
+.emptyContent { display: flex; flex: 1; flex-direction: column; align-items: center; justify-content: center; padding: 50px 30px 42px; text-align: center; }
+.emptyMark { display: grid; place-items: center; width: 66px; height: 66px; margin-bottom: 28px; border-radius: 20px 20px 20px 5px; font-size: 42px; font-weight: 300; }
+.emptyContent .eyebrow { font-size: 8px; letter-spacing: 1.25px; }
+.emptyContent h2 { margin-top: 18px; font-size: clamp(27px, 2.65vw, 36px); line-height: 1.4; font-weight: 650; letter-spacing: -.055em; word-break: keep-all; }
+.emptyDescription { margin-top: 20px; font-size: 13px; line-height: 1.9; word-break: keep-all; }
+.reportOutline { display: flex; flex-wrap: wrap; justify-content: center; column-gap: 27px; row-gap: 14px; margin-top: 33px; padding-top: 24px; border-top: 1px solid var(--border); }
+.reportOutline > span { display: flex; align-items: center; gap: 8px; font-size: 11px; }
+.reportOutline small { font-size: 9px; font-weight: 650; }
+.reportFooter { display: flex; justify-content: space-between; gap: 15px; margin-inline: 34px; padding-block: 19px; border-top: 1px solid var(--border); font-size: 9px; letter-spacing: 1.3px; }
+.reportFooter > span { letter-spacing: 0; }
+.reportBody { padding: 8px 34px 32px; }
+.reportSection { padding-block: 28px; }
+.reportSection + .reportSection { border-top: 1px solid var(--border); }
+.sectionNumber { margin-bottom: 15px; font-size: 9px; font-weight: 650; letter-spacing: 1.5px; }
+.markdown { font-size: 14px; line-height: 1.9; overflow-wrap: anywhere; }
+.markdown h1, .markdown h2, .markdown h3 { margin-bottom: 16px; color: var(--text-primary); font-size: 23px; line-height: 1.5; font-weight: 650; letter-spacing: -.8px; }
+.markdown h3 { font-size: 18px; }
+.markdown p { max-width: none; }
+.markdown li + li { margin-top: 8px; }
+.markdown table { display: block; overflow-x: auto; margin-top: 20px; font-size: 12px; line-height: 1.8; }
+.markdown th, .markdown td { padding: 12px 14px; }
+.markdown a { color: var(--accent); text-decoration: underline; text-underline-offset: 4px; }
+.markdown a:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+.citations { padding-top: 26px; border-top: 1px solid var(--border); }
+.citations h3 { font-size: 17px; font-weight: 650; letter-spacing: -.5px; }
+.citations a { overflow-wrap: anywhere; font-size: 13px; line-height: 1.8; }
+.citations li > span { flex-shrink: 0; }
+
+@media (max-width: 1100px) {
+  .workspaceGrid { grid-template-columns: 290px minmax(0, 1fr); gap: 22px; }
+  .contextPanel { padding: 23px 20px; }
+  .pageEdition { display: none; }
+  .reportMasthead, .reportFooter { margin-inline: 25px; }
+  .reportBody { padding-inline: 25px; }
+  .reportOutline { column-gap: 18px; }
+}
+
+@media (max-width: 800px) {
+  .workspace { padding-top: 31px; padding-bottom: 40px; }
+  .pageHeader { margin-bottom: 28px; }
+  .pageHeader h1 { font-size: 32px; }
+  .pageDescription { max-width: 390px; font-size: 12px; }
+  .workspaceGrid { grid-template-columns: minmax(0, 1fr); gap: 28px; }
+  .sidebar { gap: 24px; }
+  .formFields { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; }
+  .contextPanel { padding: 24px; }
+  .panelDescription br { display: none; }
+  .progressPanel { padding-inline: 8px; }
+  .emptySheet { min-height: 580px; }
+  .emptyContent { padding: 38px 22px; }
+  .emptyContent h2 { font-size: 31px; }
+  .reportMasthead, .reportFooter { margin-inline: 24px; }
+  .reportBody { padding: 4px 24px 26px; }
+}
+
+@media (max-width: 480px) {
+  .mobileBreak { display: block; }
+  .pageHeader h1 { font-size: 31px; }
+  .eyebrow { font-size: 8px; letter-spacing: 1.25px; }
+  .contextPanel { padding: 23px 20px; }
+  .formFields { grid-template-columns: minmax(0, 1fr); }
+  .reportMasthead { gap: 8px; font-size: 9px; }
+  .reportMasthead > span:first-child { font-size: 8px; letter-spacing: 1px; }
+  .emptyContent .eyebrow { max-width: 180px; font-size: 8px; }
+  .emptyContent h2 { font-size: 27px; }
+  .emptyDescription { font-size: 12px; }
+  .reportOutline { column-gap: 17px; }
+  .reportOutline > span { font-size: 10px; gap: 5px; }
+  .reportFooter { font-size: 8px; letter-spacing: 1px; }
+  .reportFooter > span { max-width: 130px; text-align: right; line-height: 1.6; }
+  .markdown { font-size: 13px; }
+  .markdown h1, .markdown h2 { font-size: 21px; }
+}

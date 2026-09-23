@@ -85,8 +85,8 @@ it("SSE payload가 JSON이 아니면 error 상태로 합류하고 스트림을 �
   expect(result.current.loading).toBe(false);
 });
 
-it("NEXT_PUBLIC_API_BASE가 실 API여도 분석 요청·SSE는 mock 베이스를 유지한다", async () => {
-  // RAG 분석 백엔드 미구현 — AI 분석 탭만 /api/mock 고정이 계약이다.
+it("분석 요청과 SSE 모두 NEXT_PUBLIC_API_BASE의 API 베이스를 따른다", async () => {
+  // mock 고정 상수(ANALYSIS_API_BASE)는 제거됐다 — AI 분석 탭도 다른 탭과 같은 베이스를 쓴다.
   vi.stubEnv("NEXT_PUBLIC_API_BASE", "http://localhost:8201");
   vi.resetModules();
   const { useAgentReport: freshUseAgentReport } = await import("./use-agent-report");
@@ -102,6 +102,6 @@ it("NEXT_PUBLIC_API_BASE가 실 API여도 분석 요청·SSE는 mock 베이스�
   });
   await waitFor(() => expect(FakeEventSource.instances).toHaveLength(1));
 
-  expect(fetchMock.mock.calls[0][0]).toBe("/api/mock/analysis");
-  expect(FakeEventSource.instances[0].url).toBe("/api/mock/analysis/abc/events");
+  expect(fetchMock.mock.calls[0][0]).toBe("http://localhost:8201/analysis");
+  expect(FakeEventSource.instances[0].url).toBe("http://localhost:8201/analysis/abc/events");
 });

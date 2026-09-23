@@ -2,7 +2,7 @@
 layout: post
 title: 개발 일지
 permalink: /docs/devlog.html
-date: 2026-09-07
+date: 2026-09-22
 categories: devlog
 ---
 
@@ -406,8 +406,352 @@ categories: devlog
 
 - [ ] **RAG+에이전트 구현 착수** — Task 1(rag_chunk 스키마 + HNSW 인덱스, BE v0.19.0)부터 14태스크 순차 진행
 - [ ] SGIS 지오코딩 — 학원·부동산중개 lat/lng NULL 대기열 해소 후 지표 집계 합류
-- [ ] `feature/frontend-mvp` 병합/PR 결정 (v0.12.0 컷오버 완료 상태로 보존 중)
+- [x] `feature/frontend-mvp` 병합/PR 결정 (v0.12.0 컷오버 완료 상태로 보존 중) — 9/15 main 병합 완료
 - [ ] docker-compose frontend 포트 매핑 `3200:3000` 불일치 정리 (포스트MVP 이연)
 - [ ] AWS G 인스턴스 쿼터 증설 신청 (8/25 이월)
 - [x] 어린이집정보공개포털 승인 후 키 입력 (`CHILDCARE_API_KEY`, 8/25 이월) — 9/15 승인(cpmsapi030)·키 인증 통과. 개발계정은 스펙 샘플만 반환 → **운영계정 신청 후 실데이터 수집** (후속)
 - [ ] 연령별 인구 2026.07분 1파일 추가 (공표 확인 후, 8/25 이월)
+
+## 2026-09-15
+
+### 1. [백엔드] rag BC 신설 — 색인·검색·Recall@5 평가 하네스 (Backend v0.19.0)
+
+9/7 확정한 14태스크 로드맵의 **Task 1~7(rag BC 전체) 완주** — RAG 검색 계층 Phase 1 완료.
+
+- **`rag_chunk` 테이블** — `vector(1536)` + HNSW 인덱스, source_type/source_id 복합 인덱스,
+  region_code FK(nullable)
+- **`EmbeddingPort` + 어댑터 3종** (전부 1536차원 규격 통일): Ollama Q4(색인 겸 검색 고정),
+  fp16(로컬 GPU, 지연 로딩), Gemini(온라인, 429 재시도) — **혼용 구도를 코드로 강제**
+  (색인 임베더는 provider 선택, 검색(query) 임베더는 Ollama Q4 고정)
+- 청크 빌더(funding/news 순수 함수) + 소스 게이트웨이 — cross-BC 접근은 게이트웨이 파일 안에만 국한
+- `SqlAlchemyRagRepository` — chunk_id 업서트 + 코사인 유사도 검색, 만료 공고 기본 제외
+  (`exclude_expired_funding=True`, non-funding이 join에서 드롭되지 않게 outerjoin 조건 구성)
+- 색인/검색 UseCase 분리(ISP) + `build_rag_index.py` CLI + 크론(매일 05:50, **provider=fp16 명시** —
+  크론이 조용히 다른 모델로 색인해 혼용 구도가 깨지는 사고 방지)
+- **초기 색인 6,157건** (funding 1,761 + news 4,396) — Q4(ollama)로 수행.
+  fp16 전량 재색인은 GPU 점유(다른 상주 모델 13GB대, 여유 VRAM 2.4~2.6GB)로 보류
+- **Recall@5 평가 하네스** (`evaluate_rag.py`): 순수 함수 `recall_at_k`·`mrr` + provider별 실행·JSON 저장.
+  **평가셋 후보 생성기** (`generate_evalset.py`): 색인 funding 청크 결정적 표본 50건 → gemma3:12b로
+  자연어 질문 생성(candidate 50행, 약 54초). 시운전(candidate 기준 "(참고)" 수치):
+  **ollama Recall@5 0.900 / MRR 0.782**. fp16은 GPU 제약으로 스킵, gemini는 쿼터 보존으로 미실행
+- candidate → confirmed 승격은 사용자 검수 몫(후속). 테스트: recall_at_k·mrr 4케이스 등 TDD 전 과정 통과
+
+### 2. [프론트엔드] v0.12.0 main 병합 — `feature/frontend-mvp` 통합 완료
+
+- 9/7 컷오버 완료 상태로 보존하던 브랜치를 main에 병합(c1f41d2) — **20커밋 · 75파일 · 9,270라인**,
+  충돌 0건. 원격 push까지 완료, 워크트리 제거로 프론트 소스는 `frontend/` 단일 위치로 일원화
+- 병합 후 vitest 전건 통과, 백엔드와 동시 기동해 지도 탭 실 API 연동 정상 동작 실검증
+
+### 3. [문서] 일정 압축 반영 — 마감 10/27 → 10/8 (10주 → 7주)
+
+- `brainstorming.md` MVP 주차표 압축(5~10주 → 5/6/7주), `agent-architecture.md` §3 구축 순서
+  7주 재배치 + §4-1 AWS 이전 전 로컬 개발 시한 9월 하순으로 조정, 본 개발일지 일정 표기 정합화
+- 공개 사이트(지킬) 스프린트 로드맵·칸반을 실제 진행 상황(RAG 조기 완료 등)으로 동기화,
+  기술 스택 표기를 Flutter → **웹(Next.js)** 으로 전면 교체(실구현과 문서 일치화)
+
+### 4. [문서] 어린이집정보공개포털 승인 — api.md ⑬ 갱신
+
+- 8/25 신청한 개발계정 **9/15 승인** (승인 API: cpmsapi030 어린이집 일반현황) —
+  `CHILDCARE_API_KEY` 기입, 실호출 인증 통과, 응답 스키마 **62필드 실확인**
+  (정원 crcapat·현원 crchcnt·좌표·반별/연령별/보육교직원 카운트)
+- 단, 개발계정 키는 스펙 샘플(전 필드 더미 순번)만 반환 — **실데이터 수집 전 운영계정 재승인 필수** (후속)
+
+### 5. [문서] 프로젝트 산출물 구조 문서 신설
+
+- `docs/프로젝트_산출물_구조.md` — milestone·WBS부터 서버 구성, 타당성 검토(실데이터 기반 ERD 원칙,
+  임베딩 fp16/Q4 혼용 실측), 백엔드·프론트·AI 스택까지 프로젝트 전체 산출물을 한 문서로 집약
+
+### 다음 작업
+
+- [ ] **agent BC 착수 (Task 8~11, BE v0.20.0)** — 도구 7종 = 기존 UseCase 래핑, Port = Tool 원칙 — 9/16 Task 8~10 완료, Task 11 남음
+- [ ] RAG 평가셋 candidate 50건 검수 → confirmed 승격 (본지표 산출 전제)
+- [ ] fp16 전량 재색인 + fp16 Recall@5 측정 — GPU 여유 시 `--full --provider fp16` 수동 실행
+- [ ] 어린이집 운영계정 신청 → cpmsapi030 실데이터 수집
+- [ ] SGIS 지오코딩 — 학원·부동산중개 lat/lng NULL 대기열 (9/7 이월)
+- [ ] docker-compose frontend 포트 매핑 `3200:3000` 불일치 정리 (포스트MVP 이연)
+- [ ] AWS G 인스턴스 쿼터 증설 신청 (8/25 이월)
+- [ ] 연령별 인구 2026.07분 1파일 추가 (공표 확인 후, 8/25 이월)
+
+## 2026-09-16
+
+9/15 rag BC(Task 1~7)에 이어 **agent BC Task 8~10 구현** — 5커밋 · 신규/수정 약 1,850라인.
+BE 버전(v0.20.0)은 라우터·SSE까지 붙는 Task 11 완료 시점에 확정·기록 예정.
+
+### 1. [백엔드] LLMGatewayPort + gemma3·Gemini 어댑터 (Task 8)
+
+- `apps/agent` BC 골격 + `LLMGatewayPort`(`chat` 단일 메서드) — `LLMToolSpec`·`LLMToolCall`·`LLMUsage`·
+  `LLMTurn`을 **프로바이더 중립 계약**으로 정의해 도구 레지스트리·에이전트 루프가 이 포트 위에서 동작
+- **OllamaLLMAdapter**: `/api/chat` + tools를 function 스펙으로 변환, `tool_calls` 파싱,
+  토큰 사용량(`prompt_eval_count`/`eval_count`) → `LLMUsage`
+- **GeminiLLMAdapter**: system_instruction 분리·role 매핑·functionResponse 변환을 순수 함수로 분리,
+  요청 간 **최소 4초 간격** + 429 지수 백오프(재시도 예산 30초, 임베딩 어댑터와 동일 관행)
+- 테스트 5건 (Ollama 3 + Gemini 변환 함수 2, 실호출 없음)
+
+### 2. [백엔드] 도구 레지스트리 7종 + 월세 vs 매입 계산기 (Task 9)
+
+- `RegionFactsPort` 5메서드(metrics/summary/population/shocks/latest_rates) — 구현체
+  `RegionFactsGateway`가 metric·master·shock BC를 **어댑터 레이어에서만** 조회(app 레이어는 포트만 import)
+- **도구 7종을 if/elif 없이 리스트 registry로 조립** — market(get_region_metrics·get_region_summary·
+  get_population) / shock(search_shocks·search_news) / funding(search_funding·compare_rent_vs_buy)
+- `compare_rent_vs_buy` 순수 계산기: 연금리 생략 시 시설자금대출(`loan_facility`) 최신값 자동 주입,
+  결과에 **금융 규제 경계 고지(assumptions)** 항상 포함
+- 리뷰 수정(b1c3b2e): 금리 미적재 시 KeyError로 도구가 죽던 문제 → `{"error": ...}` JSON 반환으로
+  우아하게 실패. 테스트 7건 통과
+
+### 3. [백엔드] 단일 에이전트 루프 — SSE 이벤트 계약 (Task 10)
+
+- `AgentEvent` 엔티티(프론트 `types.ts` 미러) + `AnalysisUseCase` 입력 포트 + `AnalysisInteractor`
+  (제너레이터) — `agent_status → tool_call → report_delta → report_done` 순서 계약으로 스트리밍
+- SYSTEM_PROMPT **응답 규칙 4종**(외국인 변수·지원금 왜곡·금융 규제 경계·신뢰 등급 표기) +
+  `[SECTION:*]` 마커 5종, `split_report_sections` 파서(누락 섹션은 "분석 데이터가 부족합니다." 폴백)
+- **루프는 죽지 않는다**: 인자 스키마 위반은 재프롬프트 1회 후 스킵, 도구 예외는 `{"error"}` 되먹임,
+  **12턴 초과 시 최종 리포트 강제**, 전 chat 호출 usage를 `last_usage`에 합산(Task 11이 영속화)
+- 리뷰 수정(46f567c) 4건: ① citations를 프론트 계약 `{title, url, grade}` 3키로 정규화(등급별 제목 테이블)
+  ② cite 콜백 예외 가드 — 인용 실패해도 리포트 스트림 끝까지 방출 ③ 재프롬프트 이력 순서 — 유효 호출 먼저
+  실행 후 위반 호출만 재시도(dangling tool_call 제거) ④ Gemini 어댑터가 `tool_name` 키를 읽도록 크로스태스크 갭 수정
+- 테스트 16건 통과 (`test_agent_loop.py` 11 + `test_agent_llm_adapters.py` 5)
+
+### 다음 작업
+
+- [ ] **Task 11 — agent 영속화 + 라우터 + SSE 엔드포인트** (BE v0.20.0 확정, 버전 로그 기록)
+- [ ] Task 12 — 프론트 AI 분석 탭 mock → 실 SSE 전환 (FE v0.13.0)
+- [ ] Task 13~14 — 두뇌 모델 비교 평가 (gemma3 로컬 → Gemini)
+- [ ] RAG 평가셋 candidate 50건 검수 → confirmed 승격 (9/15 이월)
+- [ ] fp16 전량 재색인 + fp16 Recall@5 측정 — GPU 여유 시 (9/15 이월)
+- [ ] 어린이집 운영계정 신청 → cpmsapi030 실데이터 수집 (9/15 이월)
+- [ ] SGIS 지오코딩 — 학원·부동산중개 lat/lng NULL 대기열 (9/7 이월)
+- [ ] docker-compose frontend 포트 매핑 `3200:3000` 불일치 정리 (포스트MVP 이연)
+- [ ] AWS G 인스턴스 쿼터 증설 신청 (8/25 이월)
+- [ ] 연령별 인구 2026.07분 1파일 추가 (공표 확인 후, 8/25 이월)
+
+## 2026-09-17
+
+어린이집 실데이터 수집부터 어린이집·편의점 지도 연결까지 완료하고, **서울 상권 아틀라스** 방향으로
+랜딩·지도 탐색·AI 분석 화면을 정리했다. 실DB 기준 최종 ERD(21개 테이블)도 확정했다.
+Backend **v0.20.0**, Frontend **v0.13.0~v0.14.0**.
+
+### 1. [백엔드] 어린이집 수집·이력 저장 — childcare BC 신설 (Backend v0.20.0)
+
+- **운영계정으로 cpmsapi030 실데이터 수집 완료** — 자치구 25회 호출로 서울 어린이집 **3,940곳** 적재,
+  실패 구 0. 기존 개발계정 샘플 반환 문제를 해소하고 매주 월요일 05:30 수집 크론 등록
+- 시설 정보 `childcare_center`와 기준일별 정원·현원·입소대기 `childcare_center_stat`를 분리.
+  현황을 덮어쓰지 않아 이후 가동률 추이를 비교할 수 있고, first/last_seen으로 관측 이력을 보존
+- 첫 스냅샷: 정원 **191,788명**, 현원 **130,019명**, 서울 가동률 **67.8%**.
+  행정동 연결 **3,912곳**, **426/427개 동** 커버. 좌표 누락 7곳과 자치구 불일치·경계 밖 21곳은
+  행정동을 임의로 채우지 않음
+- 입소대기·상태 공란은 NULL 보존. 대표자명은 수집하지 않고, 등록 자치구 밖을 가리키는 좌표는
+  공간조인에서 제외. API가 HTTP 200으로 반환하는 인증 오류도 본문의 `errcode`로 검출
+
+### 2. [백엔드] 어린이집·편의점 조회 API와 점포수 지표 연결 (Backend v0.20.0)
+
+- **어린이집 API** — 행정동별 시설 마커와 최신 정원·현원·입소대기·가동률 요약 제공.
+  현행 시설은 **자치구별 최신 관측일**로 판정해 한 구의 수집 실패가 다른 구의 시설 표시를 바꾸지 않음
+- **편의점 API** — 행정동별 점포 마커와 브랜드별 점포 수·기준연월 제공.
+  현행 점포는 **행정동별 최신 관측일**로 판정. 실서버 확인: 역삼1동 **149곳**,
+  GS25 54·세븐일레븐 49·CU 34·이마트24 7·미니스톱 2·기타 3
+- **점포수 지표 합류** — 전체 지표 **21,005건** 재집계. 2026년 어린이집 **3,912곳/426개 동**,
+  편의점 **9,395곳/427개 동**을 단계구분도와 요약 카드에서 조회 가능
+- 스냅샷에는 개폐업 이력이 없으므로 **개업 수·폐업 수·폐업률·성장률은 NULL**로 유지.
+  관측하지 않은 2019~2025년 값도 만들지 않음. 입소대기 합은 중복 신청을 포함하는 수치로 표시
+- 백엔드 버전 로그 기준 최종 테스트 **213건 중 212건 통과**.
+  기존 `test_store_ingest` 실DB 커서 테스트 실패 1건은 남아 있으며, 이번 작업으로 해결된 것으로 기록하지 않음
+
+### 3. [프론트엔드] 어린이집·편의점 지도 마커와 현황 패널 (Frontend v0.13.0)
+
+- **업종별 마커 전략(Strategy)** 도입 — 기존 점포 마커를 `RegionMarkers`로 일반화하고,
+  업종별 조회 함수·캐시 키·팝업 구성을 분리. 카페 등 기존 업종의 지도 동작은 유지
+- 어린이집 팝업에 유형·상태·정원·현원·가동률·입소대기를 표시하고, 사이드패널에 시설 수·합산 현황 제공.
+  미공개 값은 `미공개`/`상태 미상`으로 구분. **청운효자동 4곳·가동률 62.1%·입소대기 108건** 실검증
+- 편의점 팝업에 상호·브랜드·주소를, 사이드패널에 브랜드 분포와 원천 기준연월을 표시.
+  역삼1동 **149곳 클러스터 → 개별 점포 팝업**까지 브라우저로 확인
+- mock API도 실 API 계약에 맞춰 정리하고, 목록과 요약의 합산 규칙·404·표시 포맷·마커 전략 테스트 추가
+
+### 4. [프론트엔드] Remote-SSH 지도 요청 오류 수정 (Frontend v0.13.1)
+
+- 포트 포워딩으로 접속한 브라우저가 `127.0.0.1:8201`을 개발 서버가 아닌 사용자 PC로 해석해
+  지도 데이터를 받지 못하던 원인 확인
+- Next.js의 **`/api/backend/*` → 서버 전용 `BACKEND_ORIGIN/*` 프록시** 추가.
+  브라우저는 프론트엔드와 같은 origin으로 요청하고, 백엔드 주소는 서버에서 처리
+- health·행정동 GeoJSON·지표의 200 응답과 404 오류 본문 전달을 확인.
+  프록시 설정이 없을 때의 기존 mock 동작을 보존하고, 해당 시점 테스트 **68건** 통과
+
+### 5. [디자인·프론트엔드] 서울 상권 아틀라스 랜딩과 세 화면 톤 통일 (Frontend v0.14.0)
+
+- **랜딩 `/` 신설** — “서울의 변화 속에서, 내 가게의 자리를 찾다.”를 중심으로
+  상권 탐색 CTA·기능 소개·이용 순서를 구성. 아이보리 바탕과 청록색, 큰 제목과 여백으로 서비스의 인상을 정리
+- **Blender 도시 모형·위치 핀 제작** — 편집 가능한 `.blend`와 재현 스크립트를 함께 제공.
+  웹에서는 투명 WebP **2장, 총 74,590 bytes(약 75KB)**와 CSS 모션만 사용하며 실시간 3D 런타임은 추가하지 않음.
+  서울을 표현한 개념 모형임을 표기하고 모바일·reduced-motion에서는 장식 모션 정지
+- **지도 `/map` 분리** — 기존 `/?region=…&industry=…` 링크는 쿼리를 보존해 이동.
+  지도 링크의 자동 prefetch를 끄고, 랜딩에서 지도 모듈·지도 API를 로드하지 않도록 분리
+- **지도 탐색** — 제목·필터·지도 프레임·지역 브리프의 위계를 정리.
+  **AI 분석** — 입력·진행 상황·문서형 리포트를 같은 톤으로 구성.
+  공통 헤더·색상 토큰·다크 테마를 통일하고 모바일에서는 패널을 세로 배치. 지도·분석에는 3D 효과를 추가하지 않음
+- **기존 데이터 동작 유지** — 지도 렌더링·데이터 색상 스케일·필터·SSE 계약 보존.
+  AI 분석은 기존 **모의 API(`/api/mock`)**를 사용하며, 실제 분석 백엔드 연결은 후속 작업
+- **서브에이전트 구현·독립 검토** — 지도와 AI 화면을 나눠 구현하고 공통 UI를 통합.
+  검토에서 보조 텍스트 대비를 **5.12:1**로 개선하고, 부분 리포트 수신 후 오류가 나면 내용은 유지하며
+  상태를 **`작성 중단`**으로 표시하도록 수정
+- 최종 **Vitest 25파일·77건**, TypeScript 검사, 프로덕션 빌드 통과.
+  랜딩 1440/1024/390/320px, 지도·완성 리포트 데스크톱/390/320px, 다크 모드와 모션 감소 상태 확인.
+  **지도 선택 → 지역·업종 전달 → 분석 제출 → 리포트 5개 섹션·참고 자료 4건** 흐름을 검증
+- v0.14.0은 `codex/seoul-atlas-landing` 브랜치에서 구현·검증을 마친 상태이며, 배포 완료를 의미하지 않음
+
+### 6. [개발 환경·문서] 최종 ERD·인수인계 문서와 변경 기록 정리
+
+- **최종 ERD 작성 (`docs/erd.md` §6)** — 운영 DB `information_schema`를 실제로 조회해 **21개 테이블** 기준 Mermaid ERD 작성.
+  DB FK 제약은 실선, 애플리케이션 레벨 참조(`rag_chunk` 다형 참조·지표 배치 집계·금리↔임대료 계산 조인)는 점선으로 구분
+  - 적재 현황: store **348,792** · population_stat **142,632** · tobacco_retailer **95,402** · region_industry_metric **21,005** ·
+    convenience_store **9,395** · rag_chunk **6,645** · childcare_center **3,940** 등
+  - 초안(MVP 15개 테이블) 대비: `rag_chunk` 추가, `sales_estimate`·`funding_program_industry` 미구현,
+    지표 테이블 PK를 (region_code, industry_id, year) 복합키로 바꾼 점 등을 정리
+  - §13 연결 원칙 점검: `funding_program`은 DB FK가 없어 업종 연결 테이블 구현이 필요하고, `shock_event_region`은 적재 0건
+- **API 문서 갱신 (`docs/api.md`)** — 어린이집 운영계정 승인·`CHILDCARE_API_KEY` 교체(종로구 실데이터 58건 확인)와
+  수집기 실적재 완료(3,940건) 표시
+- **인수인계 문서 `docs/HANDOFF.md` 작성** — 현재 상태(지도 실 API 연결, AI 분석 탭 mock, 수집 크론 일정, 개발 서버 구성)와
+  남은 작업을 우선순위별로 정리. Task 11~14는 GPU 16GB 중 13.4GB를 다른 프로젝트 시연 모델이 점유하고 있어 **보류**,
+  Task 11은 **BE v0.21.0**으로 버전을 다시 배정
+- 백엔드 도커 이미지를 **v0.20.0으로 재빌드**해 `beyondfacade-api`(8200) 재기동
+- `.gitignore`의 데이터 제외 범위를 루트 `/data/`로 한정해 디자인 스킬의 참조 데이터가 함께 제외되던 문제 수정.
+  UI 스타일·색상·타이포그래피 등 참조 자료를 저장소에서 추적
+- 랜딩 설계·구현 계획과 Blender 자산 재현 문서를 작성하고, 프론트엔드 버전 로그를 v0.14.0까지 갱신
+
+### 다음 작업
+
+- [x] **Task 11 — agent 영속화·라우터·SSE 엔드포인트** 구현 (**BE v0.21.0** — 기존 계획의 v0.20.0은
+  오늘 childcare 기능에 사용). GPU를 점유한 시연 모델이 내려간 뒤 `ollama ps`로 확인하고 재개 — 9/21 완료
+- [ ] `funding_program_industry`(지원사업↔업종) 구현 — 최종 ERD 연결 원칙 점검에서 확인된 미연결 테이블 해소
+- [x] Task 12 — AI 분석 화면을 mock에서 실 SSE로 전환 (후속 프론트엔드 버전으로 기록) — 9/21 완료(FE v0.14.0, analysis-api 브랜치)
+- [ ] Task 13~14 — 두뇌 모델 비교 평가 (gemma3 로컬 → Gemini) — 9/21 Task 13 러너 완료, Task 14 실행 대기
+- [ ] RAG 평가셋 candidate 50건 검수 → confirmed 승격, GPU 여유 시 fp16 전량 재색인·Recall@5 측정 — 9/22 fp16 재색인 완료(BE v0.22.1), 검수는 대기
+- [ ] 서울 상권 아틀라스 변경 검토 후 병합·배포
+- [x] SGIS 지오코딩 — 학원·부동산중개 좌표 누락 대기열 해소 — 9/22 완료(BE v0.22.0)
+- [ ] docker-compose frontend 포트 매핑 정리·AWS G 인스턴스 쿼터 증설·연령별 인구 2026.07분 확보
+
+## 2026-09-21
+
+9/17에 GPU 점유로 보류했던 **Task 11~13**을 `feature/analysis-api` 워크트리(main에서 분기)에서 재개했다.
+agent BC를 HTTP/SSE 엔드포인트와 영속화로 마감하고, 프론트엔드 AI 분석 탭을 실 백엔드 SSE로 전환했으며,
+두뇌 모델 비교 평가 러너를 준비했다. Backend **v0.21.0**, Frontend **v0.14.0**(analysis-api 브랜치 기준).
+
+### 1. [백엔드] agent BC SSE 분석 API — Task 11 마감 (Backend v0.21.0)
+
+- **`POST /analysis` · `GET /analysis/{id}/events` · `GET /analysis/myself`** 3개 엔드포인트 신설.
+  myself로 라우터→유스케이스→인터랙터 배선을 먼저 확인하고, POST로 analysis_id(UUID)를 발급한 뒤
+  SSE 프레임(`event: {type}` + `data:`)을 이벤트 순서대로 스트림
+- Composition Root `analysis_dependencies` — 모델 레지스트리 **`gemma3 | gemini`**를 Factory Method로 분기.
+  요청마다 AnalysisInteractor 인스턴스를 새로 만들어 토큰 사용량(`last_usage`) 가변 상태를 요청 간 격리
+- **gemma4:12b 배선** — 현행 `gemma3:12b`는 Ollama tools capability가 없어(`does not support tools`)
+  API 키 이름은 `gemma3`로 유지하고 실제 모델만 동일 패밀리 **`gemma4:12b`**로 교체
+- **영속화** — 스트림 완료 시 `analysis_report` 1행 + `llm_usage` 1행 저장(마이그레이션 `a1b2c3d4e5f6`).
+  `report_done.report_id`를 analysis_id와 같게 두어 mock 계약과 대칭. 진행 중 id는 프로세스 수명 `_PENDING`에 보관
+- 라우터 테스트 **4건**(Fake UseCase) — myself 200·POST UUID·SSE 프레임 순서·미지 id 404 본문
+- 스모크(8299, 역삼1동 카페): **약 23초**, input **14,377** / output **719** 토큰, DB 1+1행 저장 확인
+- T8 LLM 어댑터(Ollama·Gemini)·T9 도구 7종·T10 단일 에이전트 루프는 선행 커밋이며,
+  이번 버전에서 HTTP/SSE·영속화에 연결되어 마감
+
+### 2. [프론트엔드] AI 분석 탭 실 SSE 전환 — Task 12 (Frontend v0.14.0)
+
+- `ANALYSIS_API_BASE=/api/mock` 상수와 TODO 제거. 분석 POST·EventSource가 `config.apiBase`
+  (`NEXT_PUBLIC_API_BASE=/api/backend`)를 따르므로 **코드 수정 없이 env만으로** mock↔실 API 전환
+- 백엔드 계약이 mock과 동일해 훅 로직은 무변경. 테스트는 "mock 고정" 계약을 "config.apiBase를 따른다"로 반전
+- **버전 번호 충돌 주의** — `codex/seoul-atlas-landing` 브랜치의 아틀라스 랜딩도 **Frontend v0.14.0**(9/17)으로
+  기록되어 있어, 두 브랜치 병합 시 한쪽 번호를 재배정해야 함
+
+### 3. [백엔드] 모델 비교 평가 러너 — Task 13
+
+- `run_agent_eval --model gemma3|gemini` CLI. **시나리오 10건** — 업종 기본 6건(역삼 카페·잠원 헬스장·
+  삼성 노래방·가산 PC방·청운효자 미용실·청담 당구장), 부분 데이터 2건(편의점·어린이집 — 폐업률·성장률이
+  없으므로 "지어내기 금지" 기대), 규칙 2건(대림3동 "외국인 많은 동네" 질문 → 차별 금지,
+  역삼 부동산 "대출 어디서" 질문 → 은행 추천 금지)
+- 자동 채점 순수 함수 3종 — tool_call 호출·스킵 수, 금지 키워드 적중(은행명+권유어, 외국인 비하),
+  리포트 **5섹션 완성률**("분석 데이터가 부족합니다"만 있으면 미완성). 단위 테스트 **4건**
+- 결과는 `data/eval/results/agent_{model}_{ts}.jsonl`에 리포트 전문 포함 저장(수동 검토용).
+  Gemini는 무료 티어 요청 간격 4초. 키워드 채점은 부정문·맥락을 판별하지 못하므로 최종 위반 판정은 수동 병기
+- 평가 실행(Task 14)은 아직 하지 않음 — 결과 파일 없음
+
+### 다음 작업
+
+- [x] **Task 14 — 평가 실행** gemma4(로컬) → Gemini 순으로 시나리오 10건 실행, 비교표 작성 — 9/22 완료(BE v0.21.1)
+- [ ] `feature/analysis-api` ↔ `codex/seoul-atlas-landing` 병합 순서 결정, Frontend v0.14.0 번호 충돌 해소 — 9/22 PR #1 생성, 머지 대기
+- [ ] `docs/api.md`에 `/analysis` 엔드포인트 3종 반영 (오늘 미갱신)
+- [ ] `funding_program_industry` 구현·RAG 평가셋 검수·SGIS 지오코딩 등 9/17 잔여 항목 유지 — SGIS 지오코딩은 9/22 완료(BE v0.22.0)
+
+## 2026-09-22
+
+`feature/analysis-api` 워크트리에서 Task 14 두뇌 비교 평가를 마치고, 9/17부터 이월된 **SGIS 지오코딩**과
+**RAG fp16 전량 재색인**을 GPU가 비는 틈에 처리했다. 프론트엔드는 어린이집·편의점 스냅샷 업종의 표시 규칙과
+포스트MVP 잔여 UX를 정리했다. Backend **v0.21.1~v0.22.1**, Frontend **v0.14.1~v0.14.4**(analysis-api 브랜치 기준, PR #1).
+
+### 1. [백엔드] 두뇌 비교 평가 결과 — Task 14 마감 (Backend v0.21.1)
+
+- **Gemini 기본 모델 교체** `gemini-2.0-flash` → `gemini-2.5-flash`. 2.0은 폐기되어 404를 반환했고,
+  3.6-flash는 `thought_signature`를 요구해 현 어댑터로는 보류
+- **시나리오 10건 × gemma4:12b(로컬) vs gemini-2.5-flash** 실행, 비교표 `data/eval/results/agent_compare.md` 작성
+  (원본 jsonl 2건 force-add)
+  - 리포트 5섹션 완성률 **50% vs 90%**, 평균 소요 **39.9s vs 17.4s**, 평균 토큰(입+출) **10,997 vs 7,570**,
+    평균 도구 호출 3.4 vs 5.0, 도구 성공률 양쪽 100%
+  - 자동 규칙 위반 감지(외국인 비하·특정 은행 추천) **0/10 양쪽**. 키워드 근사라 최종 판정은 `report_md` 수동 검토 병기
+  - gemma4는 잠원 헬스장·청운효자 미용실·편의점 부분 데이터 3건에서 0/5, Gemini는 청담 당구장 1건만 0/5(6초 만에 종료)
+- 두뇌 채택은 **A Gemini 단독 / B 로컬 단독 / C 혼합(데모는 Gemini, 야간 배치·폴백은 로컬)** 세 안으로 정리.
+  Composition Root 레지스트리로 C안이 이미 가능하며, 최종 결정은 팀 몫으로 남김
+
+### 2. [백엔드] SGIS 지오코딩 파이프라인 — 학원·부동산중개 좌표 누락 해소 (Backend v0.22.0~v0.22.1)
+
+- `store`에 **`road_address` / `jibun_address`** 컬럼 추가(마이그레이션 `b2c3d4e5f6a7`).
+  학원 게이트웨이는 `ROAD_NM_ADDR`, 중개 게이트웨이는 `rdnmadr`/`mnnmadr`를 적재
+- **`SgisGeocodingGateway`** — 액세스 토큰 4시간 캐시, UTM-K(EPSG:5179) → WGS84 변환.
+  `GeocodeStoresInteractor` + CLI `geocode_stores [--limit N] [--industry …]`로 lat/lng NULL 대기열만 처리.
+  입력·출력 포트(`geocode_stores_use_case`·`geocoding_port`·`store_geocode_port`) 신설, 테스트 3파일 추가
+- **업서트 시 원천 좌표가 NULL이면 기존 지오코딩·공간조인 결과 보존** — 학원 재수집 때 좌표가 다시 사라지던 문제 차단
+- 운영 보강 2건 — 좌표를 **200행마다 flush**해 장시간 실행 중 중단돼도 진행분 유지,
+  미매칭만 남은 대기열에서 `geocoded==0`이면 **exit 2**로 종료해 크론 무한루프 방지.
+  `store-collector.sh` 크론에 지오코딩 단계 합류
+- **전량 지오코딩 완료** — 학원 **25,504** · 중개 **25,299** 좌표 확보, 행정동 배정 25,504·25,281,
+  `region_industry_metric` **3,408·3,416행** 합류. 미매칭 잔여 학원 4·중개 2
+- **`GET /stores` 500 수정(v0.22.1)** — `Store` 엔티티에 추가한 주소 필드가 `StoreDto(**asdict)`에 없어 TypeError.
+  DTO와 응답 스키마에 동일 필드를 추가해 복구
+- 선행 조건: `SGIS_SERVICE_ID` / `SGIS_SECURITY_KEY`가 `.env`에 없으면 CLI가 즉시 실패.
+  순서는 수집(주소 채움) → geocode_stores → assign_regions → build_metrics
+
+### 3. [백엔드] RAG fp16 전량 재색인 (Backend v0.22.1)
+
+- GPU 점유 모델이 내려간 것을 확인하고 **7,505건 전부 `qwen3-embedding-4b-fp16`**으로 재색인(343.8초).
+  Q4·fp16 혼용 상태 해소
+- 참고 평가: candidate 50건 기준 **Recall@5 0.900 / MRR 0.791** (`data/eval/results/rag_fp16_20260922_122721.json`).
+  confirmed가 0건이라 본지표는 아직 산출하지 않음 — 평가셋 검수는 사용자 작업으로 유지
+
+### 4. [프론트엔드] 어린이집·편의점 스냅샷 업종 표시 규칙과 딥링크 (Frontend v0.14.1~v0.14.3)
+
+- **v0.14.1** — 스냅샷 원천이라 폐업률·성장률이 NULL인 업종은 지표 버튼을 점포수만 노출하고,
+  URL의 폐업률/성장률 지표는 `store_count`로 보정. 사이드패널 카드 숨김 + 안내 문구, 지도 빈 지표 배너를 점포수 기준으로 구분
+- **v0.14.3** — 위 숨김을 철회. 지표 버튼과 사이드패널 카드 3종을 모두 다시 표시하고 값이 없으면 **"데이터 없음"**,
+  스냅샷 원천 안내 문구만 유지 (`map-state` 순수 함수 31줄 → 단순화, 테스트 갱신)
+- **v0.14.2** — 딥링크 `?region=` 진입·선택 시 GeoJSON 행정동 bbox로 **`fitBounds`**.
+  순수 함수 `bboxOfRegion` + 단위 테스트로 고정
+
+### 5. [프론트엔드] 포스트MVP 잔여 UX 정리 (Frontend v0.14.4)
+
+- **스트림 에러 시 에이전트 슬롯 stale 수정** — SSE `onerror`·JSON 파싱 실패 때 `running` → `error`로 전이(훅 테스트 추가)
+- **테마 새로고침 리셋 수정** — `localStorage(metabole-theme)` 저장 + layout 부트 스크립트로 첫 렌더부터 다크 유지
+- Pretendard **CDN → 셀프호스트**(`pretendard` 패키지 CSS import), AnalysisForm 업종 입력을 `INDUSTRIES` select로 교체
+- `readAccentColor`를 `shared/lib/accent-color.ts`로 승격(map-view export 제거),
+  maplibre 워커 벤더링을 `scripts/vendor-maplibre-worker.sh` + `postinstall`로 자동화
+
+### 6. [문서·인프라] HANDOFF 갱신과 PR #1
+
+- **`docs/HANDOFF.md` 재작성**(9/22 기준, 69줄) — Task 11~14 완료 표시, 데이터 계층·UX·배포·정리 항목을 체크리스트로 재정렬.
+  편의점 폐업률을 담배소매인 데이터로 대체하지 않기로 한 결정을 "재검토 불필요"로 명시
+- rag-agent 설계·플랜 문서에 실제 버전(BE v0.21+/FE v0.14+) 주석. `docs/api.md`는 오늘도 미갱신(`/analysis` 3종·`/stores` 주소 필드)
+- docker-compose 프론트 포트 `3200:3200` + Dockerfile `EXPOSE 3200` 정합.
+  `test_latest_source_updated_at_returns_cursor`는 미래 커서 시각으로 실DB 오염 회피
+- `feature/analysis-api` 푸시 + **PR #1** 생성. main 머지는 리뷰 후, `codex/seoul-atlas-landing`은 그 뒤 리베이스
+
+### 다음 작업
+
+- [ ] **PR #1 리뷰 → main 머지**, 이어서 `codex/seoul-atlas-landing` 리베이스와 Frontend v0.14.0 번호 재배정
+- [ ] 두뇌 채택 **A/B/C** 팀 결정 → Composition Root 기본 모델 확정
+- [ ] RAG 평가셋 candidate 50건 검수 → confirmed 승격 후 Recall@5 본지표 산출
+- [ ] `docs/api.md`에 `/analysis` 3종·`/stores` 주소 필드 반영
+- [ ] Vercel 앱 프로젝트 신설(`NEXT_PUBLIC_API_BASE` + 백엔드 터널) — 현재 CLI 계정에 Metabole 프로젝트 없음
+- [ ] `funding_program_industry` 구현·어린이집 폐업률 산출 방식·연령별 인구 2026.07분·AWS G 쿼터 등 이월 항목 유지

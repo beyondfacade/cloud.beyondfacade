@@ -1,5 +1,6 @@
 import type { AgentName } from "@/shared/api/types";
 import type { AgentState, AgentStatus } from "../lib/agent-events";
+import styles from "./analysis-workspace.module.css";
 
 const AGENT_ORDER: AgentName[] = ["orchestrator", "market", "shock", "funding"];
 
@@ -31,20 +32,23 @@ interface ProgressPanelProps {
 
 export function ProgressPanel({ state }: ProgressPanelProps) {
   return (
-    <div className="flex flex-col" role="status" aria-live="polite">
-      <h2 className="mb-1 text-xs font-semibold tracking-wide text-[var(--text-secondary)]">진행 상황</h2>
+    <div className={`${styles.progressPanel} border-[var(--border)]`} role="status" aria-live="polite">
+      <div className={styles.panelHeading}>
+        <span className={`${styles.panelNumber} text-[var(--accent)]`}>02</span>
+        <h2>진행 상황</h2>
+      </div>
       <ol className="flex flex-col divide-y divide-[var(--border)]">
         {AGENT_ORDER.map((name) => {
           const slot = state.agents[name];
           return (
-            <li key={name} className="py-3.5">
+            <li key={name} className={styles.progressItem}>
               <div className="flex items-center gap-2.5">
                 <span
                   aria-hidden
                   className={`h-2 w-2 shrink-0 rounded-full transition-colors duration-300 ${DOT[slot.status]}`}
                 />
                 <span className="text-sm font-medium text-[var(--text-primary)]">{LABEL[name]}</span>
-                <span className="ml-auto text-xs text-[var(--text-secondary)]">{STATUS_LABEL[slot.status]}</span>
+                <span className={`${styles.statusLabel} ml-auto text-[var(--text-secondary)]`}>{STATUS_LABEL[slot.status]}</span>
               </div>
               {slot.tools.length > 0 && (
                 <ul className="mt-2 ml-1 flex flex-col gap-1 border-l border-[var(--border)] pl-3.5">

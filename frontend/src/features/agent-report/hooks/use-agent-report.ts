@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { apiPost } from "@/shared/api/client";
+import { config } from "@/shared/config";
 import type { AgentEvent } from "@/shared/api/types";
 import { applyAgentEvent, initialAgentState, type AgentState } from "../lib/agent-events";
 
@@ -12,10 +13,6 @@ export interface StartAnalysisParams {
 }
 
 const EVENT_TYPES: AgentEvent["type"][] = ["agent_status", "tool_call", "report_delta", "report_done"];
-
-// TODO: RAG 분석 백엔드 미구현 — AI 분석 탭(분석 시작 POST + SSE)만 mock 베이스를 유지한다.
-// 실 분석 API 전환 시 이 상수를 제거하고 config.apiBase로 복귀할 것.
-const ANALYSIS_API_BASE = "/api/mock";
 
 /** POST /analysis 로 분석을 시작하고 SSE 이벤트를 구독해 리듀서에 적용한다. */
 export function useAgentReport() {
@@ -44,8 +41,8 @@ export function useAgentReport() {
     setState(initialAgentState());
 
     try {
-      const { analysis_id } = await apiPost<{ analysis_id: string }>("/analysis", params, ANALYSIS_API_BASE);
-      const source = new EventSource(`${ANALYSIS_API_BASE}/analysis/${analysis_id}/events`);
+      const { analysis_id } = await apiPost<{ analysis_id: string }>("/analysis", params);
+      const source = new EventSource(`${config.apiBase}/analysis/${analysis_id}/events`);
       sourceRef.current = source;
 
       for (const type of EVENT_TYPES) {

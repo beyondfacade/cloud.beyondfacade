@@ -1,0 +1,63 @@
+.workspace {
+  width: 100%;
+  max-width: 1800px;
+  margin-inline: auto;
+  padding: 29px clamp(24px, 3.2vw, 60px) 30px;
+  color: var(--text-primary);
+}
+.pageHeading { display: flex; justify-content: space-between; align-items: flex-end; gap: 24px; margin-bottom: 25px; }
+.eyebrow { color: var(--accent); font-size: 9px; font-weight: 650; line-height: 1.6; letter-spacing: 1.6px; }
+.pageHeading h1 { margin-top: 10px; font-size: 30px; line-height: 1.3; font-weight: 660; letter-spacing: -1.35px; word-break: keep-all; }
+.pageDescription { font-size: 12px; line-height: 1.8; color: var(--text-secondary); word-break: keep-all; }
+.filterTray { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 18px 28px; padding: 17px 22px; border: 1px solid var(--border); border-radius: 14px; background: var(--bg-surface); }
+.filterIntro { display: flex; flex-direction: column; gap: 8px; margin-right: auto; align-self: center; padding-right: 24px; border-right: 1px solid var(--border); }
+.filterIntro > span:last-child { font-size: 13px; font-weight: 550; letter-spacing: -.3px; }
+.industryField { min-width: 160px; }
+.yearField { min-width: 110px; }
+.mapAndBrief { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 18px; height: max(510px, calc(100dvh - 294px)); margin-top: 18px; }
+.mapSurface { display: flex; flex-direction: column; overflow: hidden; min-width: 0; min-height: 0; border: 1px solid var(--border); border-radius: 16px; background: var(--bg-surface); }
+.mapCaption { display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; min-height: 45px; gap: 16px; padding: 10px 18px; border-bottom: 1px solid var(--border); font-size: 10px; color: var(--text-secondary); }
+.mapCaption > span:first-child { display: inline-flex; gap: 8px; align-items: center; color: var(--text-primary); font-size: 12px; font-weight: 600; }
+.locationDot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
+.mapCanvas { flex: 1; min-height: 0; }
+.brief { display: flex; flex-direction: column; overflow-y: auto; min-width: 0; min-height: 0; border: 1px solid var(--border); border-radius: 16px; padding: 24px; background: var(--bg-surface); scrollbar-width: thin; scrollbar-color: var(--border) transparent; }
+.briefHeading { margin-top: 19px; }
+.briefHeading h2 { margin-bottom: 8px; font-size: 29px; line-height: 1.25; letter-spacing: -1.2px; font-weight: 650; }
+.briefMetrics { display: flex; flex-direction: column; margin-top: 25px; border-top: 1px solid var(--border); }
+.briefMetrics li { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; padding: 19px 0; border-bottom: 1px solid var(--border); }
+.briefMetrics li > span { font-size: 9px; margin-top: 2px; padding-inline: 6px; border-radius: 4px; }
+.metricValue { font-size: 23px; font-weight: 550; line-height: 1.3; letter-spacing: -.7px; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.emptyBrief { display: flex; flex: 1; flex-direction: column; align-items: center; justify-content: center; gap: 12px; padding-block: 45px; text-align: center; }
+.emptyIcon { display: grid; place-items: center; width: 66px; height: 66px; border: 1px solid var(--border); border-radius: 50%; margin-bottom: 11px; background: var(--bg-raised); color: var(--accent); font-size: 25px; }
+.emptyBrief h2 { font-size: 19px; font-weight: 600; line-height: 1.5; letter-spacing: -.8px; word-break: keep-all; }
+.emptyStatus { font-size: 10px; color: var(--text-secondary); }
+.emptyBrief p { max-width: 230px; font-size: 12px; line-height: 1.9; color: var(--text-secondary); word-break: keep-all; }
+.emptyGuide { width: 100%; margin-top: 24px; border-top: 1px solid var(--border); padding-top: 21px; font-size: 10px; color: var(--accent); letter-spacing: .1px; }
+.loadingBrief { margin-top: 28px; }
+@media (max-width: 1100px) {
+  .filterIntro { display: none; }
+  .filterTray { justify-content: flex-start; }
+  .mapAndBrief { grid-template-columns: minmax(0, 1fr) 300px; }
+  .brief { padding: 21px; }
+  .briefHeading h2 { font-size: 27px; }
+  .mapCaption > span:last-child { font-size: 9px; }
+}
+@media (max-width: 760px) {
+  .workspace { padding: 25px 20px 28px; }
+  .pageHeading { margin-bottom: 22px; }
+  .pageHeading h1 { font-size: 25px; letter-spacing: -1px; }
+  .pageDescription { display: none; }
+  .eyebrow { font-size: 8px; letter-spacing: 1.35px; }
+  .filterTray { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, .8fr); gap: 18px 16px; padding: 17px; border-radius: 13px; }
+  .industryField { min-width: 0; grid-column: 1; grid-row: 1; }
+  .yearField { min-width: 0; grid-column: 2; grid-row: 1; }
+  .metricField { grid-column: 1 / -1; }
+  .mapAndBrief { grid-template-columns: minmax(0, 1fr); height: auto; gap: 17px; margin-top: 17px; }
+  .mapSurface { height: 480px; height: clamp(390px, 62dvh, 560px); border-radius: 13px; }
+  .mapCaption { padding-inline: 13px; gap: 8px; }
+  .mapCaption > span:last-child { font-size: 8px; }
+  .brief { overflow-y: visible; border-radius: 13px; padding: 24px; }
+  .emptyBrief { padding-block: 30px 10px; }
+  .emptyBrief p { max-width: 260px; }
+  .briefMetrics li { padding-block: 19px; }
+}
