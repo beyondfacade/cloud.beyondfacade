@@ -2,7 +2,13 @@
 
 from abc import ABC, abstractmethod
 
-from apps.finance.app.dtos.finance_dto import FinanceInputDto, FinanceResultDto, PrefillDto
+from apps.finance.app.dtos.finance_dto import (
+    FinanceInputDto,
+    FinanceResultDto,
+    PrefillDto,
+    QuestionDto,
+    QuestionRequestDto,
+)
 
 
 class FinanceUseCase(ABC):
@@ -17,3 +23,10 @@ class FinanceUseCase(ABC):
     @abstractmethod
     def prefill(self, region_code: str, industry_id: str) -> PrefillDto:
         """실측 프리필 — 값마다 출처와 단서. RegionNotFoundError / IndustryNotFoundError."""
+
+    @abstractmethod
+    def questions(self, request: QuestionRequestDto) -> list[QuestionDto]:
+        """확인할 질문 초안 — 계획 수치에서 결정론으로 만든다 (설계서 §4).
+
+        서버가 결과를 다시 계산한다. 사용자가 편집·삭제·추가하는 초안일 뿐이다.
+        """

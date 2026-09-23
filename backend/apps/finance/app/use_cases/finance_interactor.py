@@ -5,6 +5,8 @@ from apps.finance.app.dtos.finance_dto import (
     FinanceResultDto,
     PrefillDto,
     PrefillValueDto,
+    QuestionDto,
+    QuestionRequestDto,
     ScenarioDto,
     StressDto,
 )
@@ -17,6 +19,7 @@ from apps.finance.app.ports.output.finance_port import (
 )
 from apps.finance.domain.errors import IndustryNotFoundError, RegionNotFoundError
 from apps.finance.domain.services.engine import FinanceInput, FinanceResult, simulate
+from apps.finance.domain.services.questions import QuestionContext, build_questions
 from apps.finance.domain.value_objects.cost_ratios import cost_ratio_of
 from apps.finance.domain.value_objects.rent_zones import rent_zone_of
 
@@ -65,6 +68,24 @@ class FinanceInteractor(FinanceUseCase):
 
     def simulate(self, request: FinanceInputDto) -> FinanceResultDto:
         return _to_result_dto(simulate(FinanceInput(**asdict(request))))
+
+    def questions(self, request: QuestionRequestDto) -> list[QuestionDto]:
+        finance = FinanceInput(**asdict(request.input))
+        # 클라이언트 계산 결과를 받지 않고 다시 계산한다 — simulate와 같은 원칙
+        context = QuestionContext(
+            finance=finance,
+            result=simulate(finance),
+            unconfirmed=tuple(request.unconfirmed),
+            prefilled=tuple(request.prefilled),
+            business_registered=request.profile.business_registered,
+            guarantee_status=request.profile.guarantee_status,
+            policy_confirmation_status=request.profile.policy_confirmation_status,
+            candidate_titles=tuple(request.candidate_titles),
+        )
+        return [
+            QuestionDto(text=q.text, basis=q.basis, kind=q.kind)
+            for q in build_questions(context)
+        ]
 
     def prefill(self, region_code: str, industry_id: str) -> PrefillDto:
         district_code = self._masters.district_of_region(region_code)

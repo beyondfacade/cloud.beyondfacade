@@ -1,6 +1,9 @@
 """Composition Root (DIP) — Port에 Adapter를 주입한다 (FastAPI Depends)."""
 
 from apps.funding.adapter.outbound.gateways.bizinfo_gateway import BizinfoGateway
+from apps.funding.adapter.outbound.gateways.seoul_district_gateway import (
+    SeoulDistrictNamesGateway,
+)
 from apps.funding.adapter.outbound.repositories.funding_program_repository import (
     SqlAlchemyFundingProgramRepository,
 )
@@ -14,4 +17,5 @@ def get_funding_program_use_case() -> FundingProgramUseCase:
     return FundingProgramInteractor(
         repository=SqlAlchemyFundingProgramRepository(),
         gateway=BizinfoGateway(),
+        seoul_districts=SeoulDistrictNamesGateway(),
     )

@@ -103,3 +103,42 @@ class PrefillDto:
     cost_ratio: PrefillValueDto
     loan_rate: PrefillValueDto
     equity: None = None  # 관문의 budget이 URL로 온다 — 서버는 채우지 않는다
+
+
+# --- 확인할 질문 (설계서 §4) ---
+
+
+@dataclass(frozen=True)
+class QuestionProfileDto:
+    """창업 단계 확인 — "모름"을 0·아니오로 바꾸지 않는다 (대구 §4-2)."""
+
+    business_registered: bool | None = None
+    guarantee_status: str = "unknown"
+    policy_confirmation_status: str = "unknown"
+
+
+@dataclass(frozen=True)
+class QuestionRequestDto:
+    """계획 초안 요약.
+
+    **서버가 결과를 다시 계산한다** — 클라이언트가 보낸 계산 결과를 신뢰하지 않는다는 T3 원칙 그대로다.
+    그래서 요청에 `result`가 없고 `input`만 있다.
+
+    `prefilled`는 프리필 값을 한 번도 고치지 않은 필드(화면 `touched`의 여집합),
+    `candidate_titles`는 `GET /funding/candidates` 결과의 상위 제목 — finance BC가 funding BC를
+    직접 읽지 않도록 화면이 실어 보낸다.
+    """
+
+    input: FinanceInputDto
+    unconfirmed: tuple[str, ...] = ()
+    prefilled: tuple[str, ...] = ()
+    candidate_titles: tuple[str, ...] = ()
+    profile: QuestionProfileDto = field(default_factory=QuestionProfileDto)
+    change_reason: str = ""
+
+
+@dataclass(frozen=True)
+class QuestionDto:
+    text: str
+    basis: str
+    kind: str  # gap | assumption | procedure

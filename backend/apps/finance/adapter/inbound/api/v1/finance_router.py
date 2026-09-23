@@ -3,12 +3,16 @@ from fastapi.responses import JSONResponse
 
 from apps.finance.adapter.inbound.api.schemas.finance_schema import (
     PrefillResponse,
+    QuestionsRequest,
+    QuestionsResponse,
     SimulateRequest,
     SimulateResponse,
 )
 from apps.finance.adapter.inbound.mappers.finance_mapper import (
     to_input_dto,
     to_prefill_response,
+    to_questions_request_dto,
+    to_questions_response,
     to_simulate_response,
 )
 from apps.finance.app.ports.input.finance_use_case import FinanceUseCase
@@ -48,3 +52,11 @@ def prefill(
         return _not_found("REGION_NOT_FOUND", f"알 수 없는 region_code: {region}")
     except IndustryNotFoundError:
         return _not_found("INDUSTRY_NOT_FOUND", f"지원하지 않는 industry: {industry}")
+
+
+@router.post("/questions", response_model=QuestionsResponse)
+def questions(
+    request: QuestionsRequest, use_case: FinanceUseCase = Depends(get_finance_use_case)
+) -> QuestionsResponse:
+    """확인할 질문 초안 (설계서 §4). 계산 결과는 받지 않고 `input`으로 서버가 다시 계산한다."""
+    return to_questions_response(use_case.questions(to_questions_request_dto(request)))

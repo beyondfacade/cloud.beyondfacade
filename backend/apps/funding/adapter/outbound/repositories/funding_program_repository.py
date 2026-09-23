@@ -73,3 +73,12 @@ class SqlAlchemyFundingProgramRepository(FundingProgramRepositoryPort):
                 .limit(limit)
             ).scalars()
             return [to_entity(orm) for orm in orms]
+
+    def list_open_all(self) -> list[FundingProgram]:
+        with session_scope() as session:
+            orms = session.execute(
+                select(FundingProgramOrm)
+                .where(FundingProgramOrm.is_expired.is_(False))
+                .order_by(FundingProgramOrm.program_id)
+            ).scalars()
+            return [to_entity(orm) for orm in orms]

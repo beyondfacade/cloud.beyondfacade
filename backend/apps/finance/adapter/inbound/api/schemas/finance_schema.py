@@ -76,3 +76,34 @@ class PrefillResponse(BaseModel):
     cost_ratio: PrefillValueResponse
     loan_rate: PrefillValueResponse
     equity: None = None  # 관문의 budget이 URL로 온다
+
+
+class QuestionProfileRequest(BaseModel):
+    """창업 단계 — null·"unknown"은 모름이다. 0·아니오로 바꾸지 않는다."""
+
+    business_registered: bool | None = None
+    guarantee_status: str = "unknown"
+    policy_confirmation_status: str = "unknown"
+
+
+class QuestionsRequest(BaseModel):
+    """계획 초안 요약. **계산 결과는 받지 않는다** — 서버가 `input`으로 다시 계산한다."""
+
+    input: SimulateRequest
+    unconfirmed: list[str] = Field(default_factory=list)
+    prefilled: list[str] = Field(default_factory=list)
+    candidate_titles: list[str] = Field(default_factory=list)
+    profile: QuestionProfileRequest = Field(default_factory=QuestionProfileRequest)
+    change_reason: str = ""
+
+
+class QuestionResponse(BaseModel):
+    text: str
+    basis: str  # 어느 수치에서 나왔는지
+    kind: str  # gap | assumption | procedure
+
+
+class QuestionsResponse(BaseModel):
+    """서버가 주는 것은 초안이다 — 사용자가 편집·삭제·추가한다."""
+
+    questions: list[QuestionResponse]

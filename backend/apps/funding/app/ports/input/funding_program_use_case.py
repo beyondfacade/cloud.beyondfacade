@@ -3,7 +3,10 @@
 from abc import ABC, abstractmethod
 from datetime import date
 
-from apps.funding.app.dtos.funding_program_dto import FundingProgramDto
+from apps.funding.app.dtos.funding_program_dto import (
+    FundingCandidateListDto,
+    FundingProgramDto,
+)
 
 
 class FundingProgramUseCase(ABC):
@@ -22,3 +25,15 @@ class FundingProgramUseCase(ABC):
     @abstractmethod
     def list_open(self, limit: int) -> list[FundingProgramDto]:
         """미만료 공고를 마감 임박순(마감일 오름차순, 상시는 뒤)으로 반환한다."""
+
+    @abstractmethod
+    def list_candidates(
+        self,
+        industry_id: str | None,
+        external_funding_need: int | None,
+        stage: str | None,
+    ) -> FundingCandidateListDto:
+        """서울 창업자에게 해당하는 미만료 공고 상위 8건 — 결정론 필터 (설계서 §3).
+
+        자격 확정이 아니다. `industry_id`·`external_funding_need`는 되돌려주기만 한다.
+        """
