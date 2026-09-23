@@ -7,6 +7,7 @@ import type {
   ConvenienceStore,
   MetricKey,
   MetricRow,
+  RegionProfile,
   RegionSummary,
   Store,
 } from "@/shared/api/types";
@@ -51,4 +52,10 @@ export function fetchConvenienceStores(regionCode: string): Promise<ConvenienceS
 export function fetchConvenienceSummary(regionCode: string): Promise<ConvenienceRegionSummary> {
   const params = new URLSearchParams({ region: regionCode });
   return apiGet<ConvenienceRegionSummary>(`/convenience-stores/summary?${params.toString()}`);
+}
+
+/** 동네 프로필 — 분기를 생략하면 백엔드가 그 동의 최신 분기를 준다 (화면은 최신이 언제인지 모른다). */
+export function fetchRegionProfile(regionCode: string, yearQuarter?: string): Promise<RegionProfile> {
+  const query = yearQuarter ? `?${new URLSearchParams({ year_quarter: yearQuarter })}` : "";
+  return apiGet<RegionProfile>(`/profiles/${regionCode}${query}`);
 }

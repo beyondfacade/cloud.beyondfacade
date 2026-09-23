@@ -1,5 +1,37 @@
 # Frontend Version Log
 
+## [v0.15.0] - 2026-09-23
+
+### Added
+- **사이드패널 동네 프로필 섹션** — 백엔드 파생 지표(`GET /profiles/{region_code}`)를 화면에 올린다.
+  업종과 무관한 동네 맥락이라 업종별 섹션(`INDUSTRY_SECTIONS`)보다 앞에 둔다
+  - `features/map-explorer/components/neighborhood-profile.tsx` — 유형 이름 + 괄호 설명 +
+    판정 근거 문장 + 시간대 서사 + 근거 수치 5줄. 조회 훅과 표시 본문
+    (`NeighborhoodProfileBody`)을 나눠 본문만 단위 테스트한다
+  - `shared/neighborhood.ts` — 유형 6종·시간대 라벨 5종·정점→바닥 서사의 표기 어휘.
+    지도 탐색과 AI 분석이 함께 쓸 것이므로 shared에 둔다(§14 feature 간 직접 import 금지)
+  - `shared/api/types.ts`에 `RegionProfile`, `map-explorer/api.ts`에 `fetchRegionProfile`
+  - mock 라우트 `/api/mock/profiles/[regionCode]` — 실 API 미러(§15). 분기 생략 시 최신,
+    없는 동·형식이 틀린 분기 모두 404 `REGION_PROFILE_NOT_FOUND`. 픽스처는 FNV-1a 해시 기반
+    결정적 생성이고 유형 분포를 실측(주거 60%·먹자 13%…)에 맞춰 가중한다
+
+### 문구 결정
+- **`office` 유형을 "낮 인구 우위형"으로 부른다.** 분류 문서 §7-2가 남겨둔 결정이다. 판정 결과
+  36개 동에 테헤란로·여의도·가산 같은 오피스와 함께 **가회동(북촌)·한남동·청담동·압구정동**이
+  들어오는데, 이들에게 "업무 밀집형"은 틀린 말이다. 이 유형이 실제로 잡는 것은 "상주 대비 낮
+  인구가 압도적인 동"이고 전부 `time_label=day`다
+- `dining`은 "먹자·나들이형" 유지 — 연남동·이태원·서교동의 성격을 구어체로 정확히 짚는다
+- **결측은 0이 아니다.** 직장인구가 없는 11개 동의 `worker_resident_ratio`는 "집계 없음"으로
+  띄운다. 0으로 읽으면 주거형으로 오해한다 (테스트로 고정)
+- **정점→바닥 서사는 관측이 많은 5종만 만든다.** 나머지 4종은 전 서울에 7개 동뿐이라 문장을
+  만들면 한두 동의 잡음이 단정으로 굳는다. 없으면 시간대 라벨 문장으로 물러선다 (분류 문서 §6-4)
+
+### Validation
+- 테스트 21건 추가 — 어휘 8 · mock 계약 6 · 표시 본문 7. `tsc --noEmit` 통과
+- 전체 97 통과 / 1 실패 — `use-agent-report.test.ts`의 "NEXT_PUBLIC_API_BASE가 실 API여도
+  분석 요청·SSE는 mock 베이스를 유지한다"는 **이번 변경과 무관한 기존 실패**다
+  (단독 실행에서도 실패하고, import 경로가 이번 변경 파일과 겹치지 않는다)
+
 ## [v0.14.1] - 2026-09-23
 
 ### Fixed

@@ -8,6 +8,7 @@ import { industryLabel, type IndustryId } from "@/shared/industries";
 import { fetchRegionSummary } from "../api";
 import { ChildcareSummarySection } from "./childcare-summary";
 import { ConvenienceSummarySection } from "./convenience-summary";
+import { NeighborhoodProfileSection } from "./neighborhood-profile";
 
 /** 전용 원천이 있는 업종의 추가 섹션 — 업종이 스스로 무엇을 보여줄지 등록한다 (조건 분기 대신 레지스트리). */
 const INDUSTRY_SECTIONS: Partial<Record<IndustryId, ComponentType<{ regionCode: string }>>> = {
@@ -94,6 +95,9 @@ export function SidePanel({ regionCode, industry }: SidePanelProps) {
               </li>
             ))}
           </ul>
+
+          {/* 업종과 무관한 동네 맥락이 먼저, 업종 상세가 뒤 */}
+          <NeighborhoodProfileSection regionCode={regionCode} />
 
           {IndustrySection && <IndustrySection regionCode={regionCode} />}
 

@@ -10,6 +10,7 @@ import type {
   ConvenienceStore,
   MetricKey,
   MetricRow,
+  RegionProfile,
   RegionSummary,
   Store,
   SummaryCard,
@@ -272,4 +273,82 @@ export function agentEventScript(): AgentEvent[] {
   );
 
   return events;
+}
+
+/** 동네 프로필 — 실 API의 6유형·5라벨·판정 근거 문장 형태를 그대로 흉내 낸다.
+ *  분포는 실측(주거 60%·먹자 13%·낮인구 9%·혼합 8%·생활중심 6%·대학가 5%)에 맞춰 가중한다. */
+const PROFILE_TYPE_WEIGHTS: [string, number][] = [
+  ["residential", 60],
+  ["dining", 13],
+  ["office", 9],
+  ["mixed", 8],
+  ["hub", 6],
+  ["campus", 4],
+];
+
+const PROFILE_TIME_LABELS = ["night", "flat", "day", "evening", "morning"] as const;
+const PROFILE_BLOCKS = ["morning", "day", "evening", "night"] as const;
+
+/** 유형별 정점→바닥 — 실측 교차(낮인구는 낮 88%, 주거는 밤 80%)를 반영한다. */
+const PROFILE_PHASES: Record<string, [string, string]> = {
+  office: ["day", "night"],
+  campus: ["evening", "night"],
+  dining: ["evening", "morning"],
+  hub: ["day", "night"],
+  residential: ["night", "day"],
+  mixed: ["day", "night"],
+};
+
+function pickWeighted(seed: number): string {
+  const total = PROFILE_TYPE_WEIGHTS.reduce((sum, [, w]) => sum + w, 0);
+  let point = seed % total;
+  for (const [code, weight] of PROFILE_TYPE_WEIGHTS) {
+    if (point < weight) return code;
+    point -= weight;
+  }
+  return "mixed";
+}
+
+function profileReason(type: string, ratio: number, share20s: number, fnbShare: number, facility: number): string {
+  const reasons: Record<string, string> = {
+    office: `직장인구가 상주인구의 ${ratio.toFixed(1)}배로 서울 상위 10%이고, 주말 유동이 평일보다 적습니다.`,
+    campus: `대학 시설이 있고, 거리 위 20대 비중이 ${(share20s * 100).toFixed(1)}%로 서울 상위 10%입니다.`,
+    dining: `결제액의 ${(fnbShare * 100).toFixed(1)}%가 음식·유흥이고, 낮 시간 유동이 서울 상위 25%입니다.`,
+    hub: `집객시설이 ${facility}개로 서울 상위 25%이고, 낮 시간 유동이 밤보다 강합니다.`,
+    residential: "직장인구가 상주인구보다 적고, 밤 시간 체류가 서울 하위 25%에 들지 않습니다.",
+    mixed: "어느 축에서도 서울 상위·하위 경계를 넘지 않습니다.",
+  };
+  return reasons[type] ?? reasons.mixed;
+}
+
+export const LATEST_PROFILE_QUARTER = "20262";
+
+export function regionProfileOf(regionCode: string, yearQuarter: string): RegionProfile {
+  const seed = hashSeed("profile", regionCode, yearQuarter);
+  const type = pickWeighted(seed);
+  const unit = unitFrom(seed);
+  const ratio = type === "office" ? 1.6 + unit * 6 : 0.03 + unit * 0.7;
+  const share20s = type === "campus" ? 0.23 + unit * 0.25 : 0.08 + unit * 0.12;
+  const fnbShare = type === "dining" ? 0.33 + unit * 0.3 : 0.12 + unit * 0.18;
+  const facility = type === "hub" ? 155 + Math.floor(unit * 380) : 20 + Math.floor(unit * 130);
+  const [peak, trough] = PROFILE_PHASES[type] ?? ["day", "night"];
+  // 평탄도가 낮은 동은 정점이 있어도 라벨은 flat이다 (실 API와 같은 규칙)
+  const isFlat = unit < 0.25;
+  return {
+    region_code: regionCode,
+    year_quarter: yearQuarter,
+    neighborhood_type: type,
+    type_reason: profileReason(type, ratio, share20s, fnbShare, facility),
+    time_label: isFlat ? "flat" : (PROFILE_BLOCKS.find((b) => b === peak) ?? PROFILE_TIME_LABELS[0]),
+    peak_block: peak,
+    trough_block: trough,
+    // 직장인구 결측 11개 동을 흉내 낸다 — 화면이 null을 0으로 읽지 않는지 확인하는 자리
+    worker_resident_ratio: unit < 0.03 ? null : Number(ratio.toFixed(3)),
+    weekend_index: Number((type === "office" ? 0.7 + unit * 0.3 : 0.95 + unit * 0.2).toFixed(3)),
+    night_index: Number((type === "office" ? 0.6 + unit * 0.35 : 0.95 + unit * 0.3).toFixed(3)),
+    footfall_20s_share: Number(share20s.toFixed(4)),
+    fnb_share: Number(fnbShare.toFixed(4)),
+    facility_total: facility,
+    resident_total: 3_000 + Math.floor(unit * 40_000),
+  };
 }
