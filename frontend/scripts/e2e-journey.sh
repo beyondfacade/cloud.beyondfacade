@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# E2E 여정: / → 동 폴리곤 클릭 → 사이드패널 확인 → 점포 마커 로드 확인 → [AI 분석] 클릭
+# E2E 여정: /map → 동 폴리곤 클릭 → 사이드패널 확인 → 점포 마커 로드 확인 → [AI 분석] 클릭
 #           → /analysis 프리필 확인 → 분석 시작 → report_done까지 대기 → 리포트 텍스트 존재 assert
 #
 # 전제: http://localhost:3200 (또는 $BASE_URL)에 dev 서버가 떠 있어야 한다 (npm run dev).
@@ -24,7 +24,7 @@ AB() { npx -y agent-browser "$@"; }
 # 중간 실패로 스크립트가 조기 종료돼도 헤드리스 브라우저/데몬 프로세스가 남지 않도록 정리한다.
 trap 'AB close >/dev/null 2>&1 || true' EXIT
 
-if ! curl -s -o /dev/null -w "%{http_code}" "$BASE_URL/" | grep -q "200"; then
+if ! curl -s -o /dev/null -w "%{http_code}" "$BASE_URL/map" | grep -q "200"; then
   echo "오류: $BASE_URL 에서 dev 서버 응답이 없습니다. 먼저 'npm run dev'로 서버를 띄운 뒤 다시 실행하세요." >&2
   exit 1
 fi
@@ -34,18 +34,34 @@ VIEWPORT_H=900
 DONG_CODE="1168064000"
 INDUSTRY="cafe"
 
+# 앱의 API 베이스는 shared/config.ts가 NEXT_PUBLIC_API_BASE ?? "/api/mock"으로 정한다.
+# 스크립트가 /api/mock을 하드코딩하면 실 백엔드 프록시로 띄운 개발 서버에서 항상 실패하므로,
+# next가 자동으로 읽는 .env.local을 스크립트도 같은 우선순위로 따라 읽는다.
+API_BASE="${NEXT_PUBLIC_API_BASE:-}"
+if [[ -z "$API_BASE" ]]; then
+  for envfile in "$(dirname "${BASH_SOURCE[0]}")/../.env.local" "$(dirname "${BASH_SOURCE[0]}")/../.env"; do
+    [[ -f "$envfile" ]] || continue
+    line="$(grep -m1 '^NEXT_PUBLIC_API_BASE=' "$envfile" || true)"
+    if [[ -n "$line" ]]; then API_BASE="${line#NEXT_PUBLIC_API_BASE=}"; break; fi
+  done
+fi
+API_BASE="${API_BASE:-/api/mock}"
+echo "API 베이스: $API_BASE"
+
 AB close >/dev/null 2>&1 || true
 
-echo "[1/8] 지도 탐색(/) 오픈"
+echo "[1/8] 지도 탐색(/map) 오픈"
 AB set viewport "$VIEWPORT_W" "$VIEWPORT_H" >/dev/null
-AB open "$BASE_URL/" >/dev/null
+AB open "$BASE_URL/map" >/dev/null
 AB wait --load networkidle >/dev/null
 
-# 역삼1동(fixtures.ts DONGS[0], region_code 1168064000) 폴리곤 중심의 페이지 절대 좌표를
-# 런타임에 계산한다. 하드코딩하면 상단바/컨트롤바 높이가 바뀔 때마다 조용히 빗나가므로,
-# 지도 컨테이너의 실제 bounding rect + 웹 메르카토르 투영(bearing/pitch 0)으로 매번 구한다.
-CLICK_POINT="$(cat <<'EOF' | AB eval --stdin
-(() => {
+# 대상 동 폴리곤 중심의 페이지 절대 좌표를 런타임에 계산한다.
+# 좌표를 하드코딩하면 ①상단바·컨트롤바 높이가 바뀔 때 ②목 픽스처가 아닌 실 행정동 경계로
+# 띄웠을 때 조용히 빗나간다(목의 역삼1동 사각형 중심은 실경계에서 다른 동이다).
+# 그래서 지도에 실제로 그려진 경계 GeoJSON을 API 베이스에서 받아 대상 동의 중심을 구한 뒤,
+# 지도 컨테이너의 실제 bounding rect + 웹 메르카토르 투영(bearing/pitch 0)으로 화면 좌표를 만든다.
+CLICK_POINT="$(cat <<EOF | AB eval --stdin
+(async () => {
   const el = document.querySelector(".maplibregl-map");
   if (!el) return "";
   const r = el.getBoundingClientRect();
@@ -56,7 +72,15 @@ CLICK_POINT="$(cat <<'EOF' | AB eval --stdin
     return (0.5 - Math.log((1 + s) / (1 - s)) / (4 * Math.PI)) * world;
   };
   const center = [126.99, 37.55];                 // map-view.tsx SEOUL_CENTER
-  const target = [127.02625, 37.5];               // 역삼1동 사각형 중심
+  const res = await fetch("${API_BASE}/regions/geojson");
+  const gj = await res.json();
+  const f = gj.features.find((f) => f.properties.region_code === "${DONG_CODE}");
+  if (!f) return "";
+  // 폴리곤/멀티폴리곤의 모든 꼭짓점 평균 — 볼록·오목 상관없이 경계 안쪽에 충분히 든다.
+  const pts = JSON.stringify(f.geometry.coordinates).match(/-?\\d+\\.?\\d*,-?\\d+\\.?\\d*/g) ?? [];
+  let sx = 0, sy = 0;
+  for (const p of pts) { const [a, b] = p.split(","); sx += +a; sy += +b; }
+  const target = [sx / pts.length, sy / pts.length];
   const x = Math.round(r.left + r.width / 2 + (px(target[0]) - px(center[0])));
   const y = Math.round(r.top + r.height / 2 + (py(target[1]) - py(center[1])));
   return x + " " + y;
@@ -86,7 +110,7 @@ if [[ "$CURRENT_URL" != *"region="* ]]; then
     # 나머지 여정을 계속 검증한다.
     CLICK_XFAIL=1
     echo "  경고: 폴리곤 클릭이 사이드패널에 반영되지 않았습니다. E2E_XFAIL_CLICK=1이므로 region 쿼리 파라미터로 폴백합니다." >&2
-    AB navigate "$BASE_URL/?region=${DONG_CODE}&industry=${INDUSTRY}" >/dev/null
+    AB navigate "$BASE_URL/map?region=${DONG_CODE}&industry=${INDUSTRY}" >/dev/null
     AB wait --load networkidle >/dev/null
   else
     echo "오류: 폴리곤 클릭이 region= 쿼리 파라미터에 반영되지 않았습니다 (클릭 회귀 가능성)." >&2
@@ -95,16 +119,34 @@ if [[ "$CURRENT_URL" != *"region="* ]]; then
   fi
 fi
 
+# 이후 단계는 "의도한 동"이 아니라 "실제로 선택된 동"을 기준으로 검증한다.
+# 경계 데이터가 목 픽스처(사각형)냐 실 행정동이냐에 따라 같은 좌표가 다른 동에 떨어지므로,
+# 특정 동을 맞히는 것이 아니라 "동 선택 → 마커 로드 → 분석 프리필" 배선을 확인하는 것이 목적이다.
+SELECTED_REGION="$(AB get url | sed -n 's/.*[?&]region=\([0-9]*\).*/\1/p')"
+if [[ -z "$SELECTED_REGION" ]]; then
+  echo "오류: 선택된 region 코드를 URL에서 읽지 못했습니다." >&2
+  exit 1
+fi
+if [[ "$SELECTED_REGION" != "$DONG_CODE" ]]; then
+  echo "  참고: 클릭이 목표 동($DONG_CODE)이 아니라 $SELECTED_REGION 에 들어갔습니다. 배선 검증은 이 동으로 계속합니다."
+fi
+
 echo "[3/8] 사이드패널 확인"
 AB wait --text "AI 분석 →" >/dev/null
 
 echo "[4/8] 점포 마커 로드 확인"
-# store-markers.tsx는 regionCode가 선택된 뒤에만 GET /api/mock/stores를 호출한다(성능 가드).
-# 클러스터 원(WebGL 캔버스)은 DOM으로 직접 검사할 수 없으므로, 그 트리거인 네트워크 요청 발생 여부로
+# region-markers.tsx는 regionCode가 선택된 뒤에만 점포 조회를 호출한다(성능 가드).
+# 클러스터 원(WebGL 캔버스)은 DOM으로 직접 검사할 수 없으므로, 그 트리거인 요청 발생 여부로
 # "동 선택 → 마커 데이터 로드" 배선이 실제로 동작함을 검증한다.
-STORE_REQUESTS="$(AB network requests --filter "/api/mock/stores")"
-if [[ "$STORE_REQUESTS" != *"region=${DONG_CODE}"* ]]; then
-  echo "오류: 동 선택 후 /api/mock/stores 요청을 찾지 못했습니다 (마커 로드 배선 회귀 가능성)." >&2
+# agent-browser의 `network requests`는 문서·스크립트·스타일·폰트만 기록하고 fetch/XHR은 남기지
+# 않으므로(0.27.0 실측), 브라우저 자체 리소스 타이밍 기록을 읽는다.
+STORE_REQUESTS="$(cat <<EOF | AB eval --stdin
+performance.getEntriesByType("resource").map((e) => e.name)
+  .filter((n) => n.includes("${API_BASE}/stores")).join("\\n") || "(없음)"
+EOF
+)"
+if [[ "$STORE_REQUESTS" != *"region=${SELECTED_REGION}"* ]]; then
+  echo "오류: 동 선택 후 ${API_BASE}/stores 요청을 찾지 못했습니다 (마커 로드 배선 회귀 가능성)." >&2
   echo "$STORE_REQUESTS" >&2
   exit 1
 fi
@@ -124,21 +166,60 @@ PREFILL="$(cat <<'EOF' | AB eval --stdin
 EOF
 )"
 echo "  프리필 값: $PREFILL"
-if [[ "$PREFILL" != *"$DONG_CODE"* ]] || [[ "$PREFILL" != *"$INDUSTRY"* ]]; then
-  echo "오류: /analysis 프리필이 예상과 다릅니다 (region=$DONG_CODE, industry=$INDUSTRY 기대)." >&2
+if [[ "$PREFILL" != *"$SELECTED_REGION"* ]] || [[ "$PREFILL" != *"$INDUSTRY"* ]]; then
+  echo "오류: /analysis 프리필이 예상과 다릅니다 (region=$SELECTED_REGION, industry=$INDUSTRY 기대)." >&2
   exit 1
 fi
 
-echo "[7/8] 분석 시작 → report_done 대기"
-AB find text "분석 시작" click >/dev/null
-AB wait --text "참고 자료" >/dev/null
+# 리포트 article의 상태와 본문 길이를 한 줄로 돌려준다. 완료 대기(7)와 본문 확인(8)이 같이 쓴다.
+report_state() {
+  cat <<'JS' | AB eval --stdin
+(() => {
+  const el = document.querySelector('[aria-label="상권 분석 리포트"]');
+  if (!el) return "NO_ARTICLE 0";
+  const head = el.querySelector("header")?.textContent ?? "";
+  const body = (el.textContent ?? "").replace(/\s+/g, " ").trim();
+  const status = head.includes("작성 완료") ? "DONE"
+    : head.includes("작성 중단") ? "ABORTED" : "IN_PROGRESS";
+  return status + " " + body.length;
+})()
+JS
+}
 
-echo "[8/8] 리포트 텍스트 존재 확인"
-REPORT_TEXT="$(AB get text body)"
-if ! echo "$REPORT_TEXT" | grep -q "종합 진단"; then
-  echo "오류: 리포트 텍스트를 찾을 수 없습니다." >&2
+echo "[7/8] 분석 시작 → 리포트 완료 대기"
+AB find role button click --name "분석 시작" >/dev/null
+# 빈 상태 안내문("분석 내용과 참고 자료가 이곳에 차례로 모입니다")에도 "참고 자료"가 들어 있어
+# `wait --text "참고 자료"`는 분석이 시작되기도 전에 즉시 통과한다. 목 응답은 빨라 우연히 맞았지만
+# 실 백엔드는 LLM 생성이라 느려 그대로 8단계에서 빈 화면을 보게 된다.
+# 완료 판정은 리포트 article의 상태(작성 완료)로만 한다.
+REPORT_TIMEOUT="${E2E_REPORT_TIMEOUT:-300}"
+DEADLINE=$((SECONDS + REPORT_TIMEOUT))
+while :; do
+  REPORT_STATE="$(report_state)"
+  REPORT_STATUS="$(echo "$REPORT_STATE" | tr -cd 'A-Z_')"
+  case "$REPORT_STATUS" in
+    DONE) break ;;
+    ABORTED)
+      echo "오류: 분석이 '작성 중단' 상태로 끝났습니다 (SSE 오류 가능성)." >&2
+      exit 1 ;;
+  esac
+  if (( SECONDS > DEADLINE )); then
+    echo "오류: ${REPORT_TIMEOUT}초 안에 리포트가 완료되지 않았습니다 (마지막 상태=$REPORT_STATUS)." >&2
+    echo "  실 백엔드 분석이 느리면 E2E_REPORT_TIMEOUT으로 늘릴 수 있습니다." >&2
+    exit 1
+  fi
+  sleep 3
+done
+
+echo "[8/8] 리포트 본문 확인"
+# 목 픽스처의 특정 문구("종합 진단")를 찾으면 실 백엔드에서는 항상 실패한다 — 본문은 매번 새로
+# 생성되기 때문이다. 원천과 무관하게 "빈 껍데기가 아닌가"만 본다.
+REPORT_LEN="$(echo "$REPORT_STATE" | tr -cd '0-9')"
+if (( ${REPORT_LEN:-0} < 200 )); then
+  echo "오류: 리포트가 완료 상태이나 본문이 ${REPORT_LEN:-0}자뿐입니다." >&2
   exit 1
 fi
+echo "  리포트 본문 ${REPORT_LEN}자 확인"
 
 echo "성공: E2E 여정 완료 (리포트 텍스트 확인됨)"
 if [[ "$CLICK_XFAIL" == "1" ]]; then

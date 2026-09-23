@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# 스크린샷 매트릭스: 화면(/, 동 선택 후 점포 마커, /analysis 시작 전·진행 중·완료) × 테마(light/dark) × 뷰포트(1440/1024)
+# 스크린샷 매트릭스: 화면(/map, 동 선택 후 점포 마커, /analysis 시작 전·진행 중·완료) × 테마(light/dark) × 뷰포트(1440/1024)
 # → frontend/screenshots/ 에 저장 (해당 디렉토리는 .gitignore 대상 — 커밋되지 않음).
 #
 # 전제: http://localhost:3200 (또는 $BASE_URL)에 dev 서버가 떠 있어야 한다 (npm run dev).
@@ -13,7 +13,7 @@ AB() { npx -y agent-browser "$@" >/dev/null; }
 # 중간 실패로 스크립트가 조기 종료돼도 헤드리스 브라우저/데몬 프로세스가 남지 않도록 정리한다.
 trap 'AB close >/dev/null 2>&1 || true' EXIT
 
-if ! curl -s -o /dev/null -w "%{http_code}" "$BASE_URL/" | grep -q "200"; then
+if ! curl -s -o /dev/null -w "%{http_code}" "$BASE_URL/map" | grep -q "200"; then
   echo "오류: $BASE_URL 에서 dev 서버 응답이 없습니다. 먼저 'npm run dev'로 서버를 띄운 뒤 다시 실행하세요." >&2
   exit 1
 fi
@@ -38,8 +38,8 @@ for vp in "${VIEWPORTS[@]}"; do
   for theme in "${THEMES[@]}"; do
     echo "뷰포트 ${W}x${H} / 테마 ${theme}"
 
-    # --- 지도 탐색(/) ---
-    AB open "$BASE_URL/"
+    # --- 지도 탐색(/map) ---
+    AB open "$BASE_URL/map"
     AB wait --load networkidle
     if [[ "$theme" == "dark" ]]; then
       AB find role button click --name "테마 전환"
@@ -48,7 +48,7 @@ for vp in "${VIEWPORTS[@]}"; do
     AB screenshot "$OUT_DIR/map_${theme}_${W}.png"
 
     # --- 지도 탐색: 동 선택 후 점포 마커/클러스터 ---
-    AB navigate "$BASE_URL/?region=${REGION}&industry=${INDUSTRY}"
+    AB navigate "$BASE_URL/map?region=${REGION}&industry=${INDUSTRY}"
     AB wait --load networkidle
     if [[ "$theme" == "dark" ]]; then
       AB find role button click --name "테마 전환"
