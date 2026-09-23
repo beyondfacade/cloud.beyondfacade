@@ -193,7 +193,7 @@ PREFILL="$(cat <<'EOF' | AB eval --stdin
 (() => {
   const byLabel = (text) => Array.from(document.querySelectorAll("label"))
     .find((l) => l.textContent.trim().startsWith(text))
-    ?.querySelector("input")?.value ?? "";
+    ?.querySelector("input,select")?.value ?? "";   // 업종은 v0.14.x부터 select다 — input만 읽으면 ""가 된다
   return JSON.stringify({ region: byLabel("지역 코드"), industry: byLabel("업종") });
 })()
 EOF
