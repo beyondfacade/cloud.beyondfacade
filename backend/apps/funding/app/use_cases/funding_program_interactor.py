@@ -51,7 +51,18 @@ class FundingProgramInteractor(FundingProgramUseCase):
         return self._repository.refresh_expirations(today)
 
     def list_open(self, limit: int) -> list[FundingProgramDto]:
-        return [_to_dto(program) for program in self._repository.list_open(limit)]
+        """모집 중 공고 — `is_expired` 플래그와 마감일을 **둘 다** 본다.
+
+        플래그는 일 배치(`refresh_expirations`)가 갱신하므로 설계상 최대 하루 낡는다. 어제
+        마감한 공고가 다음 05:10까지 "모집 중"으로 남는 창이 있다 — 후보 필터
+        (`domain/services/candidates.py`)와 같은 방어를 목록에도 둔다.
+        """
+        today = date.today()
+        return [
+            _to_dto(program)
+            for program in self._repository.list_open(limit)
+            if not program.is_past_deadline(today)
+        ]
 
     def list_candidates(
         self,

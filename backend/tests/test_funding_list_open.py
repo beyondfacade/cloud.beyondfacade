@@ -11,6 +11,9 @@ from apps.funding.adapter.outbound.repositories.funding_program_repository impor
     SqlAlchemyFundingProgramRepository,
 )
 from apps.funding.domain.entities.funding_program_entity import FundingProgram
+from apps.funding.dependencies.funding_program_dependencies import (
+    get_funding_program_use_case,
+)
 from core.matrix.grid_oracle_database_manager import session_scope
 from main import app
 
@@ -75,3 +78,26 @@ def test_router_invalid_limit_returns_error_body():
     body = response.json()
     assert body["error"]["code"] == "INVALID_LIMIT"
     assert body["error"]["message"]
+
+
+def test_list_open_excludes_past_deadline_even_when_flag_is_stale():
+    """플래그가 낡아도 마감 지난 공고는 목록에 없다.
+
+    `is_expired`는 일 배치(`refresh_expirations`)가 갱신해 설계상 최대 하루 낡는다 —
+    어제 마감한 공고가 다음 05:10까지 "모집 중"으로 남는 창이 있었다. 후보 필터
+    (`domain/services/candidates.py`)와 같은 방어를 목록에도 둔다.
+    """
+    _cleanup()
+    with session_scope() as session:
+        # 마감은 지났는데 플래그가 아직 false — 배치가 돌기 전 창
+        session.add(to_orm(_program(90, date(2020, 1, 1), is_expired=False)))
+        session.add(to_orm(_program(91, date(2026, 12, 1))))
+
+    listed = [
+        dto
+        for dto in get_funding_program_use_case().list_open(limit=100_000)
+        if dto.program_id.startswith(_TEST_PREFIX)
+    ]
+
+    assert [dto.program_id[-2:] for dto in listed] == ["91"]
+    _cleanup()

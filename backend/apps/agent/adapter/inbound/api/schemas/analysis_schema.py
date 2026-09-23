@@ -7,7 +7,7 @@ class AnalysisCreateRequest(BaseModel):
     region: str
     industry: str
     question: str | None = None
-    model: str = Field(default="gemma3", pattern="^(gemma3|gemini)$")
+    model: str = Field(default="hybrid", pattern="^(hybrid|gemma3|gemini)$")
 
 
 class AnalysisCreateResponse(BaseModel):
