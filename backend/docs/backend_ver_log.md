@@ -1,5 +1,55 @@
 # Backend Version Log
 
+## [v0.23.0] - 2026-09-23
+
+### Added
+- **commerce BC 신설** (`apps/commerce/`) — 서울시 상권분석서비스 행정동 계열 적재.
+  convenience·childcare 전례대로 소비 라우터가 아직 없어 entity+ORM+orm_mapper+dto+ports+
+  interactor+gateway+repository+CLI 구성 (라우터·스키마·인바운드 매퍼는 후속).
+  설계서 `docs/superpowers/specs/2026-09-23-commerce-bc-design.md`
+  - **원천**: 서울 열린데이터광장 공개분 로컬 CSV (`data/raw/seoul_commerce/`, 공공누리 1유형,
+    API 호출 0회). 빅데이터캠퍼스 카드소비는 원 수치 반출 불가라 사용하지 않음
+    · `sales_adstrd/` OA-22175 추정매출-행정동 연도별 5파일
+    · `store_adstrd/` OA-22172 점포-행정동 연도별 5파일
+  - `region_commerce_sales` 테이블 — PK(adstrd_code, service_industry_code, year_quarter),
+    region FK nullable, 당월 매출 금액·건수. 요일·시간대·성별·연령대 분해 47컬럼은 범위 밖
+    (적재 시 wide 53컬럼이 아니라 `(dim_type, dim_key, amount, count)` long 테이블로 1NF 준수)
+  - `region_commerce_store` 테이블 — 같은 PK + 점포 수·유사 업종 점포 수·개업률/폐업률·
+    개폐업 점포 수·프랜차이즈 점포 수
+  - **industry_id를 사실 테이블에 저장하지 않는 근거**: cafe(휴게음식점 모집단 ↔ 커피-음료)와
+    gym(체력단련장업 ↔ 스포츠클럽) 매핑이 미확정이라, 박아 넣으면 매핑 변경 때마다 34만/70만 행
+    재적재가 필요하다. `industry_source_code`를 거쳐 조인한다
+  - **실데이터 기반 결정**: 인코딩 CP949, 연도 컬럼은 `기준_년_코드`가 아니라 `기준_년분기_코드`
+    5자리 문자열(`20251`=2025Q1 — 정수로 바꾸면 연도와 구분 불가), 점포 쪽 표기는 `개업_율`/
+    `폐업_률` 비대칭(원천 그대로), 매출 헤더 오타 `시간대_건수~06_매출_건수`(분해 컬럼을 이름으로
+    찾는 코드는 순서 기준 필요), 결측은 0이 아니라 NULL 보존(childcare `EW_CNT_TOT` 전례).
+    원천 전량에 공란·비수치·PK 중복 0건 실측
+  - **region 해석**: 원천 `행정동_코드` 8자리 ↔ `region.region_code` 10자리 앞 8자리 1:1
+    (427행 접두 충돌 0건). region 427행을 8자리 키 맵으로 1회 로드 — 행마다 조회하지 않음.
+    원천에만 있는 옛 행정동 3개(`11230536` 용신동·`11680740` 일원2동·`11740520` 상일동)는
+    **버리지 않고 region_code NULL로 적재**한다. 용신동을 신설동·용두동으로 쪼개는 안분은
+    근거가 없어 하지 않음. 결과적으로 우리 427개 동 중 5개는 매출·점포 데이터가 없다
+  - `load_commerce` CLI — `python -m apps.commerce.adapter.inbound.cli.load_commerce [--kind sales|store|all]`.
+    원천이 정적 아카이브라 크론 비대상 (갱신은 파일 재확보 후 재실행)
+  - 마이그레이션 `c7a4f2e19b35` — 두 테이블 + 조회용 복합 인덱스 2개 +
+    `industry_source_code` `source_system='seoul_commercial'` 12행 시드
+    (academy 4행 + 8종 각 1행, childcare는 원천에 대응 업종 부재). autogenerate 오탐을 피하려
+    수기 작성 — 이 브랜치 head와 실DB 리비전이 갈라져 있어 autogenerate가 무관한 삭제를 오탐한다
+  - **첫 실적재**: sales 343,167행 · store 704,470행 (20분기 2021Q1~2025Q4 연속, 결측 분기 없음).
+    업종 고유값 sales 63 · store 100(카드매출 추정이 가능한 업종만 매출에 존재), 행정동 425개.
+    region 미기입 sales 2,172행(0.633%) · store 4,798행(0.681%) — 전부 위 3개 코드에서만 발생,
+    기입된 행의 앞 8자리 불일치 0건. 로더 재실행 시 행 수 불변·값 갱신(멱등 확인)
+  - 테스트 6건 (`tests/test_commerce_load.py`) — CP949 디코딩·년분기 문자열 보존·컬럼 매핑,
+    `개업_율`/`폐업_률` 비대칭 표기, 공란 NULL 보존, 8자리 접두 해석과 미매칭 행 보존,
+    실DB 멱등 업서트(행 수 불변·값 갱신) + 게이트웨이→인터랙터→리포지토리 전 배선 재적재
+  - `migrations/env.py` — commerce ORM 2종 autogenerate 등록
+
+### Notes
+- 설계서 §6 교차검증 5항목 중 1·2(행 수·분기·region 해석률)만 이번에 수치로 확정. 3~5
+  (상권분석 점포 수 ↔ `region_industry_metric.store_count` 모집단 괴리, cafe·gym 매핑 판정,
+  HANDOFF 첫 질문 시범 답변)는 후속
+- `docs/erd.md` §6 갱신은 이번 작업 범위 밖으로 남겨 둠
+
 ## [v0.20.0] - 2026-09-17
 
 ### Added
