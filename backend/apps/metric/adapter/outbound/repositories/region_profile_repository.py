@@ -53,3 +53,24 @@ class SqlAlchemyRegionProfileRepository(RegionProfileRepositoryPort):
                 .limit(1)
             ).scalar_one_or_none()
             return None if orm is None else to_entity(orm)
+
+    def latest_quarter(self) -> str | None:
+        with session_scope() as session:
+            return session.execute(
+                select(RegionProfileQuarterOrm.year_quarter)
+                .order_by(RegionProfileQuarterOrm.year_quarter.desc())
+                .limit(1)
+            ).scalar_one_or_none()
+
+    def list_by_quarter(self, year_quarter: str) -> list[RegionProfile]:
+        with session_scope() as session:
+            rows = (
+                session.execute(
+                    select(RegionProfileQuarterOrm)
+                    .where(RegionProfileQuarterOrm.year_quarter == year_quarter)
+                    .order_by(RegionProfileQuarterOrm.region_code)
+                )
+                .scalars()
+                .all()
+            )
+            return [to_entity(row) for row in rows]

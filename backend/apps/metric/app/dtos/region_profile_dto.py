@@ -20,6 +20,17 @@ class RegionProfileDto:
     resident_total: int | None
 
 
+@dataclass
+class ProfileMetricValueDto:
+    """단계구분도 응답 단위 — {region_code, value}.
+
+    `/metrics`·`/commerce-changes`와 같은 계약이다 (설계서 `map-metric-contract` §3-1).
+    """
+
+    region_code: str
+    value: float
+
+
 @dataclass(frozen=True)
 class RegionQuarterObservation:
     """판정 입력 단위 = 행정동×분기의 동네 맥락 원자료 한 묶음.

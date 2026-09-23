@@ -19,6 +19,14 @@ class RegionProfileRepositoryPort(ABC):
     def find_latest(self, region_code: str) -> RegionProfile | None:
         """그 동의 year_quarter 최대 행 — 없으면 None."""
 
+    @abstractmethod
+    def latest_quarter(self) -> str | None:
+        """적재된 가장 최근 분기 — 없으면 None. 화면은 최신이 언제인지 모른다."""
+
+    @abstractmethod
+    def list_by_quarter(self, year_quarter: str) -> list[RegionProfile]:
+        """해당 분기의 전 행정동 프로필을 region_code 순으로 반환한다."""
+
 
 class NeighborhoodObservationPort(ABC):
     @abstractmethod

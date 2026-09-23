@@ -32,6 +32,16 @@ class FakeRepository(RegionProfileRepositoryPort):
         candidates = [p for p in self.rows.values() if p.region_code == region_code]
         return max(candidates, key=lambda p: p.year_quarter) if candidates else None
 
+    def latest_quarter(self) -> str | None:
+        quarters = [p.year_quarter for p in self.rows.values()]
+        return max(quarters) if quarters else None
+
+    def list_by_quarter(self, year_quarter: str) -> list[RegionProfile]:
+        return sorted(
+            (p for p in self.rows.values() if p.year_quarter == year_quarter),
+            key=lambda p: p.region_code,
+        )
+
 
 class FakeObservations(NeighborhoodObservationPort):
     def __init__(self, observations: list[RegionQuarterObservation]) -> None:

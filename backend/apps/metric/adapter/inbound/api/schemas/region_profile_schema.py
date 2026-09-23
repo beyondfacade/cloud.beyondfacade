@@ -23,3 +23,10 @@ class RegionProfileResponse(BaseModel):
     fnb_share: float | None
     facility_total: int | None
     resident_total: int | None
+
+
+class ProfileMetricValueResponse(BaseModel):
+    """단계구분도 응답 단위 — `/metrics`·`/commerce-changes`와 같은 {region_code, value} 계약."""
+
+    region_code: str
+    value: float

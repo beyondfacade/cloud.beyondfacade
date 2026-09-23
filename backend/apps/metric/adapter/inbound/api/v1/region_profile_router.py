@@ -2,13 +2,18 @@ from fastapi import APIRouter, Depends
 from fastapi.responses import JSONResponse
 
 from apps.metric.adapter.inbound.api.schemas.region_profile_schema import (
+    ProfileMetricValueResponse,
     RegionProfileResponse,
 )
-from apps.metric.adapter.inbound.mappers.region_profile_mapper import to_response
+from apps.metric.adapter.inbound.mappers.region_profile_mapper import (
+    to_metric_value_response,
+    to_response,
+)
 from apps.metric.app.ports.input.region_profile_use_case import RegionProfileUseCase
 from apps.metric.dependencies.region_profile_dependencies import (
     get_region_profile_use_case,
 )
+from apps.metric.domain.errors import MetricNotFoundError
 
 router = APIRouter(prefix="/profiles", tags=["profiles"])
 
@@ -26,6 +31,20 @@ def myself(
     use_case: RegionProfileUseCase = Depends(get_region_profile_use_case),
 ) -> RegionProfileResponse:
     return to_response(use_case.myself())
+
+
+@router.get("", response_model=list[ProfileMetricValueResponse])
+def list_metric_values(
+    metric: str,
+    year_quarter: str | None = None,
+    use_case: RegionProfileUseCase = Depends(get_region_profile_use_case),
+) -> list[ProfileMetricValueResponse] | JSONResponse:
+    """단계구분도용 — 분기를 생략하면 가장 최근 분기. 업종 축이 없는 동 단위 지표다."""
+    try:
+        values = use_case.list_metric_values(metric, year_quarter)
+    except MetricNotFoundError:
+        return _not_found("METRIC_NOT_FOUND", f"지원하지 않는 metric: {metric}")
+    return [to_metric_value_response(value) for value in values]
 
 
 @router.get("/{region_code}", response_model=RegionProfileResponse)

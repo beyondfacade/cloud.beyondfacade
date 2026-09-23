@@ -1,10 +1,11 @@
 """동네 프로필 배치 — 원자료를 4분기 창으로 평활해 유형과 시간대 라벨을 낸다 (설계서 §5)."""
 
 from collections import defaultdict
-from collections.abc import Mapping, Sequence
+from collections.abc import Callable, Mapping, Sequence
 from dataclasses import asdict
 
 from apps.metric.app.dtos.region_profile_dto import (
+    ProfileMetricValueDto,
     RegionProfileDto,
     RegionQuarterObservation,
 )
@@ -14,6 +15,7 @@ from apps.metric.app.ports.output.region_profile_port import (
     RegionProfileRepositoryPort,
 )
 from apps.metric.domain.entities.region_profile_entity import RegionProfile
+from apps.metric.domain.errors import MetricNotFoundError
 from apps.metric.domain.services.time_label import (
     TimeLabelInput,
     derive_flatness_threshold,
@@ -26,6 +28,18 @@ from apps.metric.domain.services.typology import (
 )
 from apps.metric.domain.value_objects.hour_band import HOUR_BANDS, band_intensities
 from apps.metric.domain.value_objects.year_quarter import quarter_window
+
+# Strategy (GoF) — metric 이름 → 값 추출. 파생 계층의 숫자 컬럼 전부를 연다.
+# 지표를 더하는 비용이 이 테이블 한 줄이다 (설계서 `map-metric-contract` §2-1)
+_METRIC_EXTRACTORS: dict[str, Callable[[RegionProfile], float | int | None]] = {
+    "worker_resident_ratio": lambda p: p.worker_resident_ratio,
+    "weekend_index": lambda p: p.weekend_index,
+    "night_index": lambda p: p.night_index,
+    "footfall_20s_share": lambda p: p.footfall_20s_share,
+    "fnb_share": lambda p: p.fnb_share,
+    "facility_total": lambda p: p.facility_total,
+    "resident_total": lambda p: p.resident_total,
+}
 
 _WEEKDAYS: tuple[str, ...] = ("mon", "tue", "wed", "thu", "fri")
 _WEEKEND: tuple[str, ...] = ("sat", "sun")
@@ -198,6 +212,22 @@ class RegionProfileInteractor(RegionProfileUseCase):
             facility_total=typology_input.facility_total,
             resident_total=typology_input.resident_total,
         )
+
+    def list_metric_values(
+        self, metric: str, year_quarter: str | None
+    ) -> list[ProfileMetricValueDto]:
+        extractor = _METRIC_EXTRACTORS.get(metric)
+        if extractor is None:
+            raise MetricNotFoundError(metric)
+        quarter = year_quarter or self._repository.latest_quarter()
+        if quarter is None:
+            return []  # 배치 전
+        return [
+            ProfileMetricValueDto(region_code=entity.region_code, value=float(value))
+            # 결측을 0으로 내보내면 지도가 그 동을 척도의 한쪽 끝으로 색칠한다
+            for entity in self._repository.list_by_quarter(quarter)
+            if (value := extractor(entity)) is not None
+        ]
 
     def find(self, region_code: str, year_quarter: str) -> RegionProfileDto | None:
         return _to_dto(self._repository.find(region_code, year_quarter))

@@ -2,7 +2,10 @@
 
 from abc import ABC, abstractmethod
 
-from apps.metric.app.dtos.region_profile_dto import RegionProfileDto
+from apps.metric.app.dtos.region_profile_dto import (
+    ProfileMetricValueDto,
+    RegionProfileDto,
+)
 
 
 class RegionProfileUseCase(ABC):
@@ -15,6 +18,15 @@ class RegionProfileUseCase(ABC):
         """분기 목록의 동네 프로필을 재계산·업서트하고 처리 건수를 반환한다 (멱등).
 
         각 분기는 그 분기를 포함한 직전 4분기 창으로 판정한다. 임계값은 창마다 다시 낸다.
+        """
+
+    @abstractmethod
+    def list_metric_values(
+        self, metric: str, year_quarter: str | None
+    ) -> list[ProfileMetricValueDto]:
+        """단계구분도용 — 해당 분기의 행정동별 지표값 (값 None 행 제외).
+
+        분기를 생략하면 가장 최근 분기를 쓴다. 미지원 metric은 MetricNotFoundError.
         """
 
     @abstractmethod

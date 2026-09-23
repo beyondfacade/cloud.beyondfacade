@@ -1,5 +1,8 @@
 from sqlalchemy import select
 
+from apps.neighborhood.adapter.outbound.orm_mappers.region_commerce_change_orm_mapper import (
+    to_entity,
+)
 from apps.neighborhood.adapter.outbound.orms.region_commerce_change_orm import (
     RegionCommerceChangeOrm,
 )
@@ -10,18 +13,6 @@ from apps.neighborhood.domain.entities.region_commerce_change_entity import (
     RegionCommerceChange,
 )
 from core.matrix.grid_oracle_database_manager import session_scope
-
-
-def _to_entity(orm: RegionCommerceChangeOrm) -> RegionCommerceChange:
-    return RegionCommerceChange(
-        adstrd_code=orm.adstrd_code,
-        year_quarter=orm.year_quarter,
-        change_code=orm.change_code,
-        change_name=orm.change_name,
-        operating_months=orm.operating_months,
-        closed_months=orm.closed_months,
-        region_code=orm.region_code,
-    )
 
 
 class SqlAlchemyRegionCommerceChangeQueryRepository(RegionCommerceChangeQueryPort):
@@ -48,4 +39,4 @@ class SqlAlchemyRegionCommerceChangeQueryRepository(RegionCommerceChangeQueryPor
                 .scalars()
                 .all()
             )
-            return [_to_entity(row) for row in rows]
+            return [to_entity(row) for row in rows]

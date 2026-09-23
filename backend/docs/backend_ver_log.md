@@ -1,5 +1,47 @@
 # Backend Version Log
 
+## [v0.30.0] - 2026-09-23
+
+### Added
+- **지도 지표 계약 성문화** — `docs/superpowers/specs/2026-09-23-map-metric-contract.md`.
+  v0.29.0에서 지도에 값을 공급하는 엔드포인트가 둘이 됐고, §12가 "라우터 하나, 테이블 하나"를
+  요구하므로 앞으로도 원천이 늘면 엔드포인트가 는다. 새 엔드포인트가 각자 파라미터와 응답
+  모양을 **발명하지 않도록** 계약 두 벌(단계구분도 / 상세)과 범주형 처리, 카탈로그 전환 조건을
+  정했다. 이미 있는 셋이 그 모양이므로 발명이 아니라 성문화다
+  - **라우터는 테이블 수가 아니라 화면 수요를 따른다.** 테이블 13개 중 8개는 에이전트
+    게이트웨이와 파생 배치가 프로세스 안에서 읽는다 — HTTP로 나갈 일이 없어 라우터를 만들지
+    않는다. 실제로 열릴 인바운드는 2~3개다
+  - **라우터의 고정비는 테이블을 사고, 한계비용은 지표당 1줄이다.** v0.29.0이 숫자 하나에
+    16파일을 쓴 것은 지표가 아니라 테이블을 연 값이다
+- **`GET /profiles?metric=&year_quarter=`** (설계서 §4의 1번) — 파생 지표 **7종**을 단계구분도
+  계약으로 연다. `worker_resident_ratio` · `weekend_index` · `night_index` ·
+  `footfall_20s_share` · `fnb_share` · `facility_total` · `resident_total`.
+  **새 테이블도 새 라우터도 없이 extractor 테이블 7줄이다** — v0.26.0 파생 계층의 값이 여기서
+  돌아온다
+  - 분기 생략 시 최신 분기. 미지원 metric은 404 `METRIC_NOT_FOUND`
+  - **값이 없는 동은 행을 만들지 않는다.** `worker_resident_ratio`가 412행인 것이 그 결과다
+    (직장인구 결측 동 제외). 0으로 내보내면 지도가 "직장인이 없는 동네"로 색칠한다
+  - `RegionProfileRepositoryPort`에 `latest_quarter` · `list_by_quarter` 추가
+
+### Fixed
+- **`region_commerce_change` ORM 읽기 변환이 두 곳에 있던 것** — v0.29.0이 query 레포지토리
+  안에 `_to_entity`를 사적으로 뒀는데, `region_commerce_change_orm_mapper.py`가 "읽기 경로는
+  라우터가 생기는 후속 범위에서 추가한다"며 그 자리를 이미 예약해 두고 있었다. §12의 Boundary
+  Gate 규칙대로 경계 게이트 한 곳으로 옮겼다. 적재·조회 레포지토리는 둘이지만 경계 변환은
+  한 벌이다 — 컬럼이 늘 때 한쪽만 고치는 자리를 없앴다
+
+### Validation
+- 테스트 6건 추가 — 응답 형태, 7종 전부 열림, 분기 생략 시 최신, 값 없는 동 제외,
+  미지원 404, 배치 전 빈 목록
+- 실DB 확인 (분포가 분류 문서 실측과 일치): `night_index` 중앙값 1.074(문서 Q50 1.0737) ·
+  `weekend_index` 1.029(문서 1.029) · `facility_total` 111(문서 p50 111) ·
+  `worker_resident_ratio` 412행(결측 제외)
+- 테스트 320 통과 / 1 실패(`test_store_ingest.py`, 기존 건)
+
+### 범위 밖
+화면 노출은 별도 판단이다. 백엔드가 7종을 지원한다고 컨트롤바에 버튼 7개를 더하지 않는다
+(설계서 §7).
+
 ## [v0.29.0] - 2026-09-23
 
 ### Added
