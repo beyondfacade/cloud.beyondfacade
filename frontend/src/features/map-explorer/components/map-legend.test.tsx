@@ -2,11 +2,13 @@ import { render, screen } from "@testing-library/react";
 import { MapLegend, formatLegendValue } from "./map-legend";
 import type { MetricColorClass } from "../lib/metric-color";
 
-it("formatLegendValue: 비율 지표는 %(소수 1자리), 점포수는 정수, 영업 지속은 개월", () => {
+it("formatLegendValue: 비율은 %(소수 1자리), 점포수는 정수, 영업 지속은 개월, 심야 체류는 소수 2자리", () => {
   expect(formatLegendValue("closure_rate", 0.034)).toBe("3.4%");
   expect(formatLegendValue("growth_rate", -0.021)).toBe("-2.1%"); // 음수 부호 그대로
   expect(formatLegendValue("store_count", 123.4)).toBe("123");
   expect(formatLegendValue("operating_months", 117.4)).toBe("117개월");
+  expect(formatLegendValue("night_index", 1.0737)).toBe("1.07");
+  expect(formatLegendValue("fnb_share", 0.2429)).toBe("24.3%");
 });
 
 const CLASSES: MetricColorClass[] = [
@@ -26,15 +28,15 @@ it("classes가 비어 있으면 아무것도 렌더링하지 않는다", () => {
   expect(container).toBeEmptyDOMElement();
 });
 
-it("동 단위 지표에는 업종과 무관하다는 단서를 붙인다", () => {
-  // 업종을 바꿔도 색이 안 변하는 이유를 범례가 말해준다
+it("'업종 무관' 단서는 더 이상 범례에 없다 — 컨트롤바의 동네/업종 무리가 그 뜻을 말한다", () => {
   render(<MapLegend metric="operating_months" scale={{ kind: "numeric", classes: CLASSES }} />);
-  expect(screen.getByText("업종 구분 없는 동 전체 평균")).toBeInTheDocument();
+  expect(screen.queryByText(/업종 구분 없는/)).toBeNull();
 });
 
-it("업종 지표에는 그 단서를 붙이지 않는다", () => {
-  render(<MapLegend metric="closure_rate" scale={{ kind: "numeric", classes: CLASSES }} />);
-  expect(screen.queryByText("업종 구분 없는 동 전체 평균")).toBeNull();
+it("심야 체류에는 값의 기준(1.00 = 하루 평균)을 붙인다", () => {
+  render(<MapLegend metric="night_index" scale={{ kind: "numeric", classes: [{ color: "#abc", from: 0.9, to: 1.1 }] }} />);
+  expect(screen.getByText("1.00 = 하루 평균")).toBeInTheDocument();
+  expect(screen.getByText("0.90 ~ 1.10")).toBeInTheDocument();
 });
 
 it("범주 범례는 값 구간 대신 유형 이름 6줄 + 괄호 설명을 띄운다", () => {

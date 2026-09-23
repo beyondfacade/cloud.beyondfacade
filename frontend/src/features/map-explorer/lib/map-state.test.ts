@@ -1,5 +1,5 @@
 import { expect, it } from "vitest";
-import { parseMapState, serializeMapState, SNAPSHOT_INDUSTRIES, YEARS } from "./map-state";
+import { METRICS, METRIC_GROUPS, metricGroupOf, parseMapState, serializeMapState, SNAPSHOT_INDUSTRIES, YEARS } from "./map-state";
 
 it("YEARS는 2019~2026 8개년을 제공한다 (백엔드 지표 범위와 일치)", () => {
   expect(YEARS).toEqual([2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026]);
@@ -10,6 +10,7 @@ it("기본값: 파라미터 없으면 cafe/neighborhood_type/2026/null — 첫 �
     industry: "cafe",
     metric: "neighborhood_type",
     year: 2026,
+    year_quarter: null,
     region: null,
     budget: null,
   });
@@ -20,6 +21,7 @@ it("직렬화→파싱 라운드트립이 보존된다", () => {
     industry: "karaoke",
     metric: "growth_rate" as const,
     year: 2021,
+    year_quarter: null,
     region: "1168051500",
     budget: null,
   };
@@ -56,4 +58,29 @@ it("어린이집·편의점도 폐업률·성장률 URL을 그대로 유지한�
 it("SNAPSHOT_INDUSTRIES에 어린이집·편의점이 포함된다", () => {
   expect(SNAPSHOT_INDUSTRIES.has("childcare")).toBe(true);
   expect(SNAPSHOT_INDUSTRIES.has("convenience_store")).toBe(true);
+});
+
+it("지표는 두 무리에서 파생되고 무리 밖 지표가 없다", () => {
+  expect(METRIC_GROUPS.map((g) => g.key)).toEqual(["region", "industry"]);
+  const fromGroups = METRIC_GROUPS.flatMap((g) => [...g.metrics]);
+  expect([...METRICS]).toEqual(fromGroups);
+  for (const m of METRICS) expect(metricGroupOf(m).metrics).toContain(m);
+  expect(metricGroupOf("night_index").axis).toBe("region_quarter");
+  expect(metricGroupOf("closure_rate").axis).toBe("industry_year");
+});
+
+it("year_quarter는 URL을 왕복하고, 형식이 틀리면 null(최신)이다", () => {
+  const s = { ...parseMapState(new URLSearchParams()), metric: "night_index" as const, year_quarter: "20254" };
+  const round = parseMapState(new URLSearchParams(serializeMapState(s)));
+  expect(round.year_quarter).toBe("20254");
+  expect(parseMapState(new URLSearchParams("year_quarter=2025")).year_quarter).toBeNull();
+  // null이면 URL에 안 실린다 — 최신은 백엔드가 고른다
+  expect(new URLSearchParams(serializeMapState({ ...s, year_quarter: null })).has("year_quarter")).toBe(false);
+});
+
+it("무리를 오가도 연도·분기·예산이 각자 유지된다", () => {
+  const landed = parseMapState(new URLSearchParams("region=1168064000&industry=cafe&budget=50000000&year=2023&year_quarter=20244"));
+  const toIndustry = parseMapState(new URLSearchParams(serializeMapState({ ...landed, metric: "closure_rate" })));
+  const backToRegion = parseMapState(new URLSearchParams(serializeMapState({ ...toIndustry, metric: "fnb_share" })));
+  expect(backToRegion).toMatchObject({ year: 2023, year_quarter: "20244", budget: 50_000_000, industry: "cafe" });
 });

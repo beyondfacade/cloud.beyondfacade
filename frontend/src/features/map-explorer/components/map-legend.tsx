@@ -13,18 +13,21 @@ function percent(value: number): string {
   return `${(value * 100).toFixed(1)}%`;
 }
 
-/** 범례 구간 값 표기 — 비율 지표는 %(소수 1자리, 음수 부호 그대로), 점포수·개월은 정수. 숫자 지표만이다. */
+/** 범례 구간 값 표기 — 비율 지표는 %(소수 1자리, 음수 부호 그대로), 점포수·개월은 정수,
+ *  심야 체류는 소수 2자리(1.00 = 하루 평균). 숫자 지표만이다. */
 const FORMAT_BY_METRIC: Record<NumericMetricKey, (value: number) => string> = {
   closure_rate: percent,
   growth_rate: percent,
   store_count: (value) => String(Math.round(value)),
   operating_months: (value) => `${Math.round(value)}개월`,
+  night_index: (value) => value.toFixed(2),
+  fnb_share: percent,
 };
 
-/** 지표 이름만으로 오해가 생기는 경우에만 붙이는 단서. 업종을 바꿔도 색이 안 변하는 이유를 말해준다. */
-const NOTE_BY_METRIC: Partial<Record<MapMetricKey, string>> = {
-  operating_months: "업종 구분 없는 동 전체 평균",
-  neighborhood_type: "업종 구분 없는 동네 성격",
+/** 값의 기준을 한 줄로 — 심야 체류 지수는 숫자만으로 뜻이 안 선다. "업종 무관" 단서는 두지 않는다:
+ *  컨트롤바의 동네/업종 무리 구조가 그 뜻을 말한다(v0.20.0). */
+const UNIT_HINT: Partial<Record<MapMetricKey, string>> = {
+  night_index: "1.00 = 하루 평균",
 };
 
 export function formatLegendValue(metric: NumericMetricKey, value: number): string {
@@ -80,8 +83,8 @@ export function MapLegend({ metric, scale }: MapLegendProps) {
   return (
     <div className="absolute right-4 bottom-10 z-10 rounded-xl border border-[var(--border)] bg-[var(--bg-surface)] px-4 py-3">
       <p className="text-xs font-semibold text-[var(--text-primary)]">{METRIC_LABELS[metric]}</p>
-      {NOTE_BY_METRIC[metric] && (
-        <p className="mt-0.5 text-[10px] text-[var(--text-secondary)]">{NOTE_BY_METRIC[metric]}</p>
+      {UNIT_HINT[metric] && (
+        <p className="mt-0.5 text-[10px] text-[var(--text-secondary)]">{UNIT_HINT[metric]}</p>
       )}
       <ul className="mt-2.5 flex flex-col gap-2">
         {scale.kind === "categorical" ? (

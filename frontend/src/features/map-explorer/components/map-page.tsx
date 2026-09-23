@@ -41,6 +41,7 @@ export function MapPage() {
               metric={state.metric}
               industry={state.industry}
               year={state.year}
+              yearQuarter={state.year_quarter}
               onSelectRegion={handleSelectRegion}
             />
           </div>

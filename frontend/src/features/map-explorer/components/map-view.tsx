@@ -48,17 +48,19 @@ interface MapViewProps {
   metric: MapMetricKey;
   industry: string;
   year: number;
+  /** 동×분기 지표의 시점. null = 최신. */
+  yearQuarter: string | null;
   onSelectRegion: (code: string) => void;
 }
 
-export function MapView({ regionCode, metric, industry, year, onSelectRegion }: MapViewProps) {
+export function MapView({ regionCode, metric, industry, year, yearQuarter, onSelectRegion }: MapViewProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<MapLibreGLMap | null>(null);
   const onSelectRegionRef = useRef(onSelectRegion);
   onSelectRegionRef.current = onSelectRegion;
   const [ready, setReady] = useState(false);
 
-  const { geojson, rows, source } = useMapData(metric, industry, year);
+  const { geojson, rows, source } = useMapData(metric, { industry, year, yearQuarter });
   // 경계/지표 fetch 실패는 무음 빈 지도가 아니라 배너로 알린다 (side-panel의 role="alert" 관행과 일관).
   const loadError = geojson.isError || rows.isError;
   // 실 API는 데이터 미보유 업종·연도에 200 + 빈 배열을 반환한다 — 빈 지도임을 명시.

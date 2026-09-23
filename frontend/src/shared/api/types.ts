@@ -8,21 +8,27 @@ export type AgentEvent =
 
 export type MetricKey = "closure_rate" | "growth_rate" | "store_count";
 
-/** 업종 축이 없는 동 단위 분기 지표. 업종을 바꿔도 값이 같다.
- *  operating_months → GET /commerce-changes (숫자), neighborhood_type → GET /profiles/types (범주). */
-export type RegionMetricKey = "operating_months" | "neighborhood_type";
+/** GET /profiles?metric= 가 지도에 올리는 파생 지표 (동×분기 숫자, v0.30.0의 7종 중 화면에 노출하는 둘). */
+export type ProfileMetricKey = "night_index" | "fnb_share";
 
 /** GET /commerce-changes 가 지원하는 지표 (동×분기 숫자). */
 export type CommerceChangeMetricKey = "operating_months";
 
+/** 업종 축이 없는 동 단위 분기 지표. 업종을 바꿔도 값이 같다.
+ *  operating_months → /commerce-changes, night_index·fnb_share → /profiles?metric= (숫자), neighborhood_type → /profiles/types (범주). */
+export type RegionMetricKey = CommerceChangeMetricKey | ProfileMetricKey | "neighborhood_type";
+
 /** 숫자 계약({region_code, value})으로 오는 지표. 범례 값 표기·분위수 스케일의 대상. */
-export type NumericMetricKey = MetricKey | "operating_months";
+export type NumericMetricKey = MetricKey | CommerceChangeMetricKey | ProfileMetricKey;
 
 /** 범주 계약({region_code, type_code})으로 오는 지표. 숫자 계약과 경로가 다르다 (map-metric-contract §5). */
 export type CategoricalMetricKey = "neighborhood_type";
 
-/** 지도 단계구분도가 그릴 수 있는 전체 지표. 원천은 둘로 갈리지만 응답 형태는 {region_code, value}로 같다. */
+/** 지도 단계구분도가 그릴 수 있는 전체 지표. 원천은 넷으로 갈리지만 호출하는 쪽은 METRIC_SOURCES 한 곳만 안다. */
 export type MapMetricKey = MetricKey | RegionMetricKey;
+
+/** 지표의 축 — 셀렉터가 이 값을 정직하게 따라간다. 업종×연도 지표에 분기를, 동×분기 지표에 업종을 묻지 않는다. */
+export type MetricAxis = "industry_year" | "region_quarter";
 
 export interface MetricRow {
   region_code: string;

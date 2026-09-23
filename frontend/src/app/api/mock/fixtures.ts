@@ -15,6 +15,7 @@ import type {
   MetricKey,
   MetricRow,
   CommerceChangeMetricKey,
+  ProfileMetricKey,
   RegionProfile,
   RegionSummary,
   Store,
@@ -514,6 +515,15 @@ export function intentOfText(text: string): IntentResult {
 }
 
 /** 유형 단계구분도 — 실 API `GET /profiles/types` 미러. 프로필 픽스처의 유형을 그대로 쓴다(결정적). */
+/** 파생 지표 숫자 단계구분도 — 단일 프로필과 같은 원천(regionProfileOf)이라 두 계약이 어긋나지 않는다.
+ *  값이 null인 동은 행을 만들지 않는다(실 API 계약: 0으로 내보내면 지도가 거짓말한다). */
+export function profileMetricRows(metric: ProfileMetricKey, yearQuarter: string): MetricRow[] {
+  return REGIONS.flatMap(({ region_code }) => {
+    const value = regionProfileOf(region_code, yearQuarter)[metric];
+    return value === null ? [] : [{ region_code, value }];
+  });
+}
+
 export function profileTypeRows(yearQuarter: string): CategoryRow[] {
   return REGIONS.map(({ region_code }) => ({
     region_code,
