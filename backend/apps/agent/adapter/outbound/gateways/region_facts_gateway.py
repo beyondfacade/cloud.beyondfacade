@@ -1,6 +1,7 @@
 """Driven Adapter — Agent 도구가 필요로 하는 타 BC 사실 조회 (cross-BC 접근은 이 파일 안에서만)."""
 
 from dataclasses import asdict
+from statistics import median
 
 from sqlalchemy import select
 
@@ -31,6 +32,9 @@ from apps.neighborhood.adapter.outbound.orms.region_footfall_quarter_orm import 
 from apps.neighborhood.adapter.outbound.orms.region_housing_average_quarter_orm import (
     RegionHousingAverageQuarterOrm,
 )
+from apps.neighborhood.adapter.outbound.orms.seoul_commerce_change_baseline_orm import (
+    SeoulCommerceChangeBaselineOrm,
+)
 from apps.shock.adapter.outbound.orms.interest_rate_orm import InterestRateOrm
 from apps.shock.app.dtos.shock_event_dto import ShockEventDto
 from apps.shock.dependencies.shock_event_dependencies import get_shock_event_use_case
@@ -39,6 +43,8 @@ from core.matrix.grid_oracle_database_manager import session_scope
 _SCHOOL_AGE_FROM = (5, 10, 15)  # 5년 구간 3개 = 5~19세 학령인구
 
 _TOP_FACILITY_COUNT = 5
+# 같은 유형 동들과 견줄 지표 — 프로필의 판정 근거 중 비율형만 (facility_total·resident_total은 규모라 제외)
+_BENCHMARK_FIELDS = ("weekend_index", "night_index", "fnb_share", "worker_resident_ratio")
 # 집객시설 `total`은 19종 합보다 큰 더 넓은 정의다 — 구성 목록과 나란히 놓지 않는다
 _EXCLUDED_FACILITY_TYPES = ("total",)
 
@@ -157,6 +163,7 @@ class RegionFactsGateway(RegionFactsPort):
                 return {}
             quarter = profile.year_quarter
             top_facilities = self._top_facilities(session, region_code, quarter)
+            benchmarks = self._benchmarks(session, profile)
             return {
                 "region_code": region_code,
                 "year_quarter": quarter,
@@ -178,8 +185,52 @@ class RegionFactsGateway(RegionFactsPort):
                 "apartment_avg_price_won": self._apartment_avg_price(
                     session, region_code, quarter
                 ),
-                "caveats": _profile_caveats(profile, top_facilities),
+                # 패널이 이미 절대값을 보여준다 — 리포트는 서울 평균·같은 유형 중앙값 대비로 쓴다 (무대 설계서 §7)
+                "benchmarks": benchmarks,
+                "caveats": _profile_caveats(profile, top_facilities, benchmarks),
             }
+
+    @staticmethod
+    def _benchmarks(session, profile) -> dict:
+        """비교 기준 둘 — 서울 평균(영업/폐업 개월)과 같은 분기·같은 유형 동들의 지표 중앙값.
+
+        유형 중앙값은 매 호출 422행을 한 번 훑는다. 싸다. 느려지면 배치가 미리 계산하는
+        `region_type_benchmark_quarter`로 승격한다(설계서 §7). 상주인구 하한(재건축) 동은 유형이
+        `mixed`라 그대로 mixed 중앙값에 들어간다 — 그 동의 비율은 비정상이지만 중앙값이라 한두 동이
+        결과를 끌지 못한다.
+        """
+        baseline = session.execute(
+            select(SeoulCommerceChangeBaselineOrm).where(
+                SeoulCommerceChangeBaselineOrm.year_quarter == profile.year_quarter
+            )
+        ).scalar_one_or_none()
+        if baseline is None:
+            # 프로필(22분기)과 baseline의 분기 범위가 다를 수 있다 — 그 테이블의 최신으로 대신한다
+            baseline = session.execute(
+                select(SeoulCommerceChangeBaselineOrm)
+                .order_by(SeoulCommerceChangeBaselineOrm.year_quarter.desc())
+                .limit(1)
+            ).scalar_one_or_none()
+        peers = (
+            session.execute(
+                select(RegionProfileQuarterOrm).where(
+                    RegionProfileQuarterOrm.year_quarter == profile.year_quarter,
+                    RegionProfileQuarterOrm.neighborhood_type == profile.neighborhood_type,
+                )
+            )
+            .scalars()
+            .all()
+        )
+        return {
+            "seoul": None
+            if baseline is None
+            else {
+                "operating_months": baseline.seoul_operating_months,
+                "closed_months": baseline.seoul_closed_months,
+            },
+            "type_median": _type_median(peers),
+            "type_count": len(peers),
+        }
 
     @staticmethod
     def _footfall_age_mix(session, region_code: str, quarter: str) -> list[dict]:
@@ -253,7 +304,21 @@ class RegionFactsGateway(RegionFactsPort):
         ).scalar_one_or_none()
 
 
-def _profile_caveats(profile, top_facilities: list[dict]) -> list[str]:
+def _type_median(rows) -> dict | None:
+    """같은 유형 동들의 지표 중앙값 — 필드마다 결측(None)을 뺀다. 행이 없으면 None.
+
+    결측을 0으로 넣으면 직장인구 없는 11개 동이 중앙값을 끌어내린다. 그 필드만 빼고 센다.
+    """
+    if not rows:
+        return None
+    result: dict[str, float | None] = {}
+    for field in _BENCHMARK_FIELDS:
+        values = [v for row in rows if (v := getattr(row, field)) is not None]
+        result[field] = median(values) if values else None
+    return result
+
+
+def _profile_caveats(profile, top_facilities: list[dict], benchmarks: dict | None = None) -> list[str]:
     """원천이 아는 해석 주의 — LLM이 결측을 0으로 읽지 않게 한다.
 
     해당하지 않는 주의는 넣지 않는다. 늘 붙는 문구는 읽히지 않는다.
@@ -273,5 +338,9 @@ def _profile_caveats(profile, top_facilities: list[dict]) -> list[str]:
     if top_facilities and top_facilities[0]["type"] == "버스정거장":
         caveats.append(
             "집객시설 1위가 버스정거장이다. 시설 수를 상권 매력도로 직결해 읽지 마라."
+        )
+    if benchmarks and benchmarks.get("type_median"):
+        caveats.append(
+            f"비교는 같은 유형 {benchmarks['type_count']}개 동 중앙값 기준이다. 서울 전체 평균과 혼동하지 마라."
         )
     return caveats

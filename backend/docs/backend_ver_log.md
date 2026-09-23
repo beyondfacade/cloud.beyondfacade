@@ -1,10 +1,10 @@
 # Backend Version Log
 
-## [v0.32.0] - 2026-09-23 (진행 중 — T2 무대)
+## [v0.32.0] - 2026-09-23 (T2 무대 — 4/4 완료)
 
 > 이 항목은 무대 설계서(`docs/superpowers/specs/2026-09-23-map-stage-design.md`)의 백엔드 조각을 순서대로
 > 담는다. (1/4) hour-gaps → (2/4) `/profiles/types` → (3/4) `/commerce-changes/{region}` 상세 → (4/4) 리포트
-> `benchmarks`. 뒤 조각이 같은 항목에 절을 덧붙인다.
+> `benchmarks`. 네 조각이 전부 이 항목에 있다.
 
 ### Added — (1/4) `GET /hour-gaps` 시간대 어긋남 상세 계약 (T2-4)
 - metric BC `region_industry_hour_gap` 프랙탈의 인바운드 3파일(schema·inbound mapper·router).
@@ -61,6 +61,33 @@
   서울 94. 없는 동 404
 - 테스트 7건 추가(블록 채움·정점 일치 1, 응답 형태 2, 상세 4) — 전체 **391 통과**. `domain/`·
   `app/`에 프레임워크 import 없음
+
+### Added — (4/4) 리포트 `market`에 서울 평균·유형 중앙값 벤치마크 주입 (T2-5)
+- **`get_neighborhood_profile` 도구 결과에 `benchmarks`** — 패널 ①~④와 리포트 market 슬롯의 재료가
+  같다. 사용자가 패널에서 본 절대값을 리포트가 되풀이하면 진전이 없다고 느낀다. 리포트는 **패널이
+  안 보여주는 것** — 서울 평균 대비, 같은 유형 중앙값 대비 — 를 말해야 한다(무대 설계서 §7)
+  - `seoul: {operating_months, closed_months}` ← `seoul_commerce_change_baseline`, 프로필과 같은
+    분기 없으면 그 테이블의 최신. 이 테이블은 v0.25.0에 적재해 두고 아무도 안 쓰고 있었다
+  - `type_median: {weekend_index, night_index, fnb_share, worker_resident_ratio}` ← 같은 분기·같은
+    `type_code`의 `region_profile_quarter` 중앙값. **필드마다 결측을 뺀다** — 직장인구 없는 11개 동을
+    0으로 넣으면 중앙값이 내려앉는다. 규모형(`facility_total`·`resident_total`)은 비교 대상에서 제외
+  - `type_count` — 그 유형 동 수. 게이트웨이가 매 호출 422행을 한 번 훑는다(싸다). 느려지면
+    `region_type_benchmark_quarter` 배치로 승격
+  - 상주인구 하한(재건축) 동은 유형이 `mixed`라 그대로 mixed 중앙값에 들어간다 — 중앙값이라
+    한두 동이 결과를 끌지 못한다(주석)
+- **`caveats` 조건부 한 줄** — `type_median`이 있을 때만 "비교는 같은 유형 {n}개 동 중앙값 기준이다.
+  서울 전체 평균과 혼동하지 마라." 해당하는 주의만 붙이는 원칙 그대로
+- **`SYSTEM_PROMPT` market 계약에 두 줄** — "동네 설명과 주의점은 `benchmarks`와 비교해 쓴다.
+  비교 기준 없는 절대값 서술은 하지 않는다. null인 항목은 비교하지 않는다." 라벨·순서는 그대로
+
+#### Validation (4/4)
+- 테스트 6건 추가 — `_type_median` 순수 함수 3(결측 제외·필드 전부 결측→None·빈 목록→None),
+  조건부 caveat 1, 도구 결과 `benchmarks` 키 1, 프롬프트 계약 1. 전체 **397 passed**
+- 실DB 역삼1동: `seoul` 118.0 / 54.0 · `type_median`(낮 인구 우위형 36동) 주말 0.810 · 심야 0.732 ·
+  음식유흥 0.160 · 직장비 2.707 — 분류 문서 §4-2의 유형별 중앙값(0.810 · 0.695 · 16.1% · 2.714)과
+  맞는다(심야만 4분기 평활 차이). 역삼1동 심야 0.639는 **같은 유형 중앙값보다도 낮다** — 리포트가
+  이제 그 문장을 쓸 수 있다. `caveats`에 비교 기준 문구 확인
+- 실 리포트 생성은 돌리지 않았다(LLM 비용) — E2E가 T2 끝에 돈다
 
 ## [v0.31.0] - 2026-09-23
 

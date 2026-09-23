@@ -62,6 +62,16 @@ class FakeRegionFactsPort(RegionFactsPort):
             "commerce_change": {"code": "LL", "name": "다이나믹", "operating_months": 110.0},
             "top_facilities": [{"type": "버스정거장", "count": 120}],
             "apartment_avg_price_won": 307439893,
+            "benchmarks": {
+                "seoul": {"operating_months": 118.0, "closed_months": 54.0},
+                "type_median": {
+                    "weekend_index": 0.81,
+                    "night_index": 0.695,
+                    "fnb_share": 0.161,
+                    "worker_resident_ratio": 2.714,
+                },
+                "type_count": 36,
+            },
             "caveats": ["아파트 평균 시가는 참고값이다."],
         }
 
@@ -227,3 +237,18 @@ def test_get_neighborhood_profile_cites_the_derived_table():
             "region_code": "1168064000",
         }
     ]
+
+
+def test_get_neighborhood_profile_carries_benchmarks_for_comparison():
+    """market 절이 패널의 반복이 아니라 다음 층이 되려면 비교 기준이 도구 결과에 있어야 한다 (무대 설계서 §7)."""
+    tools = _build_tools()
+    tool = next(t for t in tools if t.spec.name == "get_neighborhood_profile")
+
+    payload = json.loads(tool.run({"region_code": "1168064000"}))
+
+    benchmarks = payload["benchmarks"]
+    assert benchmarks["seoul"] == {"operating_months": 118.0, "closed_months": 54.0}
+    assert set(benchmarks["type_median"]) == {
+        "weekend_index", "night_index", "fnb_share", "worker_resident_ratio"
+    }
+    assert benchmarks["type_count"] == 36

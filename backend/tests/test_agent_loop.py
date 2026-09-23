@@ -473,3 +473,11 @@ def test_시스템_프롬프트가_없는_수치를_지어내지_못하게_한�
 
     assert "지어내지 않는다" in SYSTEM_PROMPT
     assert "caveats" in SYSTEM_PROMPT
+
+
+def test_시스템_프롬프트가_동네_설명과_주의점을_벤치마크와_비교해_쓰게_한다():
+    """패널에서 본 절대값을 리포트가 되풀이하지 않게 — 서울 평균·유형 중앙값 대비로 쓴다 (무대 설계서 §7)."""
+    from apps.agent.app.use_cases.analysis_interactor import SYSTEM_PROMPT
+
+    assert "benchmarks" in SYSTEM_PROMPT
+    assert "비교 기준 없는 절대값" in SYSTEM_PROMPT

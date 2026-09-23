@@ -2,7 +2,10 @@
 
 from dataclasses import dataclass
 
-from apps.agent.adapter.outbound.gateways.region_facts_gateway import _profile_caveats
+from apps.agent.adapter.outbound.gateways.region_facts_gateway import (
+    _profile_caveats,
+    _type_median,
+)
 
 
 @dataclass
@@ -45,3 +48,52 @@ def test_집객시설_1위가_버스정거장일_때만_그_주의가_붙는다(
 def test_아파트_평균_시가_주의는_항상_붙는다():
     # 값 자체가 늘 이상치 위험을 갖는다 (원천 편차가 극단적)
     assert "참고값" in _texts(FakeProfile())
+
+
+# --- 유형 중앙값 (설계서 map-stage §7 benchmarks) ---
+
+
+@dataclass
+class FakeRow:
+    weekend_index: float | None
+    night_index: float | None
+    fnb_share: float | None
+    worker_resident_ratio: float | None
+
+
+def test_유형_중앙값은_필드마다_결측을_뺀_중앙값이다():
+    rows = [
+        FakeRow(0.8, 0.6, 0.10, 2.0),
+        FakeRow(0.9, 0.7, 0.20, None),   # 직장인구 결측 동 — 그 필드만 빠진다
+        FakeRow(1.0, 0.8, 0.30, 4.0),
+    ]
+
+    median = _type_median(rows)
+
+    assert median == {
+        "weekend_index": 0.9,
+        "night_index": 0.7,
+        "fnb_share": 0.2,
+        "worker_resident_ratio": 3.0,
+    }
+
+
+def test_어느_필드가_전부_결측이면_그_필드만_None이다():
+    rows = [FakeRow(0.8, 0.6, 0.1, None), FakeRow(1.0, 0.8, 0.3, None)]
+
+    assert _type_median(rows)["worker_resident_ratio"] is None
+    assert _type_median(rows)["night_index"] == 0.7
+
+
+def test_빈_목록이면_None이다():
+    assert _type_median([]) is None
+
+
+def test_유형_중앙값이_있을_때만_비교_기준_주의가_붙는다():
+    benchmarks = {"seoul": None, "type_median": {"night_index": 0.7}, "type_count": 36}
+
+    있음 = " ".join(_profile_caveats(FakeProfile(), [], benchmarks))
+    없음 = " ".join(_profile_caveats(FakeProfile(), [], {"seoul": None, "type_median": None, "type_count": 0}))
+
+    assert "36개 동 중앙값" in 있음
+    assert "중앙값" not in 없음
