@@ -257,39 +257,49 @@ echo "  리포트 본문 ${REPORT_LEN}자 확인"
 # [9/9] 자금 계획(/plan) — 관문의 budget이 자기자본으로, 실측 월매출이 프리필로 들어오고 서버 계산이 렌더되는지.
 # 프리필은 react-query로 뒤늦게 도착하므로 최대 15초 기다린다. 필수 빈칸(보증금·인테리어·희망대출)은
 # 사용자 몫이라 native setter로 채운다([0/8]과 같은 이유 — React onChange가 확실히 잡힌다).
+# 금액 입력은 화면 표기와 같은 **만원 단위**다(plan-form의 wonToManwon + "만원" 라벨). 내부 상태와
+# API만 원 단위다 — 여기서 원 단위를 넣거나 단언하면 1만 배 어긋난다.
 echo "[9/9] 자금 계획(/plan) 프리필·계산"
 AB open "$BASE_URL/plan?region=${SELECTED_REGION}&industry=${INDUSTRY}&budget=50000000" >/dev/null
 AB wait --load networkidle >/dev/null
 AB wait --text "계산하기" >/dev/null
+# AB eval은 결과를 JSON 인코딩해 돌려준다 — 객체를 JSON.stringify 하면 따옴표가 이스케이프돼
+# 부분 문자열 매칭이 빗나간다. [1/8] 클릭 좌표와 같이 공백 구분 숫자로 받아 tr로 씻는다.
 PLAN_DEADLINE=$((SECONDS + 15))
 while :; do
   PREFILL_STATE="$(cat <<'JS' | AB eval --stdin
 (() => {
   const form = document.querySelector('form[aria-label="자금 계획 입력"]');
-  const v = (n) => Number(form?.querySelector(`input[name="${n}"]`)?.value ?? "");
-  return JSON.stringify({ equity: v("equity"), revenue: v("expected_monthly_revenue") });
+  const v = (n) => Number(form?.querySelector(`input[name="${n}"]`)?.value ?? "") || 0;
+  return v("equity") + " " + v("expected_monthly_revenue");
 })()
 JS
 )"
-  if [[ "$PREFILL_STATE" == *'"equity":50000000'* ]] && [[ "$PREFILL_STATE" != *'"revenue":0'* ]]; then break; fi
+  read -r PLAN_EQUITY PLAN_REVENUE <<<"$(echo "$PREFILL_STATE" | tr -cd '0-9 \n')"
+  # budget 5,000만 원 → 폼 표기 5000(만원). 월매출은 동·업종마다 달라 0보다 크기만 하면 된다.
+  if [[ "${PLAN_EQUITY:-0}" == "5000" ]] && (( ${PLAN_REVENUE:-0} > 0 )); then break; fi
   if (( SECONDS > PLAN_DEADLINE )); then
-    echo "오류: /plan 프리필이 15초 안에 도착하지 않았습니다 (상태: $PREFILL_STATE)." >&2
+    echo "오류: /plan 프리필이 15초 안에 도착하지 않았습니다 (자기자본 ${PLAN_EQUITY:-?}만원 · 월매출 ${PLAN_REVENUE:-?}만원)." >&2
     exit 1
   fi
   sleep 1
 done
-echo "  프리필 확인: $PREFILL_STATE"
+echo "  프리필 확인: 자기자본 ${PLAN_EQUITY}만원 · 월매출 ${PLAN_REVENUE}만원"
 cat <<'JS' | AB eval --stdin >/dev/null
 (() => {
   const form = document.querySelector('form[aria-label="자금 계획 입력"]');
   const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value").set;
-  for (const [name, value] of [["deposit", "20000000"], ["interior_cost", "20000000"], ["desired_loan", "25000000"]]) {
+  // 만원 단위 — 보증금 2,000만·인테리어 2,000만·희망대출 2,500만 (대구 시연 사례와 같은 값)
+  for (const [name, value] of [["deposit", "2000"], ["interior_cost", "2000"], ["desired_loan", "2500"]]) {
     const input = form.querySelector(`input[name="${name}"]`);
     setter.call(input, value);
     input.dispatchEvent(new Event("input", { bubbles: true }));
   }
 })()
 JS
+# 13필드 폼이라 제출 버튼이 화면 밖이다(실측 top 1356px / 뷰포트 900px). agent-browser는 화면 밖
+# 요소를 클릭하면 조용히 빗나간다 — [5/8]의 CTA와 같은 이유로 먼저 보이게 한다.
+AB eval "[...document.querySelectorAll('button')].find((b) => b.textContent.includes('계산하기'))?.scrollIntoView({block:'center'})" >/dev/null
 AB find text "계산하기" click >/dev/null
 AB wait --text "총 준비자금" >/dev/null
 HEADLINE="$(cat <<'JS' | AB eval --stdin
