@@ -492,3 +492,91 @@ def test_시스템_프롬프트가_calculator_절에서_엔진_수치를_그대�
     assert "다시 계산하지 않는다" in SYSTEM_PROMPT
     assert "external_funding_need" in SYSTEM_PROMPT
     assert "\"충분합니다\"라고 쓰지 않는다" in SYSTEM_PROMPT
+
+
+def test_도구_수집이_벽시계_예산을_넘기면_멈추고_리포트를_쓴다():
+    """턴 수가 남아도 예산을 넘기면 수집을 멈추고 _FINAL_REQUEST로 마무리한다.
+
+    2026-09-23 실측: 로컬 12B가 도구를 맴돌며 12턴을 다 쓰면 534.7초·558.4초가 걸렸고 리포트는
+    비어 있었다. 턴 수만으로는 소요 시간이 안 잡힌다.
+    """
+    from apps.agent.app.use_cases.analysis_interactor import _TOOL_LOOP_BUDGET_SECONDS
+
+    # ① deadline 계산 ② 1회차 검사(통과) ③ 2회차 검사(초과)
+    clock = iter([0.0, 0.0, _TOOL_LOOP_BUDGET_SECONDS + 1.0])
+    llm = FakeLLM([_metrics_call_turn(), _final_turn()])
+    interactor = AnalysisInteractor(
+        llm=llm, tools=[_metrics_tool()], now=lambda: next(clock)
+    )
+
+    events = list(interactor.run("11680640", "cafe", None))
+
+    # 도구 턴 1회만 돌고 예산 초과로 빠져나와, 마무리 턴이 리포트를 만든다
+    assert len(llm.calls) == 2
+    assert llm.calls[-1][-1]["content"].startswith("도구 호출을 멈추고")
+    assert [e.payload["section"] for e in events if e.type == "report_delta"] == [
+        "verdict",
+        "market",
+        "shock",
+        "funding",
+        "calculator",
+    ]
+
+
+def test_예산_안에서는_턴_한도까지_정상_수집한다():
+    """빠른 응답(시계가 안 흐름)에서는 기존 동작 그대로 — 예산이 조기 종료를 만들지 않는다."""
+    llm = FakeLLM([_metrics_call_turn(), _final_turn()])
+    interactor = AnalysisInteractor(llm=llm, tools=[_metrics_tool()], now=lambda: 0.0)
+
+    events = list(interactor.run("11680640", "cafe", None))
+
+    assert len(llm.calls) == 2  # 도구 턴 + 최종 텍스트 턴
+    assert any(e.type == "tool_call" for e in events)
+    assert [e.payload["section"] for e in events if e.type == "report_delta"][0] == "verdict"
+
+
+class _BoomLLM(LLMGatewayPort):
+    """n번째 호출부터 터지는 Fake — LLM 장애·타임아웃 재현."""
+
+    model_name = "boom-llm"
+
+    def __init__(self, turns: list[LLMTurn], fail_from: int) -> None:
+        self._turns = list(turns)
+        self._fail_from = fail_from
+        self.calls = 0
+
+    def chat(self, messages: list[dict], tools: list[LLMToolSpec]) -> LLMTurn:
+        self.calls += 1
+        if self.calls >= self._fail_from:
+            raise TimeoutError("ollama read timeout")
+        return self._turns.pop(0)
+
+
+def test_수집_턴이_터져도_리포트는_나간다():
+    """LLM 타임아웃이 스트림을 끊으면 화면에 리포트가 아예 안 뜬다(NO_ARTICLE). 마무리로 넘어간다."""
+    llm = _BoomLLM([_metrics_call_turn(), _final_turn()], fail_from=2)
+    interactor = AnalysisInteractor(llm=llm, tools=[_metrics_tool()], now=lambda: 0.0)
+
+    events = list(interactor.run("11680640", "cafe", None))
+
+    assert [e.payload["section"] for e in events if e.type == "report_delta"] == [
+        "verdict",
+        "market",
+        "shock",
+        "funding",
+        "calculator",
+    ]
+    assert events[-1].type == "report_done"
+
+
+def test_마무리_턴까지_터지면_폴백_섹션으로_낸다():
+    """빈 스트림보다 '분석 데이터가 부족합니다'가 낫다 — 화면이 끝을 알 수 있어야 한다."""
+    llm = _BoomLLM([], fail_from=1)
+    interactor = AnalysisInteractor(llm=llm, tools=[_metrics_tool()], now=lambda: 0.0)
+
+    events = list(interactor.run("11680640", "cafe", None))
+
+    deltas = [e for e in events if e.type == "report_delta"]
+    assert len(deltas) == 5
+    assert all("분석 데이터가 부족합니다" in e.payload["markdown"] for e in deltas)
+    assert events[-1].type == "report_done"

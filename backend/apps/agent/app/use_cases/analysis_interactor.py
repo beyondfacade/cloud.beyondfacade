@@ -19,8 +19,9 @@
 import json
 import logging
 import re
+import time
 import uuid
-from collections.abc import Iterator
+from collections.abc import Callable, Iterator
 
 from apps.agent.app.ports.input.analysis_use_case import AnalysisUseCase
 from apps.agent.app.ports.output.agent_port import (
@@ -36,6 +37,12 @@ from apps.agent.domain.entities.agent_event_entity import AgentEvent
 LOGGER = logging.getLogger("beyondfacade.agent.loop")
 
 _MAX_TURNS = 12
+
+# 턴 수만으로는 소요 시간이 안 잡힌다. 로컬 12B 모델은 한 턴이 30~60초라, 도구를 맴돌며 12턴을
+# 다 쓰면 9분이 넘어(2026-09-23 실측 534.7초·558.4초, 둘 다 빈 리포트) 클라이언트가 먼저 끊는다.
+# 성공한 실행은 42~98초였다. 벽시계 예산을 따로 둬 **마무리 턴을 반드시 남긴다** — 예산을 넘기면
+# 도구 수집을 멈추고 _FINAL_REQUEST로 지금까지 모은 것만으로 리포트를 쓰게 한다.
+_TOOL_LOOP_BUDGET_SECONDS = 180.0
 
 # 리포트 섹션 — (마커 이름, 제목). 방출 순서이자 폴백 제목의 원천.
 _SECTIONS = (
@@ -176,9 +183,15 @@ def _dedupe_citations(citations: list[dict]) -> list[dict]:
 
 
 class AnalysisInteractor(AnalysisUseCase):
-    def __init__(self, llm: LLMGatewayPort, tools: list[AgentTool]) -> None:
+    def __init__(
+        self,
+        llm: LLMGatewayPort,
+        tools: list[AgentTool],
+        now: Callable[[], float] = time.monotonic,
+    ) -> None:
         self._llm = llm
         self._tools = tools
+        self._now = now  # 테스트가 시계를 넣는다 — 벽시계 예산을 실제로 기다리지 않게
         self.last_usage = LLMUsage(input_tokens=0, output_tokens=0)
 
     def myself(self) -> dict:
@@ -224,8 +237,19 @@ class AnalysisInteractor(AnalysisUseCase):
 
         yield AgentEvent("agent_status", {"agent": "orchestrator", "status": "running"})
 
+        deadline = self._now() + _TOOL_LOOP_BUDGET_SECONDS
         for _ in range(_MAX_TURNS):
-            turn = self._chat(messages, specs)
+            if self._now() >= deadline:
+                LOGGER.warning(
+                    "도구 수집 예산 %.0f초 초과 — 수집을 멈추고 리포트 작성으로 넘어간다",
+                    _TOOL_LOOP_BUDGET_SECONDS,
+                )
+                break
+            try:
+                turn = self._chat(messages, specs)
+            except Exception:  # LLM 장애·타임아웃으로 스트림을 끊지 않는다 — 모은 것까지로 마무리한다
+                LOGGER.warning("도구 수집 턴 실패 — 리포트 작성으로 넘어간다", exc_info=True)
+                break
             if not turn.tool_calls:
                 final_text = turn.text
                 break
@@ -265,7 +289,13 @@ class AnalysisInteractor(AnalysisUseCase):
 
         if not final_text:
             messages.append({"role": "user", "content": _FINAL_REQUEST})
-            final_text = self._chat(messages, specs).text
+            try:
+                final_text = self._chat(messages, specs).text
+            except Exception:
+                # 마무리 턴까지 실패하면 섹션 폴백으로 낸다. 빈 스트림(리포트 자체가 안 뜸)보다
+                # "분석 데이터가 부족합니다"가 낫다 — 화면이 끝을 알 수 있어야 한다.
+                LOGGER.warning("마무리 턴 실패 — 폴백 섹션으로 리포트를 낸다", exc_info=True)
+                final_text = ""
 
         for stage in open_stages:
             yield AgentEvent("agent_status", {"agent": stage, "status": "done"})
