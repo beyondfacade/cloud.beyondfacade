@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
 import { ApiProviders } from "@/shared/api/providers";
 import { TopBar } from "@/shared/ui/top-bar";
+// Pretendard 셀프호스팅 — globals.css의 @import는 Tailwind v4 리졸버가 패키지 경로를 못 풀어 500이 난다.
+// App Router 레이아웃의 JS import는 Next가 직접 처리하고, 상대 url()의 woff2도 정적 자산으로 옮긴다.
+import "pretendard/dist/web/variable/pretendardvariable-dynamic-subset.css";
 import "./globals.css";
 
 export const metadata: Metadata = {

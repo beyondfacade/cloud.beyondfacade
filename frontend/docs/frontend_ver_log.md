@@ -2,6 +2,21 @@
 
 > 2026-09-23 T0-2 병합에서 v0.14.x 충돌로 우리 쪽 4항목(랜딩·E2E·동네 프로필·영업 지속 개월)을 v0.15.0·v0.15.1·v0.16.0·v0.17.0으로 재번호했다. 해당 커밋 메시지의 번호는 병합 전 번호다.
 
+## [v0.18.1] - 2026-09-23
+
+### Fixed
+- **홈·`/map` 전부 500** — `e1c51c8`(analysis-api 병합분)이 jsdelivr `<link>`를 걷어내고 `globals.css`에
+  `@import "pretendard/dist/web/…css"`를 넣었는데, **Tailwind v4 `@tailwindcss/postcss` 리졸버가 패키지
+  경로를 못 풀어**(`Can't resolve … in src/app`) 전역 CSS 컴파일이 실패했다. `pretendard`에 `exports`가
+  없고 Node 해석은 되므로 리졸버 문제다. 그 브랜치에서도 실제로 돈 적이 없던 줄로 보인다
+  (HANDOFF "포스트MVP: Pretendard 셀프호스팅" 항목). `node_modules`에 패키지가 없던 것도 겹쳐 있었다
+- 해결: `layout.tsx`에서 **JS `import`로 들여온다.** App Router 레이아웃의 `node_modules` 전역 CSS는
+  Next가 직접 처리하고 상대 `url()`의 woff2도 정적 자산으로 옮긴다. `globals.css`의 `@import` 줄 제거.
+  셀프호스팅 의도는 그대로다
+
+### Validation
+- 홈·`/map` 200, 스타일시트 청크에서 Pretendard `@font-face`와 woff2 정적 경로 확인. `tsc` clean, vitest 전부 통과
+
 ## [v0.18.0] - 2026-09-23
 
 ### Added
