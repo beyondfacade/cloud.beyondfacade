@@ -72,18 +72,18 @@ BEP 매출          = 고정비 ÷ (1 − 변동비율)
 {
   "region_code": "1168064000", "industry_id": "cafe",
   "expected_monthly_revenue": {
-    "value": 29439538,
-    "basis": { "year_quarter": "20254", "quarterly_sales": 35327445013, "store_count": 400,
-               "source_codes": ["CS100010", "CS100006", "CS100008"] },
+    "value": 26129731,
+    "basis": { "year_quarter": "20254", "quarterly_sales": 47268682633, "store_count": 603,
+               "source_codes": ["CS100006", "CS100008", "CS100010"] },
     "caveat": "이 동 카페 400곳의 분기 매출을 점포 수로 나눈 평균입니다. 편차가 크고 신규 점포는 평균 아래서 시작하는 경우가 많습니다."
   },
   "rent_per_m2": {
-    "value": 52.46, "unit": "천원/㎡/월",
+    "value": 65.51, "unit": "천원/㎡/월",
     "basis": { "region_path": "서울>강남", "building_type": "medium_large", "period": "2026Q2", "level": "권역" },
     "caveat": "행정동 단위 임대료 자료가 없어 강남 권역(R-ONE) 평균입니다. 실제 매물과 다를 수 있습니다."
   },
   "cost_ratio":  { "value": 0.35, "basis": { "kind": "industry_benchmark" }, "caveat": "업종 평균 근사값입니다. 원가 구조를 알면 고치세요." },
-  "loan_rate":   { "value": 0.048, "basis": { "rate_type": "loan_facility", "period": "202607", "source": "ECOS" }, "caveat": "공시 평균 금리입니다. 실제 심사 금리와 다릅니다." },
+  "loan_rate":   { "value": 0.0405, "basis": { "rate_type": "loan_facility", "period": "202607", "source": "ECOS" }, "caveat": "공시 평균 금리(4.05%)입니다. 실제 심사 금리와 다릅니다." },
   "equity": null
 }
 ```
@@ -92,12 +92,16 @@ BEP 매출          = 고정비 ÷ (1 − 변동비율)
   `store_count` 합 ÷ 3. 카페는 3코드(v0.26.0에서 보정한 매핑)다. 두 테이블이 모두 있는 최신 분기.
   없으면 `null`(사용자가 입력).
   ⚠ **확인 절차**: `sales_amount`가 분기 합인지 월 값인지 원천 컬럼명이 "당월_매출_금액"이라 혼동
-  여지가 있다. `commerce-bc-design.md`의 결정과 실측 타당성(역삼1동 커피 2,944만/월 — 월 값이었다면
-  8,800만/월로 비현실적)으로 **분기 합**임을 구현 전에 못 박고 주석에 근거를 남긴다.
+  여지가 있다. `commerce-bc-design.md`의 결정과 실측 타당성(역삼1동 카페 3코드 2,613만/월)으로 **분기 합**임을 구현 전에 못 박고 주석에 근거를 남긴다.
 - **임대료** — R-ONE은 상권(83)·권역(4)·시도(1) 단위이고 동 매핑이 없다. **구 → 권역 매핑표**
   (`domain/value_objects/rent_zones.py`, 25구): 강남=강남·서초·송파(·강동?), 도심=종로·중구·용산,
   영등포신촌=영등포·마포·서대문, 나머지=기타. 매핑표는 R-ONE 권역 정의 문서로 검증하고 출처를 적는다.
-  권역의 최신 `rent_per_m2`(중대형 기본, 소규모도 응답에 같이). 사용자는 **면적(㎡)**을 넣고 화면이
+  권역의 최신 `rent_per_m2`(중대형 기본, 소규모도 응답에 같이).
+  **포트는 구 코드가 아니라 권역 경로(`zone_path`)를 받는다** — 구→권역 매핑은 도메인 VO의 일이고
+  어댑터는 매핑을 몰라야 한다(T3-1 구현 판단).
+  실측으로 확정한 매핑: 강남 = 강남·서초, 도심 = 종로·중구, 영등포신촌 = 영등포·마포·서대문,
+  **나머지 18구는 `기타`** — R-ONE이 잠실·가락시장(송파)·이태원·용산역(용산)을 실제로 `서울>기타`에
+  두기 때문이다. 한계: 혜화동(종로)·약수역(중구)은 R-ONE 기타지만 구 단위로 도심에 묶인다. 사용자는 **면적(㎡)**을 넣고 화면이
   `월세 = rent_per_m2 × 면적 × 1,000`을 계산해 프리필한다(기본 33㎡, 수정 가능).
 - **원가율** — `domain/value_objects/cost_ratios.py`, 우리 10업종. 대구 값을 겹치는 업종에 쓰고
   (cafe 0.35·hair_salon 0.25·gym 0.15·billiard 0.20·karaoke 0.20·pc_bang 0.20) 나머지 4종(academy·
@@ -119,8 +123,11 @@ BEP 매출          = 고정비 ÷ (1 − 변동비율)
 ⑤ 다음           "조달·상담 준비 →" (T4). 그전엔 요약 Markdown 복사만
 ```
 
-- `lib/consultation-draft.ts` 이식(`sessionStorage`, 최초안/현재안/선택/변경 이유, `unconfirmed` 필드 기록).
-  키 `beyondfacade.plan.v1`.
+- `lib/plan-draft.ts`(대구 `consultation-draft.ts` 이식) — `sessionStorage`, 최초안/현재안/선택/변경 이유,
+  `unconfirmed` 필드 기록. 키 `beyondfacade.plan.v1`. storage 접근은 try/catch.
+- **프리필은 사용자가 손댄 칸을 덮지 않는다**(`touched` 집합) — 프리필이 늦게 도착하면 입력 중인 값이
+  뒤집힌다(T3-2 구현 판단).
+- 배지의 `caveat`는 `title`뿐 아니라 보조문(`aria-describedby`)으로도 띄운다 — 터치에선 title이 안 보인다.
 - 진입: 사이드패널 CTA 둘 — "AI 분석 →"(기존) 옆에 **"자금 계획 →"**(`/plan?region&industry&budget`).
   관문 `diagnosis-line`에도 같은 링크. 랜딩 3단계 카피(동네 → 계획 → 상담)는 T4에서 같이 손본다.
 - `budget`은 `MapState`에 실려 있으니(T1-2) 지도에서 지표를 바꿔도 살아 있다.
@@ -144,7 +151,7 @@ LLM에 준다. `calculator` 절의 프롬프트 계약: "표의 수치를 그대
 3. 계약 — myself·simulate·prefill 404/422
 4. 프론트 — 프리필 배지 렌더, 최초안 고정·수정 후 잠금·비교표, `sessionStorage` 왕복, mock 엔진 =
    파이썬 엔진 같은 수(사례 2건)
-5. 실 백엔드 — 관문 "역삼동에 카페, 예산 5천" → 착지 → `/plan` → 자기자본 5,000만·월매출 2,944만 프리필
+5. 실 백엔드 — 관문 "역삼동에 카페, 예산 5천" → 착지 → `/plan` → 자기자본 5,000만·월매출 2,613만 프리필
    → 계산 → 조달 필요 헤드라인. E2E에 `[9]` 단계로 추가
 
 ## 8. 범위 밖
