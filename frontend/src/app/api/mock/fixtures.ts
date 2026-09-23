@@ -16,6 +16,8 @@ import type {
   MetricRow,
   CommerceChangeMetricKey,
   ProfileMetricKey,
+  RegionCommerceChangeDetail,
+  RegionIndustryHourGap,
   RegionProfile,
   RegionSummary,
   Store,
@@ -359,7 +361,17 @@ export function regionProfileOf(regionCode: string, yearQuarter: string): Region
     fnb_share: Number(fnbShare.toFixed(4)),
     facility_total: facility,
     resident_total: 3_000 + Math.floor(unit * 40_000),
+    block_intensities: blockIntensitiesOf(peak, trough, unit),
   };
+}
+
+/** 4블록 강도 — 정점 1.4, 바닥 0.7, 나머지는 1 근처. 실 API처럼 배치가 준 값이라는 전제로 화면은 재계산하지 않는다. */
+function blockIntensitiesOf(peak: string, trough: string, unit: number): RegionProfile["block_intensities"] {
+  const blocks = { morning: 0, day: 0, evening: 0, night: 0 };
+  for (const key of Object.keys(blocks) as (keyof typeof blocks)[]) {
+    blocks[key] = key === peak ? 1.4 : key === trough ? 0.7 : Number((0.9 + unit * 0.2).toFixed(3));
+  }
+  return blocks;
 }
 
 /** 동 단위 분기 지표 — 실측 분포(최소 31 · 중앙 117 · 최대 206개월)에 맞춰 결정적으로 만든다. */
@@ -529,4 +541,64 @@ export function profileTypeRows(yearQuarter: string): CategoryRow[] {
     region_code,
     type_code: regionProfileOf(region_code, yearQuarter).neighborhood_type,
   }));
+}
+
+// ---------------------------------------------------------------------------
+// 얼마나 버티나 · 시간대 어긋남 — 상세 계약 mock (무대 설계서 §5-2·§6-1)
+// ---------------------------------------------------------------------------
+
+const CHANGE_CODES: [string, string][] = [["LL", "다이나믹"], ["HH", "정체"], ["LH", "상권확장"], ["HL", "상권축소"]];
+/** 서울 평균 — v0.32.0 실측(118·54)에 맞춘 고정값. */
+const SEOUL_BASELINE = { operating_months: 118, closed_months: 54 };
+
+/** 동별 상권 변화 상세 — 단계구분도(`changeMetricRows`)와 같은 해시라 지도 색과 패널 숫자가 어긋나지 않는다. */
+export function commerceChangeDetailOf(regionCode: string, yearQuarter: string): RegionCommerceChangeDetail {
+  const operating = Math.round(31 + unitFrom(hashSeed("operating_months", yearQuarter, regionCode)) * (206 - 31));
+  const [change_code, change_name] = CHANGE_CODES[hashSeed("change", regionCode, yearQuarter) % CHANGE_CODES.length];
+  return {
+    region_code: regionCode,
+    year_quarter: yearQuarter,
+    change_code,
+    change_name,
+    operating_months: operating,
+    closed_months: Math.round(operating * 0.45),
+    seoul: SEOUL_BASELINE,
+  };
+}
+
+export const LATEST_HOUR_GAP_QUARTER = "20254"; // 매출 원천은 프로필(20262)보다 두 분기 짧다
+
+const BAND_HOURS = [6, 5, 3, 3, 4, 3];
+/** 6구간 원값 → 시간당 강도(1.0 = 24시간 균등). 백엔드 hour_band.band_intensities와 같은 식. */
+function intensities(values: number[]): number[] {
+  const total = values.reduce((a, b) => a + b, 0);
+  return values.map((v, i) => Number(((v / BAND_HOURS[i]) / (total / 24)).toFixed(3)));
+}
+
+/** 유형별 유동·매출 모양 — 실측 경향(업무형 낮 정점, 주거형 저녁·밤, 먹자형 저녁). 6구간 원값. */
+const FOOTFALL_SHAPE: Record<string, number[]> = {
+  office: [8, 20, 18, 18, 20, 6], campus: [10, 16, 15, 16, 22, 12], dining: [10, 14, 14, 16, 22, 14],
+  hub: [12, 18, 14, 15, 20, 10], residential: [20, 16, 10, 10, 16, 14], mixed: [14, 16, 12, 12, 16, 10],
+};
+const SALES_SHAPE: Record<string, number[]> = {
+  office: [1, 14, 40, 22, 16, 3], campus: [3, 8, 22, 18, 30, 15], dining: [4, 6, 18, 14, 34, 22],
+  hub: [2, 12, 30, 22, 24, 6], residential: [3, 10, 20, 18, 32, 12], mixed: [3, 12, 26, 20, 26, 8],
+};
+/** 매출 원천이 없는 업종 — 실 API가 404 `HOUR_GAP_NOT_FOUND`를 주는 조합. */
+const NO_SALES_INDUSTRIES = new Set(["childcare"]);
+
+export function hourGapOf(regionCode: string, industryId: string, yearQuarter: string): RegionIndustryHourGap | null {
+  if (NO_SALES_INDUSTRIES.has(industryId)) return null;
+  const type = regionProfileOf(regionCode, LATEST_PROFILE_QUARTER).neighborhood_type;
+  const footfall = intensities(FOOTFALL_SHAPE[type] ?? FOOTFALL_SHAPE.mixed);
+  const sales = intensities(SALES_SHAPE[type] ?? SALES_SHAPE.mixed);
+  return {
+    region_code: regionCode,
+    industry_id: industryId,
+    year_quarter: yearQuarter,
+    bands: BANDS.map((hour_band, i) => ({
+      hour_band, footfall_intensity: footfall[i], sales_intensity: sales[i],
+      gap: Number((sales[i] - footfall[i]).toFixed(3)),
+    })),
+  };
 }

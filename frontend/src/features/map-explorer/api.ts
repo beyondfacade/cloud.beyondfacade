@@ -10,6 +10,8 @@ import type {
   MetricRow,
   ProfileMetricKey,
   CommerceChangeMetricKey,
+  RegionCommerceChangeDetail,
+  RegionIndustryHourGap,
   RegionProfile,
   RegionSummary,
   Store,
@@ -84,4 +86,17 @@ export function fetchProfileMetrics(metric: ProfileMetricKey, yearQuarter?: stri
   const params = new URLSearchParams({ metric });
   if (yearQuarter) params.set("year_quarter", yearQuarter);
   return apiGet<MetricRow[]>(`/profiles?${params.toString()}`);
+}
+
+/** 동별 상권 변화 상세 — 분기를 생략하면 그 동의 최신 분기, 서울 평균 동봉. */
+export function fetchCommerceChangeDetail(regionCode: string, yearQuarter?: string): Promise<RegionCommerceChangeDetail> {
+  const query = yearQuarter ? `?${new URLSearchParams({ year_quarter: yearQuarter })}` : "";
+  return apiGet<RegionCommerceChangeDetail>(`/commerce-changes/${regionCode}${query}`);
+}
+
+/** 시간대 어긋남 — 분기를 생략하면 그 동×업종의 최신 분기(20254까지). 매출 자료가 없는 조합은 404. */
+export function fetchHourGaps(regionCode: string, industry: string, yearQuarter?: string): Promise<RegionIndustryHourGap> {
+  const params = new URLSearchParams({ region: regionCode, industry });
+  if (yearQuarter) params.set("year_quarter", yearQuarter);
+  return apiGet<RegionIndustryHourGap>(`/hour-gaps?${params.toString()}`);
 }

@@ -1,9 +1,8 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
 import type { RegionProfile } from "@/shared/api/types";
 import { neighborhoodTypeLabel, phasesNarrative, timeLabelSentence } from "@/shared/neighborhood";
-import { fetchRegionProfile } from "../api";
+import { useRegionProfile } from "../hooks/use-region-profile";
 
 /** '20262' → '2026년 2분기'. */
 function formatQuarter(yearQuarter: string): string {
@@ -86,12 +85,9 @@ export function NeighborhoodProfileBody({ profile }: { profile: RegionProfile })
   );
 }
 
-/** 사이드패널 동네 프로필 섹션 — 업종과 무관한 동네 맥락이라 업종 섹션보다 앞에 온다. */
+/** 패널 ① 어떤 동네인가 — 창업자의 첫 질문이라 맨 위에 온다. 조회 키는 ②(하루 흐름)와 같아 요청은 한 번이다. */
 export function NeighborhoodProfileSection({ regionCode }: { regionCode: string }) {
-  const profile = useQuery({
-    queryKey: ["region-profile", regionCode],
-    queryFn: () => fetchRegionProfile(regionCode),
-  });
+  const profile = useRegionProfile(regionCode);
 
   return (
     <section className="mt-7 flex flex-col gap-3" aria-label="동네 유형">

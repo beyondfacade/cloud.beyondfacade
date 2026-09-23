@@ -9,7 +9,10 @@ import { fetchRegionSummary } from "../api";
 import { SNAPSHOT_INDUSTRIES } from "../lib/map-state";
 import { ChildcareSummarySection } from "./childcare-summary";
 import { ConvenienceSummarySection } from "./convenience-summary";
+import { HourGapSection } from "./hour-gap-chart";
 import { NeighborhoodProfileSection } from "./neighborhood-profile";
+import { StayingPowerSection } from "./staying-power";
+import { TimeBlockSection } from "./time-block-bars";
 import styles from "./map-workspace.module.css";
 
 /** 전용 원천이 있는 업종의 추가 섹션 — 업종이 스스로 무엇을 보여줄지 등록한다 (조건 분기 대신 레지스트리). */
@@ -95,38 +98,47 @@ export function SidePanel({ regionCode, industry }: SidePanelProps) {
             </p>
           </header>
 
-          <ul className={styles.briefMetrics}>
-            {summary.data.cards.map((card) => (
-              <li key={card.label}>
-                <div className="flex min-w-0 flex-col gap-2">
-                  <span className="text-xs text-[var(--text-secondary)]">{card.label}</span>
-                  <span className={styles.metricValue}>
-                    {card.value}
-                  </span>
-                </div>
-                <GradeBadge grade={card.grade} />
-              </li>
-            ))}
-          </ul>
-
-          {isSnapshot && (
-            <p className="mt-3 text-xs leading-relaxed text-[var(--text-secondary)]">
-              폐업률·성장률은 스냅샷 원천이라 아직 값이 없을 수 있습니다. 점포수와 아래 현황을 함께
-              참고하세요.
-            </p>
-          )}
-
-          {/* 업종과 무관한 동네 맥락이 먼저, 업종 상세가 뒤 */}
+          {/* 창업자의 질문 순서 — ① 어떤 동네인가 ② 하루가 어떻게 흐르나 ③ 내 업종은 언제 돈이 도나
+              ④ 얼마나 버티나 ⑤ 업종 실적. 동네 맥락이 먼저, 업종 상세가 뒤 (무대 설계서 §5) */}
           <NeighborhoodProfileSection regionCode={regionCode} />
+          <TimeBlockSection regionCode={regionCode} />
+          <HourGapSection regionCode={regionCode} industry={industry} />
+          <StayingPowerSection regionCode={regionCode} />
+
+          <section className="mt-7 flex flex-col gap-3" aria-label="업종 실적">
+            <h3 className="text-sm font-semibold tracking-tight text-[var(--text-primary)]">{label} 실적</h3>
+            <ul className={`${styles.briefMetrics} ${styles.briefMetricsInSection}`}>
+              {summary.data.cards.map((card) => (
+                <li key={card.label}>
+                  <div className="flex min-w-0 flex-col gap-2">
+                    <span className="text-xs text-[var(--text-secondary)]">{card.label}</span>
+                    <span className={styles.metricValue}>
+                      {card.value}
+                    </span>
+                  </div>
+                  <GradeBadge grade={card.grade} />
+                </li>
+              ))}
+            </ul>
+            {isSnapshot && (
+              <p className="text-xs leading-relaxed text-[var(--text-secondary)]">
+                폐업률·성장률은 스냅샷 원천이라 아직 값이 없을 수 있습니다. 점포수와 아래 현황을 함께
+                참고하세요.
+              </p>
+            )}
+          </section>
 
           {IndustrySection && <IndustrySection regionCode={regionCode} />}
 
-          <Link
-            href={`/analysis?region=${regionCode}&industry=${industry}`}
-            className="mt-7 rounded-lg bg-[var(--accent)] px-4 py-3.5 text-center text-sm font-semibold text-[var(--accent-fg)] transition-opacity hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)] active:translate-y-px"
-          >
-            AI 분석 →
-          </Link>
+          {/* 패널이 길어져 CTA가 접힌다 — 스크롤 영역 하단에 붙인다 (E2E [5/8] 재현 근거) */}
+          <div className={styles.briefCta}>
+            <Link
+              href={`/analysis?region=${regionCode}&industry=${industry}`}
+              className="block rounded-lg bg-[var(--accent)] px-4 py-3.5 text-center text-sm font-semibold text-[var(--accent-fg)] transition-opacity hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)] active:translate-y-px"
+            >
+              AI 분석 →
+            </Link>
+          </div>
         </>
       )}
     </aside>

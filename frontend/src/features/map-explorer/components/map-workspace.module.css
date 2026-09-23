@@ -31,6 +31,8 @@
 .briefMetrics { display: flex; flex-direction: column; margin-top: 25px; border-top: 1px solid var(--border); }
 .briefMetrics li { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; padding: 19px 0; border-bottom: 1px solid var(--border); }
 .briefMetrics li > span { font-size: 9px; margin-top: 2px; padding-inline: 6px; border-radius: 4px; }
+.briefCta { position: sticky; bottom: 0; margin: 28px -24px -24px; padding: 12px 24px 24px; background: linear-gradient(to bottom, transparent, var(--bg-surface) 12px); }
+.briefMetricsInSection { margin-top: 0; }
 .metricValue { font-size: 23px; font-weight: 550; line-height: 1.3; letter-spacing: -.7px; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
 .emptyBrief { display: flex; flex: 1; flex-direction: column; align-items: center; justify-content: center; gap: 12px; padding-block: 45px; text-align: center; }
 .emptyIcon { display: grid; place-items: center; width: 66px; height: 66px; border: 1px solid var(--border); border-radius: 50%; margin-bottom: 11px; background: var(--bg-raised); color: var(--accent); font-size: 25px; }
@@ -44,6 +46,7 @@
   .filterTray { justify-content: flex-start; }
   .mapAndBrief { grid-template-columns: minmax(0, 1fr) 300px; }
   .brief { padding: 21px; }
+  .briefCta { margin-inline: -21px; margin-bottom: -21px; padding-inline: 21px; padding-bottom: 21px; }
   .briefHeading h2 { font-size: 27px; }
   .mapCaption > span:last-child { font-size: 9px; }
 }

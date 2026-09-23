@@ -125,6 +125,48 @@ export interface RegionProfile {
   fnb_share: number | null; // 음식+유흥 결제 비중
   facility_total: number | null;
   resident_total: number | null;
+  /** 4블록 시간당 강도(1.0 = 24시간 균등). 배치가 계산한 값 — 화면은 보정을 다시 하지 않는다. 넷 중 하나라도 없으면 null. */
+  block_intensities: BlockIntensities | null;
+}
+
+export interface BlockIntensities {
+  morning: number;
+  day: number;
+  evening: number;
+  night: number;
+}
+
+/** 같은 분기의 서울 전체 평균 — 동의 값 옆에 놓는 비교 기준 (GET /commerce-changes/{region_code}). */
+export interface SeoulCommerceBaseline {
+  operating_months: number | null;
+  closed_months: number | null;
+}
+
+/** 동별 상권 변화 상세 (GET /commerce-changes/{region_code}?year_quarter=). 분기 생략 시 최신. */
+export interface RegionCommerceChangeDetail {
+  region_code: string;
+  year_quarter: string;
+  change_code: string | null; // HH | HL | LH | LL
+  change_name: string | null; // 정체 | 상권축소 | 상권확장 | 다이나믹
+  operating_months: number | null; // 운영 영업 개월 평균
+  closed_months: number | null; // 폐업 영업 개월 평균
+  seoul: SeoulCommerceBaseline | null; // baseline 행이 없는 분기면 null
+}
+
+/** 시간대 6구간 중 하나 — 두 강도 모두 시간당 보정값(1.0 = 24시간 균등), gap = sales − footfall. */
+export interface HourGapBand {
+  hour_band: string; // 00_06 | 06_11 | 11_14 | 14_17 | 17_21 | 21_24
+  footfall_intensity: number;
+  sales_intensity: number;
+  gap: number;
+}
+
+/** 동×업종×분기 시간대 어긋남 (GET /hour-gaps?region=&industry=). 매출 원천이 20254까지라 프로필과 최신 분기가 다르다. */
+export interface RegionIndustryHourGap {
+  region_code: string;
+  industry_id: string;
+  year_quarter: string;
+  bands: HourGapBand[];
 }
 
 /** 관문 되묻기 후보 — "역삼동"처럼 사람이 말하는 이름이 번호 동 여럿으로 갈라질 때 (POST /intent). */
