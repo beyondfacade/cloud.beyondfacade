@@ -10,6 +10,7 @@ from dataclasses import dataclass
 
 from apps.agent.app.ports.output.agent_port import (
     FinanceFactsPort,
+    FundingFactsPort,
     LLMToolSpec,
     RegionFactsPort,
 )
@@ -93,9 +94,12 @@ def _fact_citation(source: str, **extra: object) -> list[dict]:
 
 
 def build_tools(
-    facts: RegionFactsPort, rag_search: RagSearchUseCase, finance: FinanceFactsPort
+    facts: RegionFactsPort,
+    rag_search: RagSearchUseCase,
+    finance: FinanceFactsPort,
+    funding: FundingFactsPort,
 ) -> list[AgentTool]:
-    """9종 도구를 조립한다 — 이름/분기는 registry(리스트) 하나로, if/elif 없이."""
+    """10종 도구를 조립한다 — 이름/분기는 registry(리스트) 하나로, if/elif 없이."""
 
     def run_get_region_metrics(args: dict) -> str:
         result = facts.metrics(args["region_code"], args["industry"])
@@ -154,6 +158,20 @@ def build_tools(
     def run_search_funding(args: dict) -> str:
         hits = rag_search.search(args["query"], top_k=args.get("top_k", 5), source_type="funding")
         return json.dumps([_hit_to_dict(h) for h in hits], ensure_ascii=False)
+
+    def run_get_funding_candidates(args: dict) -> str:
+        result = funding.candidates(
+            args.get("industry_id"), args.get("external_funding_need"), args.get("stage")
+        )
+        return json.dumps(result, ensure_ascii=False)
+
+    def cite_get_funding_candidates(_args: dict, result: str) -> list[dict]:
+        """후보 공고는 원문 링크가 근거다 — RAG 신호가 아니라 결정론 필터 결과라 fact 등급."""
+        parsed = json.loads(result)
+        return [
+            {"grade": "fact", "source": "funding_program", "title": c["title"], "url": c["url"]}
+            for c in parsed["candidates"]
+        ]
 
     def run_finance_simulation(args: dict) -> str:
         # 계산은 finance BC 엔진이 한다 — LLM은 표를 읽고 설명만 한다 (설계서 §6)
@@ -299,6 +317,33 @@ def build_tools(
             stage="funding",
             run=run_search_funding,
             cite=_cite_rag_hits,
+        ),
+        AgentTool(
+            spec=LLMToolSpec(
+                name="get_funding_candidates",
+                description=(
+                    "서울 창업자에게 해당할 수 있는 미만료 정책자금 공고를 규칙으로 걸러 상위 8건 돌려준다. "
+                    "유사도 검색(search_funding)과 달리 지역·대상·마감을 확정적으로 판정한다. 자격 확정이 아니다."
+                ),
+                input_schema={
+                    "type": "object",
+                    "properties": {
+                        "industry_id": {"type": "string", "description": "업종 ID (선택)"},
+                        "external_funding_need": {
+                            "type": "integer",
+                            "description": "자기자본 외 조달 필요 금액(원, 선택) — 필터에는 쓰이지 않고 문장에 쓴다",
+                        },
+                        "stage": {
+                            "type": "string",
+                            "description": "pre(사업자등록 전) | registered(등록 후). 생략 가능",
+                        },
+                    },
+                    "required": [],
+                },
+            ),
+            stage="funding",
+            run=run_get_funding_candidates,
+            cite=cite_get_funding_candidates,
         ),
         AgentTool(
             spec=LLMToolSpec(

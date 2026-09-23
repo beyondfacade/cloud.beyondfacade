@@ -580,3 +580,12 @@ def test_마무리_턴까지_터지면_폴백_섹션으로_낸다():
     assert len(deltas) == 5
     assert all("분석 데이터가 부족합니다" in e.payload["markdown"] for e in deltas)
     assert events[-1].type == "report_done"
+
+
+def test_시스템_프롬프트가_공고_후보를_자격_확정으로_쓰지_못하게_한다():
+    """후보는 해당 가능성이지 자격 판정이 아니다 (설계서 §6)."""
+    from apps.agent.app.use_cases.analysis_interactor import SYSTEM_PROMPT
+
+    assert "[funding 섹션 출력 계약]" in SYSTEM_PROMPT
+    assert "get_funding_candidates" in SYSTEM_PROMPT
+    assert "자격 확정이 아니라" in SYSTEM_PROMPT

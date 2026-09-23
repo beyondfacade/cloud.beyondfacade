@@ -76,6 +76,19 @@ class RegionFactsPort(ABC):
         """최신 분기 동네 프로필 + market 섹션 슬롯 6종의 재료 (없으면 빈 dict)."""
 
 
+class FundingFactsPort(ABC):
+    """Driven Port — 정책자금 후보 공고 조회 (결정론 필터, 설계서 §3).
+
+    RAG `search_funding`(유사도)과 역할이 다르다 — 이쪽은 지역·대상·마감으로 거르는 규칙이다.
+    """
+
+    @abstractmethod
+    def candidates(
+        self, industry_id: str | None, external_funding_need: int | None, stage: str | None
+    ) -> dict:
+        """서울/전국 미만료 공고 상위 8건 + 요청 값 되돌림. 자격 확정이 아니다."""
+
+
 class FinanceFactsPort(ABC):
     """Driven Port — finance BC 결정론 엔진 호출 (cross-BC 접근은 구현체 안에서만).
 

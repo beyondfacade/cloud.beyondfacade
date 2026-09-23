@@ -1,8 +1,12 @@
-"""agent_tools — 도구 레지스트리 9종 + 월세vs매입 계산기 단위 테스트 (Fake 포트, DB 없음)."""
+"""agent_tools — 도구 레지스트리 10종 + 월세vs매입 계산기 단위 테스트 (Fake 포트, DB 없음)."""
 
 import json
 
-from apps.agent.app.ports.output.agent_port import FinanceFactsPort, RegionFactsPort
+from apps.agent.app.ports.output.agent_port import (
+    FinanceFactsPort,
+    FundingFactsPort,
+    RegionFactsPort,
+)
 from apps.agent.app.use_cases.agent_tools import build_tools, compare_rent_vs_buy
 from apps.rag.app.ports.input.rag_use_case import RagSearchUseCase
 from apps.rag.domain.entities.rag_chunk_entity import RagHit
@@ -106,8 +110,41 @@ class FakeFinanceFactsPort(FinanceFactsPort):
         }
 
 
-def _build_tools(finance: FinanceFactsPort | None = None) -> list:
-    return build_tools(FakeRegionFactsPort(), FakeRagSearchUseCase(), finance or FakeFinanceFactsPort())
+class FakeFundingFactsPort(FundingFactsPort):
+    def __init__(self) -> None:
+        self.calls: list[tuple] = []
+
+    def candidates(self, industry_id, external_funding_need, stage) -> dict:
+        self.calls.append((industry_id, external_funding_need, stage))
+        return {
+            "candidates": [
+                {
+                    "title": "2026년 소상공인 정책자금 융자사업",
+                    "org": "중소벤처기업부",
+                    "url": "https://example.test/1",
+                    "apply_period": "상시",
+                    "deadline": None,
+                    "field_category": "금융",
+                    "summary": "운전자금·시설자금 융자",
+                    "why": "전국 · 소상공인 · 금융",
+                }
+            ],
+            "industry_id": industry_id,
+            "external_funding_need": external_funding_need,
+            "stage": stage,
+            "disclaimer": "자격 확정이 아니라 해당 가능성이 있는 공고다",
+        }
+
+
+def _build_tools(
+    finance: FinanceFactsPort | None = None, funding: FundingFactsPort | None = None
+) -> list:
+    return build_tools(
+        FakeRegionFactsPort(),
+        FakeRagSearchUseCase(),
+        finance or FakeFinanceFactsPort(),
+        funding or FakeFundingFactsPort(),
+    )
 
 
 def test_compare_rent_vs_buy_calculates_expected_values():
@@ -154,7 +191,7 @@ def test_compare_rent_vs_buy_monthly_interest_exceeds_rent_gives_none_breakeven(
 
 
 def test_build_tools_returns_9_tools_with_correct_name_and_stage():
-    """9종 도구 name/stage 정확 매핑."""
+    """10종 도구 name/stage 정확 매핑."""
     tools = _build_tools()
 
     by_name = {tool.spec.name: tool.stage for tool in tools}
@@ -167,16 +204,25 @@ def test_build_tools_returns_9_tools_with_correct_name_and_stage():
         "search_shocks": "shock",
         "search_news": "shock",
         "search_funding": "funding",
+        "get_funding_candidates": "funding",
         "run_finance_simulation": "funding",
         "compare_rent_vs_buy": "funding",
     }
 
 
+# 인자 없이 불러도 뜻이 서는 도구 — 라우터도 세 파라미터를 전부 선택으로 받는다.
+# 억지 required를 세우면 스키마가 거짓말이 되고 LLM이 값을 지어내게 된다.
+_TOOLS_WITHOUT_REQUIRED = {"get_funding_candidates"}
+
+
 def test_every_tool_input_schema_declares_required_params():
-    """모든 도구 spec.input_schema에 required 파라미터가 존재한다."""
+    """인자가 뜻을 가르는 도구는 required를 선언한다 — 예외는 명시한 것뿐."""
     tools = _build_tools()
 
     for tool in tools:
+        if tool.spec.name in _TOOLS_WITHOUT_REQUIRED:
+            assert tool.spec.input_schema["required"] == []
+            continue
         required = tool.spec.input_schema.get("required")
         assert required, f"{tool.spec.name}에 required 파라미터가 없다"
 
@@ -184,7 +230,7 @@ def test_every_tool_input_schema_declares_required_params():
 def test_get_region_metrics_run_returns_json_string_via_fake_port():
     """get_region_metrics.run은 RegionFactsPort.metrics 결과를 압축 JSON 문자열로 반환한다."""
     facts = FakeRegionFactsPort()
-    tools = build_tools(facts, FakeRagSearchUseCase(), FakeFinanceFactsPort())
+    tools = build_tools(facts, FakeRagSearchUseCase(), FakeFinanceFactsPort(), FakeFundingFactsPort())
     tool = next(t for t in tools if t.spec.name == "get_region_metrics")
 
     result = tool.run({"region_code": "11010", "industry": "cafe"})
@@ -203,7 +249,9 @@ def test_compare_rent_vs_buy_tool_returns_error_payload_when_loan_facility_rate_
         def latest_rates(self) -> dict:
             return {}
 
-    tools = build_tools(RatelessRegionFactsPort(), FakeRagSearchUseCase(), FakeFinanceFactsPort())
+    tools = build_tools(
+        RatelessRegionFactsPort(), FakeRagSearchUseCase(), FakeFinanceFactsPort(), FakeFundingFactsPort()
+    )
     tool = next(t for t in tools if t.spec.name == "compare_rent_vs_buy")
 
     result = tool.run(
@@ -312,3 +360,41 @@ def test_compare_rent_vs_buy_is_kept_alongside_the_engine_tool():
     names = {t.spec.name for t in _build_tools()}
 
     assert {"compare_rent_vs_buy", "run_finance_simulation"} <= names
+
+
+def test_get_funding_candidates_returns_filtered_programs_with_disclaimer():
+    """결정론 필터 결과 — 자격 확정이 아님을 LLM이 매번 보게 함께 싣는다 (설계서 §6)."""
+    funding = FakeFundingFactsPort()
+    tool = next(t for t in _build_tools(funding=funding) if t.spec.name == "get_funding_candidates")
+
+    payload = json.loads(tool.run({"industry_id": "cafe", "external_funding_need": 31_600_000, "stage": "pre"}))
+
+    assert funding.calls == [("cafe", 31_600_000, "pre")]
+    assert payload["candidates"][0]["why"] == "전국 · 소상공인 · 금융"
+    assert "자격 확정이 아니" in payload["disclaimer"]
+    assert payload["external_funding_need"] == 31_600_000
+
+
+def test_get_funding_candidates_accepts_no_arguments():
+    """세 인자 모두 선택 — 지역·대상만으로도 후보를 낸다."""
+    tool = next(t for t in _build_tools() if t.spec.name == "get_funding_candidates")
+
+    assert tool.spec.input_schema["required"] == []
+    assert json.loads(tool.run({}))["candidates"]
+
+
+def test_get_funding_candidates_cites_each_program_url():
+    """후보는 RAG 신호가 아니라 결정론 필터 결과라 fact 등급이고, 원문 링크가 근거다."""
+    tool = next(t for t in _build_tools() if t.spec.name == "get_funding_candidates")
+    result = tool.run({})
+
+    citations = tool.cite({}, result)
+
+    assert citations == [
+        {
+            "grade": "fact",
+            "source": "funding_program",
+            "title": "2026년 소상공인 정책자금 융자사업",
+            "url": "https://example.test/1",
+        }
+    ]
