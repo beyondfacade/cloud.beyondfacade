@@ -1,5 +1,22 @@
 # Backend Version Log
 
+## [v0.35.2] - 2026-09-24
+
+### Fixed
+- **테스트가 dev DB를 직접 쓰던 것** (STATUS §4-1) — `tests/conftest.py`가 없어 `session_scope`를 여는
+  테스트가 `.env`의 dev DB(5434)에 썼다. `test_funding_expiry`의 `refresh_expirations(2026-09-07)`가
+  9/7 이후 마감 행의 `is_expired`를 전부 되돌려 **510 → 0** 재현. 대구 `conftest.py`를 이식해
+  세션 시작 시 `<db>_test` DB 생성(없으면) → `os.environ["DATABASE_URL"]` 강제(lru_cache 비우기) →
+  `alembic upgrade head` → `seed_all()`. 개발 DB를 가리키면 assert로 중단
+- 빈 DB에서 `alembic upgrade head`가 실패하던 마이그레이션 2건 — ① `66a23fb0c6e9` rag_chunk에
+  `CREATE EXTENSION IF NOT EXISTS vector` 추가(VECTOR 타입 생성 전 필요, 대구 동일 리비전과 맞춤).
+  ② `c7a4f2e19b35`·`a4e7b2c9d813`의 `industry_source_code` bulk_insert는 `industry`가 비어 있으면
+  FK 위반으로 전체 롤백되므로 건너뛴다(마스터는 `seed_master` CLI 몫). dev DB엔 이미 적용돼 영향 없음
+
+### 검증
+- `beyondfacade_test` DROP 후 `pytest tests` 한 번에 **505 passed (7.05s)**. dev `funding_program`
+  expired **510 유지**. 재실행(DB 존재) 멱등 확인
+
 ## [v0.35.1] - 2026-09-24
 
 ### Fixed

@@ -86,6 +86,9 @@ def upgrade() -> None:
         ["region_code", "service_industry_code", "year_quarter"],
         unique=False,
     )
+    # 빈 DB(테스트 DB)엔 industry 행이 없어 FK 위반으로 전체 롤백된다 — 마스터는 seed_master CLI 몫이라 건너뛴다
+    if op.get_bind().execute(sa.text("select count(*) from industry")).scalar() == 0:
+        return
     op.bulk_insert(
         sa.table(
             "industry_source_code",
