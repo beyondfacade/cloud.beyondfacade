@@ -267,3 +267,70 @@ export interface FinancePrefill {
   loan_rate: PrefillValue<{ rate_type: string; period: string; rate_pct?: number; source?: string }>;
   equity: null; // 관문의 budget이 URL로 온다 — 서버는 채우지 않는다
 }
+
+/** 후보 공고 (GET /funding/candidates). 자격 확정이 아니라 해당 가능성이다 — 화면이 그 고지를 상단에 고정한다. */
+export interface FundingCandidate {
+  program_id: string;
+  source: string;
+  title: string;
+  org: string;
+  url: string;
+  apply_period: string;
+  exec_org: string | null;
+  field_category: string | null;
+  field_subcategory: string | null;
+  target_text: string | null;
+  hashtags: string | null;
+  apply_begin: string | null;
+  deadline: string | null;
+  summary: string | null;
+  is_expired: boolean;
+  /** 걸린 규칙 한 줄 — "서울 · 소상공인 · 금융". */
+  why: string;
+}
+
+export interface FundingCandidateList {
+  candidates: FundingCandidate[];
+  /** 필터에 쓰이지 않고 되돌아온 값 — 화면이 문장에 쓴다(공고에 업종·한도가 구조화돼 있지 않다). */
+  industry_id: string | null;
+  external_funding_need: number | null;
+  stage: string | null;
+}
+
+/** 확인할 질문 초안 (POST /finance/questions). 서버는 초안을 줄 뿐 — 사용자가 편집·삭제·추가한다. */
+export type PlanQuestionKind = "gap" | "assumption" | "procedure";
+
+export interface PlanQuestion {
+  text: string;
+  /** 어느 수치에서 나왔는지 — "조달 필요 31,600,000원 > 0". */
+  basis: string;
+  kind: PlanQuestionKind;
+}
+
+/** 선행 절차 진행 상태 — 보증기관과 정책자금 확인서는 별개 절차다. */
+export type PreparationStatus = "not_started" | "in_progress" | "issued" | "unknown";
+
+/** 창업 단계. `null`은 아직 묻지 않은 것, `"unknown"`은 모른다고 답한 것 — 둘 다 미확인이지만
+ *  전자는 물어봐야 하고 후자는 상담에서 확인할 항목이다. 0·아니오로 바꾸지 않는다. */
+export interface PlanProfile {
+  business_registered: boolean | "unknown" | null;
+  planned_opening_date: string | null;
+  funds_needed_by: string | null;
+  guarantee_status: PreparationStatus;
+  policy_confirmation_status: PreparationStatus;
+}
+
+/** POST /finance/questions 요청 — **계산 결과는 보내지 않는다.** 서버가 `input`으로 다시 계산한다. */
+export interface PlanQuestionsRequest {
+  input: FinanceInput;
+  unconfirmed: string[];
+  prefilled: string[];
+  candidate_titles: string[];
+  profile: {
+    /** 화면의 `"unknown"`은 와이어에서 `null`이다 — 서버 계약이 bool|null만 받는다. */
+    business_registered: boolean | null;
+    guarantee_status: PreparationStatus;
+    policy_confirmation_status: PreparationStatus;
+  };
+  change_reason: string;
+}

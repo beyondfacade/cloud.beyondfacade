@@ -7,6 +7,8 @@ import type {
   CategoryRow,
   ChildcareCenter,
   FinancePrefill,
+  FundingCandidate,
+  PlanQuestion,
   ChildcareRegionSummary,
   ConvenienceRegionSummary,
   IntentCandidate,
@@ -636,4 +638,73 @@ export function financePrefillOf(regionCode: string, industryId: string): Financ
     loan_rate: { value: 0.0405, basis: { rate_type: "loan_facility", period: "202607", rate_pct: 4.05, source: "ECOS" }, caveat: "공시 평균 금리입니다. 실제 심사 금리와 다릅니다.", unit: "비율" },
     equity: null,
   };
+}
+
+/** 후보 공고 — 실 API(§3 결정론 필터) 미러. 서울 전용이 앞, 전국이 뒤. 마감 있는 것이 먼저. */
+const CANDIDATE_SEEDS: { title: string; org: string; field: string; why: string; deadline: string | null }[] = [
+  { title: "[서울] 2026년 하반기 소상공인 경영개선 자금 지원", org: "서울특별시", field: "금융", why: "서울 · 소상공인 · 금융", deadline: "2026-10-31" },
+  { title: "[서울] 2026년 청년창업기업 전문상담 경영 지원", org: "서울특별시", field: "경영", why: "서울 · 창업 · 경영", deadline: "2026-11-14" },
+  { title: "[서울] 2026년 골목상권 디지털 전환 지원사업", org: "서울특별시", field: "경영", why: "서울 · 소상공인 · 경영", deadline: "2026-12-05" },
+  { title: "2026년 중소벤처기업부 소상공인 정책자금 융자사업", org: "중소벤처기업부", field: "금융", why: "전국 · 소상공인 · 금융", deadline: null },
+  { title: "2026년 소상공인 투자연계 지원사업 립스(LIPS) 프로그램", org: "중소벤처기업부", field: "금융", why: "전국 · 소상공인 · 금융", deadline: null },
+  { title: "2026년 예비창업패키지 창업기업 모집", org: "중소벤처기업부", field: "창업", why: "전국 · 예비창업 · 창업", deadline: "2026-10-20" },
+  { title: "2026년 우리동네 크라우드펀딩 지원사업", org: "중소벤처기업부", field: "금융", why: "전국 · 소상공인 · 금융", deadline: null },
+  { title: "2026년 소상공인 비즈플러스카드 지원사업", org: "중소벤처기업부", field: "금융", why: "전국 · 소상공인 · 금융", deadline: null },
+];
+
+export function fundingCandidatesOf(stage: string | null): FundingCandidate[] {
+  // pre(등록 전)는 창업 공고가, registered는 소상공인 공고가 앞선다 — 실 API의 가중과 같은 방향.
+  const weight = (why: string) => (stage === "pre" ? (why.includes("창업") ? 0 : 1) : why.includes("소상공인") ? 0 : 1);
+  return [...CANDIDATE_SEEDS]
+    .sort((a, b) => weight(a.why) - weight(b.why))
+    .map((seed, i) => ({
+      program_id: `mock-${i + 1}`,
+      source: "bizinfo",
+      title: seed.title,
+      org: seed.org,
+      url: `https://www.bizinfo.go.kr/mock/${i + 1}`,
+      apply_period: seed.deadline ? `2026-09-01 ~ ${seed.deadline}` : "상시",
+      exec_org: null,
+      field_category: seed.field,
+      field_subcategory: null,
+      target_text: seed.why.includes("예비창업") ? "예비창업자" : "소상공인",
+      hashtags: null,
+      apply_begin: "2026-09-01",
+      deadline: seed.deadline,
+      summary: null,
+      is_expired: false,
+      why: seed.why,
+    }));
+}
+
+/** 확인할 질문 초안 — 실 API(§4 규칙 목록)의 발화 조건을 흉내 낸다. 금액은 만원 단위 문장. */
+export function planQuestionsOf(body: {
+  input: Record<string, number>;
+  unconfirmed?: string[];
+  prefilled?: string[];
+  candidate_titles?: string[];
+  profile?: { business_registered?: boolean | null; guarantee_status?: string; policy_confirmation_status?: string };
+}): PlanQuestion[] {
+  const i = body.input;
+  const manwon = (won: number) => Math.round(won / 10_000).toLocaleString("ko-KR");
+  const capex = i.deposit + i.key_money + i.interior_cost + i.equipment_cost;
+  const fixed = i.monthly_rent + Math.round((i.desired_loan * i.loan_rate) / 12) + i.monthly_insurance + i.monthly_payroll;
+  const total = capex + fixed * 6;
+  const external = Math.max(0, total - i.equity);
+  const gap = Math.max(0, total - i.equity - i.desired_loan);
+  const profile = body.profile ?? {};
+  const questions: PlanQuestion[] = [];
+
+  if (external > 0) questions.push({ text: `자기자본 외 ${manwon(external)}만 원을 어떤 경로(보증·대출·정책자금)로 나눠 조달할 수 있는지`, basis: `조달 필요 ${external.toLocaleString("ko-KR")}원 > 0`, kind: "gap" });
+  if (gap > 0) questions.push({ text: `희망대출 ${manwon(i.desired_loan)}만 원이 실행돼도 ${manwon(gap)}만 원이 남습니다. 추가 조달과 비용 축소 중 무엇이 현실적인지`, basis: `부족액 ${gap.toLocaleString("ko-KR")}원 > 0`, kind: "gap" });
+  if (i.desired_loan > 0) questions.push({ text: `희망대출 ${manwon(i.desired_loan)}만 원의 예상 금리·기간·상환 방식`, basis: `공시 평균 금리 ${(i.loan_rate * 100).toFixed(2)}%로 계산`, kind: "assumption" });
+  for (const field of body.unconfirmed ?? []) questions.push({ text: `${field}은(는) 아직 확인하지 않은 값입니다(0원이 아닙니다). 견적을 받아야 하는지`, basis: `미입력 항목 ${field}`, kind: "assumption" });
+  if ((body.prefilled ?? []).includes("expected_monthly_revenue")) questions.push({ text: "예상 월매출은 이 동 같은 업종 평균입니다. 신규 점포 기준으로 낮춰 잡아야 하는지", basis: "월매출이 실측 프리필 그대로", kind: "assumption" });
+  if ((body.prefilled ?? []).includes("monthly_rent")) questions.push({ text: "월세는 권역 평균 기준입니다. 실제 매물 조건으로 다시 계산해야 하는지", basis: "월세가 권역 근사 그대로", kind: "assumption" });
+  if (profile.business_registered == null) questions.push({ text: "사업자등록 전인지 후인지에 따라 지원 대상이 달라집니다 — 어느 쪽인지", basis: "사업자등록 여부 미확인", kind: "procedure" });
+  if ((profile.guarantee_status ?? "unknown") === "unknown") questions.push({ text: "보증기관(서울신용보증재단) 보증서 발급 절차와 소요 기간", basis: "보증서 진행 상태 미확인", kind: "procedure" });
+  if ((profile.policy_confirmation_status ?? "unknown") === "unknown") questions.push({ text: "소상공인 정책자금 확인서가 필요한지, 필요하다면 발급 절차", basis: "확인서 진행 상태 미확인", kind: "procedure" });
+  for (const title of (body.candidate_titles ?? []).slice(0, 3)) questions.push({ text: `「${title}」에 해당하는지, 은행 대출과 병행 가능한지`, basis: "후보 공고", kind: "procedure" });
+
+  return questions;
 }

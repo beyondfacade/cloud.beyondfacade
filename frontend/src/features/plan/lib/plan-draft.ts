@@ -1,10 +1,10 @@
-import type { FinanceInput, FinanceResult } from "@/shared/api/types";
+import type { FinanceInput, FinanceResult, PlanProfile, PlanQuestion } from "@/shared/api/types";
 import type { AmountField } from "./form-defaults";
 
 /** 한 탭의 한 계획을 보관한다. 장기 저장이 아니다 — 로그인이 없는데 서버 테이블은 이르다.
- *  대구 `consultation-draft.ts` 이식. 상담 프로필은 T4에서 더한다. */
+ *  대구 `consultation-draft.ts` 이식. v2에서 상담 프로필·질문·본 후보를 더했다. */
 export const DRAFT_KEY = "beyondfacade.plan.v1";
-const VERSION = 1;
+const VERSION = 2;
 
 export type PlanKind = "baseline" | "current";
 
@@ -29,7 +29,21 @@ export interface PlanDraft extends PlanScope {
   selected: PlanKind | null;
   /** 사용자가 직접 쓴 변경 이유 — 추정하지 않는다. */
   change_reason: string;
+  /** 창업 단계. null은 아직 묻지 않은 것, "unknown"은 모른다고 답한 것 — 0·아니오로 바꾸지 않는다. */
+  profile: PlanProfile;
+  /** 질문 **편집본**. 서버 초안을 사용자가 고친 결과가 정본이다 — 다시 불러도 덮지 않는다. */
+  questions: PlanQuestion[];
+  /** 화면에 띄운 후보 공고 제목 — 질문 생성 요청에 실어 보낸다(finance BC가 funding BC를 직접 읽지 않는다). */
+  candidates_seen: string[];
 }
+
+export const EMPTY_PROFILE: PlanProfile = {
+  business_registered: null,
+  planned_opening_date: null,
+  funds_needed_by: null,
+  guarantee_status: "unknown",
+  policy_confirmation_status: "unknown",
+};
 
 const AMOUNT_FIELDS: (keyof FinanceInput)[] = [
   "deposit", "key_money", "interior_cost", "equipment_cost",
@@ -39,7 +53,11 @@ const AMOUNT_FIELDS: (keyof FinanceInput)[] = [
 const RATIO_FIELDS: (keyof FinanceInput)[] = ["cost_ratio", "fee_ratio", "loan_rate"];
 
 export function emptyDraft(scope: PlanScope): PlanDraft {
-  return { version: VERSION, region: scope.region, industry: scope.industry, baseline: null, current: null, selected: null, change_reason: "" };
+  return {
+    version: VERSION, region: scope.region, industry: scope.industry,
+    baseline: null, current: null, selected: null, change_reason: "",
+    profile: { ...EMPTY_PROFILE }, questions: [], candidates_seen: [],
+  };
 }
 
 /** 첫 성공 계산은 최초안으로 고정하고, 이후 계산은 현재안을 갱신한다.
@@ -63,7 +81,22 @@ export function selectedPlan(draft: PlanDraft): PlanSnapshot | null {
 /** 지역·업종이 바뀌면 비교 대상이 달라지므로 이전 결과·선택을 무효화한다. */
 export function withScope(draft: PlanDraft, scope: PlanScope): PlanDraft {
   if (draft.region === scope.region && draft.industry === scope.industry) return draft;
-  return { ...emptyDraft(scope), change_reason: draft.change_reason };
+  // 동네·업종이 바뀌면 후보와 질문도 달라진다. 사용자가 쓴 변경 이유와 창업 단계는 사람의 사실이라 남긴다.
+  return { ...emptyDraft(scope), change_reason: draft.change_reason, profile: draft.profile };
+}
+
+/** 창업 단계 갱신 — 한 항목만 바꾼다. */
+export function setProfile(draft: PlanDraft, patch: Partial<PlanProfile>): PlanDraft {
+  return { ...draft, profile: { ...draft.profile, ...patch } };
+}
+
+/** 질문 편집본 교체. 서버 초안을 처음 받을 때와 사용자가 고칠 때 모두 여기를 지난다. */
+export function setQuestions(draft: PlanDraft, questions: PlanQuestion[]): PlanDraft {
+  return { ...draft, questions: [...questions] };
+}
+
+export function setCandidatesSeen(draft: PlanDraft, titles: string[]): PlanDraft {
+  return { ...draft, candidates_seen: [...titles] };
 }
 
 export function saveDraft(draft: PlanDraft): void {
@@ -92,7 +125,9 @@ export function loadDraft(): PlanDraft | null {
 }
 
 function isValidDraft(draft: PlanDraft): boolean {
+  // v1 초안은 버린다 — 구조가 달라 되살리면 화면이 undefined를 만진다.
   if (draft?.version !== VERSION) return false;
+  if (draft.profile == null || !Array.isArray(draft.questions) || !Array.isArray(draft.candidates_seen)) return false;
   if (!isValidPlan(draft.baseline) || !isValidPlan(draft.current)) return false;
   if (draft.selected !== null && draft[draft.selected] == null) return false;
   return true;

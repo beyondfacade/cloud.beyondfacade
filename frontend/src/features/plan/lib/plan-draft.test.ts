@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import type { FinanceInput, FinanceResult } from "@/shared/api/types";
-import { DRAFT_KEY, emptyDraft, loadDraft, recordCalculation, saveDraft, selectPlan, selectedPlan, withScope } from "./plan-draft";
+import type { FinanceInput, FinanceResult, PlanQuestion } from "@/shared/api/types";
+import { DRAFT_KEY, emptyDraft, loadDraft, recordCalculation, saveDraft, selectPlan, selectedPlan, setCandidatesSeen, setProfile, setQuestions, withScope } from "./plan-draft";
 
 const input: FinanceInput = {
   deposit: 20_000_000, key_money: 0, interior_cost: 20_000_000, equipment_cost: 10_000_000,
@@ -54,6 +54,57 @@ describe("계획 초안", () => {
     expect(loadDraft()).toBeNull();
     const broken = recordCalculation(emptyDraft(scope), { ...input, cost_ratio: 0.98 }, result);
     saveDraft(broken);
+    expect(loadDraft()).toBeNull();
+  });
+});
+
+describe("v2 — 창업 단계·질문·본 후보", () => {
+  it("빈 초안의 창업 단계는 전부 미확인이다 — 0·아니오로 바꾸지 않는다", () => {
+    const draft = emptyDraft({ region: "1168064000", industry: "cafe" });
+
+    expect(draft.profile.business_registered).toBeNull();
+    expect(draft.profile.guarantee_status).toBe("unknown");
+    expect(draft.questions).toEqual([]);
+  });
+
+  it("'모른다'(unknown)와 '아직 묻지 않음'(null)을 구분해 보관한다", () => {
+    const draft = setProfile(emptyDraft({ region: "r", industry: "cafe" }), {
+      business_registered: "unknown",
+    });
+
+    expect(draft.profile.business_registered).toBe("unknown");
+  });
+
+  it("질문 편집본이 왕복에서 살아남는다", () => {
+    const q: PlanQuestion[] = [{ text: "고친 질문", basis: "조달 필요 > 0", kind: "gap" }];
+    const draft = setQuestions(emptyDraft({ region: "r", industry: "cafe" }), q);
+
+    saveDraft(draft);
+
+    expect(loadDraft()?.questions).toEqual(q);
+  });
+
+  it("동네가 바뀌면 후보·질문은 버리고 사람이 쓴 것은 남긴다", () => {
+    let draft = setQuestions(emptyDraft({ region: "r1", industry: "cafe" }), [
+      { text: "q", basis: "b", kind: "gap" },
+    ]);
+    draft = setCandidatesSeen(draft, ["공고 A"]);
+    draft = setProfile({ ...draft, change_reason: "월세를 낮춘 매물" }, { business_registered: true });
+
+    const moved = withScope(draft, { region: "r2", industry: "cafe" });
+
+    expect(moved.questions).toEqual([]);
+    expect(moved.candidates_seen).toEqual([]);
+    expect(moved.change_reason).toBe("월세를 낮춘 매물");
+    expect(moved.profile.business_registered).toBe(true);
+  });
+
+  it("구버전(v1) 초안은 되살리지 않는다 — 구조가 달라 화면이 undefined를 만진다", () => {
+    sessionStorage.setItem(
+      DRAFT_KEY,
+      JSON.stringify({ version: 1, region: "r", industry: "cafe", baseline: null, current: null, selected: null, change_reason: "" }),
+    );
+
     expect(loadDraft()).toBeNull();
   });
 });
