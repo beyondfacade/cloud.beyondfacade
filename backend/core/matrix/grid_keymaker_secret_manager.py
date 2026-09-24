@@ -30,6 +30,7 @@ class Settings(BaseSettings):
     # 브이월드 인증키에 등록된 서비스URL — 데이터·WFS API는 domain 불일치 시 INCORRECT_KEY
     vworld_service_domain: str = "beyondfacade.cloud"
     gemini_api_key: str = ""
+    anthropic_api_key: str = ""  # RAG 평가셋 1차 판정(judge_evalset)에만 쓴다 — 운영 경로엔 없음
     childcare_api_key: str = ""  # 어린이집정보공개포털 운영계정 키 (일 1,000회)
     sgis_service_id: str = ""  # SGIS consumer_key (토큰 4h)
     sgis_security_key: str = ""  # SGIS consumer_secret

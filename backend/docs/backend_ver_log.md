@@ -1,5 +1,20 @@
 # Backend Version Log
 
+## [v0.36.1] - 2026-09-24
+
+### Added
+- **RAG 평가셋 Claude 1차 판정 CLI** `apps/rag/adapter/inbound/cli/judge_evalset.py` — candidate 50건을
+  Claude Opus 5(`claude-opus-5`, effort low, 구조화 출력 `Judgment{verdict,reason,better_question}`)가 O/X로 판정해
+  검수 시트 판정란에 `판정: O  # claude: 이유 | 제안: …`로 기입한다. jsonl은 건드리지 않고 사람이 시트에서
+  뒤집은 뒤 `review_evalset apply`로 반영하는 구조. 키는 `backend/.env`의 `ANTHROPIC_API_KEY`
+  (`Settings.anthropic_api_key` 추가, 운영 경로엔 쓰지 않음). `anthropic==1.8.0` 의존성 추가
+- `tests/test_rag_judge_evalset.py` 3건 — 기입·왕복(parse_sheet)·재판정 덮어쓰기
+
+### 실측 (2026-09-24, STATUS §4-4)
+- Claude 판정: **O 40 / X 10**. X 사유는 전부 "너무 일반적이라 수십 공고가 정답"(통합공고류) 또는 지역 조건 누락
+- confirmed 40건 본지표 — **fp16 Recall@5 0.950 · MRR 0.868 / ollama(운영 기본) Recall@5 0.950 · MRR 0.838**.
+  fp16 놓침 2건(의료기기 상담·디지털전환 컨설팅), 2위 5건. 결과 `data/eval/results/rag_{fp16,ollama}_20260924_*.json`
+
 ## [v0.36.0] - 2026-09-24
 
 ### Added

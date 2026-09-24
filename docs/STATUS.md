@@ -17,7 +17,7 @@
 | 데이터 | 36테이블, 약 1,050만 행. 서울 상권분석서비스 계열 999만 + 인허가·마스터·RAG |
 | 운영 크론 6종 | 전부 오늘(9/24) 정상 실행 |
 | **결함 발견 (오늘)** | ① 테스트가 dev DB를 직접 쓰던 것 — **9/24 수정, v0.35.2, `beyondfacade_test`로 격리**(§4-1) · ② 도커 8200 — **9/24 재빌드 완료(v0.35.3 이미지)** · ③ 학원 폐업률 0 → **9/24 NULL로 통일, BE v0.35.3/FE v0.24.1**(§4-3) |
-| 사람 판단이 필요한 것 | RAG 평가셋 50건 검수 — 검수 시트 준비됨(`data/eval/rag_evalset_review.md`), 사용자 진행 중 |
+| 사람 판단이 필요한 것 | RAG 평가셋 — Claude 1차 판정 완료(confirmed 40, Recall@5 0.95·MRR 0.87). 시트의 판정을 사람이 훑어 확정하면 끝(§4-4) |
 
 ## 1. 재는 방법 (이 문서를 다시 만들 때)
 
@@ -161,12 +161,11 @@ main이 전진하면 다시 낡는다 — 배포 전 재빌드가 규칙.
 남는 사실: 학원 원천은 현재 "개원" 상태만 준다(25,554행 전부) — 원천에서 사라진 학원은 store에 남는다.
 
 ### 4-4. 사람 판단 대기
-- **RAG 평가셋 검수** — `data/eval/rag_evalset.jsonl` 50건 전부 `candidate`(gemma3:12b 생성, 9/15).
-  `confirmed`가 0이라 본지표(Recall@5·MRR)가 안 나온다. 뉴스 청크는 0건.
-  **9/24 결정: 사람이 직접 검수**(Claude 판정 안 씀). 도구 준비 완료(v0.36.0):
-  `data/eval/rag_evalset_review.md`에 50건 판정란 — 검수 후
-  `cd backend && .venv/bin/python -m apps.rag.adapter.inbound.cli.review_evalset apply` →
-  `python -m apps.rag.adapter.inbound.cli.evaluate_rag --provider fp16`로 본지표 산출. **사용자 검수 진행 중**.
+- **RAG 평가셋 검수** — `data/eval/rag_evalset.jsonl` 50건(gemma3:12b 생성, 9/15). **9/24 Claude 1차 판정 완료**
+  (`judge_evalset`, Opus 5): **confirmed 40 / rejected 10**(일반적·지역 누락). 본지표 첫 산출 —
+  **fp16 Recall@5 0.950 · MRR 0.868 / ollama Recall@5 0.950 · MRR 0.838**. 뉴스 청크는 여전히 0건.
+  남은 사람 몫: `data/eval/rag_evalset_review.md`의 Claude 판정·제안 질문을 훑어 뒤집을 것만 고치고
+  `review_evalset apply` → `evaluate_rag`. 판정을 다 받아들이면 이 항목은 닫힌다.
 - 두뇌 비교(`data/eval/results/agent_compare.md`)로 리포트는 **혼합(Gemini 우선·로컬 폴백)** 채택 완료.
 
 ### 4-5. 외부 대기·자료 한계 (코드로 못 푸는 것)
