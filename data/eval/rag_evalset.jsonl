@@ -75,7 +75,7 @@
 {"question": "인천 가상융합 콘텐츠 제작 장비 무상 임차 지원 있나요?", "relevant_ids": ["funding:PBLN_000000000117307"], "source_type": "funding", "status": "confirmed"}
 {"question": "함안군 소상공인 경남신보 보증 대출 이자 지원 받을 수 있나요?", "relevant_ids": ["funding:PBLN_000000000117309"], "source_type": "funding", "status": "confirmed"}
 {"question": "의성군 중소기업 운전자금 이차보전 4% 지원 신청은?", "relevant_ids": ["funding:PBLN_000000000117316"], "source_type": "funding", "status": "confirmed"}
-{"question": "의성군 중소기업이 신규채용 직원을 6개월 이상 고용 유지하면 고용보조금 있나요?", "relevant_ids": ["funding:PBLN_000000000117319"], "source_type": "funding", "status": "candidate"}
+{"question": "의성군 중소기업이 신규채용 직원을 6개월 이상 고용 유지하면 고용보조금 있나요?", "relevant_ids": ["funding:PBLN_000000000117319"], "source_type": "funding", "status": "confirmed"}
 {"question": "문경시 중소기업 운전자금 융자 최대 3억 이차보전 있나요?", "relevant_ids": ["funding:PBLN_000000000117324"], "source_type": "funding", "status": "confirmed"}
 {"question": "우리 회사 직무발명제도 규정이 제대로 도입됐는지 확인서 받을 수 있나요?", "relevant_ids": ["funding:PBLN_000000000117330"], "source_type": "funding", "status": "confirmed"}
 {"question": "청송군 거주 지역인재 정규직 채용하면 임금 50% 지원해주나요?", "relevant_ids": ["funding:PBLN_000000000117331"], "source_type": "funding", "status": "confirmed"}
@@ -101,8 +101,8 @@
 {"question": "전북 바이오·식품기업 재직자 무료 교육 훈련생 모집 있나요?", "relevant_ids": ["funding:PBLN_000000000117481"], "source_type": "funding", "status": "confirmed"}
 {"question": "남원시 제조업 중소기업 육성기금 이차보전 4% 신청 방법은?", "relevant_ids": ["funding:PBLN_000000000117490"], "source_type": "funding", "status": "confirmed"}
 {"question": "완주군 관광객 유치 여행사 인센티브 지원 있나요?", "relevant_ids": ["funding:PBLN_000000000117491"], "source_type": "funding", "status": "confirmed"}
-{"question": "무주군 소상공인 특례보증 대출에 이차보전도 받을 수 있나요?", "relevant_ids": ["funding:PBLN_000000000117495"], "source_type": "funding", "status": "candidate"}
-{"question": "공주시 소상공인 특례보증 전액보증 조건은?", "relevant_ids": ["funding:PBLN_000000000117498"], "source_type": "funding", "status": "candidate"}
+{"question": "무주군 소상공인 특례보증 대출에 이차보전도 받을 수 있나요?", "relevant_ids": ["funding:PBLN_000000000117495"], "source_type": "funding", "status": "confirmed"}
+{"question": "공주시 소상공인 특례보증 전액보증 조건은?", "relevant_ids": ["funding:PBLN_000000000117498"], "source_type": "funding", "status": "confirmed"}
 {"question": "부천시 중소기업 우체국 EMS 수출물류비 80% 지원 있나요?", "relevant_ids": ["funding:PBLN_000000000117502"], "source_type": "funding", "status": "confirmed"}
 {"question": "남원시 단체관광객 유치 여행사 인센티브 신청하려면?", "relevant_ids": ["funding:PBLN_000000000117505"], "source_type": "funding", "status": "confirmed"}
 {"question": "진안군 소상공인 경영운전자금 최대 1억 대출 지원 있나요?", "relevant_ids": ["funding:PBLN_000000000117510"], "source_type": "funding", "status": "confirmed"}
@@ -117,7 +117,7 @@
 {"question": "전북 통상닥터 참여기업 해외 바이어 발굴·포장 개선 지원 있나요?", "relevant_ids": ["funding:PBLN_000000000117540"], "source_type": "funding", "status": "confirmed"}
 {"question": "미국 관세정책 대응 전문가 심층컨설팅 지원 신청 어떻게 하나요?", "relevant_ids": ["funding:PBLN_000000000117546"], "source_type": "funding", "status": "confirmed"}
 {"question": "중진공 동반성장 네트워크론 발주기업 추천 수주기업 자금이 뭔가요?", "relevant_ids": ["funding:PBLN_000000000117549"], "source_type": "funding", "status": "confirmed"}
-{"question": "괴산군 중소기업육성자금 이차보전 지원 있나요?", "relevant_ids": ["funding:PBLN_000000000117554"], "source_type": "funding", "status": "candidate"}
+{"question": "괴산군 중소기업육성자금 이차보전 지원 있나요?", "relevant_ids": ["funding:PBLN_000000000117554"], "source_type": "funding", "status": "confirmed"}
 {"question": "충주시 이노비즈·벤처 인증 수수료 90% 지원 신청은?", "relevant_ids": ["funding:PBLN_000000000117557"], "source_type": "funding", "status": "confirmed"}
 {"question": "진주시 수출 제조업체 해상·항공 물류비 지원 있나요?", "relevant_ids": ["funding:PBLN_000000000117561"], "source_type": "funding", "status": "confirmed"}
 {"question": "중소기업 매출채권팩토링 연간 한도 10억 지원 어떻게 받나요?", "relevant_ids": ["funding:PBLN_000000000117563"], "source_type": "funding", "status": "confirmed"}
@@ -134,8 +134,8 @@
 {"question": "태백시 중소기업 시설자금 제조업 8억 융자 지원 있나요?", "relevant_ids": ["funding:PBLN_000000000117600"], "source_type": "funding", "status": "confirmed"}
 {"question": "전북 중소기업 연 6회 전문가 컨설팅 상시 신청은 어디서 하나요?", "relevant_ids": ["funding:PBLN_000000000117601"], "source_type": "funding", "status": "confirmed"}
 {"question": "춘천시 중소기업육성자금 융자 이차보전 지원 있나요?", "relevant_ids": ["funding:PBLN_000000000117602"], "source_type": "funding", "status": "confirmed"}
-{"question": "원주시 창업 7년 이내 기업 운전자금 동행지원 있나요?", "relevant_ids": ["funding:PBLN_000000000117603"], "source_type": "funding", "status": "candidate"}
-{"question": "강릉시 단체관광객 유치 여행사 인센티브 있나요?", "relevant_ids": ["funding:PBLN_000000000117606"], "source_type": "funding", "status": "candidate"}
+{"question": "원주시 창업 7년 이내 기업 운전자금 동행지원 있나요?", "relevant_ids": ["funding:PBLN_000000000117603"], "source_type": "funding", "status": "confirmed"}
+{"question": "강릉시 단체관광객 유치 여행사 인센티브 있나요?", "relevant_ids": ["funding:PBLN_000000000117606"], "source_type": "funding", "status": "confirmed"}
 {"question": "인천 제조업 NH농협 협업 특별경영안정자금 1.8% 이자지원 있나요?", "relevant_ids": ["funding:PBLN_000000000117611"], "source_type": "funding", "status": "confirmed"}
 {"question": "삼척시 단체관광객 유치 여행사 인센티브 신청하려면?", "relevant_ids": ["funding:PBLN_000000000117620"], "source_type": "funding", "status": "confirmed"}
 {"question": "속초시 특례보증 대출 보증수수료 0.8% 2년분 지원 받을 수 있나요?", "relevant_ids": ["funding:PBLN_000000000117621"], "source_type": "funding", "status": "confirmed"}
