@@ -1,0 +1,213 @@
+# STATUS — 실DB 기준 현재 상태 (정본)
+
+> **작성 2026-09-24 09:40 KST · `main` = `origin/main` = `881626e`**
+> 이 문서는 문서·메모를 믿지 않고 **DB·크론 로그·git을 직접 재서** 만든 것이다. 오늘 하루에만 낡은 기록
+> 때문에 서브에이전트에 틀린 전제를 세 번 넘겼다(SGIS·fp16·`operating_months` 범위). 그 반복을 끊기 위한
+> 단일 정본이다. `docs/HANDOFF.md`(9/22판)와 `RESUME-260923.md`는 **이 문서로 대체**된다.
+>
+> **갱신 규칙**: 상태를 물을 일이 생기면 이 문서를 고치기 전에 §1의 방법으로 DB를 다시 잰다. 문서는 결과지,
+> 원천이 아니다.
+
+## 0. 30초 요약
+
+| 영역 | 상태 |
+|---|---|
+| 로드맵 T0~T4 (관문 → 무대 → 계획 → 조달·준비) | ✅ **전부 `main`에 병합·푸시** |
+| 테스트 | 백엔드 **505 passed** · 프론트 **280 passed** · E2E 11단계 **`881626e`에서 전 구간 통과**(9/24 09:45) |
+| 데이터 | 36테이블, 약 1,050만 행. 서울 상권분석서비스 계열 999만 + 인허가·마스터·RAG |
+| 운영 크론 6종 | 전부 오늘(9/24) 정상 실행 |
+| **결함 발견 (오늘)** | **① 테스트 24파일이 dev DB를 직접 쓴다** — `test_funding_expiry`가 만료 플래그 510건을 매번 되돌림(§4-1) · ② 도커 8200이 25커밋 낡음 · ③ 학원 폐업률 0은 값이 아니라 원천 부재 |
+| 사람 판단이 필요한 것 | RAG 평가셋 50건 검수(candidate → confirmed) |
+
+## 1. 재는 방법 (이 문서를 다시 만들 때)
+
+```bash
+cd backend
+# 전 테이블 행수·시점범위
+.venv/bin/python - <<'PY'
+from sqlalchemy import text; from core.matrix.grid_oracle_database_manager import get_engine
+with get_engine().connect() as c:
+    for (t,) in c.execute(text("select table_name from information_schema.tables where table_schema='public' order by 1")):
+        print(t, c.execute(text(f'select count(*) from "{t}"')).scalar())
+PY
+crontab -l | grep beyondfacade            # 크론 6종
+for f in logs/*.log; do tail -2 $f; done   # 마지막 실행
+git log --oneline -1 main; git status --short
+.venv/bin/python -m pytest -q | tail -1; (cd ../frontend && npx vitest run 2>&1 | grep "Tests ")
+```
+
+## 2. 데이터 — 테이블별 (실측 2026-09-24)
+
+범례: ✅ 완료·사용 중 / 🟡 부분 / ⚪ 설계상 빈 테이블 / ❌ 미완
+
+### 2-1. 마스터 (master BC)
+
+| 테이블 | 행 | 상태 | 비고 |
+|---|---:|---|---|
+| region | 427 | ✅ | 행정동 10자리. 이름 중복은 `신사동`(강남·관악)뿐 — 관문 파서 근거 |
+| district | 25 | ✅ | |
+| industry | 10 | ✅ | academy·billiard·cafe·childcare·convenience_store·gym·hair_salon·karaoke·pc_bang·real_estate |
+| industry_source_code | 25 | ✅ | seoul_commercial 16행 포함(cafe 3코드·hair_salon 3코드 — v0.26.0 보정) |
+| industry_subcategory | 8 | ✅ | |
+| population_stat | 142,632 | ✅ | 201912~**202606**. 2026.07분은 공표 확인 후 1파일 추가(외부 대기) |
+
+### 2-2. 인허가·점포 (store BC + 스냅샷 BC)
+
+| 업종 | 총 | 좌표 | region | 영업중 | 폐업 | 상태 |
+|---|---:|---:|---:|---:|---:|---|
+| cafe | 147,291 | 141,006 | 140,998 | 36,902 | 110,389 | ✅ |
+| hair_salon | 99,737 | 93,744 | 93,741 | 33,592 | 66,145 | ✅ |
+| real_estate | 25,435 | 25,299 | 25,281 | 24,798 | 637 | ✅ 폐업은 스냅샷 소실 추정(9/7~) |
+| academy | 25,554 | 25,504 | 25,504 | 25,554 | **0** | 🟡 **원천에 폐업 이벤트가 없다** → 폐업률 0은 값이 아니라 부재. childcare처럼 NULL이어야 정직하다(§4-3) |
+| pc_bang | 16,853 | 16,305 | 16,305 | 4,502 | 12,351 | ✅ |
+| billiard | 14,038 | 13,209 | 13,209 | 2,661 | 11,377 | ✅ |
+| karaoke | 12,803 | 12,315 | 12,315 | 5,558 | 7,245 | ✅ |
+| gym | 7,332 | 7,144 | 7,143 | 4,488 | 2,844 | ✅ |
+| **store 합계** | **349,043** | | | | | 최근 개업 2026-09-21까지 반영 |
+| academy_course | 64,415 | | | | | ✅ |
+| childcare_center / _stat | 3,940 / 7,880 | 좌표·region 100% | | | | ✅ 스냅샷 2회(9/17·9/21), 주간 크론 |
+| convenience_store | 9,395 | 100% | | | | ✅ 스냅샷 9/21, 주간 크론 |
+| tobacco_retailer | 95,402 | | 85,948 (90.1%) | | | ✅ 편의점 출점 축. 미배정 10%는 좌표 부재 |
+
+**SGIS 지오코딩은 완료됐다.** 학원·부동산 99.5~99.8% 좌표. 미좌표 잔여는 지오코딩 실패가 아니라 **주소 자체가 없는 행**(학원 50 중 46, 부동산 136 중 134)과 폐업 업소다. 키는 `backend/.env`에 있고 실호출 검증됨(9/24). 배치 중단 버그(불량 주소 `-200` → 예외) 수정 `8e47dbd`.
+
+### 2-3. 집계·파생 (metric BC)
+
+| 테이블 | 행 | 범위 | 상태 |
+|---|---:|---|---|
+| region_industry_metric | 27,829 | 2019~2026 · 10업종 | ✅ 매일 04:20 재집계. **어린이집·편의점은 2026 점포수만**(스냅샷 원천, 폐업률·성장률 NULL) — 화면이 `metric-coverage.ts`로 연도 보정·안내(v0.24.0) |
+| region_profile_quarter | 9,284 | 20211~20262 · 422동 | ✅ 유형 6종·시간대 라벨·근거 7지표·4블록 강도. 배치 `build_region_profiles`(33초) |
+| region_industry_hour_gap_quarter | 342,078 | 20211~**20254** · 9업종 | ✅ 매출이 20254까지라 여기까지. 패널 차트용(단계구분도 아님) |
+
+### 2-4. 상권·동네 맥락 (commerce·neighborhood BC — 서울 상권분석서비스, 정적 아카이브)
+
+| 테이블 | 행 | 범위 | 상태 |
+|---|---:|---|---|
+| region_commerce_sales | 343,167 | 20211~20254 | ✅ |
+| region_commerce_sales_breakdown | 7,892,841 | 20211~20254 | ✅ 요일·시간·성별·연령. **성별·연령은 금액 89.2%만** — 구성비로만 쓴다 |
+| region_commerce_store | 704,470 | 20211~20254 | ✅ |
+| region_commerce_change | 9,350 | 20211~**20262** | ✅ 영업/폐업 개월·변화 4종. 지도 `operating_months` 원천 — **22분기 전량, 공백 없음** |
+| seoul_commerce_change_baseline | 22 | 20211~20262 | ✅ 서울 평균(분기당 1행) |
+| region_footfall_quarter | 205,700 | 20211~20262 | ✅ |
+| region_population_quarter | 387,618 | 20211~20262 | ✅ **직장인구는 414동(11동 결측 → 0으로 읽지 말 것)** |
+| region_household_quarter | 149,353 | 20211~20262 | 🟡 **아파트 가구 수 컬럼 전 행 0**(원천 미제공) |
+| region_housing_average_quarter | 9,331 | 20211~20262 | ✅ 평균 시가는 편차 극단 — 참고값 |
+| region_facility_quarter | 187,000 | 20211~20262 | ✅ **`total` ≠ 19종 합**(더 넓은 정의), `train_station` 전 행 NULL |
+| region_spending_quarter | 102,850 | 20211~20262 | ✅ **KB카드 가맹점 매출(발생지)**이지 주민 지출이 아님 |
+
+### 2-5. 정책·시장 신호 (funding·news·shock·rent BC)
+
+| 테이블 | 행 | 상태 | 비고 |
+|---|---:|---|---|
+| funding_program | 2,068 | ✅ | 기업마당, 매일 05:10. 만료 510·미만료 1,558(상시 980). **§4-1 결함 참조** |
+| news_article | 5,824 | ✅ | 매시 10분, 최근 24h 166건 |
+| shock_event / _industry | 26 / 107 | ✅ | 거리두기·정책 26건 |
+| shock_event_region | 0 | ⚪ | region 범위 이벤트가 0건이라 **설계상 빈 테이블** |
+| interest_rate | 365 | ✅ | ECOS base(202608)·loan_corp·loan_facility·loan_sme(202607). 주 1회 |
+| rent_price | 3,638 | ✅ | R-ONE 2019Q1~2026Q2. **상권(83)·권역(4) 단위, 동 매핑 없음** → finance 프리필은 구→권역 근사 |
+
+### 2-6. RAG·에이전트 (rag·agent BC)
+
+| 테이블 | 행 | 상태 | 비고 |
+|---|---:|---|---|
+| rag_chunk | 7,883 | ✅ | news 5,815(기사 99.8%) + funding 2,068(100%). **전량 `qwen3-embedding-4b-fp16`** — fp16 재색인 완료. `region_code` 컬럼은 0건(미사용) |
+| analysis_report / llm_usage | 21 / 21 | ✅ | 모델별 gemma3 1 · gemma4 18 · **gemini-2.5-flash 2**(v0.35.0 혼합 배선 이후) |
+
+## 3. 파이프라인·크론 (전부 오늘 9/24 정상)
+
+| 크론 | 일정 | 마지막 실행 | 결과 |
+|---|---|---|---|
+| news-poller | 매시 10분 | 09:10 | 신규 4건 |
+| store-collector | 04:20 | 04:32 | 지표 27,829건 재집계 |
+| funding-collector | 05:10 | 05:10 | 신규 36 · 만료 510 |
+| rag-indexer | 05:50 | 05:50 | 증분 188건(fp16, 20초) |
+| childcare-collector | 월 05:30 | 9/21 | 3,940건 |
+| convenience-collector | 월 05:40 | 9/21 | 9,395건(API 427회) |
+
+`refresh_expirations`는 크론 안에서 정상 동작한다(커밋됨). 되돌리는 건 크론이 아니라 **테스트**다(§4-1).
+
+## 4. 안 된 것 · 결함 · 판단 대기
+
+### 4-1. 🔴 테스트가 dev DB를 직접 쓴다 — 오늘 발견, **미수정**
+
+`backend/tests/conftest.py`가 없다. `session_scope`·`SqlAlchemy*Repository`를 직접 여는 테스트 **24파일**이
+`.env`의 dev DB(5434)에 쓴다. 증명: `test_funding_expiry.py`가 `refresh_expirations(date(2026,9,7))`를 부르면
+"연장 복원" 절이 9/7 이후 마감 행을 전부 `is_expired=False`로 되돌린다 — 단독 실행으로 **510 → 0 재현**,
+배치 재실행으로 복구(9/24 09:35). 오늘 서브에이전트들이 전체 pytest를 8회쯤 돌려 하루 종일 되돌아갔고,
+T4-1이 "크론이 안 돈다"고 오판한 원인이다. `test_broker_ingest`·`test_store_ingest`의 간헐 실패("테스트 오염")도
+같은 뿌리로 본다.
+**할 일**: 대구 분화본처럼 테스트 전용 DB(`beyondfacade_test`) + conftest에서 `DATABASE_URL` 강제. 그전까지
+전체 pytest 후엔 `python -m apps.funding.adapter.inbound.cli.funding_collector`를 다시 돌려 플래그를 복구한다.
+
+### 4-2. 🟡 도커 `beyondfacade-api`(8200)가 낡았다
+이미지 빌드 9/23 22:40(≈`73cc401`). 그 뒤 `main`이 25커밋 전진 — `/intent`·`/finance`·`/hour-gaps`·
+`/profiles/types`·`/commerce-changes/{region}`·혼합 LLM이 **없다**. 조회 전용 컨테이너라 급하진 않지만
+`docker compose build backend && up -d backend`가 필요하다. 8201(uvicorn `--reload`, 메인 체크아웃)이 개발 정본.
+
+### 4-3. 🟡 학원 폐업률 0은 값이 아니다
+`store.academy`에 `close_date`가 한 건도 없다(원천 서울 학원 API가 폐업을 안 준다). `region_industry_metric`은
+그걸 폐업률 **0.0**으로 집계해 426행에 값이 있다 — 어린이집·편의점은 같은 이유로 NULL인데 학원만 0이라
+비일관·오해 소지. 스냅샷 규칙으로 통일(NULL + 안내)해야 한다.
+
+### 4-4. 사람 판단 대기
+- **RAG 평가셋 검수** — `data/eval/rag_evalset.jsonl` 50건 전부 `candidate`(gemma3:12b 생성, 9/15).
+  `confirmed`가 0이라 본지표(Recall@5·MRR)가 안 나온다. 뉴스 청크는 0건. 비용 계산(9/24): Claude 배치로
+  50건 1차 판정 ≈ $0.06, 200건 확장(뉴스 포함) 생성+판정 ≈ $0.35 — 세 갈래 제안 후 **결정 대기**.
+- 두뇌 비교(`data/eval/results/agent_compare.md`)로 리포트는 **혼합(Gemini 우선·로컬 폴백)** 채택 완료.
+
+### 4-5. 외부 대기·자료 한계 (코드로 못 푸는 것)
+- 주민등록 인구 2026.07분 공표 후 1파일 추가
+- 임대료 동 단위 해상도(국토부 상업용 실거래가 — 포스트MVP)
+- 서울신보·금감원 공시 금융상품 정본(T4-3 조사) — 현재 후보는 기업마당 92건 풀 + ECOS 금리뿐
+- 지출 항목 구성비(본사·온라인 가맹점 필터 필요)
+- 카탈로그 전환: 지표 7개·드리프트 없음 → 아직 아님(`specs/…map-metric-contract.md` §6). 단 여섯 번째
+  "지표당 아는 것"이 (업종,지표) 쌍이라 전환 시 `map_metric` 한 테이블로는 부족(v0.24.0 기록)
+
+## 5. 코드·기능 — 무엇이 어디까지 됐나
+
+### 5-1. API 15개 라우터 (`backend/main.py`)
+`/analysis`(SSE 리포트) · `/intent`(관문 파서+진단) · `/profiles`(동네 프로필·유형·지표 목록) · `/hour-gaps` ·
+`/commerce-changes`(지도·상세+서울평균) · `/metrics` · `/regions` · `/stores` · `/finance`(simulate·prefill·questions) ·
+`/funding`(목록·candidates) · `/news` · `/shocks` · `/childcare-centers` · `/childcare-center-stats` · `/convenience-stores`
+
+### 5-2. 프론트 4 라우트 · feature 5개
+`/`(랜딩+관문 `intent-gate`) · `/map`(`map-explorer`: 유형 단계구분도·두 무리 컨트롤바·패널 서사) ·
+`/plan`(`plan`: 프리필→계산→비교→조달·준비) · `/analysis`(`agent-report` SSE). `landing`.
+
+### 5-3. 로드맵 산출물 (전부 main)
+| 단계 | 백엔드 | 프론트 | 핵심 |
+|---|---|---|---|
+| T0 합치기 | — | — | 세 갈래 병합, alembic head 1개(`e6f7a8b9c0d1` 최신) |
+| T1 관문 | v0.31.0 intent BC | v0.18.x | 규칙 우선 파서·LLM 폴백(Gemini)·한 줄 진단 |
+| T2 무대 | v0.32.0 | v0.19~v0.21 | `/profiles/types`·`/hour-gaps`·4블록·두 선·벤치마크 |
+| T3 계획 | v0.33.0 finance BC | v0.22.x | 대구 엔진 이식·실측 프리필(월매출 2,613만/역삼1동 카페) |
+| T4 조달·준비 | v0.34.0·v0.35.0 | v0.23.0 | 후보 92건 풀·질문 11규칙·준비자료·**혼합 LLM** |
+| 부채 | v0.35.1 SGIS 버그 | v0.24.0 커버리지 | |
+
+### 5-4. 검증 상태
+- 백엔드 pytest **505 passed**(9/24 09:30) — ⚠ 실행이 dev DB를 바꾼다(§4-1)
+- 프론트 vitest **280 passed**, `tsc` clean
+- E2E 11단계 — **`881626e`(main HEAD)에서 전 구간 통과**(9/24 09:45): 리포트 4,396자 · `/plan` 조달 필요 348만 · 후보 8건 · 질문 8개 · 준비자료 2,900자
+
+## 6. 환경·서버
+
+| | 값 |
+|---|---|
+| DB | `beyondfacade-db`(pgvector pg17) **127.0.0.1:5434**, `now()`는 **UTC**. 대구 분화본은 별도 DB(5437) — 섞이지 않음 |
+| 백엔드 dev | uvicorn `--reload` **8201**, cwd `backend/`(메인 체크아웃). 워처가 편집을 놓친 적 2회 → 실호출 전 로그 확인 |
+| 프론트 dev | next **3200**, `NEXT_PUBLIC_API_BASE=/api/backend` → 8201 프록시. 브라우저는 노트북(원격 SSH) |
+| 도커 | 8200 조회 전용, **낡음**(§4-2) |
+| LLM | 리포트 `hybrid`(gemini-2.5-flash → gemma4:12b) · 관문 폴백 gemini-2.5-flash · RAG 임베딩 fp16 로컬 · 쿼리 ollama Q4(혼용 구도) · GPU RTX 5060 Ti 16GB 유휴 |
+| 키 | `backend/.env`에 GEMINI·SGIS·VWORLD 등 설정됨(값은 열람하지 않음). **Anthropic 키는 미설정** |
+| git | `main` 단일. 원격 `origin/feature/analysis-api`(병합됨, 삭제는 사용자 결정), 로컬 `feature/frontend-mvp`(병합됨). 작업 트리엔 `docs/jekyll.md`(지킬 세션 산출물)만 |
+
+## 7. 오늘 낡은 기록으로 틀렸던 것 — 재발 방지
+
+| 틀린 전제 | 출처 | 실제 |
+|---|---|---|
+| "SGIS 키 부재로 지오코딩 차단" | HANDOFF 9/17 | 9/22 `feature/analysis-api`에서 완료·병합됨 |
+| "RAG 코퍼스 전량 Q4, fp16 재색인 대기" | 메모리 | 7,883건 전량 fp16 |
+| "`operating_months` 20254까지 → 빈 지도" | 내 T2-2 해석 | 22분기 전량. 빈 지도는 (업종,지표) 쌍에 있었음 |
+| "만료 크론이 안 돈다" | T4-1 관찰 | 크론 정상. **테스트가 되돌린 것**(§4-1) |
+
+**규칙**: 재개·위임 전에 문서가 아니라 §1의 방법으로 DB·로그·git을 먼저 잰다. 문서는 결과지, 원천이 아니다.
