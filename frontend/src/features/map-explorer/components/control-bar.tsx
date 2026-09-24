@@ -1,8 +1,9 @@
 "use client";
 
 import { INDUSTRIES, INDUSTRY_LABELS } from "@/shared/industries";
-import { METRIC_GROUPS, METRIC_LABELS, YEARS, metricGroupOf, type MapState } from "../lib/map-state";
-import { LATEST_QUARTER, QUARTERS, formatQuarter } from "../lib/quarters";
+import { METRIC_GROUPS, METRIC_LABELS, metricGroupOf, type MapState } from "../lib/map-state";
+import { availableQuarters, availableYears, clampToCoverage } from "../lib/metric-coverage";
+import { LATEST_QUARTER, formatQuarter } from "../lib/quarters";
 import styles from "./map-workspace.module.css";
 
 const FIELD =
@@ -23,6 +24,10 @@ interface ControlBarProps {
 export function ControlBar({ state, onChange }: ControlBarProps) {
   const group = metricGroupOf(state.metric);
   const regionAxis = group.axis === "region_quarter";
+  // 업종·지표를 바꾸면 현재 연도가 범위 밖일 수 있다 — 조용히 유효 범위로 당긴다(clamp는 멱등).
+  const change = (next: MapState) => onChange(clampToCoverage(next));
+  const years = availableYears(state.metric, state.industry);
+  const quarters = availableQuarters(state.metric);
 
   return (
     <div className={styles.filterTray}>
@@ -31,7 +36,7 @@ export function ControlBar({ state, onChange }: ControlBarProps) {
         <span className={LEGEND}>업종</span>
         <select
           value={state.industry}
-          onChange={(e) => onChange({ ...state, industry: e.target.value })}
+          onChange={(e) => change({ ...state, industry: e.target.value })}
           className={FIELD}
           aria-describedby={regionAxis ? INDUSTRY_NOTE_ID : undefined}
         >
@@ -64,7 +69,7 @@ export function ControlBar({ state, onChange }: ControlBarProps) {
                       key={m}
                       type="button"
                       aria-pressed={selected}
-                      onClick={() => onChange({ ...state, metric: m })}
+                      onClick={() => change({ ...state, metric: m })}
                       className={`min-h-8 flex-1 whitespace-nowrap rounded-md px-3 py-1 text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)] active:translate-y-px ${
                         selected
                           ? "bg-[var(--accent)] text-[var(--accent-fg)]"
@@ -87,10 +92,10 @@ export function ControlBar({ state, onChange }: ControlBarProps) {
           <select
             // null(최신)은 목록의 마지막 분기로 보인다. 최신을 고르면 다시 null로 둬 URL을 짧게 유지한다
             value={state.year_quarter ?? LATEST_QUARTER}
-            onChange={(e) => onChange({ ...state, year_quarter: e.target.value === LATEST_QUARTER ? null : e.target.value })}
+            onChange={(e) => change({ ...state, year_quarter: e.target.value === LATEST_QUARTER ? null : e.target.value })}
             className={`${FIELD} tabular-nums`}
           >
-            {QUARTERS.map((yq) => (
+            {quarters.map((yq) => (
               <option key={yq} value={yq}>
                 {formatQuarter(yq)}
               </option>
@@ -102,10 +107,10 @@ export function ControlBar({ state, onChange }: ControlBarProps) {
           <span className={LEGEND}>연도</span>
           <select
             value={state.year}
-            onChange={(e) => onChange({ ...state, year: Number(e.target.value) })}
+            onChange={(e) => change({ ...state, year: Number(e.target.value) })}
             className={`${FIELD} tabular-nums`}
           >
-            {YEARS.map((year) => (
+            {years.map((year) => (
               <option key={year} value={year}>
                 {year}
               </option>

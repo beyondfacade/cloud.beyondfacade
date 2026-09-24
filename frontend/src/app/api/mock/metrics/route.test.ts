@@ -1,5 +1,6 @@
 import { expect, it } from "vitest";
 import { GET } from "./route";
+import { SNAPSHOT_YEAR } from "@/features/map-explorer/lib/metric-coverage";
 
 it("지원하는 metric·industry는 200과 행 배열을 반환한다", async () => {
   const res = await GET(new Request("http://test/api/mock/metrics?metric=growth_rate&year=2026&industry=cafe"));
@@ -33,4 +34,24 @@ it("같은 업종은 같은 (region, industry, metric)에 대해 항상 동일�
   const first = await GET(new Request("http://test/api/mock/metrics?metric=growth_rate&year=2026&industry=cafe"));
   const second = await GET(new Request("http://test/api/mock/metrics?metric=growth_rate&year=2026&industry=cafe"));
   expect(await first.json()).toEqual(await second.json());
+});
+
+it("스냅샷 업종은 관측 연도의 점포수만 준다 — 실 API의 빈 배열을 그대로 흉내 낸다", async () => {
+  // mock이 늘 427행을 주면 mock으로 개발하는 동안 "빈 지도" 경로를 한 번도 못 본다 (§15 미러 규칙).
+  // 2026-09-24 실 API 실측: childcare×store_count×2026 426행 / 2024 0행 / closure_rate 0행
+  const rows = async (query: string) =>
+    (await (await GET(new Request(`http://test/api/mock/metrics?${query}`))).json()).length;
+
+  expect(await rows(`industry=childcare&metric=store_count&year=${SNAPSHOT_YEAR}`)).toBeGreaterThan(0);
+  expect(await rows("industry=childcare&metric=store_count&year=2024")).toBe(0);
+  expect(await rows(`industry=childcare&metric=closure_rate&year=${SNAPSHOT_YEAR}`)).toBe(0);
+  expect(await rows(`industry=convenience_store&metric=growth_rate&year=${SNAPSHOT_YEAR}`)).toBe(0);
+});
+
+it("일반 업종은 전 연도·전 지표에 값이 있다", async () => {
+  const rows = async (query: string) =>
+    (await (await GET(new Request(`http://test/api/mock/metrics?${query}`))).json()).length;
+
+  expect(await rows("industry=cafe&metric=store_count&year=2019")).toBeGreaterThan(0);
+  expect(await rows("industry=cafe&metric=closure_rate&year=2026")).toBeGreaterThan(0);
 });
