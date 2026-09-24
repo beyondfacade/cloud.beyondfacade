@@ -61,11 +61,15 @@ class SgisGeocodingGateway(GeocodingGatewayPort):
         response.raise_for_status()
         payload = response.json()
         err = str(payload.get("errCd", ""))
-        if err == "-100":  # 검색결과 없음
+        # -100 검색결과 없음 / -200 "검색할 주소를 확인해주세요"(주소 형식 불량).
+        # 둘 다 이 주소로는 못 찾는다는 뜻이라 건너뛴다 — 인터랙터가 지번으로 한 번 더 시도한다.
+        # -200을 재시도 목록에 두면 호출만 두 번 쓰고 결국 예외가 되는데, 인터랙터는 geocode()를
+        # try로 감싸지 않아 **주소 하나가 잘못되면 배치 전체가 죽는다**(2026-09-24 실호출로 확인).
+        if err in ("-100", "-200"):
             return None
         if err not in ("0", ""):
-            # 토큰 만료 등 — 1회 재발급 후 재시도
-            if err in ("-401", "-1001", "-200"):
+            # 토큰 만료·인증 오류 — 1회 재발급 후 재시도
+            if err in ("-401", "-1001"):
                 self._token = None
                 token = self._access_token()
                 response = self._client.get(
@@ -81,7 +85,7 @@ class SgisGeocodingGateway(GeocodingGatewayPort):
                 response.raise_for_status()
                 payload = response.json()
                 err = str(payload.get("errCd", ""))
-                if err == "-100":
+                if err in ("-100", "-200"):
                     return None
                 if err not in ("0", ""):
                     raise RuntimeError(f"SGIS geocode 오류 errCd={err}: {payload}")

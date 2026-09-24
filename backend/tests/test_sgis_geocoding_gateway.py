@@ -102,3 +102,23 @@ def test_geocode_requires_credentials(monkeypatch):
     gateway = SgisGeocodingGateway(client=_FakeClient({"auth": [], "geocode": []}))
     with pytest.raises(RuntimeError, match="SGIS_SERVICE_ID"):
         gateway.geocode("서울특별시 강남구 테헤란로 1")
+
+
+def test_주소_형식_불량은_예외가_아니라_건너뛴다(monkeypatch):
+    """errCd -200은 "검색할 주소를 확인해주세요" — 이 주소로는 못 찾는다는 뜻이다.
+
+    재시도 목록에 두면 호출만 두 번 쓰고 결국 RuntimeError가 되는데, 인터랙터는 geocode()를
+    try로 감싸지 않아 주소 하나가 잘못되면 배치 전체가 죽는다 (2026-09-24 실호출로 확인).
+    """
+    gateway = _gateway(
+        monkeypatch,
+        {
+            "auth": [
+                {"errCd": "0", "result": {"accessToken": "tok", "accessTimeout": "9999999999"}}
+            ],
+            "geocode": [{"errCd": -200, "errMsg": "검색할 주소를 확인해주세요"}],
+        },
+    )
+
+    assert gateway.geocode("존재하지않는주소 999-999") is None
+    assert gateway.call_count == 1  # 재시도로 호출을 낭비하지 않는다
