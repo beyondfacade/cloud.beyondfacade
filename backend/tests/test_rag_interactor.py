@@ -137,3 +137,40 @@ def test_index_records_embedded_by_as_adapter_model_name():
     interactor.index(full=False)
 
     assert repository.stored["funding:1"].embedded_by == "test-model-x"
+
+
+class FakeDuplicateNewsRepository(FakeRagRepository):
+    """같은 사건 기사 3건 + 다른 사건 1건을 점수순으로 돌려준다 — top_k보다 많이 요청받아야 접을 수 있다."""
+
+    def search(self, embedding, top_k, source_type=None, exclude_expired_funding=True):
+        self.search_calls.append((embedding, top_k, source_type))
+        from datetime import datetime
+
+        def hit(cid, title, score):
+            return RagHit(chunk_id=cid, source_type="news", source_id=cid, content=f"{title}\n요약",
+                          score=score, url=None, org=None, published_at=datetime(2026, 9, 21))
+        return [
+            hit("n1", "코웨이, 롯데백화점 노원점에 올해 10번째 직영매장 개점", 0.9),
+            hit("n2", "코웨이, 노원 롯데백화점에 올해 10번째 직영매장", 0.85),
+            hit("n3", "코웨이, 롯데百 노원점에 10번째 공식 직영매장", 0.8),
+            hit("n4", "홈앤쇼핑, 둔촌역전통시장서 디지털 전환 지원", 0.7),
+        ][:top_k]
+
+
+def test_search_news는_같은_사건을_접어_서로_다른_사건으로_top_k를_채운다():
+    repository = FakeDuplicateNewsRepository()
+    interactor = RagSearchInteractor(embedder=FakeEmbeddingPort(), repository=repository)
+
+    hits = interactor.search("코웨이 노원 매장", top_k=2, source_type="news")
+
+    assert [h.chunk_id for h in hits] == ["n1", "n4"]
+    assert repository.search_calls[0][1] > 2  # 접을 여유분을 더 가져온다
+
+
+def test_search_funding은_접지_않고_top_k_그대로_요청한다():
+    repository = FakeRagRepository()
+    interactor = RagSearchInteractor(embedder=FakeEmbeddingPort(), repository=repository)
+
+    interactor.search("소상공인 대출", top_k=5, source_type="funding")
+
+    assert repository.search_calls[0][1] == 5

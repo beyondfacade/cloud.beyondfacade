@@ -7,8 +7,14 @@ EmbeddingPort 구현을 주입받는다 — 두 UseCase가 별개 Interactor인 
 from apps.rag.app.ports.input.rag_use_case import RagIndexUseCase, RagSearchUseCase
 from apps.rag.app.ports.output.rag_port import EmbeddingPort, RagRepositoryPort, RagSourcePort
 from apps.rag.domain.entities.rag_chunk_entity import RagHit
+from apps.rag.domain.services.same_event_collapser import Collapser, collapse_same_event
 
 _EMBED_BATCH_SIZE = 32
+
+# Strategy — source_type별 후처리. 뉴스만 같은 사건을 접는다(공고는 차수·연도별 공고가 서로 다른 문서라 접지 않는다).
+# 접을 여유분: 한 사건이 최대 50여 건이라 top_k의 10배를 가져온다 (pgvector HNSW에서 top-50은 top-5와 비용 차이가 없다).
+_COLLAPSERS: dict[str, Collapser] = {"news": collapse_same_event}
+_COLLAPSE_FETCH_FACTOR = 10
 
 
 class RagIndexInteractor(RagIndexUseCase):
@@ -50,4 +56,8 @@ class RagSearchInteractor(RagSearchUseCase):
         self, query: str, top_k: int = 5, source_type: str | None = None
     ) -> list[RagHit]:
         embedding = self._embedder.embed_query(query)
-        return self._repository.search(embedding, top_k, source_type)
+        collapser = _COLLAPSERS.get(source_type or "")
+        if collapser is None:
+            return self._repository.search(embedding, top_k, source_type)
+        hits = self._repository.search(embedding, top_k * _COLLAPSE_FETCH_FACTOR, source_type)
+        return collapser(hits)[:top_k]
