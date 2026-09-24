@@ -1,5 +1,15 @@
 # Backend Version Log
 
+## [v0.36.0] - 2026-09-24
+
+### Added
+- **RAG 평가셋 사람 검수 CLI** `apps/rag/adapter/inbound/cli/review_evalset.py` (STATUS §4-4) —
+  `sheet`가 candidate 50건을 공고 카드(제목·기관·대상·분야·기간·요약·URL)와 함께
+  `data/eval/rag_evalset_review.md`로 뽑고, 사용자가 VS Code에서 `판정: O/X`(질문 줄 수정 가능)를 적으면
+  `apply`가 jsonl에 confirmed/rejected를 반영한다. 빈 판정은 candidate 유지. 판정 기호 → 행 변환은
+  Strategy 테이블(`_VERDICT_HANDLERS`). `evaluate_rag`는 confirmed만 본지표로 집계하므로 그대로 이어진다
+- `tests/test_rag_review_evalset.py` 6건 — 렌더링·파싱(대소문자·메모)·반영(승격·기각·유지·입력 불변·미지 기호)
+
 ## [v0.35.3] - 2026-09-24
 
 ### Fixed
