@@ -60,9 +60,9 @@ class ProgramCard:
     url: str
 
 
-def render_sheet(rows: list[dict], cards: dict[str, ProgramCard]) -> str:
+def render_sheet(rows: list[dict], cards: dict[str, ProgramCard], start: int = 1, header: bool = True) -> str:
     items = []
-    for n, row in enumerate(rows, start=1):
+    for n, row in enumerate(rows, start=start):
         chunk_id = row["relevant_ids"][0]
         card = cards[chunk_id.split(":", 1)[1]]
         items.append(
@@ -79,7 +79,7 @@ def render_sheet(rows: list[dict], cards: dict[str, ProgramCard]) -> str:
                 url=card.url,
             )
         )
-    return _HEADER + "".join(items)
+    return (_HEADER if header else "") + "".join(items)
 
 
 def parse_sheet(text: str) -> dict[str, tuple[str | None, str]]:
@@ -138,34 +138,67 @@ def _load_rows(path: Path) -> list[dict]:
     return [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines() if line.strip()]
 
 
-def _fetch_cards(program_ids: list[str]) -> dict[str, ProgramCard]:
+def _funding_cards(session, ids: list[str]) -> dict[str, ProgramCard]:
     from sqlalchemy import select
 
     from apps.funding.adapter.outbound.orms.funding_program_orm import FundingProgramOrm
+
+    return {
+        r.program_id: ProgramCard(
+            program_id=r.program_id, title=r.title, org=r.org, target=r.target_text,
+            field="/".join(x for x in (r.field_category, r.field_subcategory) if x) or None,
+            period=r.apply_period, summary=r.summary, url=r.url,
+        )
+        for r in session.execute(select(FundingProgramOrm).where(FundingProgramOrm.program_id.in_(ids))).scalars()
+    }
+
+
+def _news_cards(session, ids: list[str]) -> dict[str, ProgramCard]:
+    """뉴스는 같은 카드 모양에 맞춘다 — 기관=언론사, 분야=수집 키워드, 기간=보도일."""
+    from sqlalchemy import select
+
+    from apps.news.adapter.outbound.orms.news_article_orm import NewsArticleOrm
+
+    return {
+        r.article_id: ProgramCard(
+            program_id=r.article_id, title=r.title, org=r.press or "-", target=None,
+            field=r.matched_keyword, period=r.published_at.date().isoformat() if r.published_at else "-",
+            summary=r.description, url=r.url,
+        )
+        for r in session.execute(select(NewsArticleOrm).where(NewsArticleOrm.article_id.in_(ids))).scalars()
+    }
+
+
+# source_type → 카드 조회 (Strategy)
+_CARD_FETCHERS = {"funding": _funding_cards, "news": _news_cards}
+
+
+def _fetch_cards(chunk_ids: list[str]) -> dict[str, ProgramCard]:
     from core.matrix.grid_oracle_database_manager import session_scope
 
+    by_type: dict[str, list[str]] = {}
+    for chunk_id in chunk_ids:
+        source_type, source_id = chunk_id.split(":", 1)
+        by_type.setdefault(source_type, []).append(source_id)
+    cards: dict[str, ProgramCard] = {}
     with session_scope() as session:
-        rows = session.execute(
-            select(FundingProgramOrm).where(FundingProgramOrm.program_id.in_(program_ids))
-        ).scalars()
-        return {
-            r.program_id: ProgramCard(
-                program_id=r.program_id,
-                title=r.title,
-                org=r.org,
-                target=r.target_text,
-                field="/".join(x for x in (r.field_category, r.field_subcategory) if x) or None,
-                period=r.apply_period,
-                summary=r.summary,
-                url=r.url,
-            )
-            for r in rows
-        }
+        for source_type, ids in by_type.items():
+            cards.update(_CARD_FETCHERS[source_type](session, ids))
+    return cards
 
 
 def _cmd_sheet(evalset: Path, sheet: Path) -> None:
+    """시트가 이미 있으면 거기 없는 행만 번호를 이어 붙인다 — 기입된 판정을 덮어쓰지 않는다."""
     rows = _load_rows(evalset)
-    cards = _fetch_cards([r["relevant_ids"][0].split(":", 1)[1] for r in rows])
+    if sheet.exists():
+        done = parse_sheet(sheet.read_text(encoding="utf-8"))
+        rows = [r for r in rows if r["relevant_ids"][0] not in done]
+        cards = _fetch_cards([r["relevant_ids"][0] for r in rows])
+        with sheet.open("a", encoding="utf-8") as f:
+            f.write(render_sheet(rows, cards, start=len(done) + 1, header=False))
+        print(f"검수 시트에 {len(rows)}건 추가 (기존 {len(done)}건 유지): {sheet}", flush=True)
+        return
+    cards = _fetch_cards([r["relevant_ids"][0] for r in rows])
     sheet.write_text(render_sheet(rows, cards), encoding="utf-8")
     print(f"검수 시트 생성: {sheet} ({len(rows)}건) — VS Code에서 판정을 적은 뒤 apply", flush=True)
 

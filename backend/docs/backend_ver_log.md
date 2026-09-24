@@ -1,5 +1,23 @@
 # Backend Version Log
 
+## [v0.37.0] - 2026-09-24
+
+### Added
+- **평가셋 추가 생성** — `generate_evalset`를 재작성: 평가셋에 이미 있는 chunk_id는 건너뛰고 뒤에 이어 붙인다
+  (`select_new_chunks`, 결정적 chunk_id 순). funding은 **미만료 공고만** 표본(검색이 만료 공고를 제외하므로 정답이
+  될 수 없다). `--source-type news` 지원. 질문 생성기는 Strategy — `OllamaGemmaGenerator`(gemma3, 9/15 원본 50건과
+  동일)·`ClaudeGenerator`(Opus 5, 단일 판정 기준을 생성 프롬프트에 내장). Factory 테이블로 provider 분기
+- `review_evalset sheet`가 기존 시트가 있으면 **판정을 덮어쓰지 않고** 없는 행만 번호를 이어 붙인다. 뉴스 문서 카드
+  (`_news_cards`: 언론사·수집 키워드·보도일·요약) — source_type → 카드 조회 Strategy
+- `judge_evalset`는 `pending_rows`(candidate)만 판정. 프롬프트 어휘를 공고·기사 공용으로("문서"), 같은 사건의 타
+  언론사 기사가 여럿이면 X 명시
+- `tests/test_rag_generate_evalset.py` 4건 — 표본 제외·행 구성·판정 대상 필터·시트 번호 이어붙이기
+
+### 실측 (2026-09-24)
+- gemma3:12b로 funding 110(102초) + news 40(29초) 생성 → 평가셋 **200건**(confirmed 30 · rejected 20 ·
+  candidate 150). Claude 생성은 `.env`에서 `ANTHROPIC_API_KEY`가 빠져(22:43 수정) 인증 실패 → ollama로 대체.
+  150건 Claude 1차 판정은 키 재투입 후 `judge_evalset` 실행
+
 ## [v0.36.2] - 2026-09-24
 
 ### Changed

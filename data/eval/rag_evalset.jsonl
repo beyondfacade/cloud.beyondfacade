@@ -48,3 +48,153 @@
 {"question": "경북 소재 기술력이 우수한 중소기업 대상 자금 지원 정책은 무엇인가?", "relevant_ids": ["funding:PBLN_000000000117158"], "source_type": "funding", "status": "confirmed"}
 {"question": "경상북도 소재 중소기업을 위한 창업 자금 지원 정책은 무엇인가요?", "relevant_ids": ["funding:PBLN_000000000117162"], "source_type": "funding", "status": "confirmed"}
 {"question": "포천시 가구 제조 소공인을 위한 지원 사업은 어디서 정보를 얻을 수 있나요?", "relevant_ids": ["funding:PBLN_000000000117167"], "source_type": "funding", "status": "confirmed"}
+{"question": "대구 소상공인을 위한 출산 및 양육 지원 정책은 무엇인가요?", "relevant_ids": ["funding:PBLN_000000000117168"], "source_type": "funding", "status": "candidate"}
+{"question": "성남시 소재 중소기업의 자금난 해소를 위한 정책자금 지원은 어디서 확인할 수 있나요?", "relevant_ids": ["funding:PBLN_000000000117177"], "source_type": "funding", "status": "candidate"}
+{"question": "성남시에서 운영하는 중소기업 자금 대출 지원 프로그램은 무엇인가요?", "relevant_ids": ["funding:PBLN_000000000117188"], "source_type": "funding", "status": "candidate"}
+{"question": "부산에서 식품 관련 사업 자금 대출은 어디서 받을 수 있나요?", "relevant_ids": ["funding:PBLN_000000000117191"], "source_type": "funding", "status": "candidate"}
+{"question": "경북 지역 중소기업 대상 운전자금 지원 프로그램은 무엇인가요?", "relevant_ids": ["funding:PBLN_000000000117214"], "source_type": "funding", "status": "candidate"}
+{"question": "대전 소상공인을 위한 경영위기 극복 보증 지원 대상과 조건은 무엇인가?", "relevant_ids": ["funding:PBLN_000000000117221"], "source_type": "funding", "status": "candidate"}
+{"question": "대전 소상공인을 위한 초저금리 대출 지원 프로그램은 어디에서 확인할 수 있나요?", "relevant_ids": ["funding:PBLN_000000000117223"], "source_type": "funding", "status": "candidate"}
+{"question": "충청남도 식품업체 시설 개선을 위한 자금 지원 정책은 무엇인가요?", "relevant_ids": ["funding:PBLN_000000000117232"], "source_type": "funding", "status": "candidate"}
+{"question": "전라남도 소재 중소기업을 위한 수출 물류비 지원 정책은 무엇인가요?", "relevant_ids": ["funding:PBLN_000000000117240"], "source_type": "funding", "status": "candidate"}
+{"question": "창원시 중소기업 대상 자금 지원 정책은 무엇인가요?", "relevant_ids": ["funding:PBLN_000000000117254"], "source_type": "funding", "status": "candidate"}
+{"question": "김해시 소재 중소제조업체를 위한 자금 지원 프로그램은 무엇인가요?", "relevant_ids": ["funding:PBLN_000000000117258"], "source_type": "funding", "status": "candidate"}
+{"question": "진주시에서 농산물 GAP 인증 비용을 지원하는 사업이 있나요?", "relevant_ids": ["funding:PBLN_000000000117268"], "source_type": "funding", "status": "candidate"}
+{"question": "진주시에서 농산물 GAP 인증 농가를 위한 안전성 검사 비용 지원 사업 공고가 있나요?", "relevant_ids": ["funding:PBLN_000000000117269"], "source_type": "funding", "status": "candidate"}
+{"question": "김해시 사회적경제기업 대상 저금리 금융지원 사업은 무엇인가요?", "relevant_ids": ["funding:PBLN_000000000117276"], "source_type": "funding", "status": "candidate"}
+{"question": "하동군에서 첫 창업하는 소상공인을 위한 지원 사업은 무엇인가요?", "relevant_ids": ["funding:PBLN_000000000117277"], "source_type": "funding", "status": "candidate"}
+{"question": "산청군 소재 중소기업 대상 금융 지원 정책은 무엇인가요?", "relevant_ids": ["funding:PBLN_000000000117278"], "source_type": "funding", "status": "candidate"}
+{"question": "거제시 저신용 소상공인을 위한 자금 지원 정책은 무엇인가요?", "relevant_ids": ["funding:PBLN_000000000117283"], "source_type": "funding", "status": "candidate"}
+{"question": "하동군에서 운영하는 소상공인 건강검진 지원사업에 대해 알려줘", "relevant_ids": ["funding:PBLN_000000000117287"], "source_type": "funding", "status": "candidate"}
+{"question": "2026년 식품기업을 위한 장비 활용 지원 사업은 어디에서 신청할 수 있나요?", "relevant_ids": ["funding:PBLN_000000000117291"], "source_type": "funding", "status": "candidate"}
+{"question": "창녕군 소재 중소기업 전시회 참가 지원금은 어떻게 신청하나요?", "relevant_ids": ["funding:PBLN_000000000117294"], "source_type": "funding", "status": "candidate"}
+{"question": "2026년에 직무발명제도 도입을 위한 정부 지원은 어디서 받을 수 있나요?", "relevant_ids": ["funding:PBLN_000000000117297"], "source_type": "funding", "status": "candidate"}
+{"question": "창녕군에서 운영하는 중소기업 자금 지원 프로그램은 무엇인가요?", "relevant_ids": ["funding:PBLN_000000000117298"], "source_type": "funding", "status": "candidate"}
+{"question": "거제시 조선 협력사 중소기업 자금 지원 연장 신청 방법은 무엇인가요?", "relevant_ids": ["funding:PBLN_000000000117303"], "source_type": "funding", "status": "candidate"}
+{"question": "양산시에 소재한 중소기업이 신중년을 채용하면 받을 수 있는 지원금은 얼마인가요?", "relevant_ids": ["funding:PBLN_000000000117306"], "source_type": "funding", "status": "candidate"}
+{"question": "인천 소재 가상융합산업 관련 기업을 위한 장비 임차 지원 사업은 어디에서 정보를 얻을 수 있나요?", "relevant_ids": ["funding:PBLN_000000000117307"], "source_type": "funding", "status": "candidate"}
+{"question": "함안군 소상공인을 위한 자금 지원은 어디서 확인할 수 있나요?", "relevant_ids": ["funding:PBLN_000000000117309"], "source_type": "funding", "status": "candidate"}
+{"question": "의성군 소재 중소기업을 위한 운전자금 대출 지원 프로그램은 어디에서 확인할 수 있나요?", "relevant_ids": ["funding:PBLN_000000000117316"], "source_type": "funding", "status": "candidate"}
+{"question": "의성군 소재 중소기업이 신규 채용한 직원을 위한 정부 지원은 어떤 것이 있나요?", "relevant_ids": ["funding:PBLN_000000000117319"], "source_type": "funding", "status": "candidate"}
+{"question": "문경시 소재 중소기업의 자금 지원 정책은 무엇인가요?", "relevant_ids": ["funding:PBLN_000000000117324"], "source_type": "funding", "status": "candidate"}
+{"question": "중소기업이 직무발명 제도 도입 시 한국발명진흥회에서 어떤 도움을 받을 수 있나요?", "relevant_ids": ["funding:PBLN_000000000117330"], "source_type": "funding", "status": "candidate"}
+{"question": "청송군에서 지역 인재 채용 기업에 대한 지원 사업이 있나요?", "relevant_ids": ["funding:PBLN_000000000117331"], "source_type": "funding", "status": "candidate"}
+{"question": "청송군에서 단체 관광객 유치하는 여행사에 대한 지원은 어떻게 받을 수 있나요?", "relevant_ids": ["funding:PBLN_000000000117332"], "source_type": "funding", "status": "candidate"}
+{"question": "청도군에서 단체 관광객 유치를 위한 지원 사업이 있나요?", "relevant_ids": ["funding:PBLN_000000000117334"], "source_type": "funding", "status": "candidate"}
+{"question": "고령군에서 여행사를 위한 관광객 유치 지원금을 지급하나요?", "relevant_ids": ["funding:PBLN_000000000117336"], "source_type": "funding", "status": "candidate"}
+{"question": "여수시 소재 중소기업을 위한 자금 지원 정보가 궁금합니다.", "relevant_ids": ["funding:PBLN_000000000117337"], "source_type": "funding", "status": "candidate"}
+{"question": "칠곡군 소재 중소기업 대상 운전자금 대출 이자 지원 정책은 무엇인가요?", "relevant_ids": ["funding:PBLN_000000000117340"], "source_type": "funding", "status": "candidate"}
+{"question": "울진군에서 단체관광객 유치 여행사에 대한 인센티브가 있나요?", "relevant_ids": ["funding:PBLN_000000000117343"], "source_type": "funding", "status": "candidate"}
+{"question": "장성군에서 관광객 유치를 위한 여행사 지원 정책이 있나요?", "relevant_ids": ["funding:PBLN_000000000117350"], "source_type": "funding", "status": "candidate"}
+{"question": "전북 중소기업을 위한 자금 지원은 어디서 확인할 수 있나요?", "relevant_ids": ["funding:PBLN_000000000117356"], "source_type": "funding", "status": "candidate"}
+{"question": "김포시 중소기업의 온라인 판매를 위한 지원 프로그램은 무엇인가요?", "relevant_ids": ["funding:PBLN_000000000117358"], "source_type": "funding", "status": "candidate"}
+{"question": "직무발명 우수기업 인증 제도에 참여하면 어떤 혜택을 받을 수 있나요?", "relevant_ids": ["funding:PBLN_000000000117363"], "source_type": "funding", "status": "candidate"}
+{"question": "강진군에서 창업한 소상공인을 위한 임대료 지원 사업은 무엇인가요?", "relevant_ids": ["funding:PBLN_000000000117365"], "source_type": "funding", "status": "candidate"}
+{"question": "강진군에서 밀키트 판매업소를 위한 장비 지원사업을 신청하려면 어떻게 해야 하나요?", "relevant_ids": ["funding:PBLN_000000000117367"], "source_type": "funding", "status": "candidate"}
+{"question": "강진군에서 밀키트 포장재 지원 사업을 진행하는 곳은 어디인가요?", "relevant_ids": ["funding:PBLN_000000000117368"], "source_type": "funding", "status": "candidate"}
+{"question": "광주에 인공지능 관련 사업을 하는 중소기업이 받을 수 있는 보조금이 있나요?", "relevant_ids": ["funding:PBLN_000000000117371"], "source_type": "funding", "status": "candidate"}
+{"question": "부산 소재 기업을 위한 가명정보 활용 컨설팅 지원 사업은 어디에서 정보를 얻을 수 있나요?", "relevant_ids": ["funding:PBLN_000000000117433"], "source_type": "funding", "status": "candidate"}
+{"question": "강원도 소재 기업의 해외 지식재산권 관련 비용을 지원하는 사업은 무엇인가요?", "relevant_ids": ["funding:PBLN_000000000117454"], "source_type": "funding", "status": "candidate"}
+{"question": "강원도 소재 중소기업의 해외 지식재산권 관련 비용을 지원하는 사업은 무엇인가요?", "relevant_ids": ["funding:PBLN_000000000117463"], "source_type": "funding", "status": "candidate"}
+{"question": "군산시에서 여행사를 위한 단체관광객 유치 지원 사업 공고가 있나요?", "relevant_ids": ["funding:PBLN_000000000117474"], "source_type": "funding", "status": "candidate"}
+{"question": "전북 소재 제조 기업을 위한 해외 인증 비용 지원 사업은 어디에서 정보를 얻을 수 있나요?", "relevant_ids": ["funding:PBLN_000000000117480"], "source_type": "funding", "status": "candidate"}
+{"question": "전북 바이오 분야 재직자를 위한 교육 프로그램 신청 방법은 무엇인가요?", "relevant_ids": ["funding:PBLN_000000000117481"], "source_type": "funding", "status": "candidate"}
+{"question": "남원시 소재 중소기업의 자금 지원 정책은 무엇인가요?", "relevant_ids": ["funding:PBLN_000000000117490"], "source_type": "funding", "status": "candidate"}
+{"question": "완주군 단체관광객 유치 시 여행사에 어떤 지원이 있나요?", "relevant_ids": ["funding:PBLN_000000000117491"], "source_type": "funding", "status": "candidate"}
+{"question": "무주군 소상공인을 위한 보증 지원 사업은 어떻게 신청하나요?", "relevant_ids": ["funding:PBLN_000000000117495"], "source_type": "funding", "status": "candidate"}
+{"question": "공주 소상공인 특례보증 지원 프로그램은 어떻게 신청하나요?", "relevant_ids": ["funding:PBLN_000000000117498"], "source_type": "funding", "status": "candidate"}
+{"question": "부천시 중소기업 수출 물류비 지원 정책은 무엇인가요?", "relevant_ids": ["funding:PBLN_000000000117502"], "source_type": "funding", "status": "candidate"}
+{"question": "남원시에서 여행사를 위한 관광객 유치 지원 사업이 있나요?", "relevant_ids": ["funding:PBLN_000000000117505"], "source_type": "funding", "status": "candidate"}
+{"question": "진안군에서 운영하는 중소기업 자금 대출 정보 알려줘", "relevant_ids": ["funding:PBLN_000000000117510"], "source_type": "funding", "status": "candidate"}
+{"question": "진안군에서 점포 환경 개선비를 지원하는 사업은 무엇인가요?", "relevant_ids": ["funding:PBLN_000000000117511"], "source_type": "funding", "status": "candidate"}
+{"question": "보령시 소재 중소기업을 위한 전시회 참가 지원 사업은 무엇인가요?", "relevant_ids": ["funding:PBLN_000000000117518"], "source_type": "funding", "status": "candidate"}
+{"question": "공주시에 단체 관광객을 유치하는 여행사에 대한 지원 사업은 무엇인가요?", "relevant_ids": ["funding:PBLN_000000000117523"], "source_type": "funding", "status": "candidate"}
+{"question": "금산군에서 농산물 수출을 위한 공동 마케팅 지원 사업 신청 방법을 알아보려는데 어디서 찾아야 할까요?", "relevant_ids": ["funding:PBLN_000000000117525"], "source_type": "funding", "status": "candidate"}
+{"question": "경상남도 소상공인을 위한 자금 지원 정책은 무엇인가요?", "relevant_ids": ["funding:PBLN_000000000117526"], "source_type": "funding", "status": "candidate"}
+{"question": "서울 소재 사회적기업 자금 지원 프로그램은 무엇인가요?", "relevant_ids": ["funding:PBLN_000000000117528"], "source_type": "funding", "status": "candidate"}
+{"question": "태안군 소상공인을 위한 대출 지원 프로그램은 무엇인가요?", "relevant_ids": ["funding:PBLN_000000000117534"], "source_type": "funding", "status": "candidate"}
+{"question": "청주 지역 중소기업을 위한 자금 지원 정책은 무엇인가요?", "relevant_ids": ["funding:PBLN_000000000117535"], "source_type": "funding", "status": "candidate"}
+{"question": "전북지역 수출 기업을 위한 정부 지원 사업은 무엇이 있나요?", "relevant_ids": ["funding:PBLN_000000000117540"], "source_type": "funding", "status": "candidate"}
+{"question": "미국 수출 시 관세 관련 어려움을 겪는 중소기업에게 어떤 도움이 있나요?", "relevant_ids": ["funding:PBLN_000000000117546"], "source_type": "funding", "status": "candidate"}
+{"question": "중소기업 동반성장 네트워크론 대출 지원 대상과 조건은 무엇인가요?", "relevant_ids": ["funding:PBLN_000000000117549"], "source_type": "funding", "status": "candidate"}
+{"question": "괴산군 소재 중소기업을 위한 자금 지원 정책은 무엇인가요?", "relevant_ids": ["funding:PBLN_000000000117554"], "source_type": "funding", "status": "candidate"}
+{"question": "충주시에 있는 중소기업이 기술 인증을 받는 데 필요한 돈은 어떻게 지원받을 수 있나요?", "relevant_ids": ["funding:PBLN_000000000117557"], "source_type": "funding", "status": "candidate"}
+{"question": "진주에서 수출하는 중소기업의 물류비를 지원받는 방법은 무엇인가요?", "relevant_ids": ["funding:PBLN_000000000117561"], "source_type": "funding", "status": "candidate"}
+{"question": "2026년 중소기업 매출채권 팩토링 지원 관련 정보가 어디에서 확인할 수 있나요?", "relevant_ids": ["funding:PBLN_000000000117563"], "source_type": "funding", "status": "candidate"}
+{"question": "충청북도 청년 여성 일자리 지원 사업 공고 찾아줘", "relevant_ids": ["funding:PBLN_000000000117568"], "source_type": "funding", "status": "candidate"}
+{"question": "전주시에 수학여행이나 숙박관광객을 유치하는 여행사에 대한 지원이 있나요?", "relevant_ids": ["funding:PBLN_000000000117569"], "source_type": "funding", "status": "candidate"}
+{"question": "괴산군에서 여행사 대상 단체 관광객 유치 지원금은 얼마인가?", "relevant_ids": ["funding:PBLN_000000000117575"], "source_type": "funding", "status": "candidate"}
+{"question": "괴산군 저신용 소상공인 대출 이자 지원 사업 안내해줘", "relevant_ids": ["funding:PBLN_000000000117576"], "source_type": "funding", "status": "candidate"}
+{"question": "단양군 소상공인을 위한 융자 자금 지원 사업은 어디서 확인할 수 있나요?", "relevant_ids": ["funding:PBLN_000000000117579"], "source_type": "funding", "status": "candidate"}
+{"question": "춘천시 소재 중소기업 대상 신용보증 수수료 지원 정책은 무엇인가요?", "relevant_ids": ["funding:PBLN_000000000117582"], "source_type": "funding", "status": "candidate"}
+{"question": "춘천시 창업 자금 지원에 대해 자세히 알려줘", "relevant_ids": ["funding:PBLN_000000000117583"], "source_type": "funding", "status": "candidate"}
+{"question": "춘천시 소재 중소기업 대상의 특례보증 지원은 어떻게 받을 수 있나요?", "relevant_ids": ["funding:PBLN_000000000117588"], "source_type": "funding", "status": "candidate"}
+{"question": "태백시 소상공인 대출 지원 정책은 무엇인가요?", "relevant_ids": ["funding:PBLN_000000000117597"], "source_type": "funding", "status": "candidate"}
+{"question": "미국 수출 관련 법률 및 관세 문제 상담 지원 프로그램은 어디서 알아볼 수 있나요?", "relevant_ids": ["funding:PBLN_000000000117599"], "source_type": "funding", "status": "candidate"}
+{"question": "태백시 소재 중소기업 대상 자금 지원 사업 안내", "relevant_ids": ["funding:PBLN_000000000117600"], "source_type": "funding", "status": "candidate"}
+{"question": "전북지역 중소기업을 위한 경영 컨설팅은 어떻게 신청할 수 있나요?", "relevant_ids": ["funding:PBLN_000000000117601"], "source_type": "funding", "status": "candidate"}
+{"question": "춘천시에서 운영하는 중소기업 자금 지원 프로그램은 무엇인가요?", "relevant_ids": ["funding:PBLN_000000000117602"], "source_type": "funding", "status": "candidate"}
+{"question": "원주 창업기업 자금 지원 관련 정보 알려줘", "relevant_ids": ["funding:PBLN_000000000117603"], "source_type": "funding", "status": "candidate"}
+{"question": "강릉시에서 단체관광객 유치를 위한 지원금은 어디서 확인할 수 있나요?", "relevant_ids": ["funding:PBLN_000000000117606"], "source_type": "funding", "status": "candidate"}
+{"question": "인천 지역 중소기업을 위한 경영안정자금 지원 정보가 궁금합니다.", "relevant_ids": ["funding:PBLN_000000000117611"], "source_type": "funding", "status": "candidate"}
+{"question": "삼척시에서 단체 관광객을 유치하는 여행사에 대한 지원은 어떻게 받을 수 있나요?", "relevant_ids": ["funding:PBLN_000000000117620"], "source_type": "funding", "status": "candidate"}
+{"question": "속초시 소상공인 대출 수수료 지원 사업은 어떻게 신청하나요?", "relevant_ids": ["funding:PBLN_000000000117621"], "source_type": "funding", "status": "candidate"}
+{"question": "속초시 소상공인을 위한 보증 지원 사업은 어디서 확인할 수 있나요?", "relevant_ids": ["funding:PBLN_000000000117624"], "source_type": "funding", "status": "candidate"}
+{"question": "속초시에서 운영하는 중소기업 자금 지원 프로그램은 무엇인가요?", "relevant_ids": ["funding:PBLN_000000000117626"], "source_type": "funding", "status": "candidate"}
+{"question": "횡성군에서 운영하는 중소기업 대상 자금 지원 정책은 무엇인가요?", "relevant_ids": ["funding:PBLN_000000000117630"], "source_type": "funding", "status": "candidate"}
+{"question": "평창군에서 운영하는 중소기업 대상 자금 지원 정책은 무엇인가요?", "relevant_ids": ["funding:PBLN_000000000117632"], "source_type": "funding", "status": "candidate"}
+{"question": "횡성군에서 운영하는 중소기업 자금 지원 정책은 무엇인가요?", "relevant_ids": ["funding:PBLN_000000000117634"], "source_type": "funding", "status": "candidate"}
+{"question": "예산군에서 영상물 촬영 지원하는 정책 자금은 무엇인가요?", "relevant_ids": ["funding:PBLN_000000000117643"], "source_type": "funding", "status": "candidate"}
+{"question": "화천군 소재 중소기업 대상 운전자금 융자 지원 정책은 무엇인가요?", "relevant_ids": ["funding:PBLN_000000000117644"], "source_type": "funding", "status": "candidate"}
+{"question": "철원군에서 운영하는 중소기업 자금 대출 지원 프로그램은 무엇인가요?", "relevant_ids": ["funding:PBLN_000000000117646"], "source_type": "funding", "status": "candidate"}
+{"question": "화천군에서 단체 관광객에게 인센티브를 주는 정책은 무엇인가요?", "relevant_ids": ["funding:PBLN_000000000117648"], "source_type": "funding", "status": "candidate"}
+{"question": "양구군에서 단체 관광객 유치를 위한 지원은 어떻게 받을 수 있나요?", "relevant_ids": ["funding:PBLN_000000000117650"], "source_type": "funding", "status": "candidate"}
+{"question": "강원도에서 운영하는 중소기업 투자 지원 프로그램을 알아보려면 어떻게 해야 하나요?", "relevant_ids": ["funding:PBLN_000000000117654"], "source_type": "funding", "status": "candidate"}
+{"question": "양양군에서 운영하는 중소기업 자금 지원 프로그램은 무엇인가요?", "relevant_ids": ["funding:PBLN_000000000117656"], "source_type": "funding", "status": "candidate"}
+{"question": "제주 소재 중소기업의 수출보험료 지원 사업에 대해 알아보고 싶습니다.", "relevant_ids": ["funding:PBLN_000000000117664"], "source_type": "funding", "status": "candidate"}
+{"question": "인천에서 여성 인턴십 프로그램 참여 기업을 찾고 있어요.", "relevant_ids": ["funding:PBLN_000000000117666"], "source_type": "funding", "status": "candidate"}
+{"question": "인천 지역 중소기업을 위한 기술 거래 관련 지원 프로그램은 무엇인가요?", "relevant_ids": ["funding:PBLN_000000000117668"], "source_type": "funding", "status": "candidate"}
+{"question": "인천 서구에서 기술 인증을 받는 중소기업은 어떤 지원금을 받을 수 있나요?", "relevant_ids": ["funding:PBLN_000000000117671"], "source_type": "funding", "status": "candidate"}
+{"question": "폐업하거나 폐업 예정인 소상공인을 위한 정부 지원 사업은 무엇인가요?", "relevant_ids": ["funding:PBLN_000000000117673"], "source_type": "funding", "status": "candidate"}
+{"question": "폐업 예정인 소상공인을 위한 정부 지원 정책은 무엇인가요?", "relevant_ids": ["funding:PBLN_000000000117676"], "source_type": "funding", "status": "candidate"}
+{"question": "전북 기업을 위한 해외 특허 관련 비용 지원 사업은 어디서 정보를 얻을 수 있나요?", "relevant_ids": ["funding:PBLN_000000000117679"], "source_type": "funding", "status": "candidate"}
+{"question": "DB아이앤씨 새 사장은 누구이며, 어떤 목표를 가지고 있나?", "relevant_ids": ["news:000e7d24d5f80785b861"], "source_type": "news", "status": "candidate"}
+{"question": "오세훈 시장이 추석 앞두고 어디를 방문했어?", "relevant_ids": ["news:0058678cdf9012b3e4ce"], "source_type": "news", "status": "candidate"}
+{"question": "서대문구 쌍용 더플래티넘 분양 정보는 어디에서 확인할 수 있나요?", "relevant_ids": ["news:006ed9f09b99b42b9ed0"], "source_type": "news", "status": "candidate"}
+{"question": "한국공항공사 공모전에서 수상한 아이디어가 활용하는 데이터는 무엇인가요?", "relevant_ids": ["news:0073fc1b4d6ebfd43b89"], "source_type": "news", "status": "candidate"}
+{"question": "신중앙시장 주변에 젊은층이 많이 찾는 곳이 있나요?", "relevant_ids": ["news:0074b543cf8ba2956abc"], "source_type": "news", "status": "candidate"}
+{"question": "서울 분식점 김밥 가격이 얼마나 올랐어?", "relevant_ids": ["news:0089fc04529e2044400b"], "source_type": "news", "status": "candidate"}
+{"question": "서울 주요 상권 변화와 글로벌 브랜드 진출 전략에 대한 정보를 찾고 있습니다.", "relevant_ids": ["news:00938a09d9a79e5116d2"], "source_type": "news", "status": "candidate"}
+{"question": "부산 중구에서 진행하는 청소년 관련 프로그램은 무엇이 있나요?", "relevant_ids": ["news:0099e914bcad8d9c3821"], "source_type": "news", "status": "candidate"}
+{"question": "강북구에서 소상공인 지원을 위해 어떤 예산이 편성되었나요?", "relevant_ids": ["news:009fe0bd690c145d10f1"], "source_type": "news", "status": "candidate"}
+{"question": "안양역 주변 상권에 영향을 미치는 교통망 계획은 무엇인가요?", "relevant_ids": ["news:00be88cc8e2319d703b6"], "source_type": "news", "status": "candidate"}
+{"question": "앙개 팝업 스토어 위치와 기간은 어떻게 되나요?", "relevant_ids": ["news:00e0484a9be4b05109c5"], "source_type": "news", "status": "candidate"}
+{"question": "신중앙시장이 어떤 모습으로 변화하는가?", "relevant_ids": ["news:00e279765cc61d3647a4"], "source_type": "news", "status": "candidate"}
+{"question": "서장훈이 소유했던 양재역 빌딩 가격이 얼마나 되나요?", "relevant_ids": ["news:01039ffd9d76512fbba4"], "source_type": "news", "status": "candidate"}
+{"question": "노량진 아파트 청약 경쟁률은 얼마나 되나요?", "relevant_ids": ["news:012948465dac27c62018"], "source_type": "news", "status": "candidate"}
+{"question": "에이스침대가 롯데백화점 본점 매장을 리모델링했다는 소식은 무엇인가요?", "relevant_ids": ["news:01555d385d838d61a621"], "source_type": "news", "status": "candidate"}
+{"question": "상도역 근처 새로 분양하는 아파트 관련 정보가 궁금합니다.", "relevant_ids": ["news:01564f4c9ffbb915c15f"], "source_type": "news", "status": "candidate"}
+{"question": "성수동에 입점한 제주 브랜드 관련 정보가 궁금합니다.", "relevant_ids": ["news:01678cfdc04673e8d381"], "source_type": "news", "status": "candidate"}
+{"question": "영등포구에서 추석맞이로 상품권을 발행한다는데, 얼마나 발행하고 할인율은 어떻게 되나요?", "relevant_ids": ["news:016d79b5dc16ead4fd51"], "source_type": "news", "status": "candidate"}
+{"question": "박성민 의원이 추석 전에 방문한 곳은 어디인가요?", "relevant_ids": ["news:017638b70ab5742e3e19"], "source_type": "news", "status": "candidate"}
+{"question": "홍대 무신사 뷰티 매장에 어떤 특징이 있나요?", "relevant_ids": ["news:018362a14443dff780bd"], "source_type": "news", "status": "candidate"}
+{"question": "헬리녹스 웨어 매장이 어디에 오픈했나?", "relevant_ids": ["news:01980219a28034b8932f"], "source_type": "news", "status": "candidate"}
+{"question": "서문시장 4지구 재개발 계획 진행 상황은 어떻게 되나요?", "relevant_ids": ["news:0198642f860390e808c9"], "source_type": "news", "status": "candidate"}
+{"question": "서울 핫플레이스에서 카드 할인 받을 수 있는 곳은 어디인가요?", "relevant_ids": ["news:01a0b40f0fd3d4190200"], "source_type": "news", "status": "candidate"}
+{"question": "한강맨션 아파트 재건축 계획 변경 내용은 무엇인가?", "relevant_ids": ["news:01a3befb9c922a470c16"], "source_type": "news", "status": "candidate"}
+{"question": "뷰티풀라이프 인 서울 행사 장소는 어디인가요?", "relevant_ids": ["news:01a8b3926ef5074a0336"], "source_type": "news", "status": "candidate"}
+{"question": "추석 연휴에 전통시장 주변의 불법 사금융 단속을 하는 지역은 어디인가?", "relevant_ids": ["news:01aa57659c13cddb7f2f"], "source_type": "news", "status": "candidate"}
+{"question": "부산 올리브영 매장 확대 이유는 무엇인가요?", "relevant_ids": ["news:01b6c8ef682f25281985"], "source_type": "news", "status": "candidate"}
+{"question": "코웨이가 서울 동북구역에 새 매장을 열었는지 궁금합니다.", "relevant_ids": ["news:01bd991fe211155304f6"], "source_type": "news", "status": "candidate"}
+{"question": "홈앤쇼핑이 둔촌역 전통시장을 위해 어떤 활동을 하고 있나요?", "relevant_ids": ["news:01c0dc38be77e5fd266a"], "source_type": "news", "status": "candidate"}
+{"question": "을지로 원엑스 건물의 특징은 무엇인가요?", "relevant_ids": ["news:01ca6995636e85d8752e"], "source_type": "news", "status": "candidate"}
+{"question": "시몬스 뷰티레스트 블랙 팝업매장이 어디에 있나요?", "relevant_ids": ["news:01cd7f17ad642e48a8a3"], "source_type": "news", "status": "candidate"}
+{"question": "종로구의 행정 서비스 만족도는 어느 정도인가?", "relevant_ids": ["news:01d23f40f198328496d1"], "source_type": "news", "status": "candidate"}
+{"question": "코웨이 노원점에 새로 생긴 매장 정보", "relevant_ids": ["news:01f321c9dbe19b349e89"], "source_type": "news", "status": "candidate"}
+{"question": "지역 상권 지원 사업에 참여하는 은행은 어디인가?", "relevant_ids": ["news:01fb130b8a1d48e818c8"], "source_type": "news", "status": "candidate"}
+{"question": "도봉구의 새로운 슬로건은 무엇이며 어떤 의미를 담고 있나?", "relevant_ids": ["news:020e17ba8173868ce2d7"], "source_type": "news", "status": "candidate"}
+{"question": "대구 중앙로역 이름을 변경하자는 주장이 나왔는데, 그 이유는 무엇인가요?", "relevant_ids": ["news:0215323df8388fb00b8d"], "source_type": "news", "status": "candidate"}
+{"question": "광진구는 이번 추석에 어떤 정책을 시행하나요?", "relevant_ids": ["news:0220a6035a52de48d00f"], "source_type": "news", "status": "candidate"}
+{"question": "부산 추경 예산 중 상권 활성화 및 시민 부담 경감 관련 내용은 얼마인가?", "relevant_ids": ["news:0227acbeba3e2bc432f3"], "source_type": "news", "status": "candidate"}
+{"question": "신원시장이 현재 어떤 문제를 해결하려고 노력하고 있나요?", "relevant_ids": ["news:0227eaa77c5afbcd11b8"], "source_type": "news", "status": "candidate"}
+{"question": "삼성그룹은 현재 어디에 위치하고 있나요?", "relevant_ids": ["news:02296fc8b03b715e491a"], "source_type": "news", "status": "candidate"}

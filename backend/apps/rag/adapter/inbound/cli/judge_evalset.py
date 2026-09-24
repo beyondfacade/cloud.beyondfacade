@@ -30,19 +30,19 @@ _SHEET = "data/eval/rag_evalset_review.md"
 
 # 판정 기준은 하나다(2026-09-24 사람 검수에서 확정, STATUS §4-4). 통합공고·분야별 예외를 두면 같은 성격의 행이
 # O/X로 갈려 불일치가 난다 — 1차 판정 50건 중 10건이 그 이유로 뒤집혔다.
-_SYSTEM = """당신은 정책자금 공고 검색(RAG) 평가셋의 검수자다.
-평가셋의 한 행은 (질문, 정답 공고) 쌍이다. 검색 엔진이 그 질문으로 그 공고를 상위에 올려야 "맞춘 것"으로 친다.
+_SYSTEM = """당신은 정책자금 공고·지역상권 뉴스 검색(RAG) 평가셋의 검수자다.
+평가셋의 한 행은 (질문, 정답 문서) 쌍이다. 문서는 공고 또는 기사다. 검색 엔진이 그 질문으로 그 문서를 상위에 올려야 "맞춘 것"으로 친다.
 
 판정 기준은 하나다:
-- 질문에 담긴 정보만으로 이 공고가 다른 유사 공고보다 **우선적으로** 정답이 될 수 있으면 O.
-- 같은 질문에 여러 공고가 자연스럽게 정답이 될 수 있으면 X.
+- 질문에 담긴 정보만으로 이 문서가 다른 유사 문서보다 **우선적으로** 정답이 될 수 있으면 O.
+- 같은 질문에 여러 문서가 자연스럽게 정답이 될 수 있으면 X (같은 사건을 다룬 다른 언론사 기사가 여럿이어도 X).
 
 기준을 적용할 때:
 - 통합공고도 예외가 아니다. 질문에 "전체 사업을 한눈에", "통합 안내" 같은 의도가 드러날 때만 O. 분야만 말하면
   그 분야의 개별 공고들과 경합하므로 X.
 - 공고의 핵심이 지원방식(전문가 상담·멘토링·인증·지정 등)이면 질문에 그 방식이 담겨야 한다. 분야·지역만 말하면 X.
 - 대상 조건(규모·업종·상태)이 공고를 가르는 핵심이면 질문에 담겨야 한다.
-- 공고명을 그대로 베낀 것, 공고 내용과 어긋나는 것, 비문은 X.
+- 제목을 그대로 베낀 것, 문서 내용과 어긋나는 것, 비문은 X.
 - 소상공인·중소기업 사용자가 검색창에 실제로 칠 법한 자연어여야 한다.
 
 X이거나 O라도 변별력을 높일 표현이 있으면 better_question에 한 문장으로 제안하고, 없으면 null."""
@@ -50,9 +50,9 @@ X이거나 O라도 변별력을 높일 표현이 있으면 better_question에 �
 _USER = """[질문]
 {question}
 
-[정답 공고]
+[정답 문서]
 제목: {title}
-기관: {org}
+기관/언론사: {org}
 대상: {target}
 분야: {field}
 기간: {period}
@@ -73,6 +73,11 @@ class _Item:
 
 
 _VERDICT_LINE = re.compile(r"^판정:.*$")
+
+
+def pending_rows(rows: list[dict]) -> list[dict]:
+    """아직 판정이 없는 행만 — confirmed·rejected는 사람이 확정한 것이라 다시 묻지 않는다."""
+    return [r for r in rows if r["status"] == "candidate"]
 
 
 def annotate_sheet(sheet: str, judgments: dict[str, Judgment]) -> str:
@@ -124,8 +129,8 @@ def main() -> None:
     os.environ.setdefault("ANTHROPIC_API_KEY", get_settings().anthropic_api_key)
     client = anthropic.Anthropic()
 
-    rows = _load_rows(_REPO_ROOT / args.evalset)
-    cards = _fetch_cards([r["relevant_ids"][0].split(":", 1)[1] for r in rows])
+    rows = pending_rows(_load_rows(_REPO_ROOT / args.evalset))
+    cards = _fetch_cards([r["relevant_ids"][0] for r in rows])
     items = [_Item(r["relevant_ids"][0], r["question"], cards[r["relevant_ids"][0].split(":", 1)[1]]) for r in rows]
 
     with ThreadPoolExecutor(max_workers=args.workers) as pool:
