@@ -30,7 +30,7 @@ class YearlyStoreStat:
     year: int
     store_count: int  # 연도 말 기준 영업 중 점포 수
     open_count: int  # 당해 개업 수
-    close_count: int  # 당해 폐업 수
+    close_count: int | None  # 당해 폐업 수 — 원천이 폐업을 주지 않으면 None (0이 아니다)
 
 
 @dataclass(frozen=True)

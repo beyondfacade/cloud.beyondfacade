@@ -9,6 +9,10 @@ from apps.metric.app.ports.output.region_industry_metric_port import StoreStatsP
 from apps.store.adapter.outbound.orms.store_orm import StoreOrm
 from core.matrix.grid_oracle_database_manager import session_scope
 
+# 폐업 이력이 없는 원천 — 서울 학원 API(OA-20528)는 폐원일자를 주지 않아 close_date가 전부 NULL이다.
+# 그 0건을 폐업 0으로 세면 폐업률 0.0이 값처럼 보인다 → 스냅샷 원천(어린이집·편의점)과 같이 None으로 둔다.
+_NO_CLOSURE_HISTORY = frozenset({"academy"})
+
 
 class StoreStatsGateway(StoreStatsPort):
     def yearly_stats(self, years: list[int]) -> list[YearlyStoreStat]:
@@ -45,7 +49,7 @@ class StoreStatsGateway(StoreStatsPort):
                         year=year,
                         store_count=store_count,
                         open_count=open_count,
-                        close_count=close_count,
+                        close_count=None if industry_id in _NO_CLOSURE_HISTORY else close_count,
                     )
                     for region_code, industry_id, store_count, open_count, close_count in rows
                 )

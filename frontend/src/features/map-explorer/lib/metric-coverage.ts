@@ -11,11 +11,19 @@
  *  | region_quarter | neighborhood_type · night_index · fnb_share · operating_months | 20211~20262 전 22분기 × 422행 **공백 없음** |
  *  | industry_year  | 일반 8업종 × 3지표 | 2019~2026 전 연도 |
  *  | industry_year  | childcare · convenience_store × store_count | **2026년만** |
- *  | industry_year  | childcare · convenience_store × closure_rate · growth_rate | **전 연도 없음**(원천에 개폐업 이력이 없다) */
+ *  | industry_year  | childcare · convenience_store × closure_rate · growth_rate | **전 연도 없음**(원천에 개폐업 이력이 없다) |
+ *  | industry_year  | academy × closure_rate · growth_rate | **전 연도 없음**(폐원일자를 주지 않는 원천 — 백엔드 v0.35.3부터 NULL) */
 
 import type { MapMetricKey } from "@/shared/api/types";
 import type { IndustryId } from "@/shared/industries";
-import { METRICS, SNAPSHOT_INDUSTRIES, YEARS, metricGroupOf, type MapState } from "./map-state";
+import {
+  METRICS,
+  NO_CLOSURE_HISTORY_INDUSTRIES,
+  SNAPSHOT_INDUSTRIES,
+  YEARS,
+  metricGroupOf,
+  type MapState,
+} from "./map-state";
 import { QUARTERS } from "./quarters";
 
 /** 스냅샷 원천이 유일하게 갖는 지표. 개폐업 이력이 없어 폐업률·성장률은 백엔드가 NULL로 둔다. */
@@ -57,11 +65,12 @@ export function clampToCoverage(state: MapState): MapState {
   return { ...state, year: nearest };
 }
 
-/** 지표 전체가 이 업종에 없는 경우 — 연도를 바꿔도 빈 지도다. `map-view` 안내가 이 사실을 말한다. */
+/** 지표 전체가 이 업종에 없는 경우 — 연도를 바꿔도 빈 지도다. `map-view` 안내가 이 사실을 말한다.
+ *  스냅샷 2종뿐 아니라 학원도 폐업률·성장률이 없다(점포수는 전 연도에 있다). */
 export function isMetricMissingForIndustry(metric: MapMetricKey, industry: string): boolean {
   return (
     metricGroupOf(metric).axis === "industry_year" &&
-    isSnapshotIndustry(industry) &&
+    NO_CLOSURE_HISTORY_INDUSTRIES.has(industry as IndustryId) &&
     metric !== SNAPSHOT_METRIC
   );
 }

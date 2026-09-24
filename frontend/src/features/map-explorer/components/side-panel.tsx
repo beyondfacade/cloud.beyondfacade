@@ -6,7 +6,7 @@ import { useQuery } from "@tanstack/react-query";
 import { GradeBadge } from "@/shared/ui/grade-badge";
 import { industryLabel, type IndustryId } from "@/shared/industries";
 import { fetchRegionSummary } from "../api";
-import { SNAPSHOT_INDUSTRIES } from "../lib/map-state";
+import { NO_CLOSURE_HISTORY_INDUSTRIES } from "../lib/map-state";
 import { ChildcareSummarySection } from "./childcare-summary";
 import { ConvenienceSummarySection } from "./convenience-summary";
 import { HourGapSection } from "./hour-gap-chart";
@@ -50,7 +50,7 @@ export function SidePanel({ regionCode, industry, budget = null }: SidePanelProp
 
   const label = industryLabel(industry);
   const IndustrySection = INDUSTRY_SECTIONS[industry as IndustryId];
-  const isSnapshot = SNAPSHOT_INDUSTRIES.has(industry as IndustryId);
+  const noClosureHistory = NO_CLOSURE_HISTORY_INDUSTRIES.has(industry as IndustryId);
 
   return (
     <aside className={styles.brief} aria-label="선택한 동네의 상권 정보">
@@ -122,10 +122,10 @@ export function SidePanel({ regionCode, industry, budget = null }: SidePanelProp
                 </li>
               ))}
             </ul>
-            {isSnapshot && (
+            {noClosureHistory && (
               <p className="text-xs leading-relaxed text-[var(--text-secondary)]">
-                폐업률·성장률은 스냅샷 원천이라 아직 값이 없을 수 있습니다. 점포수와 아래 현황을 함께
-                참고하세요.
+                이 업종의 원천에는 개폐업 이력이 없어 폐업률·성장률 값이 없습니다. 점포수와 아래 현황을
+                함께 참고하세요.
               </p>
             )}
           </section>

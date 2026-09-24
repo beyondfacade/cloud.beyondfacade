@@ -27,11 +27,16 @@ _METRIC_EXTRACTORS: dict[str, Callable[[RegionIndustryMetric], float | int | Non
 }
 
 
-def _rate(numerator: int, prev_store_count: int) -> float | None:
-    """전년 말 점포 수 대비 비율 — 전년 0(또는 전년 집계 부재)이면 None."""
-    if prev_store_count == 0:
+def _rate(numerator: int | None, prev_store_count: int) -> float | None:
+    """전년 말 점포 수 대비 비율 — 분자 없음(폐업 이력 없는 원천)이거나 전년 0(또는 전년 집계 부재)이면 None."""
+    if numerator is None or prev_store_count == 0:
         return None
     return numerator / prev_store_count
+
+
+def _net_change(open_count: int, close_count: int | None) -> int | None:
+    """순증 = 개업 − 폐업. 폐업을 모르면 순증도 모른다."""
+    return None if close_count is None else open_count - close_count
 
 
 class RegionIndustryMetricInteractor(RegionIndustryMetricUseCase):
@@ -80,7 +85,7 @@ class RegionIndustryMetricInteractor(RegionIndustryMetricUseCase):
                     close_count=stat.close_count,
                     closure_rate=_rate(stat.close_count, prev_store_count),
                     growth_rate=_rate(
-                        stat.open_count - stat.close_count, prev_store_count
+                        _net_change(stat.open_count, stat.close_count), prev_store_count
                     ),
                 )
             )

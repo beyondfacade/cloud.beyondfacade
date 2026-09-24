@@ -31,6 +31,14 @@ describe("지표별 데이터 보유 범위", () => {
     expect(isMetricMissingForIndustry("closure_rate", "cafe")).toBe(false);
   });
 
+  it("학원은 점포수는 전 연도지만 폐업률·성장률은 없다", () => {
+    // 서울 학원 API는 폐원일자를 주지 않는다 — 백엔드 v0.35.3부터 0.0이 아니라 NULL (STATUS §4-3)
+    expect(availableYears("store_count", "academy")).toEqual(YEARS);
+    expect(isMetricMissingForIndustry("store_count", "academy")).toBe(false);
+    expect(isMetricMissingForIndustry("closure_rate", "academy")).toBe(true);
+    expect(isMetricMissingForIndustry("growth_rate", "academy")).toBe(true);
+  });
+
   it("동네 지표는 업종과 무관하게 전 연도·전 분기다", () => {
     // 2026-09-24 실측: 동네 지표 4종 모두 22분기 × 422행, 공백 없음
     for (const metric of ["neighborhood_type", "night_index", "fnb_share", "operating_months"] as const) {

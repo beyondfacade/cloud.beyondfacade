@@ -48,6 +48,16 @@ it("스냅샷 업종은 관측 연도의 점포수만 준다 — 실 API의 빈 
   expect(await rows(`industry=convenience_store&metric=growth_rate&year=${SNAPSHOT_YEAR}`)).toBe(0);
 });
 
+it("학원은 점포수는 전 연도에 주고 폐업률·성장률은 빈 배열이다", async () => {
+  // 서울 학원 API는 폐원일자를 주지 않는다 — 실 API(백엔드 v0.35.3)는 폐업률·성장률 0행, 점포수는 2019~2026
+  const rows = async (query: string) =>
+    (await (await GET(new Request(`http://test/api/mock/metrics?${query}`))).json()).length;
+
+  expect(await rows("industry=academy&metric=store_count&year=2019")).toBeGreaterThan(0);
+  expect(await rows("industry=academy&metric=closure_rate&year=2026")).toBe(0);
+  expect(await rows("industry=academy&metric=growth_rate&year=2026")).toBe(0);
+});
+
 it("일반 업종은 전 연도·전 지표에 값이 있다", async () => {
   const rows = async (query: string) =>
     (await (await GET(new Request(`http://test/api/mock/metrics?${query}`))).json()).length;

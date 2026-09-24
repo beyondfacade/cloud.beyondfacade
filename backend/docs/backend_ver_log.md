@@ -1,5 +1,20 @@
 # Backend Version Log
 
+## [v0.35.3] - 2026-09-24
+
+### Fixed
+- **학원 폐업률 0.0이 값처럼 보이던 것** (STATUS §4-3) — 서울 학원 API(OA-20528)는 폐원일자를 주지 않아
+  `store.academy`의 `close_date`가 전부 NULL인데, 집계는 그 0건을 폐업 0으로 세어 `region_industry_metric`
+  학원 3,388행에 `closure_rate=0.0`·`growth_rate=개업/전년`을 적었다. 어린이집·편의점은 같은 이유로 NULL이라
+  업종 간 비일관. `StoreStatsGateway`가 폐업 이력 없는 원천(`_NO_CLOSURE_HISTORY={"academy"}`)의
+  `close_count`를 None으로 주고, 인터랙터는 분자가 None이면 비율도 None으로 둔다(`_rate`·`_net_change`).
+  점포수·개업수는 원천에 있으니 그대로. `YearlyStoreStat.close_count`는 `int | None`
+- dev DB 재빌드(`build_metrics`): 학원 3,408행 전부 closure_rate·growth_rate·close_count NULL, 카페 등 8업종 불변
+
+### Added
+- `tests/test_metric_store_stats.py` — 게이트웨이 실DB 검증(학원 close_count None, 카페는 그대로 센다)
+- `test_build_leaves_rates_none_when_source_has_no_closure_history` — 인터랙터 규칙
+
 ## [v0.35.2] - 2026-09-24
 
 ### Fixed

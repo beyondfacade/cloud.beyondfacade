@@ -51,6 +51,10 @@ export const METRIC_LABELS: Record<MapMetricKey, string> = {
  */
 export const SNAPSHOT_INDUSTRIES = new Set<IndustryId>(["childcare", "convenience_store"]);
 
+/** 개폐업 이력이 없는 업종 — 스냅샷 2종 + 학원(서울 학원 API는 폐원일자를 주지 않는다).
+ *  백엔드가 폐업률·성장률을 NULL로 두는 집합. 학원은 점포수가 전 연도에 있어 스냅샷 집합과는 다르다. */
+export const NO_CLOSURE_HISTORY_INDUSTRIES = new Set<IndustryId>([...SNAPSHOT_INDUSTRIES, "academy"]);
+
 export interface MapState {
   industry: string;
   metric: MapMetricKey;

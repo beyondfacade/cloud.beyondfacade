@@ -185,3 +185,22 @@ def test_build_skips_snapshot_counts_outside_target_years():
         snapshot_counts=[FakeSnapshotCounts([SnapshotStoreCount("1111051500", "childcare", 2027, 4)])],
     )
     assert interactor.build([2026]) == 0
+
+
+def test_build_leaves_rates_none_when_source_has_no_closure_history():
+    """폐업 이력이 없는 원천(학원 — 서울 학원 API는 폐원일자를 주지 않는다)은 폐업률·성장률을 0이 아니라 None으로.
+
+    점포수·개업수는 원천에 있으니 그대로 둔다. 어린이집·편의점 스냅샷 규칙과 같은 정직성 기준이다.
+    """
+    interactor, repository, _ = _interactor(
+        [
+            YearlyStoreStat("1168064000", "academy", 2019, store_count=10, open_count=1, close_count=None),
+            YearlyStoreStat("1168064000", "academy", 2020, store_count=12, open_count=2, close_count=None),
+        ]
+    )
+    interactor.build([2020])
+
+    metric = repository.rows[("1168064000", "academy", 2020)]
+    assert (metric.store_count, metric.open_count) == (12, 2)
+    assert metric.close_count is None
+    assert (metric.closure_rate, metric.growth_rate) == (None, None)

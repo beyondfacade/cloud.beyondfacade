@@ -144,6 +144,7 @@ GET /profiles/types?year_quarter=  → [{ region_code, type_code }]    범주 �
 | industry_year | 일반 8업종 × 3지표 | 2019~2026 전 연도 |
 | industry_year | 스냅샷 2업종 × `store_count` | **2026년만** |
 | industry_year | 스냅샷 2업종 × `closure_rate`·`growth_rate` | **전 연도 없음** |
+| industry_year | 학원 × `closure_rate`·`growth_rate` | **전 연도 없음** — 원천이 폐원일자를 안 줘 BE v0.35.3부터 NULL. 점포수는 전 연도(v0.24.1) |
 
 **드리프트가 한 방향으로만 막혀 있다.** `metric-sources.test.ts`는 "프론트가 고른 지표에 원천이
 있나"를 잡지만, **백엔드가 지원하는데 프론트가 안 보여주는 경우는 못 잡는다.** 보유 범위 쪽은

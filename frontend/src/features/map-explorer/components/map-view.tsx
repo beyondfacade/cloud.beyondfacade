@@ -10,7 +10,7 @@ import { NEIGHBORHOOD_TYPES } from "@/shared/neighborhood";
 import { makeCategoryColorScale, makeMetricColorScale, NO_DATA_COLOR } from "../lib/metric-color";
 import { neighborhoodPalette, type MapTheme } from "../lib/neighborhood-palette";
 import { bboxOfRegion } from "../lib/region-bbox";
-import { SNAPSHOT_INDUSTRIES } from "../lib/map-state";
+import { NO_CLOSURE_HISTORY_INDUSTRIES } from "../lib/map-state";
 import { MapLegend } from "./map-legend";
 import { RegionMarkers } from "./region-markers";
 import type { IndustryId } from "@/shared/industries";
@@ -65,9 +65,10 @@ export function MapView({ regionCode, metric, industry, year, yearQuarter, onSel
   const loadError = geojson.isError || rows.isError;
   // 실 API는 데이터 미보유 업종·연도에 200 + 빈 배열을 반환한다 — 빈 지도임을 명시.
   const noData = rows.isSuccess && rows.data.length === 0;
-  const snapshotNoRate =
+  // 개폐업 이력이 없는 업종(스냅샷 2종·학원)의 폐업률·성장률 — 연도를 바꿔도 없다는 걸 말해 준다.
+  const noClosureHistory =
     noData &&
-    SNAPSHOT_INDUSTRIES.has(industry as IndustryId) &&
+    NO_CLOSURE_HISTORY_INDUSTRIES.has(industry as IndustryId) &&
     (metric === "closure_rate" || metric === "growth_rate");
 
   // 범주 팔레트는 테마마다 다르다 — 테마가 바뀌면 fill-color를 다시 칠해야 하므로 상태로 든다.
@@ -218,8 +219,8 @@ export function MapView({ regionCode, metric, industry, year, yearQuarter, onSel
           role="status"
           className="absolute top-3 left-1/2 z-10 -translate-x-1/2 rounded-md border border-[var(--border)] bg-[var(--bg-surface)] px-3 py-2 text-sm text-[var(--text-secondary)] shadow-md"
         >
-          {snapshotNoRate
-            ? "스냅샷 원천이라 이 지표는 아직 없습니다. 점포수를 선택해 보세요."
+          {noClosureHistory
+            ? "이 업종의 원천에는 개폐업 이력이 없어 폐업률·성장률이 없습니다. 점포수를 선택해 보세요."
             : metric === "store_count"
               ? "해당 업종·연도의 점포수 지표가 없습니다."
               : "해당 업종·연도의 지표 데이터가 없습니다."}

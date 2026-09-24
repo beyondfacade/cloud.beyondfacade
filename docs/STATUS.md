@@ -16,7 +16,7 @@
 | 테스트 | 백엔드 **505 passed** · 프론트 **280 passed** · E2E 11단계 **`881626e`에서 전 구간 통과**(9/24 09:45) |
 | 데이터 | 36테이블, 약 1,050만 행. 서울 상권분석서비스 계열 999만 + 인허가·마스터·RAG |
 | 운영 크론 6종 | 전부 오늘(9/24) 정상 실행 |
-| **결함 발견 (오늘)** | ① 테스트가 dev DB를 직접 쓰던 것 — **9/24 수정, v0.35.2, `beyondfacade_test`로 격리**(§4-1) · ② 도커 8200이 25커밋 낡음 · ③ 학원 폐업률 0은 값이 아니라 원천 부재 |
+| **결함 발견 (오늘)** | ① 테스트가 dev DB를 직접 쓰던 것 — **9/24 수정, v0.35.2, `beyondfacade_test`로 격리**(§4-1) · ② 도커 8200 — **9/24 재빌드 완료(v0.35.3 이미지)** · ③ 학원 폐업률 0 → **9/24 NULL로 통일, BE v0.35.3/FE v0.24.1**(§4-3) |
 | 사람 판단이 필요한 것 | RAG 평가셋 50건 검수(candidate → confirmed) |
 
 ## 1. 재는 방법 (이 문서를 다시 만들 때)
@@ -58,7 +58,7 @@ git log --oneline -1 main; git status --short
 | cafe | 147,291 | 141,006 | 140,998 | 36,902 | 110,389 | ✅ |
 | hair_salon | 99,737 | 93,744 | 93,741 | 33,592 | 66,145 | ✅ |
 | real_estate | 25,435 | 25,299 | 25,281 | 24,798 | 637 | ✅ 폐업은 스냅샷 소실 추정(9/7~) |
-| academy | 25,554 | 25,504 | 25,504 | 25,554 | **0** | 🟡 **원천에 폐업 이벤트가 없다** → 폐업률 0은 값이 아니라 부재. childcare처럼 NULL이어야 정직하다(§4-3) |
+| academy | 25,554 | 25,504 | 25,504 | 25,554 | **0** | ✅ 원천에 폐업 이벤트가 없다 → 9/24부터 폐업률·성장률 NULL(childcare와 동일 규칙, §4-3) |
 | pc_bang | 16,853 | 16,305 | 16,305 | 4,502 | 12,351 | ✅ |
 | billiard | 14,038 | 13,209 | 13,209 | 2,661 | 11,377 | ✅ |
 | karaoke | 12,803 | 12,315 | 12,315 | 5,558 | 7,245 | ✅ |
@@ -146,15 +146,19 @@ git log --oneline -1 main; git status --short
 - 남는 것: 빈 DB엔 `seoul_commercial` 업종 코드(16행)가 시드되지 않는다 — 테스트는 의존하지 않고 dev DB엔
   이미 있다. 새 환경을 세울 일이 생기면 `seed_master`로 옮긴다.
 
-### 4-2. 🟡 도커 `beyondfacade-api`(8200)가 낡았다
-이미지 빌드 9/23 22:40(≈`73cc401`). 그 뒤 `main`이 25커밋 전진 — `/intent`·`/finance`·`/hour-gaps`·
-`/profiles/types`·`/commerce-changes/{region}`·혼합 LLM이 **없다**. 조회 전용 컨테이너라 급하진 않지만
-`docker compose build backend && up -d backend`가 필요하다. 8201(uvicorn `--reload`, 메인 체크아웃)이 개발 정본.
+### 4-2. ✅ 도커 `beyondfacade-api`(8200) — 9/24 재빌드
+9/23 22:40 이미지(≈`73cc401`)가 25커밋 낡아 `/intent`·`/finance`·`/hour-gaps`·`/profiles/types`·
+`/commerce-changes/{region}`·혼합 LLM이 없었다. 9/24 `docker compose build backend && up -d backend`로 v0.35.3
+기준 재빌드 — openapi 39 paths, 위 5종 확인. 8201(uvicorn `--reload`, 메인 체크아웃)이 개발 정본인 건 그대로.
+main이 전진하면 다시 낡는다 — 배포 전 재빌드가 규칙.
 
-### 4-3. 🟡 학원 폐업률 0은 값이 아니다
-`store.academy`에 `close_date`가 한 건도 없다(원천 서울 학원 API가 폐업을 안 준다). `region_industry_metric`은
-그걸 폐업률 **0.0**으로 집계해 426행에 값이 있다 — 어린이집·편의점은 같은 이유로 NULL인데 학원만 0이라
-비일관·오해 소지. 스냅샷 규칙으로 통일(NULL + 안내)해야 한다.
+### 4-3. ✅ 학원 폐업률 0은 값이 아니다 — **9/24 수정 (백엔드 v0.35.3 · 프론트 v0.24.1)**
+`store.academy`에 `close_date`가 한 건도 없다(원천 서울 학원 API가 폐업을 안 준다). 집계가 그걸 폐업률 **0.0**으로
+세어 학원 3,388행에 값이 있었다 — 어린이집·편의점은 같은 이유로 NULL인데 학원만 0이라 비일관.
+**수정**: `StoreStatsGateway`가 학원의 `close_count`를 None으로 주고 인터랙터가 비율도 None으로 둔다. dev DB
+재빌드로 학원 3,408행 전부 closure_rate·growth_rate NULL. 프론트는 `NO_CLOSURE_HISTORY_INDUSTRIES`(스냅샷 2종 +
+학원)로 셀렉터 안내·mock을 맞췄다. 학원 점포수는 전 연도에 그대로 있다(스냅샷과 다른 점).
+남는 사실: 학원 원천은 현재 "개원" 상태만 준다(25,554행 전부) — 원천에서 사라진 학원은 store에 남는다.
 
 ### 4-4. 사람 판단 대기
 - **RAG 평가셋 검수** — `data/eval/rag_evalset.jsonl` 50건 전부 `candidate`(gemma3:12b 생성, 9/15).
