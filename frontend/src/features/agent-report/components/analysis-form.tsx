@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { INDUSTRIES, industryLabel, type IndustryId } from "@/shared/industries";
 import type { StartAnalysisParams } from "../hooks/use-agent-report";
+import { exampleQuestions } from "../lib/example-questions";
 import styles from "./analysis-workspace.module.css";
 
 interface AnalysisFormProps {
@@ -19,6 +20,7 @@ export function AnalysisForm({ initialRegion, initialIndustry, onSubmit, disable
   const [region, setRegion] = useState(initialRegion);
   const [industry, setIndustry] = useState(initialIndustry);
   const [question, setQuestion] = useState("");
+  const examples = exampleQuestions(industry);
 
   return (
     <form
@@ -62,10 +64,25 @@ export function AnalysisForm({ initialRegion, initialIndustry, onSubmit, disable
           value={question}
           onChange={(e) => setQuestion(e.target.value)}
           rows={4}
-          placeholder="예: 원두 가격이 오르면 손익분기점이 어떻게 달라지나요?"
+          placeholder={`예: ${examples[0]}`}
           className={`${FIELD} resize-y placeholder:text-[var(--text-secondary)]`}
         />
       </label>
+      {/* 업종별 예시 — 누르면 입력칸을 그 문구로 채운다. 업종을 바꿔도 이미 적은 질문은 지우지 않는다. */}
+      <ul className={styles.chips} aria-label="예시 질문">
+        {examples.map((q) => (
+          <li key={q}>
+            <button
+              type="button"
+              aria-label={`예시 질문: ${q}`}
+              onClick={() => setQuestion(q)}
+              className={`${styles.chip} border border-[var(--border)] bg-[var(--bg-raised)] text-[var(--text-secondary)] hover:border-[var(--accent)] hover:text-[var(--text-primary)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]`}
+            >
+              {q}
+            </button>
+          </li>
+        ))}
+      </ul>
       <button
         type="submit"
         disabled={disabled || !region || !industry}

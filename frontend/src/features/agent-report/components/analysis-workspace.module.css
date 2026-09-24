@@ -22,6 +22,8 @@
 .panelDescription { margin-block: 13px 25px; font-size: 12px; line-height: 1.85; word-break: keep-all; }
 .form, .formFields { display: flex; flex-direction: column; gap: 18px; }
 .field { width: 100%; min-width: 0; padding: 12px; border-radius: 6px; font-size: 13px; line-height: 1.5; letter-spacing: 0; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: -6px; padding: 0; list-style: none; }
+.chip { border-radius: 999px; padding: 6px 11px; font-size: 12px; line-height: 1.4; text-align: left; word-break: keep-all; transition: border-color .15s, color .15s; }
 .fieldHint { font-size: 11px; line-height: 1.65; letter-spacing: 0; overflow-wrap: anywhere; }
 .submitButton { display: flex; align-items: center; justify-content: space-between; gap: 20px; width: 100%; padding: 13px 17px; border-radius: 7px; font-size: 13px; font-weight: 650; cursor: pointer; }
 .submitButton > span { font-size: 20px; line-height: 1; }

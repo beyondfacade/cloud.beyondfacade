@@ -217,7 +217,7 @@ main이 전진하면 다시 낡는다 — 배포 전 재빌드가 규칙.
 설계서·로드맵(T4-1 "상품 매칭이 아니다")에 근거가 있다. 대구에만 있고 **여기서 아직 결정이 없는 것**:
 - **실배포** — 대구는 9/20 Vercel + Cloudflare 터널 + systemd 백엔드로 프로덕션 E2E PASS. 런북 `cloud.localhostdaegu/docs/deploy-vercel-cloudflare.md`가 그대로 쓸 만하다. 대구가 배포에서 배운 것: `CORS_ALLOW_ORIGINS`, uvicorn 단일 워커(분석 저장소 인메모리), SSE 프록시 버퍼링 off, 수동 uvicorn 대신 systemd 유닛.
 - **모바일 지도** — 대구는 페르소나 테스트 후속(9/19)으로 모바일 지도·조정 안내를 넣었다. 여기 `map-explorer` 컴포넌트엔 반응형 분기가 0개.
-- **AI 분석 예시 질문 칩** — 대구 `agent-report/lib/example-questions.ts`(업종별 예시 문구·클릭 칩). 여기 `analysis-form`엔 없다.
+- ~~AI 분석 예시 질문 칩~~ — **9/25 FE v0.25.0 이식 완료**(업종별 3개, 섹션 계약에 맞춘 서울 문구, 테스트 7건).
 - 정리 대상: `backend/apps/ontology`·`apps/dummy`는 파일 0개인 빈 디렉터리(죽은 골격) · `tobacco` BC는 데이터만 있고 소비처 없음(편의점 대체 산출 안 하기로 결정됨).
 "신규 데이터 → 프론트 반영" 축은 36테이블 중 소비처 없는 것이 tobacco뿐 — 나머지는 프로필·지표·finance·agent 도구가 읽는다.
 
