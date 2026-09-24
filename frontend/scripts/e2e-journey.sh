@@ -316,6 +316,43 @@ if [[ -z "$HEADLINE" ]]; then
 fi
 echo "  자기자본 외 조달 필요 헤드라인 확인 (${HEADLINE})"
 
+# [10/10] 조달·상담 준비 — 계산한 안으로 후보 공고와 확인할 질문을 받아 준비자료까지 만들어지는지.
+# 버튼·후보·질문 모두 계산 결과 아래에 있어 화면 밖이다 — 클릭 전에 보이게 한다([5/8]·[9/9]와 같은 이유).
+echo "[10/10] 조달·상담 준비 — 후보 공고·질문·준비자료"
+AB eval "[...document.querySelectorAll('button')].find((b) => b.textContent.includes('조달·상담 준비'))?.scrollIntoView({block:'center'})" >/dev/null
+AB find text "조달·상담 준비 →" click >/dev/null
+AB wait --text "상담에서 확인할 것" >/dev/null
+
+# AB eval은 결과를 JSON 인코딩한다 — 객체를 stringify 하면 이스케이프된 따옴표로 매칭이 빗나간다.
+# [1/8] 클릭 좌표와 같이 공백 구분 숫자로 받아 tr로 씻는다.
+PREP_DEADLINE=$((SECONDS + 20))
+while :; do
+  PREP_STATE="$(cat <<'JS' | AB eval --stdin
+(() => {
+  const candidates = document.querySelectorAll('section[aria-label="지원 공고 후보"] li').length;
+  const questions = document.querySelectorAll('section[aria-label="상담에서 확인할 것"] ol li').length;
+  const sheet = (document.querySelector("[data-prep-markdown]")?.textContent ?? "").length;
+  return candidates + " " + questions + " " + sheet;
+})()
+JS
+)"
+  read -r PREP_CANDIDATES PREP_QUESTIONS PREP_SHEET <<<"$(echo "$PREP_STATE" | tr -cd '0-9 \n')"
+  if (( ${PREP_CANDIDATES:-0} >= 1 && ${PREP_QUESTIONS:-0} >= 3 && ${PREP_SHEET:-0} > 0 )); then break; fi
+  if (( SECONDS > PREP_DEADLINE )); then
+    echo "오류: 조달·준비가 20초 안에 채워지지 않았습니다 (후보 ${PREP_CANDIDATES:-?} · 질문 ${PREP_QUESTIONS:-?} · 준비자료 ${PREP_SHEET:-?}자)." >&2
+    exit 1
+  fi
+  sleep 1
+done
+echo "  후보 ${PREP_CANDIDATES}건 · 질문 ${PREP_QUESTIONS}개 · 준비자료 ${PREP_SHEET}자"
+
+COPY_BUTTON="$(AB eval "[...document.querySelectorAll('button')].some((b) => b.textContent.includes('Markdown 복사')) ? 1 : 0" | tr -cd '0-9')"
+if [[ "$COPY_BUTTON" != "1" ]]; then
+  echo "오류: 준비자료의 'Markdown 복사' 버튼을 찾지 못했습니다." >&2
+  exit 1
+fi
+echo "  Markdown 복사 버튼 확인"
+
 echo "성공: E2E 여정 완료 (리포트 텍스트 확인됨)"
 if [[ "$CLICK_XFAIL" == "1" ]]; then
   echo "XFAIL: 폴리곤 클릭 (지도 렌더링 버그) — E2E_XFAIL_CLICK=1로 폴백 내비게이션 사용, 실제 클릭 경로는 검증되지 않았습니다."
