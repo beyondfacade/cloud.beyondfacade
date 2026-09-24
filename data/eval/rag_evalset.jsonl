@@ -52,7 +52,7 @@
 {"question": "성남시 중소기업 운전자금 특례보증 한도가 업체당 얼마예요?", "relevant_ids": ["funding:PBLN_000000000117177"], "source_type": "funding", "status": "confirmed"}
 {"question": "성남시 중소기업육성자금 운전자금 대출 이자 지원 받으려면 어떻게 하나요?", "relevant_ids": ["funding:PBLN_000000000117188"], "source_type": "funding", "status": "confirmed"}
 {"question": "부산 음식점 위생시설 개선자금 식품진흥기금 융자 받을 수 있나요?", "relevant_ids": ["funding:PBLN_000000000117191"], "source_type": "funding", "status": "confirmed"}
-{"question": "경북 중소기업 운전자금 이차보전에 관세대응 긴급경영안정자금도 포함되나요?", "relevant_ids": ["funding:PBLN_000000000117214"], "source_type": "funding", "status": "confirmed"}
+{"question": "경북 중소기업 운전자금 이차보전에 재해·관세 긴급자금도 있나요?", "relevant_ids": ["funding:PBLN_000000000117214"], "source_type": "funding", "status": "candidate"}
 {"question": "대전 만39세 이하 청년 소상공인 경영위기극복 특례보증 이자 지원 조건이 뭐예요?", "relevant_ids": ["funding:PBLN_000000000117221"], "source_type": "funding", "status": "confirmed"}
 {"question": "대전시 소상공인 초저금리 특별자금 1차 협약은행이 어디예요?", "relevant_ids": ["funding:PBLN_000000000117223"], "source_type": "funding", "status": "confirmed"}
 {"question": "충남 식품업소 시설개선자금 연 1% 융자 어떻게 신청하나요?", "relevant_ids": ["funding:PBLN_000000000117232"], "source_type": "funding", "status": "confirmed"}
@@ -82,17 +82,17 @@
 {"question": "청송군 단체관광객 유치하면 여행사 인센티브 있나요?", "relevant_ids": ["funding:PBLN_000000000117332"], "source_type": "funding", "status": "confirmed"}
 {"question": "청도군 단체관광객 유치 여행사 인센티브 신청 방법은?", "relevant_ids": ["funding:PBLN_000000000117334"], "source_type": "funding", "status": "confirmed"}
 {"question": "고령군 국내외 단체관광객 유치 여행사 인센티브 있나요?", "relevant_ids": ["funding:PBLN_000000000117336"], "source_type": "funding", "status": "confirmed"}
-{"question": "여수시 중소기업발전자금 이차보전 3% 기업은행 동행협약이 뭔가요?", "relevant_ids": ["funding:PBLN_000000000117337"], "source_type": "funding", "status": "confirmed"}
+{"question": "여수시 중소기업발전자금 이차보전 지원은 어떻게 신청하나요?", "relevant_ids": ["funding:PBLN_000000000117337"], "source_type": "funding", "status": "candidate"}
 {"question": "칠곡군 설 대비 중소기업 운전자금 이차보전 신청하려면?", "relevant_ids": ["funding:PBLN_000000000117340"], "source_type": "funding", "status": "confirmed"}
-{"question": "울진군 단체관광 1박 1인당 1만원 여행사 인센티브 조건이 뭐예요?", "relevant_ids": ["funding:PBLN_000000000117343"], "source_type": "funding", "status": "confirmed"}
-{"question": "장성군 단체관광객 당일 5천원, 1박 1만5천원 여행사 인센티브 있나요?", "relevant_ids": ["funding:PBLN_000000000117350"], "source_type": "funding", "status": "confirmed"}
+{"question": "울진군 단체관광객 유치 여행사 인센티브 조건이 뭐예요?", "relevant_ids": ["funding:PBLN_000000000117343"], "source_type": "funding", "status": "candidate"}
+{"question": "장성군 단체관광객 유치 여행사 인센티브 있나요?", "relevant_ids": ["funding:PBLN_000000000117350"], "source_type": "funding", "status": "candidate"}
 {"question": "전북 중소기업 육성자금 융자 3,300억 지원계획 어떻게 신청하나요?", "relevant_ids": ["funding:PBLN_000000000117356"], "source_type": "funding", "status": "confirmed"}
 {"question": "김포금빛몰에 김포 중소기업 제품 입점하려면 어떻게 하나요?", "relevant_ids": ["funding:PBLN_000000000117358"], "source_type": "funding", "status": "confirmed"}
 {"question": "직무발명보상 우수기업 인증 받으면 어떤 혜택이 있나요?", "relevant_ids": ["funding:PBLN_000000000117363"], "source_type": "funding", "status": "confirmed"}
 {"question": "강진군 창업 소상공인 월세 20만원 임대료 지원 있나요?", "relevant_ids": ["funding:PBLN_000000000117365"], "source_type": "funding", "status": "confirmed"}
 {"question": "강진군 밀키트 업소 진공포장기·급냉기 구입비 지원 있나요?", "relevant_ids": ["funding:PBLN_000000000117367"], "source_type": "funding", "status": "confirmed"}
 {"question": "강진군 밀키트 업소 포장재 구입비 지원 신청 어떻게 하나요?", "relevant_ids": ["funding:PBLN_000000000117368"], "source_type": "funding", "status": "confirmed"}
-{"question": "광주 AI 집적단지 유치기업 입지·설비 보조금 최대 3.5억 지원 조건은?", "relevant_ids": ["funding:PBLN_000000000117371"], "source_type": "funding", "status": "confirmed"}
+{"question": "광주 AI 집적단지 유치기업 입지·설비·고용 보조금 지원 조건은?", "relevant_ids": ["funding:PBLN_000000000117371"], "source_type": "funding", "status": "candidate"}
 {"question": "부산에서 가명정보 처리·결합 컨설팅 받을 수 있는 곳 있나요?", "relevant_ids": ["funding:PBLN_000000000117433"], "source_type": "funding", "status": "confirmed"}
 {"question": "강원 글로벌 IP스타기업 해외 특허 중간사건(OA) 비용 지원 있나요?", "relevant_ids": ["funding:PBLN_000000000117454"], "source_type": "funding", "status": "confirmed"}
 {"question": "강원 글로벌 IP스타기업 해외 특허 등록비용 지원 신청은?", "relevant_ids": ["funding:PBLN_000000000117463"], "source_type": "funding", "status": "confirmed"}
@@ -111,7 +111,7 @@
 {"question": "공주시 단체관광 여행사 인센티브 사전계획서는 언제까지 내나요?", "relevant_ids": ["funding:PBLN_000000000117523"], "source_type": "funding", "status": "confirmed"}
 {"question": "금산군 수출 농산물 저온유통비 지원 사업 있나요?", "relevant_ids": ["funding:PBLN_000000000117525"], "source_type": "funding", "status": "confirmed"}
 {"question": "경남 소상공인 정책자금 전체 운용계획을 한눈에 볼 수 있는 공고 있나요?", "relevant_ids": ["funding:PBLN_000000000117526"], "source_type": "funding", "status": "confirmed"}
-{"question": "서울시 사회적경제기업 연 1.75% 융자 최대 4억 지원 있나요?", "relevant_ids": ["funding:PBLN_000000000117528"], "source_type": "funding", "status": "confirmed"}
+{"question": "서울시 사회적경제기업 중소기업육성기금 융자 지원 있나요?", "relevant_ids": ["funding:PBLN_000000000117528"], "source_type": "funding", "status": "candidate"}
 {"question": "태안군 소상공인 특례보증 5천만원 신청하려면?", "relevant_ids": ["funding:PBLN_000000000117534"], "source_type": "funding", "status": "confirmed"}
 {"question": "청주시 중소기업 경영안정자금 8억 한도 이차보전 신청은?", "relevant_ids": ["funding:PBLN_000000000117535"], "source_type": "funding", "status": "confirmed"}
 {"question": "전북 통상닥터 참여기업 해외 바이어 발굴·포장 개선 지원 있나요?", "relevant_ids": ["funding:PBLN_000000000117540"], "source_type": "funding", "status": "confirmed"}
@@ -123,17 +123,17 @@
 {"question": "중소기업 매출채권팩토링 연간 한도 10억 지원 어떻게 받나요?", "relevant_ids": ["funding:PBLN_000000000117563"], "source_type": "funding", "status": "confirmed"}
 {"question": "충북 소상공인·농가 청년 여성 인건비 50% 지원 사업 있나요?", "relevant_ids": ["funding:PBLN_000000000117568"], "source_type": "funding", "status": "confirmed"}
 {"question": "전주시 숙박관광객 유치 여행사 인센티브 조건은?", "relevant_ids": ["funding:PBLN_000000000117569"], "source_type": "funding", "status": "confirmed"}
-{"question": "괴산군 열차관광 대당 45만원 인센티브 여행사 지원 있나요?", "relevant_ids": ["funding:PBLN_000000000117575"], "source_type": "funding", "status": "confirmed"}
+{"question": "괴산군 단체관광객·열차관광 유치 여행사 인센티브 있나요?", "relevant_ids": ["funding:PBLN_000000000117575"], "source_type": "funding", "status": "candidate"}
 {"question": "괴산군 KCB 700점 이하 저신용 소상공인 대출이자 지원 있나요?", "relevant_ids": ["funding:PBLN_000000000117576"], "source_type": "funding", "status": "confirmed"}
 {"question": "단양군 소상공인 융자금 최대 7천만원 이차보전 신청은?", "relevant_ids": ["funding:PBLN_000000000117579"], "source_type": "funding", "status": "confirmed"}
 {"question": "춘천시 제조·IT 중소기업 신용보증수수료 최대 250만원 지원 있나요?", "relevant_ids": ["funding:PBLN_000000000117582"], "source_type": "funding", "status": "confirmed"}
-{"question": "춘천 창업 7년 이내 기업 최대 10억 동행지원 이자 2% 지원 있나요?", "relevant_ids": ["funding:PBLN_000000000117583"], "source_type": "funding", "status": "confirmed"}
+{"question": "춘천 창업 7년 이내 기업 창업지원자금 동행지원 받을 수 있나요?", "relevant_ids": ["funding:PBLN_000000000117583"], "source_type": "funding", "status": "candidate"}
 {"question": "춘천시 중소기업 1억·소상공인 5천만원 특례보증 신청 방법은?", "relevant_ids": ["funding:PBLN_000000000117588"], "source_type": "funding", "status": "confirmed"}
 {"question": "태백시 소상공인 특례보증 5천만원과 이차보전 3.5% 지원 있나요?", "relevant_ids": ["funding:PBLN_000000000117597"], "source_type": "funding", "status": "confirmed"}
 {"question": "미국 관세 문제로 현지 변호사·관세사 1:1 온라인 상담 받을 수 있나요?", "relevant_ids": ["funding:PBLN_000000000117599"], "source_type": "funding", "status": "confirmed"}
 {"question": "태백시 중소기업 시설자금 제조업 8억 융자 지원 있나요?", "relevant_ids": ["funding:PBLN_000000000117600"], "source_type": "funding", "status": "confirmed"}
 {"question": "전북 중소기업 연 6회 전문가 컨설팅 상시 신청은 어디서 하나요?", "relevant_ids": ["funding:PBLN_000000000117601"], "source_type": "funding", "status": "confirmed"}
-{"question": "춘천시 중소기업육성자금 '땡겨요' 이차보전이 뭔가요?", "relevant_ids": ["funding:PBLN_000000000117602"], "source_type": "funding", "status": "confirmed"}
+{"question": "춘천시 중소기업육성자금 융자 이차보전 지원 있나요?", "relevant_ids": ["funding:PBLN_000000000117602"], "source_type": "funding", "status": "candidate"}
 {"question": "원주시 창업 7년 이내 기업 운전자금 3억 동행지원 있나요?", "relevant_ids": ["funding:PBLN_000000000117603"], "source_type": "funding", "status": "confirmed"}
 {"question": "강릉시 단체관광객 유치 여행 1건당 최대 300만원 인센티브 있나요?", "relevant_ids": ["funding:PBLN_000000000117606"], "source_type": "funding", "status": "confirmed"}
 {"question": "인천 제조업 NH농협 협업 특별경영안정자금 1.8% 이자지원 있나요?", "relevant_ids": ["funding:PBLN_000000000117611"], "source_type": "funding", "status": "confirmed"}
@@ -146,55 +146,55 @@
 {"question": "횡성군 중소기업 대출이자 최대 4% 지원 사업 있나요?", "relevant_ids": ["funding:PBLN_000000000117634"], "source_type": "funding", "status": "confirmed"}
 {"question": "예산군에서 드라마 촬영하면 소비금액 50% 환급 지원 있나요?", "relevant_ids": ["funding:PBLN_000000000117643"], "source_type": "funding", "status": "confirmed"}
 {"question": "화천군 음식점·숙박업 소상공인 운전자금 5천만원 융자 지원 있나요?", "relevant_ids": ["funding:PBLN_000000000117644"], "source_type": "funding", "status": "confirmed"}
-{"question": "철원군민 사업자 융자금 3% 이자지원 최대 1억 신청은?", "relevant_ids": ["funding:PBLN_000000000117646"], "source_type": "funding", "status": "confirmed"}
+{"question": "철원군민 사업자가 융자금 이자 지원 받을 수 있나요?", "relevant_ids": ["funding:PBLN_000000000117646"], "source_type": "funding", "status": "candidate"}
 {"question": "화천군 10인 이상 단체관광객 유치 인센티브 신청하려면?", "relevant_ids": ["funding:PBLN_000000000117648"], "source_type": "funding", "status": "confirmed"}
 {"question": "양구군 단체관광객·수학여행단 유치 인센티브 있나요?", "relevant_ids": ["funding:PBLN_000000000117650"], "source_type": "funding", "status": "confirmed"}
 {"question": "강원 벤처펀드 투자유치 IR·1:1 상담 지원 프로그램 있나요?", "relevant_ids": ["funding:PBLN_000000000117654"], "source_type": "funding", "status": "confirmed"}
 {"question": "양양군 중소기업·소상공인 운전자금·시설자금 융자 지원 있나요?", "relevant_ids": ["funding:PBLN_000000000117656"], "source_type": "funding", "status": "confirmed"}
 {"question": "제주 수출기업 수출보험료·수입자 신용조사 수수료 지원 있나요?", "relevant_ids": ["funding:PBLN_000000000117664"], "source_type": "funding", "status": "confirmed"}
-{"question": "경력단절여성 인턴 채용하면 기업지원금 400만원 받을 수 있나요?", "relevant_ids": ["funding:PBLN_000000000117666"], "source_type": "funding", "status": "rejected"}
+{"question": "인천 새일센터 경력단절여성 인턴 채용하면 기업지원금 받을 수 있나요?", "relevant_ids": ["funding:PBLN_000000000117666"], "source_type": "funding", "status": "candidate"}
 {"question": "인천 중소기업 기술이전·기술수요조사 신청은 어디서 하나요?", "relevant_ids": ["funding:PBLN_000000000117668"], "source_type": "funding", "status": "confirmed"}
 {"question": "인천 서구 제조기업 제품인증 수수료·시험비 지원 있나요?", "relevant_ids": ["funding:PBLN_000000000117671"], "source_type": "funding", "status": "confirmed"}
 {"question": "폐업 예정 소상공인 취업교육·전직장려수당 100만원 지원 있나요?", "relevant_ids": ["funding:PBLN_000000000117673"], "source_type": "funding", "status": "confirmed"}
 {"question": "소상공인 폐업할 때 점포 철거비·사업정리 컨설팅 지원 있나요?", "relevant_ids": ["funding:PBLN_000000000117676"], "source_type": "funding", "status": "confirmed"}
 {"question": "전북 글로벌 IP스타기업 해외 특허 중간사건 대응 비용 지원 있나요?", "relevant_ids": ["funding:PBLN_000000000117679"], "source_type": "funding", "status": "confirmed"}
-{"question": "DB아이앤씨 상사부문 새 사장 취임 소식 있어?", "relevant_ids": ["news:000e7d24d5f80785b861"], "source_type": "news", "status": "confirmed"}
-{"question": "오세훈 시장이 추석 앞두고 남성사계시장 물가 점검한 기사 있어?", "relevant_ids": ["news:0058678cdf9012b3e4ce"], "source_type": "news", "status": "confirmed"}
-{"question": "써밋 클라비온 등 이번 주 분양 단지 정리한 분양캘린더 기사 있어?", "relevant_ids": ["news:006ed9f09b99b42b9ed0"], "source_type": "news", "status": "rejected"}
-{"question": "한국공항공사 공항 혁신 아이디어 공모전 시상식 기사 있어?", "relevant_ids": ["news:0073fc1b4d6ebfd43b89"], "source_type": "news", "status": "confirmed"}
-{"question": "신중앙시장이 힙당동 상권 덕에 다시 뜬다는 기사 찾아줘", "relevant_ids": ["news:0074b543cf8ba2956abc"], "source_type": "news", "status": "confirmed"}
+{"question": "DB아이앤씨 상사부문 새 사장 취임 소식 있어?", "relevant_ids": ["news:000e7d24d5f80785b861", "news:5c1e7f617129f637fa9e", "news:be195c3d309e00ccfa32", "news:77291dd9843c693a6adf", "news:496603db3129ebdf9709"], "source_type": "news", "status": "confirmed"}
+{"question": "오세훈 시장이 추석 앞두고 남성사계시장 물가 점검한 기사 있어?", "relevant_ids": ["news:0058678cdf9012b3e4ce", "news:506340eb1dd27daa048b", "news:e85cafdca10eea1603fe", "news:42de02ae105f0061a8ae", "news:e929516fa4967ac0c1f6", "news:8b8979930598f973e140", "news:9b54b001307703c2dba2", "news:d56a18fbe154a8637b21", "news:7740af6caa3389903d17", "news:14104739d594e543d71f", "news:49899d5e3556cfffc0eb", "news:859d49888120671ab972", "news:26821df95fecda76768a", "news:cc3207c0c5c8d03dbd0a", "news:f19c8606c88a65633eaf"], "source_type": "news", "status": "confirmed"}
+{"question": "써밋 클라비온 등 이번 주 분양 단지 정리한 분양캘린더 기사 있어?", "relevant_ids": ["news:006ed9f09b99b42b9ed0", "news:88132d93390af39390b0", "news:c694402317ac1060c500", "news:8e2ef3589410b0672b41", "news:32f5493bc2203ac38f9f", "news:4c78e09401ffb0ec599f"], "source_type": "news", "status": "confirmed"}
+{"question": "한국공항공사 공항 혁신 아이디어 공모전 시상식 기사 있어?", "relevant_ids": ["news:0073fc1b4d6ebfd43b89", "news:696800cb03bae5d84739", "news:64b5d8d0292f31bf0b77"], "source_type": "news", "status": "confirmed"}
+{"question": "신중앙시장이 힙당동 상권 덕에 다시 뜬다는 기사 찾아줘", "relevant_ids": ["news:0074b543cf8ba2956abc", "news:371889bd15af9365bed6", "news:31dfac2b7b76182350cd", "news:52a904f9f095ef466f35", "news:0aa05c489caacee49eb4"], "source_type": "news", "status": "confirmed"}
 {"question": "꼬마김밥 가격 올랐다는 분식점 물가 기사 있어?", "relevant_ids": ["news:0089fc04529e2044400b"], "source_type": "news", "status": "confirmed"}
-{"question": "리테일 바이블 2030 책 소개 기사 있어?", "relevant_ids": ["news:00938a09d9a79e5116d2"], "source_type": "news", "status": "confirmed"}
-{"question": "8월 28일 부산 중구 소식 모음 기사 있어?", "relevant_ids": ["news:0099e914bcad8d9c3821"], "source_type": "news", "status": "rejected"}
-{"question": "강북구 1조908억 추경에 골목상권 사업 들어갔다는 기사 있어?", "relevant_ids": ["news:009fe0bd690c145d10f1"], "source_type": "news", "status": "confirmed"}
-{"question": "위례과천선 안양 연장 국가철도망 반영 추진 기사 있어?", "relevant_ids": ["news:00be88cc8e2319d703b6"], "source_type": "news", "status": "confirmed"}
-{"question": "삼성물산 앙개 더현대 서울 첫 백화점 팝업 기사 있어?", "relevant_ids": ["news:00e0484a9be4b05109c5"], "source_type": "news", "status": "confirmed"}
-{"question": "신중앙시장 디자인혁신 전통시장 착공, 16개 골목 연결 기사 있어?", "relevant_ids": ["news:00e279765cc61d3647a4"], "source_type": "news", "status": "confirmed"}
+{"question": "리테일 바이블 2030 책 소개 기사 있어?", "relevant_ids": ["news:00938a09d9a79e5116d2", "news:adfc5f25a1628a018e18", "news:b47e9d26cbd2cb69b81b"], "source_type": "news", "status": "confirmed"}
+{"question": "8월 28일 부산 중구 소식 모음 기사 있어?", "relevant_ids": ["news:0099e914bcad8d9c3821"], "source_type": "news", "status": "confirmed"}
+{"question": "강북구 1조908억 추경에 골목상권 사업 들어갔다는 기사 있어?", "relevant_ids": ["news:009fe0bd690c145d10f1", "news:99bd98315dc46a27141e", "news:7877f635f0f72df0eb09", "news:3525ba95c9cc392baf10", "news:b79b6eb7b17e3a1090f1", "news:ded6d91faf05b2b516f1", "news:4454a5425e47cbe12015", "news:dbe3f8a0ceedf58b10a8"], "source_type": "news", "status": "confirmed"}
+{"question": "위례과천선 안양 연장 국가철도망 반영 추진 기사 있어?", "relevant_ids": ["news:00be88cc8e2319d703b6", "news:de0c8aef30cfbd334c3b", "news:d7f319d6368e14f4af95", "news:daa5fb47aa775f167e65", "news:0492e23448b1c7d18ebb", "news:eb730c68974f2652a3a1"], "source_type": "news", "status": "confirmed"}
+{"question": "삼성물산 앙개 더현대 서울 첫 백화점 팝업 기사 있어?", "relevant_ids": ["news:00e0484a9be4b05109c5", "news:a18a0501d1642260e5cd", "news:2eaadba76ab3d94d8fc2", "news:efd25863e5bf9c5ec215", "news:80bc3bc76c8c25cc8eac", "news:96084210a71b3ea3d02c", "news:461e715f3e02406b4e10"], "source_type": "news", "status": "confirmed"}
+{"question": "신중앙시장 디자인혁신 전통시장 착공, 16개 골목 연결 기사 있어?", "relevant_ids": ["news:00e279765cc61d3647a4", "news:a7bdafc54463dbf5684c", "news:5ece860519a4ace7e3ed", "news:81f6bcd8ebf994f4831e", "news:b59dd70d4b73be740439", "news:5ca2221eb709831d0417", "news:8b3e2265200420123565", "news:43a129bacd418383e587", "news:2b91cec0a3e5e1d7007a", "news:efa522d5cc2e841e756f", "news:8fe30c7593ddb0feab20", "news:b034cae7ce6dc17aaa8c", "news:ce5a6bb78e095ed7899f", "news:49f7d81ebecec7103fbb", "news:d91ed271bdb4898a1b42", "news:9841962eccab52d526f3", "news:122f617aabb34789f672", "news:c44b6a61556de021046f", "news:e5ceaceae219b3a24624", "news:28d1f50d39e9c94ed7d9", "news:676a8e58420fddcdf0ca", "news:2ce67461a97737856d04", "news:c413070a4f949aa19491", "news:86d855d41f2e32921660", "news:26753b08a071c1ceca47", "news:9f0eaffb5f411b41a5db", "news:2a288ef2c52d7a7b959f", "news:d42b11a4b59f0db8095a", "news:95ea149a57e0092973c3", "news:b603ec0c5a52c2f63f25", "news:f35c0429cd05a8310bbc", "news:e1a26d7684deb54be151", "news:d85629b00a5280648460", "news:9876afea5bdf4bc54e2b"], "source_type": "news", "status": "confirmed"}
 {"question": "서장훈 양재역 빌딩 450억 매물 기사 있어?", "relevant_ids": ["news:01039ffd9d76512fbba4"], "source_type": "news", "status": "confirmed"}
-{"question": "신도시에서 원도심으로 회귀하는 주택 수요 기사 있어?", "relevant_ids": ["news:012948465dac27c62018"], "source_type": "news", "status": "confirmed"}
+{"question": "신도시에서 원도심으로 회귀하는 주택 수요 기사 있어?", "relevant_ids": ["news:012948465dac27c62018", "news:6ef73137486b4afc029a", "news:68d159385be4dbb5e544", "news:f604daacd10619a346b8"], "source_type": "news", "status": "confirmed"}
 {"question": "에이스침대 롯데백화점 본점 매장 새단장 소식 있어?", "relevant_ids": ["news:01555d385d838d61a621"], "source_type": "news", "status": "confirmed"}
 {"question": "엑소디움 대우 상도역 민간임대 계약 기사 있어?", "relevant_ids": ["news:01564f4c9ffbb915c15f"], "source_type": "news", "status": "confirmed"}
-{"question": "제주 로컬브랜드가 성수동 상상플래닛에서 행사한 기사 있어?", "relevant_ids": ["news:01678cfdc04673e8d381"], "source_type": "news", "status": "confirmed"}
-{"question": "영등포사랑상품권 추석 90억 발행 5% 할인 기사 있어?", "relevant_ids": ["news:016d79b5dc16ead4fd51"], "source_type": "news", "status": "rejected"}
+{"question": "제주 로컬브랜드가 성수동 상상플래닛에서 행사한 기사 있어?", "relevant_ids": ["news:01678cfdc04673e8d381", "news:4e13ba24d42fd0afc78e", "news:fd5821d2d29d84659155", "news:c335d25656d0c3e2946f", "news:625441c1afe54ff5b4fb", "news:4e196a3813e89731262b", "news:6fbe1e0ef469fcdeb0e0", "news:80a7e82973b69a553389", "news:dc6a79c77c44ee9e2bce", "news:ed426adc2726274f667a", "news:24905707debcfac27088", "news:5edd2de31fd4ef2711b5"], "source_type": "news", "status": "confirmed"}
+{"question": "영등포사랑상품권 추석 90억 발행 5% 할인 기사 있어?", "relevant_ids": ["news:016d79b5dc16ead4fd51", "news:19a03b42bcad1c34d7c7"], "source_type": "news", "status": "confirmed"}
 {"question": "박성민 의원 추석 앞두고 울산 전통시장 방문 기사 있어?", "relevant_ids": ["news:017638b70ab5742e3e19"], "source_type": "news", "status": "confirmed"}
-{"question": "무신사 뷰티 홍대 매장에 약국 들어갔다는 기사 있어?", "relevant_ids": ["news:018362a14443dff780bd"], "source_type": "news", "status": "confirmed"}
-{"question": "헬리녹스 웨어 도산공원 첫 플래그십 오픈 기사 있어?", "relevant_ids": ["news:01980219a28034b8932f"], "source_type": "news", "status": "confirmed"}
-{"question": "서문시장 4지구 재건축 연내 착공 기사 있어?", "relevant_ids": ["news:0198642f860390e808c9"], "source_type": "news", "status": "confirmed"}
-{"question": "서울 핫플 10곳 2만원 결제 시 7천원 할인 행사 기사 있어?", "relevant_ids": ["news:01a0b40f0fd3d4190200"], "source_type": "news", "status": "confirmed"}
+{"question": "무신사 뷰티 홍대 매장에 약국 들어갔다는 기사 있어?", "relevant_ids": ["news:018362a14443dff780bd", "news:fc924852ca9a7710c198", "news:6d7eb0cebb72916c7765", "news:9669ae259d6b86b26e73", "news:0bd290f484ddb6e1613d", "news:ab82a2cea96997622860", "news:18e3dbe5743c5920ef5d", "news:4e931c1fcc0731f2ca9d", "news:8e155d0f93c29e75469e", "news:4b01a309ccfbde103037"], "source_type": "news", "status": "confirmed"}
+{"question": "헬리녹스 웨어 도산공원 첫 플래그십 오픈 기사 있어?", "relevant_ids": ["news:01980219a28034b8932f", "news:8a2566a1a4707084f98f", "news:dd1097b19dcb555cc3de", "news:8e99157a5157d3f4c504", "news:8a97498d34668adb2adb", "news:d59435054f7e7404000e", "news:b682eb76def288d8c302", "news:f7f46113f79b9314d05e", "news:f783503418de27b94a94", "news:f11fbfb9f5dff0b8211c", "news:df0f9b2ff0a6693917b1", "news:fe6f584a78cf6aac357a", "news:ad30022788678ff691ad", "news:1d644b5cd666f8f0a078", "news:71e6904b5b5665116c04", "news:3aecbf926f400c2ba358", "news:7ac95d8f827adf995b56"], "source_type": "news", "status": "confirmed"}
+{"question": "서문시장 4지구 재건축 연내 착공 기사 있어?", "relevant_ids": ["news:0198642f860390e808c9", "news:14b62da23782c7390dba", "news:f600b188e8fb7bd6e6cd", "news:6307790f3293f71c6d0a", "news:46a4d99e7a7aeb06cace", "news:cd57d518d9a26695f4c2", "news:5255452ffdd7b34b7061", "news:f17b937eb3418b7358c5", "news:c1a3ec785faf8c1d15e9", "news:9e838eea1b5facbcc0d3"], "source_type": "news", "status": "confirmed"}
+{"question": "서울 핫플 10곳 2만원 결제 시 7천원 할인 행사 기사 있어?", "relevant_ids": ["news:01a0b40f0fd3d4190200", "news:fc3eb923abd42403058b", "news:3be6493517b07232eebd"], "source_type": "news", "status": "confirmed"}
 {"question": "한강맨션 재건축 특별건축구역 변경안 재공람 기사 있어?", "relevant_ids": ["news:01a3befb9c922a470c16"], "source_type": "news", "status": "confirmed"}
-{"question": "2026 뷰티풀라이프 인 서울 DDP 행사 사진 기사 있어?", "relevant_ids": ["news:01a8b3926ef5074a0336"], "source_type": "news", "status": "confirmed"}
-{"question": "추석 앞두고 서울시가 전통시장 고금리 일수 단속한다는 기사 있어?", "relevant_ids": ["news:01aa57659c13cddb7f2f"], "source_type": "news", "status": "confirmed"}
-{"question": "올리브영 부산 남포 타운 900평 대형점 기사 있어?", "relevant_ids": ["news:01b6c8ef682f25281985"], "source_type": "news", "status": "confirmed"}
-{"question": "코웨이 롯데 노원점 백화점 체험매장으로 동북권 강화한다는 기사 있어?", "relevant_ids": ["news:01bd991fe211155304f6"], "source_type": "news", "status": "rejected"}
-{"question": "홈앤쇼핑 시장가자-GO 둔촌역전통시장 디지털 전환 지원 기사 있어?", "relevant_ids": ["news:01c0dc38be77e5fd266a"], "source_type": "news", "status": "rejected"}
-{"question": "이도에스테이트가 런던 라이트룸과 MOU 맺은 원엑스 전시관 기사 있어?", "relevant_ids": ["news:01ca6995636e85d8752e"], "source_type": "news", "status": "confirmed"}
-{"question": "시몬스 뷰티레스트 블랙 현대백화점 목동점 팝업 기사 있어?", "relevant_ids": ["news:01cd7f17ad642e48a8a3"], "source_type": "news", "status": "rejected"}
-{"question": "종로구 8년 연속 행정서비스 1위 기사 있어?", "relevant_ids": ["news:01d23f40f198328496d1"], "source_type": "news", "status": "confirmed"}
-{"question": "코웨이 롯데백화점 노원점 올해 10번째 직영매장 개점 기사 있어?", "relevant_ids": ["news:01f321c9dbe19b349e89"], "source_type": "news", "status": "rejected"}
+{"question": "2026 뷰티풀라이프 인 서울 DDP 행사 사진 기사 있어?", "relevant_ids": ["news:01a8b3926ef5074a0336", "news:566e48261bb7082faf16", "news:52a9a282b28dbd4ae740", "news:1ad2677da1f58e595040"], "source_type": "news", "status": "confirmed"}
+{"question": "추석 앞두고 서울시가 전통시장 고금리 일수 단속한다는 기사 있어?", "relevant_ids": ["news:01aa57659c13cddb7f2f", "news:fc915ca33de49be0b016", "news:d7e8576dd1e9e2be14ee", "news:b8251d863f3e4a8935f0", "news:d62e704de3d558735658", "news:6f9bf36bd0388785fe4e"], "source_type": "news", "status": "confirmed"}
+{"question": "올리브영 부산 남포 타운 900평 대형점 기사 있어?", "relevant_ids": ["news:01b6c8ef682f25281985", "news:9a1a238e4cf6d257e96f", "news:4d6c2d9d3347378a92db", "news:8e71e66652fdfeeeba4e", "news:3296aa515a5585a4e02e", "news:d23d158a9fd7914b6509", "news:0f6797bdd80cb919e9c0", "news:0becb90b8fae7f445467", "news:1612d6f380cb05edaa41", "news:939409a0412545f8595f", "news:d9aa0875dbf2eda7dd96", "news:03aa7abf2113a4b5b1f3", "news:61272dbe6e1826817092", "news:8476016231c73f250d20", "news:d383f963be7776c23fd5", "news:a3fd111deb68aafbaf59", "news:6d9526ff539838d691fe", "news:13a3c1cda8073b4162fb", "news:46a238dca96489c8128e", "news:31515ce1c56bbafdbe17", "news:6be1928eba721a42a2d5", "news:559828f0792a547128bd", "news:cff5f3b25607a8149276", "news:3d5f3c0e967574e4df06", "news:1607ca5a81a5b1c21113", "news:ad79ab4ce43bed9c4518", "news:8fb802f0e6a07357d70f", "news:107ced1de8c8361de96d", "news:e8c1bb0689c6eec1ca83", "news:8d14a41708b319d8c861", "news:f18555bf304c56bf2069", "news:2cb84049225d244ec7aa", "news:985d8300e0d13cb95c38", "news:ac839e5a414efbddeb3b", "news:c5782ec77743e38c1aa7", "news:868c0a64d9ae194fa238", "news:5accb153b3d5ba810b73", "news:25cfb71c02232ebb48ff", "news:462d32fcd5750d3e93bd", "news:944bc1686b8469acf6c8", "news:9c98abc151eb9ddaa4e1", "news:d6d014317ebf01cd9c16", "news:6be67f788b2429c5d668", "news:fa6567a1b1dd98aa3a89", "news:c0c3edb32ff1b6b4a53b", "news:bcd8ed53f12ed29b154b", "news:573223e48385f23a4aae", "news:3e3169510db599153cda", "news:a7f55d2e54bdf8198f53", "news:f74f9e88271d018174ba", "news:6642b5cb051aab7475bf", "news:093f04e250892352dd0a"], "source_type": "news", "status": "confirmed"}
+{"question": "코웨이 롯데 노원점 백화점 체험매장으로 동북권 강화한다는 기사 있어?", "relevant_ids": ["news:01bd991fe211155304f6", "news:01f321c9dbe19b349e89", "news:587e9e125ab16c36110c", "news:ae28eceb4243f8cd616c", "news:97071258188e49cff96c", "news:e4ddaa923a27a07f6738", "news:5e7beedc209b04a8a876", "news:5c43ca5ffd0148148d78", "news:3f731b31357059212e88", "news:d2369a625c7bcd8b7c80", "news:a34ce72c7d5712c28c4a", "news:8597c1476c39e0ab85a5", "news:0c482892ebb5c69de6d5", "news:a2a6ef0084f2a618d593", "news:155b0888879ef395edef", "news:1ccb9f6b43090d3ff1d7", "news:96ad3accd1a960433564"], "source_type": "news", "status": "confirmed"}
+{"question": "홈앤쇼핑 시장가자-GO 둔촌역전통시장 디지털 전환 지원 기사 있어?", "relevant_ids": ["news:01c0dc38be77e5fd266a", "news:ffdc03987c5de3bfd1bf", "news:61e5e1e73825e0938349", "news:93349dcb75365d970806", "news:62a6b3de1a60a5ad7970", "news:d49ab08e11d0dc5b5be1", "news:7d564eb3fb19a33d96ab", "news:d5d644944beccba984da", "news:bfc5f4d4eb854fe55283"], "source_type": "news", "status": "confirmed"}
+{"question": "이도에스테이트가 런던 라이트룸과 MOU 맺은 원엑스 전시관 기사 있어?", "relevant_ids": ["news:01ca6995636e85d8752e", "news:12243ce68afa7185b5d1", "news:8fedaf379b8d82fd69e4", "news:98a120414ca85a7cdf9e", "news:ec4147f8ddc304f7573f", "news:6a804d78c4a7e462be84", "news:6de181f6445de359edfd"], "source_type": "news", "status": "confirmed"}
+{"question": "시몬스 뷰티레스트 블랙 현대백화점 목동점 팝업 기사 있어?", "relevant_ids": ["news:01cd7f17ad642e48a8a3", "news:fc681c7c43fb0f88aed9", "news:ce2bf93e85b3087c3bfb", "news:5707195754fa42b3e3e6", "news:71f5d2540f05fc508fbe", "news:18f731beebac51a3a8cd", "news:902e771790d69f310c08", "news:cc8828b7d3283b1e822d", "news:0fd344f0533af35cb103", "news:1f486d935c7c863a14a0", "news:93668554ba9577787661", "news:68d403f88d5476857bb7", "news:f07d0690ad4a47cdf0e2", "news:92520262a8d484c9a280", "news:80d2dcf9a0d1e14a42ef", "news:7b8aefecea75772c693b", "news:b6e4b6e58af91e31a39d"], "source_type": "news", "status": "confirmed"}
+{"question": "종로구 8년 연속 행정서비스 1위 기사 있어?", "relevant_ids": ["news:01d23f40f198328496d1", "news:08a8cee81ae73c5cc2dd", "news:d6a4657251ad608570d4", "news:824610cdef6af7e9e740", "news:e40c92dffafe1d79373d", "news:b3e54e4696f7b797564c", "news:1462d9dddf2cfd66fe72", "news:bba65c25a8bd8ca66052", "news:5b76bc815fa5085629b7", "news:9fdcd50526fc3d790213"], "source_type": "news", "status": "confirmed"}
+{"question": "코웨이 롯데백화점 노원점 올해 10번째 직영매장 개점 기사 있어?", "relevant_ids": ["news:01f321c9dbe19b349e89", "news:01bd991fe211155304f6", "news:587e9e125ab16c36110c", "news:ae28eceb4243f8cd616c", "news:97071258188e49cff96c", "news:e4ddaa923a27a07f6738", "news:5e7beedc209b04a8a876", "news:5c43ca5ffd0148148d78", "news:3f731b31357059212e88", "news:d2369a625c7bcd8b7c80", "news:a34ce72c7d5712c28c4a", "news:8597c1476c39e0ab85a5", "news:0c482892ebb5c69de6d5", "news:a2a6ef0084f2a618d593", "news:155b0888879ef395edef", "news:1ccb9f6b43090d3ff1d7", "news:96ad3accd1a960433564"], "source_type": "news", "status": "confirmed"}
 {"question": "9월 22일 KB금융·하나은행·농협은행 금융권 소식 모음 기사 있어?", "relevant_ids": ["news:01fb130b8a1d48e818c8"], "source_type": "news", "status": "confirmed"}
-{"question": "도봉구 민선 9기 슬로건 도봉대전환 디자인 확정 기사 있어?", "relevant_ids": ["news:020e17ba8173868ce2d7"], "source_type": "news", "status": "rejected"}
+{"question": "도봉구 민선 9기 슬로건 도봉대전환 디자인 확정 기사 있어?", "relevant_ids": ["news:020e17ba8173868ce2d7", "news:913e21b39a734ef6dcdb", "news:c73ddf1567a309086d78", "news:494ce6639715bfcbb09a", "news:8f891dd1630621649f46", "news:2361c8ae9d496ea1f53d"], "source_type": "news", "status": "confirmed"}
 {"question": "대구 중앙로역을 동성로역으로 바꾸자는 시의원 발언 기사 있어?", "relevant_ids": ["news:0215323df8388fb00b8d"], "source_type": "news", "status": "confirmed"}
-{"question": "광진구 2026년 추석 종합대책 광진사랑상품권 100억 기사 있어?", "relevant_ids": ["news:0220a6035a52de48d00f"], "source_type": "news", "status": "confirmed"}
-{"question": "전재수 부산시장 첫 추경 6374억 동백전 캐시백 기사 있어?", "relevant_ids": ["news:0227acbeba3e2bc432f3"], "source_type": "news", "status": "confirmed"}
+{"question": "광진구 2026년 추석 종합대책 광진사랑상품권 100억 기사 있어?", "relevant_ids": ["news:0220a6035a52de48d00f", "news:d932a708001957c357ab", "news:a0d8b1d0a9dff958d9e0", "news:575715d3ea4c6f617a17", "news:6d43f4f52728ac97319c"], "source_type": "news", "status": "confirmed"}
+{"question": "전재수 부산시장 첫 추경 6374억 동백전 캐시백 기사 있어?", "relevant_ids": ["news:0227acbeba3e2bc432f3", "news:3ea532257bc16147e24d", "news:bcdb9077fcd531dcfc31", "news:107faa6864a7f75c2d23", "news:bc655143b3b8522a949b", "news:97318aeb64eea03d594a", "news:db5eb1e3f2aea0637949", "news:963ce561096a19c668c1"], "source_type": "news", "status": "confirmed"}
 {"question": "관악구 신원시장 바가지요금 없애겠다는 기사 있어?", "relevant_ids": ["news:0227eaa77c5afbcd11b8"], "source_type": "news", "status": "confirmed"}
 {"question": "삼성 서초사옥 18년 자산 144조에서 695조 기사 있어?", "relevant_ids": ["news:02296fc8b03b715e491a"], "source_type": "news", "status": "confirmed"}

@@ -1,7 +1,11 @@
-"""RAG 검색 품질 평가 하네스 — Recall@5·MRR (Driving Adapter, CLI).
+"""RAG 검색 품질 평가 하네스 — Hit@5·MRR (Driving Adapter, CLI).
 
 평가셋 jsonl 1행: {"question": str, "relevant_ids": ["funding:PBLN_..."], "source_type": str,
-"status": "candidate"|"confirmed"}.
+"status": "candidate"|"confirmed"|"rejected"}.
+
+relevant_ids는 "이 중 아무거나 맞으면 정답"인 동치 집합이다 — 뉴스는 같은 보도자료를 받은 기사가 3~50건이라
+(2026-09-24 실측) 사건 단위 다중 정답으로 둔다. 그래서 지표는 Recall(정답 중 몇 개를 찾았나)이 아니라
+Hit@k(정답 중 하나라도 top-k에 있나)다. 단일 정답 행에선 둘이 같아 이전 수치와 비교 가능하다.
 
 status=confirmed만 본지표로 집계한다 — candidate는 gemma3가 자동 생성한 미검수 질문이라
 품질이 보증되지 않으므로, 전체(confirmed+candidate) 수치는 "(참고)" 라벨로만 표시한다.
@@ -27,12 +31,9 @@ _REPO_ROOT = Path(__file__).resolve().parents[6]
 _TOP_K = 5
 
 
-def recall_at_k(relevant: set[str], ranked: list[str], k: int = 5) -> float:
-    """상위 k개 랭킹 안에 relevant가 얼마나 포함됐는지 비율. relevant가 비면 0.0."""
-    if not relevant:
-        return 0.0
-    hit = len(set(ranked[:k]) & relevant)
-    return hit / len(relevant)
+def hit_at_k(relevant: set[str], ranked: list[str], k: int = 5) -> float:
+    """상위 k개 안에 relevant(동치 집합) 중 하나라도 있으면 1.0, 없으면 0.0. relevant가 비면 0.0."""
+    return 1.0 if set(ranked[:k]) & relevant else 0.0
 
 
 def mrr(relevant: set[str], ranked: list[str]) -> float:
@@ -70,7 +71,7 @@ def _evaluate_rows(rows: list[dict], search_use_case) -> list[dict]:
             {
                 "question": row["question"],
                 "status": row["status"],
-                "recall_at_5": recall_at_k(relevant, ranked, _TOP_K),
+                "hit_at_5": hit_at_k(relevant, ranked, _TOP_K),
                 "mrr": mrr(relevant, ranked),
             }
         )
@@ -96,9 +97,9 @@ def main() -> None:
     per_row = _evaluate_rows(rows, search_use_case)
 
     confirmed = [r for r in per_row if r["status"] == "confirmed"]
-    confirmed_recall = _mean([r["recall_at_5"] for r in confirmed])
+    confirmed_hit = _mean([r["hit_at_5"] for r in confirmed])
     confirmed_mrr = _mean([r["mrr"] for r in confirmed])
-    reference_recall = _mean([r["recall_at_5"] for r in per_row])
+    reference_hit = _mean([r["hit_at_5"] for r in per_row])
     reference_mrr = _mean([r["mrr"] for r in per_row])
 
     print(
@@ -109,14 +110,14 @@ def main() -> None:
     if confirmed:
         print(
             f"[본지표] confirmed {len(confirmed)}건 — "
-            f"Recall@5: {confirmed_recall:.3f}, MRR: {confirmed_mrr:.3f}",
+            f"Hit@5: {confirmed_hit:.3f}, MRR: {confirmed_mrr:.3f}",
             flush=True,
         )
     else:
         print("[본지표] confirmed 0건 — 평가 불가 (사용자 검수 후 승격 대기)", flush=True)
     print(
         f"(참고) 전체(confirmed+candidate) {len(per_row)}건 — "
-        f"Recall@5: {reference_recall:.3f}, MRR: {reference_mrr:.3f}",
+        f"Hit@5: {reference_hit:.3f}, MRR: {reference_mrr:.3f}",
         flush=True,
     )
 
@@ -134,10 +135,10 @@ def main() -> None:
                 "confirmed_count": len(confirmed),
                 "candidate_count": len(rows) - len(confirmed),
                 "confirmed_metrics": (
-                    {"recall_at_5": confirmed_recall, "mrr": confirmed_mrr} if confirmed else None
+                    {"hit_at_5": confirmed_hit, "mrr": confirmed_mrr} if confirmed else None
                 ),
                 "reference_metrics_all_rows": {
-                    "recall_at_5": reference_recall,
+                    "hit_at_5": reference_hit,
                     "mrr": reference_mrr,
                 },
                 "per_row": per_row,
