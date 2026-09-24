@@ -48,153 +48,153 @@
 {"question": "경북 소재 기술력이 우수한 중소기업 대상 자금 지원 정책은 무엇인가?", "relevant_ids": ["funding:PBLN_000000000117158"], "source_type": "funding", "status": "confirmed"}
 {"question": "경상북도 소재 중소기업을 위한 창업 자금 지원 정책은 무엇인가요?", "relevant_ids": ["funding:PBLN_000000000117162"], "source_type": "funding", "status": "confirmed"}
 {"question": "포천시 가구 제조 소공인을 위한 지원 사업은 어디서 정보를 얻을 수 있나요?", "relevant_ids": ["funding:PBLN_000000000117167"], "source_type": "funding", "status": "confirmed"}
-{"question": "대구 소상공인인데 출산하면 양육비 250만원 지원받을 수 있나요?", "relevant_ids": ["funding:PBLN_000000000117168"], "source_type": "funding", "status": "candidate"}
-{"question": "성남시 중소기업 운전자금 특례보증 한도가 업체당 얼마예요?", "relevant_ids": ["funding:PBLN_000000000117177"], "source_type": "funding", "status": "candidate"}
-{"question": "성남시 중소기업육성자금 운전자금 대출 이자 지원 받으려면 어떻게 하나요?", "relevant_ids": ["funding:PBLN_000000000117188"], "source_type": "funding", "status": "candidate"}
-{"question": "부산 음식점 위생시설 개선자금 식품진흥기금 융자 받을 수 있나요?", "relevant_ids": ["funding:PBLN_000000000117191"], "source_type": "funding", "status": "candidate"}
-{"question": "경북 중소기업 운전자금 이차보전에 관세대응 긴급경영안정자금도 포함되나요?", "relevant_ids": ["funding:PBLN_000000000117214"], "source_type": "funding", "status": "candidate"}
-{"question": "대전 만39세 이하 청년 소상공인 경영위기극복 특례보증 이자 지원 조건이 뭐예요?", "relevant_ids": ["funding:PBLN_000000000117221"], "source_type": "funding", "status": "candidate"}
-{"question": "대전시 소상공인 초저금리 특별자금 1차 협약은행이 어디예요?", "relevant_ids": ["funding:PBLN_000000000117223"], "source_type": "funding", "status": "candidate"}
-{"question": "충남 식품업소 시설개선자금 연 1% 융자 어떻게 신청하나요?", "relevant_ids": ["funding:PBLN_000000000117232"], "source_type": "funding", "status": "candidate"}
-{"question": "전남 수출기업 샘플 소량수출 EMS 국제특송비 50% 지원 있나요?", "relevant_ids": ["funding:PBLN_000000000117240"], "source_type": "funding", "status": "candidate"}
-{"question": "창원시 중소기업 육성자금 이차보전 2.5% 지원 신청 방법은?", "relevant_ids": ["funding:PBLN_000000000117254"], "source_type": "funding", "status": "candidate"}
-{"question": "김해시 공장등록 제조업체 상반기 중소기업육성자금 이차보전 있나요?", "relevant_ids": ["funding:PBLN_000000000117258"], "source_type": "funding", "status": "candidate"}
-{"question": "진주시에서 GAP 인증 수수료 지원해주나요?", "relevant_ids": ["funding:PBLN_000000000117268"], "source_type": "funding", "status": "candidate"}
-{"question": "진주시 GAP 안전성 분석 검사비 지원은 어떻게 신청하나요?", "relevant_ids": ["funding:PBLN_000000000117269"], "source_type": "funding", "status": "candidate"}
-{"question": "김해시 사회적경제기업 저금리 대출 기업당 최대 2억 지원 있나요?", "relevant_ids": ["funding:PBLN_000000000117276"], "source_type": "funding", "status": "candidate"}
-{"question": "하동군에서 처음 창업한 소상공인 임대료·배달료 지원 있나요?", "relevant_ids": ["funding:PBLN_000000000117277"], "source_type": "funding", "status": "candidate"}
-{"question": "산청군 인구감소지역 기업 특례보증 2% 이차보전 받을 수 있나요?", "relevant_ids": ["funding:PBLN_000000000117278"], "source_type": "funding", "status": "candidate"}
-{"question": "거제시 저신용 소상공인 대출 이자 3% 지원 사업 있나요?", "relevant_ids": ["funding:PBLN_000000000117283"], "source_type": "funding", "status": "candidate"}
-{"question": "하동군 소상공인 건강검진비 20만원 지원 신청하려면?", "relevant_ids": ["funding:PBLN_000000000117287"], "source_type": "funding", "status": "candidate"}
-{"question": "국가식품클러스터 시험분석 장비 공동활용 지원 어떻게 받나요?", "relevant_ids": ["funding:PBLN_000000000117291"], "source_type": "funding", "status": "candidate"}
-{"question": "창녕군 제조 중소기업 국내 전시회 부스 임차비 지원 있나요?", "relevant_ids": ["funding:PBLN_000000000117294"], "source_type": "funding", "status": "candidate"}
-{"question": "직무발명제도 도입하려는데 무료 컨설팅 받을 수 있나요?", "relevant_ids": ["funding:PBLN_000000000117297"], "source_type": "funding", "status": "candidate"}
-{"question": "창녕군 공장등록 중소기업 육성자금 3% 이차보전 신청 방법은?", "relevant_ids": ["funding:PBLN_000000000117298"], "source_type": "funding", "status": "candidate"}
-{"question": "거제 조선 협력사 육성자금 상환유예·이차보전 연장 신청 가능한가요?", "relevant_ids": ["funding:PBLN_000000000117303"], "source_type": "funding", "status": "candidate"}
-{"question": "양산시 제조업체가 40~64세 신중년 정규직 채용하면 지원금 있나요?", "relevant_ids": ["funding:PBLN_000000000117306"], "source_type": "funding", "status": "candidate"}
-{"question": "인천 가상융합 콘텐츠 제작 장비 무상 임차 지원 있나요?", "relevant_ids": ["funding:PBLN_000000000117307"], "source_type": "funding", "status": "candidate"}
-{"question": "함안군 소상공인 경남신보 보증 대출 이자 지원 받을 수 있나요?", "relevant_ids": ["funding:PBLN_000000000117309"], "source_type": "funding", "status": "candidate"}
-{"question": "의성군 중소기업 운전자금 이차보전 4% 지원 신청은?", "relevant_ids": ["funding:PBLN_000000000117316"], "source_type": "funding", "status": "candidate"}
-{"question": "의성군 중소기업이 신규채용 6개월 유지하면 1인당 200만원 보조금 있나요?", "relevant_ids": ["funding:PBLN_000000000117319"], "source_type": "funding", "status": "candidate"}
-{"question": "문경시 중소기업 운전자금 융자 최대 3억 이차보전 있나요?", "relevant_ids": ["funding:PBLN_000000000117324"], "source_type": "funding", "status": "candidate"}
-{"question": "우리 회사 직무발명제도 규정이 제대로 도입됐는지 확인서 받을 수 있나요?", "relevant_ids": ["funding:PBLN_000000000117330"], "source_type": "funding", "status": "candidate"}
-{"question": "청송군 거주 지역인재 정규직 채용하면 임금 50% 지원해주나요?", "relevant_ids": ["funding:PBLN_000000000117331"], "source_type": "funding", "status": "candidate"}
-{"question": "청송군 단체관광객 유치하면 여행사 인센티브 있나요?", "relevant_ids": ["funding:PBLN_000000000117332"], "source_type": "funding", "status": "candidate"}
-{"question": "청도군 단체관광객 유치 여행사 인센티브 신청 방법은?", "relevant_ids": ["funding:PBLN_000000000117334"], "source_type": "funding", "status": "candidate"}
-{"question": "고령군 국내외 단체관광객 유치 여행사 인센티브 있나요?", "relevant_ids": ["funding:PBLN_000000000117336"], "source_type": "funding", "status": "candidate"}
-{"question": "여수시 중소기업발전자금 이차보전 3% 기업은행 동행협약이 뭔가요?", "relevant_ids": ["funding:PBLN_000000000117337"], "source_type": "funding", "status": "candidate"}
-{"question": "칠곡군 설 대비 중소기업 운전자금 이차보전 신청하려면?", "relevant_ids": ["funding:PBLN_000000000117340"], "source_type": "funding", "status": "candidate"}
-{"question": "울진군 단체관광 1박 1인당 1만원 여행사 인센티브 조건이 뭐예요?", "relevant_ids": ["funding:PBLN_000000000117343"], "source_type": "funding", "status": "candidate"}
-{"question": "장성군 단체관광객 당일 5천원, 1박 1만5천원 여행사 인센티브 있나요?", "relevant_ids": ["funding:PBLN_000000000117350"], "source_type": "funding", "status": "candidate"}
-{"question": "전북 중소기업 육성자금 융자 3,300억 지원계획 어떻게 신청하나요?", "relevant_ids": ["funding:PBLN_000000000117356"], "source_type": "funding", "status": "candidate"}
-{"question": "김포금빛몰에 김포 중소기업 제품 입점하려면 어떻게 하나요?", "relevant_ids": ["funding:PBLN_000000000117358"], "source_type": "funding", "status": "candidate"}
-{"question": "직무발명보상 우수기업 인증 받으면 어떤 혜택이 있나요?", "relevant_ids": ["funding:PBLN_000000000117363"], "source_type": "funding", "status": "candidate"}
-{"question": "강진군 창업 소상공인 월세 20만원 임대료 지원 있나요?", "relevant_ids": ["funding:PBLN_000000000117365"], "source_type": "funding", "status": "candidate"}
-{"question": "강진군 밀키트 업소 진공포장기·급냉기 구입비 지원 있나요?", "relevant_ids": ["funding:PBLN_000000000117367"], "source_type": "funding", "status": "candidate"}
-{"question": "강진군 밀키트 업소 포장재 구입비 지원 신청 어떻게 하나요?", "relevant_ids": ["funding:PBLN_000000000117368"], "source_type": "funding", "status": "candidate"}
-{"question": "광주 AI 집적단지 유치기업 입지·설비 보조금 최대 3.5억 지원 조건은?", "relevant_ids": ["funding:PBLN_000000000117371"], "source_type": "funding", "status": "candidate"}
-{"question": "부산에서 가명정보 처리·결합 컨설팅 받을 수 있는 곳 있나요?", "relevant_ids": ["funding:PBLN_000000000117433"], "source_type": "funding", "status": "candidate"}
-{"question": "강원 글로벌 IP스타기업 해외 특허 중간사건(OA) 비용 지원 있나요?", "relevant_ids": ["funding:PBLN_000000000117454"], "source_type": "funding", "status": "candidate"}
-{"question": "강원 글로벌 IP스타기업 해외 특허 등록비용 지원 신청은?", "relevant_ids": ["funding:PBLN_000000000117463"], "source_type": "funding", "status": "candidate"}
-{"question": "군산 기항 국제선 이용 관광객 유치 여행사 인센티브 있나요?", "relevant_ids": ["funding:PBLN_000000000117474"], "source_type": "funding", "status": "candidate"}
-{"question": "전북 제조기업 해외규격인증 획득 비용 최대 1천만원 지원 있나요?", "relevant_ids": ["funding:PBLN_000000000117480"], "source_type": "funding", "status": "candidate"}
-{"question": "전북 바이오·식품기업 재직자 무료 교육 훈련생 모집 있나요?", "relevant_ids": ["funding:PBLN_000000000117481"], "source_type": "funding", "status": "candidate"}
-{"question": "남원시 제조업 중소기업 육성기금 이차보전 4% 신청 방법은?", "relevant_ids": ["funding:PBLN_000000000117490"], "source_type": "funding", "status": "candidate"}
-{"question": "완주군 관광객 유치 여행사 인센티브 지원 있나요?", "relevant_ids": ["funding:PBLN_000000000117491"], "source_type": "funding", "status": "candidate"}
-{"question": "무주군 소상공인 특례보증 3천만원 대출 이차보전 5% 받을 수 있나요?", "relevant_ids": ["funding:PBLN_000000000117495"], "source_type": "funding", "status": "candidate"}
-{"question": "공주시 소상공인 5천만원 100% 전액보증 특례보증 조건은?", "relevant_ids": ["funding:PBLN_000000000117498"], "source_type": "funding", "status": "candidate"}
-{"question": "부천시 중소기업 우체국 EMS 수출물류비 80% 지원 있나요?", "relevant_ids": ["funding:PBLN_000000000117502"], "source_type": "funding", "status": "candidate"}
-{"question": "남원시 단체관광객 유치 여행사 인센티브 신청하려면?", "relevant_ids": ["funding:PBLN_000000000117505"], "source_type": "funding", "status": "candidate"}
-{"question": "진안군 소상공인 경영운전자금 최대 1억 대출 지원 있나요?", "relevant_ids": ["funding:PBLN_000000000117510"], "source_type": "funding", "status": "candidate"}
-{"question": "진안군 소상공인 점포 환경개선 최대 600만원 지원 조건은?", "relevant_ids": ["funding:PBLN_000000000117511"], "source_type": "funding", "status": "candidate"}
-{"question": "보령시 제조업체 국내외 박람회 부스비 70% 지원 있나요?", "relevant_ids": ["funding:PBLN_000000000117518"], "source_type": "funding", "status": "candidate"}
-{"question": "공주시 단체관광 여행사 인센티브 사전계획서는 언제까지 내나요?", "relevant_ids": ["funding:PBLN_000000000117523"], "source_type": "funding", "status": "candidate"}
-{"question": "금산군 수출 농산물 저온유통비 지원 사업 있나요?", "relevant_ids": ["funding:PBLN_000000000117525"], "source_type": "funding", "status": "candidate"}
-{"question": "경남 소상공인 정책자금 전체 운용계획을 한눈에 볼 수 있는 공고 있나요?", "relevant_ids": ["funding:PBLN_000000000117526"], "source_type": "funding", "status": "candidate"}
-{"question": "서울시 사회적경제기업 연 1.75% 융자 최대 4억 지원 있나요?", "relevant_ids": ["funding:PBLN_000000000117528"], "source_type": "funding", "status": "candidate"}
-{"question": "태안군 소상공인 특례보증 5천만원 신청하려면?", "relevant_ids": ["funding:PBLN_000000000117534"], "source_type": "funding", "status": "candidate"}
-{"question": "청주시 중소기업 경영안정자금 8억 한도 이차보전 신청은?", "relevant_ids": ["funding:PBLN_000000000117535"], "source_type": "funding", "status": "candidate"}
-{"question": "전북 통상닥터 참여기업 해외 바이어 발굴·포장 개선 지원 있나요?", "relevant_ids": ["funding:PBLN_000000000117540"], "source_type": "funding", "status": "candidate"}
-{"question": "미국 관세정책 대응 전문가 심층컨설팅 지원 신청 어떻게 하나요?", "relevant_ids": ["funding:PBLN_000000000117546"], "source_type": "funding", "status": "candidate"}
-{"question": "중진공 동반성장 네트워크론 발주기업 추천 수주기업 자금이 뭔가요?", "relevant_ids": ["funding:PBLN_000000000117549"], "source_type": "funding", "status": "candidate"}
-{"question": "괴산군 중소기업 농협 대출 3년간 이자 3% 지원 있나요?", "relevant_ids": ["funding:PBLN_000000000117554"], "source_type": "funding", "status": "candidate"}
-{"question": "충주시 이노비즈·벤처 인증 수수료 90% 지원 신청은?", "relevant_ids": ["funding:PBLN_000000000117557"], "source_type": "funding", "status": "candidate"}
-{"question": "진주시 수출 제조업체 해상·항공 물류비 지원 있나요?", "relevant_ids": ["funding:PBLN_000000000117561"], "source_type": "funding", "status": "candidate"}
-{"question": "중소기업 매출채권팩토링 연간 한도 10억 지원 어떻게 받나요?", "relevant_ids": ["funding:PBLN_000000000117563"], "source_type": "funding", "status": "candidate"}
-{"question": "충북 소상공인·농가 청년 여성 인건비 50% 지원 사업 있나요?", "relevant_ids": ["funding:PBLN_000000000117568"], "source_type": "funding", "status": "candidate"}
-{"question": "전주시 숙박관광객 유치 여행사 인센티브 조건은?", "relevant_ids": ["funding:PBLN_000000000117569"], "source_type": "funding", "status": "candidate"}
-{"question": "괴산군 열차관광 대당 45만원 인센티브 여행사 지원 있나요?", "relevant_ids": ["funding:PBLN_000000000117575"], "source_type": "funding", "status": "candidate"}
-{"question": "괴산군 KCB 700점 이하 저신용 소상공인 대출이자 지원 있나요?", "relevant_ids": ["funding:PBLN_000000000117576"], "source_type": "funding", "status": "candidate"}
-{"question": "단양군 소상공인 융자금 최대 7천만원 이차보전 신청은?", "relevant_ids": ["funding:PBLN_000000000117579"], "source_type": "funding", "status": "candidate"}
-{"question": "춘천시 제조·IT 중소기업 신용보증수수료 최대 250만원 지원 있나요?", "relevant_ids": ["funding:PBLN_000000000117582"], "source_type": "funding", "status": "candidate"}
-{"question": "춘천 창업 7년 이내 기업 최대 10억 동행지원 이자 2% 지원 있나요?", "relevant_ids": ["funding:PBLN_000000000117583"], "source_type": "funding", "status": "candidate"}
-{"question": "춘천시 중소기업 1억·소상공인 5천만원 특례보증 신청 방법은?", "relevant_ids": ["funding:PBLN_000000000117588"], "source_type": "funding", "status": "candidate"}
-{"question": "태백시 소상공인 특례보증 5천만원과 이차보전 3.5% 지원 있나요?", "relevant_ids": ["funding:PBLN_000000000117597"], "source_type": "funding", "status": "candidate"}
-{"question": "미국 관세 문제로 현지 변호사·관세사 1:1 온라인 상담 받을 수 있나요?", "relevant_ids": ["funding:PBLN_000000000117599"], "source_type": "funding", "status": "candidate"}
-{"question": "태백시 중소기업 시설자금 제조업 8억 융자 지원 있나요?", "relevant_ids": ["funding:PBLN_000000000117600"], "source_type": "funding", "status": "candidate"}
-{"question": "전북 중소기업 연 6회 전문가 컨설팅 상시 신청은 어디서 하나요?", "relevant_ids": ["funding:PBLN_000000000117601"], "source_type": "funding", "status": "candidate"}
-{"question": "춘천시 중소기업육성자금 '땡겨요' 이차보전이 뭔가요?", "relevant_ids": ["funding:PBLN_000000000117602"], "source_type": "funding", "status": "candidate"}
-{"question": "원주시 창업 7년 이내 기업 운전자금 3억 동행지원 있나요?", "relevant_ids": ["funding:PBLN_000000000117603"], "source_type": "funding", "status": "candidate"}
-{"question": "강릉시 단체관광객 유치 여행 1건당 최대 300만원 인센티브 있나요?", "relevant_ids": ["funding:PBLN_000000000117606"], "source_type": "funding", "status": "candidate"}
-{"question": "인천 제조업 NH농협 협업 특별경영안정자금 1.8% 이자지원 있나요?", "relevant_ids": ["funding:PBLN_000000000117611"], "source_type": "funding", "status": "candidate"}
-{"question": "삼척시 단체관광객 유치 여행사 인센티브 신청하려면?", "relevant_ids": ["funding:PBLN_000000000117620"], "source_type": "funding", "status": "candidate"}
-{"question": "속초시 특례보증 대출 보증수수료 0.8% 2년분 지원 받을 수 있나요?", "relevant_ids": ["funding:PBLN_000000000117621"], "source_type": "funding", "status": "candidate"}
-{"question": "속초시 소상공인 특례보증 7천만원 한도 신청 방법은?", "relevant_ids": ["funding:PBLN_000000000117624"], "source_type": "funding", "status": "candidate"}
-{"question": "속초시 중소기업 이차보전 2.5%에 설악동 우대 지원 있나요?", "relevant_ids": ["funding:PBLN_000000000117626"], "source_type": "funding", "status": "candidate"}
-{"question": "횡성군 인구감소지역 중소기업 특례보증 운전자금 2억 있나요?", "relevant_ids": ["funding:PBLN_000000000117630"], "source_type": "funding", "status": "candidate"}
-{"question": "평창군 개인사업자 운전자금 이차보전 지원 신청은?", "relevant_ids": ["funding:PBLN_000000000117632"], "source_type": "funding", "status": "candidate"}
-{"question": "횡성군 중소기업 대출이자 최대 4% 지원 사업 있나요?", "relevant_ids": ["funding:PBLN_000000000117634"], "source_type": "funding", "status": "candidate"}
-{"question": "예산군에서 드라마 촬영하면 소비금액 50% 환급 지원 있나요?", "relevant_ids": ["funding:PBLN_000000000117643"], "source_type": "funding", "status": "candidate"}
-{"question": "화천군 음식점·숙박업 소상공인 운전자금 5천만원 융자 지원 있나요?", "relevant_ids": ["funding:PBLN_000000000117644"], "source_type": "funding", "status": "candidate"}
-{"question": "철원군민 사업자 융자금 3% 이자지원 최대 1억 신청은?", "relevant_ids": ["funding:PBLN_000000000117646"], "source_type": "funding", "status": "candidate"}
-{"question": "화천군 10인 이상 단체관광객 유치 인센티브 신청하려면?", "relevant_ids": ["funding:PBLN_000000000117648"], "source_type": "funding", "status": "candidate"}
-{"question": "양구군 단체관광객·수학여행단 유치 인센티브 있나요?", "relevant_ids": ["funding:PBLN_000000000117650"], "source_type": "funding", "status": "candidate"}
-{"question": "강원 벤처펀드 투자유치 IR·1:1 상담 지원 프로그램 있나요?", "relevant_ids": ["funding:PBLN_000000000117654"], "source_type": "funding", "status": "candidate"}
-{"question": "양양군 중소기업·소상공인 운전자금·시설자금 융자 지원 있나요?", "relevant_ids": ["funding:PBLN_000000000117656"], "source_type": "funding", "status": "candidate"}
-{"question": "제주 수출기업 수출보험료·수입자 신용조사 수수료 지원 있나요?", "relevant_ids": ["funding:PBLN_000000000117664"], "source_type": "funding", "status": "candidate"}
-{"question": "경력단절여성 인턴 채용하면 기업지원금 400만원 받을 수 있나요?", "relevant_ids": ["funding:PBLN_000000000117666"], "source_type": "funding", "status": "candidate"}
-{"question": "인천 중소기업 기술이전·기술수요조사 신청은 어디서 하나요?", "relevant_ids": ["funding:PBLN_000000000117668"], "source_type": "funding", "status": "candidate"}
-{"question": "인천 서구 제조기업 제품인증 수수료·시험비 지원 있나요?", "relevant_ids": ["funding:PBLN_000000000117671"], "source_type": "funding", "status": "candidate"}
-{"question": "폐업 예정 소상공인 취업교육·전직장려수당 100만원 지원 있나요?", "relevant_ids": ["funding:PBLN_000000000117673"], "source_type": "funding", "status": "candidate"}
-{"question": "소상공인 폐업할 때 점포 철거비·사업정리 컨설팅 지원 있나요?", "relevant_ids": ["funding:PBLN_000000000117676"], "source_type": "funding", "status": "candidate"}
-{"question": "전북 글로벌 IP스타기업 해외 특허 중간사건 대응 비용 지원 있나요?", "relevant_ids": ["funding:PBLN_000000000117679"], "source_type": "funding", "status": "candidate"}
-{"question": "DB아이앤씨 상사부문 새 사장 취임 소식 있어?", "relevant_ids": ["news:000e7d24d5f80785b861"], "source_type": "news", "status": "candidate"}
-{"question": "오세훈 시장이 추석 앞두고 남성사계시장 물가 점검한 기사 있어?", "relevant_ids": ["news:0058678cdf9012b3e4ce"], "source_type": "news", "status": "candidate"}
-{"question": "써밋 클라비온 등 이번 주 분양 단지 정리한 분양캘린더 기사 있어?", "relevant_ids": ["news:006ed9f09b99b42b9ed0"], "source_type": "news", "status": "candidate"}
-{"question": "한국공항공사 공항 혁신 아이디어 공모전 시상식 기사 있어?", "relevant_ids": ["news:0073fc1b4d6ebfd43b89"], "source_type": "news", "status": "candidate"}
-{"question": "신중앙시장이 힙당동 상권 덕에 다시 뜬다는 기사 찾아줘", "relevant_ids": ["news:0074b543cf8ba2956abc"], "source_type": "news", "status": "candidate"}
-{"question": "꼬마김밥 가격 올랐다는 분식점 물가 기사 있어?", "relevant_ids": ["news:0089fc04529e2044400b"], "source_type": "news", "status": "candidate"}
-{"question": "리테일 바이블 2030 책 소개 기사 있어?", "relevant_ids": ["news:00938a09d9a79e5116d2"], "source_type": "news", "status": "candidate"}
-{"question": "8월 28일 부산 중구 소식 모음 기사 있어?", "relevant_ids": ["news:0099e914bcad8d9c3821"], "source_type": "news", "status": "candidate"}
-{"question": "강북구 1조908억 추경에 골목상권 사업 들어갔다는 기사 있어?", "relevant_ids": ["news:009fe0bd690c145d10f1"], "source_type": "news", "status": "candidate"}
-{"question": "위례과천선 안양 연장 국가철도망 반영 추진 기사 있어?", "relevant_ids": ["news:00be88cc8e2319d703b6"], "source_type": "news", "status": "candidate"}
-{"question": "삼성물산 앙개 더현대 서울 첫 백화점 팝업 기사 있어?", "relevant_ids": ["news:00e0484a9be4b05109c5"], "source_type": "news", "status": "candidate"}
-{"question": "신중앙시장 디자인혁신 전통시장 착공, 16개 골목 연결 기사 있어?", "relevant_ids": ["news:00e279765cc61d3647a4"], "source_type": "news", "status": "candidate"}
-{"question": "서장훈 양재역 빌딩 450억 매물 기사 있어?", "relevant_ids": ["news:01039ffd9d76512fbba4"], "source_type": "news", "status": "candidate"}
-{"question": "신도시에서 원도심으로 회귀하는 주택 수요 기사 있어?", "relevant_ids": ["news:012948465dac27c62018"], "source_type": "news", "status": "candidate"}
-{"question": "에이스침대 롯데백화점 본점 매장 새단장 소식 있어?", "relevant_ids": ["news:01555d385d838d61a621"], "source_type": "news", "status": "candidate"}
-{"question": "엑소디움 대우 상도역 민간임대 계약 기사 있어?", "relevant_ids": ["news:01564f4c9ffbb915c15f"], "source_type": "news", "status": "candidate"}
-{"question": "제주 로컬브랜드가 성수동 상상플래닛에서 행사한 기사 있어?", "relevant_ids": ["news:01678cfdc04673e8d381"], "source_type": "news", "status": "candidate"}
-{"question": "영등포사랑상품권 추석 90억 발행 5% 할인 기사 있어?", "relevant_ids": ["news:016d79b5dc16ead4fd51"], "source_type": "news", "status": "candidate"}
-{"question": "박성민 의원 추석 앞두고 울산 전통시장 방문 기사 있어?", "relevant_ids": ["news:017638b70ab5742e3e19"], "source_type": "news", "status": "candidate"}
-{"question": "무신사 뷰티 홍대 매장에 약국 들어갔다는 기사 있어?", "relevant_ids": ["news:018362a14443dff780bd"], "source_type": "news", "status": "candidate"}
-{"question": "헬리녹스 웨어 도산공원 첫 플래그십 오픈 기사 있어?", "relevant_ids": ["news:01980219a28034b8932f"], "source_type": "news", "status": "candidate"}
-{"question": "서문시장 4지구 재건축 연내 착공 기사 있어?", "relevant_ids": ["news:0198642f860390e808c9"], "source_type": "news", "status": "candidate"}
-{"question": "서울 핫플 10곳 2만원 결제 시 7천원 할인 행사 기사 있어?", "relevant_ids": ["news:01a0b40f0fd3d4190200"], "source_type": "news", "status": "candidate"}
-{"question": "한강맨션 재건축 특별건축구역 변경안 재공람 기사 있어?", "relevant_ids": ["news:01a3befb9c922a470c16"], "source_type": "news", "status": "candidate"}
-{"question": "2026 뷰티풀라이프 인 서울 DDP 행사 사진 기사 있어?", "relevant_ids": ["news:01a8b3926ef5074a0336"], "source_type": "news", "status": "candidate"}
-{"question": "추석 앞두고 서울시가 전통시장 고금리 일수 단속한다는 기사 있어?", "relevant_ids": ["news:01aa57659c13cddb7f2f"], "source_type": "news", "status": "candidate"}
-{"question": "올리브영 부산 남포 타운 900평 대형점 기사 있어?", "relevant_ids": ["news:01b6c8ef682f25281985"], "source_type": "news", "status": "candidate"}
-{"question": "코웨이 롯데 노원점 백화점 체험매장으로 동북권 강화한다는 기사 있어?", "relevant_ids": ["news:01bd991fe211155304f6"], "source_type": "news", "status": "candidate"}
-{"question": "홈앤쇼핑 시장가자-GO 둔촌역전통시장 디지털 전환 지원 기사 있어?", "relevant_ids": ["news:01c0dc38be77e5fd266a"], "source_type": "news", "status": "candidate"}
-{"question": "이도에스테이트가 런던 라이트룸과 MOU 맺은 원엑스 전시관 기사 있어?", "relevant_ids": ["news:01ca6995636e85d8752e"], "source_type": "news", "status": "candidate"}
-{"question": "시몬스 뷰티레스트 블랙 현대백화점 목동점 팝업 기사 있어?", "relevant_ids": ["news:01cd7f17ad642e48a8a3"], "source_type": "news", "status": "candidate"}
-{"question": "종로구 8년 연속 행정서비스 1위 기사 있어?", "relevant_ids": ["news:01d23f40f198328496d1"], "source_type": "news", "status": "candidate"}
-{"question": "코웨이 롯데백화점 노원점 올해 10번째 직영매장 개점 기사 있어?", "relevant_ids": ["news:01f321c9dbe19b349e89"], "source_type": "news", "status": "candidate"}
-{"question": "9월 22일 KB금융·하나은행·농협은행 금융권 소식 모음 기사 있어?", "relevant_ids": ["news:01fb130b8a1d48e818c8"], "source_type": "news", "status": "candidate"}
-{"question": "도봉구 민선 9기 슬로건 도봉대전환 디자인 확정 기사 있어?", "relevant_ids": ["news:020e17ba8173868ce2d7"], "source_type": "news", "status": "candidate"}
-{"question": "대구 중앙로역을 동성로역으로 바꾸자는 시의원 발언 기사 있어?", "relevant_ids": ["news:0215323df8388fb00b8d"], "source_type": "news", "status": "candidate"}
-{"question": "광진구 2026년 추석 종합대책 광진사랑상품권 100억 기사 있어?", "relevant_ids": ["news:0220a6035a52de48d00f"], "source_type": "news", "status": "candidate"}
-{"question": "전재수 부산시장 첫 추경 6374억 동백전 캐시백 기사 있어?", "relevant_ids": ["news:0227acbeba3e2bc432f3"], "source_type": "news", "status": "candidate"}
-{"question": "관악구 신원시장 바가지요금 없애겠다는 기사 있어?", "relevant_ids": ["news:0227eaa77c5afbcd11b8"], "source_type": "news", "status": "candidate"}
-{"question": "삼성 서초사옥 18년 자산 144조에서 695조 기사 있어?", "relevant_ids": ["news:02296fc8b03b715e491a"], "source_type": "news", "status": "candidate"}
+{"question": "대구 소상공인인데 출산하면 양육비 250만원 지원받을 수 있나요?", "relevant_ids": ["funding:PBLN_000000000117168"], "source_type": "funding", "status": "confirmed"}
+{"question": "성남시 중소기업 운전자금 특례보증 한도가 업체당 얼마예요?", "relevant_ids": ["funding:PBLN_000000000117177"], "source_type": "funding", "status": "confirmed"}
+{"question": "성남시 중소기업육성자금 운전자금 대출 이자 지원 받으려면 어떻게 하나요?", "relevant_ids": ["funding:PBLN_000000000117188"], "source_type": "funding", "status": "confirmed"}
+{"question": "부산 음식점 위생시설 개선자금 식품진흥기금 융자 받을 수 있나요?", "relevant_ids": ["funding:PBLN_000000000117191"], "source_type": "funding", "status": "confirmed"}
+{"question": "경북 중소기업 운전자금 이차보전에 관세대응 긴급경영안정자금도 포함되나요?", "relevant_ids": ["funding:PBLN_000000000117214"], "source_type": "funding", "status": "confirmed"}
+{"question": "대전 만39세 이하 청년 소상공인 경영위기극복 특례보증 이자 지원 조건이 뭐예요?", "relevant_ids": ["funding:PBLN_000000000117221"], "source_type": "funding", "status": "confirmed"}
+{"question": "대전시 소상공인 초저금리 특별자금 1차 협약은행이 어디예요?", "relevant_ids": ["funding:PBLN_000000000117223"], "source_type": "funding", "status": "confirmed"}
+{"question": "충남 식품업소 시설개선자금 연 1% 융자 어떻게 신청하나요?", "relevant_ids": ["funding:PBLN_000000000117232"], "source_type": "funding", "status": "confirmed"}
+{"question": "전남 수출기업 샘플 소량수출 EMS 국제특송비 50% 지원 있나요?", "relevant_ids": ["funding:PBLN_000000000117240"], "source_type": "funding", "status": "confirmed"}
+{"question": "창원시 중소기업 육성자금 이차보전 2.5% 지원 신청 방법은?", "relevant_ids": ["funding:PBLN_000000000117254"], "source_type": "funding", "status": "confirmed"}
+{"question": "김해시 공장등록 제조업체 상반기 중소기업육성자금 이차보전 있나요?", "relevant_ids": ["funding:PBLN_000000000117258"], "source_type": "funding", "status": "confirmed"}
+{"question": "진주시에서 GAP 인증 수수료 지원해주나요?", "relevant_ids": ["funding:PBLN_000000000117268"], "source_type": "funding", "status": "confirmed"}
+{"question": "진주시 GAP 안전성 분석 검사비 지원은 어떻게 신청하나요?", "relevant_ids": ["funding:PBLN_000000000117269"], "source_type": "funding", "status": "confirmed"}
+{"question": "김해시 사회적경제기업 저금리 대출 기업당 최대 2억 지원 있나요?", "relevant_ids": ["funding:PBLN_000000000117276"], "source_type": "funding", "status": "confirmed"}
+{"question": "하동군에서 처음 창업한 소상공인 임대료·배달료 지원 있나요?", "relevant_ids": ["funding:PBLN_000000000117277"], "source_type": "funding", "status": "confirmed"}
+{"question": "산청군 인구감소지역 기업 특례보증 2% 이차보전 받을 수 있나요?", "relevant_ids": ["funding:PBLN_000000000117278"], "source_type": "funding", "status": "confirmed"}
+{"question": "거제시 저신용 소상공인 대출 이자 3% 지원 사업 있나요?", "relevant_ids": ["funding:PBLN_000000000117283"], "source_type": "funding", "status": "confirmed"}
+{"question": "하동군 소상공인 건강검진비 20만원 지원 신청하려면?", "relevant_ids": ["funding:PBLN_000000000117287"], "source_type": "funding", "status": "confirmed"}
+{"question": "국가식품클러스터 시험분석 장비 공동활용 지원 어떻게 받나요?", "relevant_ids": ["funding:PBLN_000000000117291"], "source_type": "funding", "status": "confirmed"}
+{"question": "창녕군 제조 중소기업 국내 전시회 부스 임차비 지원 있나요?", "relevant_ids": ["funding:PBLN_000000000117294"], "source_type": "funding", "status": "confirmed"}
+{"question": "직무발명제도 도입하려는데 무료 컨설팅 받을 수 있나요?", "relevant_ids": ["funding:PBLN_000000000117297"], "source_type": "funding", "status": "confirmed"}
+{"question": "창녕군 공장등록 중소기업 육성자금 3% 이차보전 신청 방법은?", "relevant_ids": ["funding:PBLN_000000000117298"], "source_type": "funding", "status": "confirmed"}
+{"question": "거제 조선 협력사 육성자금 상환유예·이차보전 연장 신청 가능한가요?", "relevant_ids": ["funding:PBLN_000000000117303"], "source_type": "funding", "status": "confirmed"}
+{"question": "양산시 제조업체가 40~64세 신중년 정규직 채용하면 지원금 있나요?", "relevant_ids": ["funding:PBLN_000000000117306"], "source_type": "funding", "status": "confirmed"}
+{"question": "인천 가상융합 콘텐츠 제작 장비 무상 임차 지원 있나요?", "relevant_ids": ["funding:PBLN_000000000117307"], "source_type": "funding", "status": "confirmed"}
+{"question": "함안군 소상공인 경남신보 보증 대출 이자 지원 받을 수 있나요?", "relevant_ids": ["funding:PBLN_000000000117309"], "source_type": "funding", "status": "confirmed"}
+{"question": "의성군 중소기업 운전자금 이차보전 4% 지원 신청은?", "relevant_ids": ["funding:PBLN_000000000117316"], "source_type": "funding", "status": "confirmed"}
+{"question": "의성군 중소기업이 신규채용 6개월 유지하면 1인당 200만원 보조금 있나요?", "relevant_ids": ["funding:PBLN_000000000117319"], "source_type": "funding", "status": "confirmed"}
+{"question": "문경시 중소기업 운전자금 융자 최대 3억 이차보전 있나요?", "relevant_ids": ["funding:PBLN_000000000117324"], "source_type": "funding", "status": "confirmed"}
+{"question": "우리 회사 직무발명제도 규정이 제대로 도입됐는지 확인서 받을 수 있나요?", "relevant_ids": ["funding:PBLN_000000000117330"], "source_type": "funding", "status": "confirmed"}
+{"question": "청송군 거주 지역인재 정규직 채용하면 임금 50% 지원해주나요?", "relevant_ids": ["funding:PBLN_000000000117331"], "source_type": "funding", "status": "confirmed"}
+{"question": "청송군 단체관광객 유치하면 여행사 인센티브 있나요?", "relevant_ids": ["funding:PBLN_000000000117332"], "source_type": "funding", "status": "confirmed"}
+{"question": "청도군 단체관광객 유치 여행사 인센티브 신청 방법은?", "relevant_ids": ["funding:PBLN_000000000117334"], "source_type": "funding", "status": "confirmed"}
+{"question": "고령군 국내외 단체관광객 유치 여행사 인센티브 있나요?", "relevant_ids": ["funding:PBLN_000000000117336"], "source_type": "funding", "status": "confirmed"}
+{"question": "여수시 중소기업발전자금 이차보전 3% 기업은행 동행협약이 뭔가요?", "relevant_ids": ["funding:PBLN_000000000117337"], "source_type": "funding", "status": "confirmed"}
+{"question": "칠곡군 설 대비 중소기업 운전자금 이차보전 신청하려면?", "relevant_ids": ["funding:PBLN_000000000117340"], "source_type": "funding", "status": "confirmed"}
+{"question": "울진군 단체관광 1박 1인당 1만원 여행사 인센티브 조건이 뭐예요?", "relevant_ids": ["funding:PBLN_000000000117343"], "source_type": "funding", "status": "confirmed"}
+{"question": "장성군 단체관광객 당일 5천원, 1박 1만5천원 여행사 인센티브 있나요?", "relevant_ids": ["funding:PBLN_000000000117350"], "source_type": "funding", "status": "confirmed"}
+{"question": "전북 중소기업 육성자금 융자 3,300억 지원계획 어떻게 신청하나요?", "relevant_ids": ["funding:PBLN_000000000117356"], "source_type": "funding", "status": "confirmed"}
+{"question": "김포금빛몰에 김포 중소기업 제품 입점하려면 어떻게 하나요?", "relevant_ids": ["funding:PBLN_000000000117358"], "source_type": "funding", "status": "confirmed"}
+{"question": "직무발명보상 우수기업 인증 받으면 어떤 혜택이 있나요?", "relevant_ids": ["funding:PBLN_000000000117363"], "source_type": "funding", "status": "confirmed"}
+{"question": "강진군 창업 소상공인 월세 20만원 임대료 지원 있나요?", "relevant_ids": ["funding:PBLN_000000000117365"], "source_type": "funding", "status": "confirmed"}
+{"question": "강진군 밀키트 업소 진공포장기·급냉기 구입비 지원 있나요?", "relevant_ids": ["funding:PBLN_000000000117367"], "source_type": "funding", "status": "confirmed"}
+{"question": "강진군 밀키트 업소 포장재 구입비 지원 신청 어떻게 하나요?", "relevant_ids": ["funding:PBLN_000000000117368"], "source_type": "funding", "status": "confirmed"}
+{"question": "광주 AI 집적단지 유치기업 입지·설비 보조금 최대 3.5억 지원 조건은?", "relevant_ids": ["funding:PBLN_000000000117371"], "source_type": "funding", "status": "confirmed"}
+{"question": "부산에서 가명정보 처리·결합 컨설팅 받을 수 있는 곳 있나요?", "relevant_ids": ["funding:PBLN_000000000117433"], "source_type": "funding", "status": "confirmed"}
+{"question": "강원 글로벌 IP스타기업 해외 특허 중간사건(OA) 비용 지원 있나요?", "relevant_ids": ["funding:PBLN_000000000117454"], "source_type": "funding", "status": "confirmed"}
+{"question": "강원 글로벌 IP스타기업 해외 특허 등록비용 지원 신청은?", "relevant_ids": ["funding:PBLN_000000000117463"], "source_type": "funding", "status": "confirmed"}
+{"question": "군산 기항 국제선 이용 관광객 유치 여행사 인센티브 있나요?", "relevant_ids": ["funding:PBLN_000000000117474"], "source_type": "funding", "status": "confirmed"}
+{"question": "전북 제조기업 해외규격인증 획득 비용 최대 1천만원 지원 있나요?", "relevant_ids": ["funding:PBLN_000000000117480"], "source_type": "funding", "status": "confirmed"}
+{"question": "전북 바이오·식품기업 재직자 무료 교육 훈련생 모집 있나요?", "relevant_ids": ["funding:PBLN_000000000117481"], "source_type": "funding", "status": "confirmed"}
+{"question": "남원시 제조업 중소기업 육성기금 이차보전 4% 신청 방법은?", "relevant_ids": ["funding:PBLN_000000000117490"], "source_type": "funding", "status": "confirmed"}
+{"question": "완주군 관광객 유치 여행사 인센티브 지원 있나요?", "relevant_ids": ["funding:PBLN_000000000117491"], "source_type": "funding", "status": "confirmed"}
+{"question": "무주군 소상공인 특례보증 3천만원 대출 이차보전 5% 받을 수 있나요?", "relevant_ids": ["funding:PBLN_000000000117495"], "source_type": "funding", "status": "confirmed"}
+{"question": "공주시 소상공인 5천만원 100% 전액보증 특례보증 조건은?", "relevant_ids": ["funding:PBLN_000000000117498"], "source_type": "funding", "status": "confirmed"}
+{"question": "부천시 중소기업 우체국 EMS 수출물류비 80% 지원 있나요?", "relevant_ids": ["funding:PBLN_000000000117502"], "source_type": "funding", "status": "confirmed"}
+{"question": "남원시 단체관광객 유치 여행사 인센티브 신청하려면?", "relevant_ids": ["funding:PBLN_000000000117505"], "source_type": "funding", "status": "confirmed"}
+{"question": "진안군 소상공인 경영운전자금 최대 1억 대출 지원 있나요?", "relevant_ids": ["funding:PBLN_000000000117510"], "source_type": "funding", "status": "confirmed"}
+{"question": "진안군 소상공인 점포 환경개선 최대 600만원 지원 조건은?", "relevant_ids": ["funding:PBLN_000000000117511"], "source_type": "funding", "status": "confirmed"}
+{"question": "보령시 제조업체 국내외 박람회 부스비 70% 지원 있나요?", "relevant_ids": ["funding:PBLN_000000000117518"], "source_type": "funding", "status": "confirmed"}
+{"question": "공주시 단체관광 여행사 인센티브 사전계획서는 언제까지 내나요?", "relevant_ids": ["funding:PBLN_000000000117523"], "source_type": "funding", "status": "confirmed"}
+{"question": "금산군 수출 농산물 저온유통비 지원 사업 있나요?", "relevant_ids": ["funding:PBLN_000000000117525"], "source_type": "funding", "status": "confirmed"}
+{"question": "경남 소상공인 정책자금 전체 운용계획을 한눈에 볼 수 있는 공고 있나요?", "relevant_ids": ["funding:PBLN_000000000117526"], "source_type": "funding", "status": "confirmed"}
+{"question": "서울시 사회적경제기업 연 1.75% 융자 최대 4억 지원 있나요?", "relevant_ids": ["funding:PBLN_000000000117528"], "source_type": "funding", "status": "confirmed"}
+{"question": "태안군 소상공인 특례보증 5천만원 신청하려면?", "relevant_ids": ["funding:PBLN_000000000117534"], "source_type": "funding", "status": "confirmed"}
+{"question": "청주시 중소기업 경영안정자금 8억 한도 이차보전 신청은?", "relevant_ids": ["funding:PBLN_000000000117535"], "source_type": "funding", "status": "confirmed"}
+{"question": "전북 통상닥터 참여기업 해외 바이어 발굴·포장 개선 지원 있나요?", "relevant_ids": ["funding:PBLN_000000000117540"], "source_type": "funding", "status": "confirmed"}
+{"question": "미국 관세정책 대응 전문가 심층컨설팅 지원 신청 어떻게 하나요?", "relevant_ids": ["funding:PBLN_000000000117546"], "source_type": "funding", "status": "confirmed"}
+{"question": "중진공 동반성장 네트워크론 발주기업 추천 수주기업 자금이 뭔가요?", "relevant_ids": ["funding:PBLN_000000000117549"], "source_type": "funding", "status": "confirmed"}
+{"question": "괴산군 중소기업 농협 대출 3년간 이자 3% 지원 있나요?", "relevant_ids": ["funding:PBLN_000000000117554"], "source_type": "funding", "status": "confirmed"}
+{"question": "충주시 이노비즈·벤처 인증 수수료 90% 지원 신청은?", "relevant_ids": ["funding:PBLN_000000000117557"], "source_type": "funding", "status": "confirmed"}
+{"question": "진주시 수출 제조업체 해상·항공 물류비 지원 있나요?", "relevant_ids": ["funding:PBLN_000000000117561"], "source_type": "funding", "status": "confirmed"}
+{"question": "중소기업 매출채권팩토링 연간 한도 10억 지원 어떻게 받나요?", "relevant_ids": ["funding:PBLN_000000000117563"], "source_type": "funding", "status": "confirmed"}
+{"question": "충북 소상공인·농가 청년 여성 인건비 50% 지원 사업 있나요?", "relevant_ids": ["funding:PBLN_000000000117568"], "source_type": "funding", "status": "confirmed"}
+{"question": "전주시 숙박관광객 유치 여행사 인센티브 조건은?", "relevant_ids": ["funding:PBLN_000000000117569"], "source_type": "funding", "status": "confirmed"}
+{"question": "괴산군 열차관광 대당 45만원 인센티브 여행사 지원 있나요?", "relevant_ids": ["funding:PBLN_000000000117575"], "source_type": "funding", "status": "confirmed"}
+{"question": "괴산군 KCB 700점 이하 저신용 소상공인 대출이자 지원 있나요?", "relevant_ids": ["funding:PBLN_000000000117576"], "source_type": "funding", "status": "confirmed"}
+{"question": "단양군 소상공인 융자금 최대 7천만원 이차보전 신청은?", "relevant_ids": ["funding:PBLN_000000000117579"], "source_type": "funding", "status": "confirmed"}
+{"question": "춘천시 제조·IT 중소기업 신용보증수수료 최대 250만원 지원 있나요?", "relevant_ids": ["funding:PBLN_000000000117582"], "source_type": "funding", "status": "confirmed"}
+{"question": "춘천 창업 7년 이내 기업 최대 10억 동행지원 이자 2% 지원 있나요?", "relevant_ids": ["funding:PBLN_000000000117583"], "source_type": "funding", "status": "confirmed"}
+{"question": "춘천시 중소기업 1억·소상공인 5천만원 특례보증 신청 방법은?", "relevant_ids": ["funding:PBLN_000000000117588"], "source_type": "funding", "status": "confirmed"}
+{"question": "태백시 소상공인 특례보증 5천만원과 이차보전 3.5% 지원 있나요?", "relevant_ids": ["funding:PBLN_000000000117597"], "source_type": "funding", "status": "confirmed"}
+{"question": "미국 관세 문제로 현지 변호사·관세사 1:1 온라인 상담 받을 수 있나요?", "relevant_ids": ["funding:PBLN_000000000117599"], "source_type": "funding", "status": "confirmed"}
+{"question": "태백시 중소기업 시설자금 제조업 8억 융자 지원 있나요?", "relevant_ids": ["funding:PBLN_000000000117600"], "source_type": "funding", "status": "confirmed"}
+{"question": "전북 중소기업 연 6회 전문가 컨설팅 상시 신청은 어디서 하나요?", "relevant_ids": ["funding:PBLN_000000000117601"], "source_type": "funding", "status": "confirmed"}
+{"question": "춘천시 중소기업육성자금 '땡겨요' 이차보전이 뭔가요?", "relevant_ids": ["funding:PBLN_000000000117602"], "source_type": "funding", "status": "confirmed"}
+{"question": "원주시 창업 7년 이내 기업 운전자금 3억 동행지원 있나요?", "relevant_ids": ["funding:PBLN_000000000117603"], "source_type": "funding", "status": "confirmed"}
+{"question": "강릉시 단체관광객 유치 여행 1건당 최대 300만원 인센티브 있나요?", "relevant_ids": ["funding:PBLN_000000000117606"], "source_type": "funding", "status": "confirmed"}
+{"question": "인천 제조업 NH농협 협업 특별경영안정자금 1.8% 이자지원 있나요?", "relevant_ids": ["funding:PBLN_000000000117611"], "source_type": "funding", "status": "confirmed"}
+{"question": "삼척시 단체관광객 유치 여행사 인센티브 신청하려면?", "relevant_ids": ["funding:PBLN_000000000117620"], "source_type": "funding", "status": "confirmed"}
+{"question": "속초시 특례보증 대출 보증수수료 0.8% 2년분 지원 받을 수 있나요?", "relevant_ids": ["funding:PBLN_000000000117621"], "source_type": "funding", "status": "confirmed"}
+{"question": "속초시 소상공인 특례보증 7천만원 한도 신청 방법은?", "relevant_ids": ["funding:PBLN_000000000117624"], "source_type": "funding", "status": "confirmed"}
+{"question": "속초시 중소기업 이차보전 2.5%에 설악동 우대 지원 있나요?", "relevant_ids": ["funding:PBLN_000000000117626"], "source_type": "funding", "status": "confirmed"}
+{"question": "횡성군 인구감소지역 중소기업 특례보증 운전자금 2억 있나요?", "relevant_ids": ["funding:PBLN_000000000117630"], "source_type": "funding", "status": "confirmed"}
+{"question": "평창군 개인사업자 운전자금 이차보전 지원 신청은?", "relevant_ids": ["funding:PBLN_000000000117632"], "source_type": "funding", "status": "confirmed"}
+{"question": "횡성군 중소기업 대출이자 최대 4% 지원 사업 있나요?", "relevant_ids": ["funding:PBLN_000000000117634"], "source_type": "funding", "status": "confirmed"}
+{"question": "예산군에서 드라마 촬영하면 소비금액 50% 환급 지원 있나요?", "relevant_ids": ["funding:PBLN_000000000117643"], "source_type": "funding", "status": "confirmed"}
+{"question": "화천군 음식점·숙박업 소상공인 운전자금 5천만원 융자 지원 있나요?", "relevant_ids": ["funding:PBLN_000000000117644"], "source_type": "funding", "status": "confirmed"}
+{"question": "철원군민 사업자 융자금 3% 이자지원 최대 1억 신청은?", "relevant_ids": ["funding:PBLN_000000000117646"], "source_type": "funding", "status": "confirmed"}
+{"question": "화천군 10인 이상 단체관광객 유치 인센티브 신청하려면?", "relevant_ids": ["funding:PBLN_000000000117648"], "source_type": "funding", "status": "confirmed"}
+{"question": "양구군 단체관광객·수학여행단 유치 인센티브 있나요?", "relevant_ids": ["funding:PBLN_000000000117650"], "source_type": "funding", "status": "confirmed"}
+{"question": "강원 벤처펀드 투자유치 IR·1:1 상담 지원 프로그램 있나요?", "relevant_ids": ["funding:PBLN_000000000117654"], "source_type": "funding", "status": "confirmed"}
+{"question": "양양군 중소기업·소상공인 운전자금·시설자금 융자 지원 있나요?", "relevant_ids": ["funding:PBLN_000000000117656"], "source_type": "funding", "status": "confirmed"}
+{"question": "제주 수출기업 수출보험료·수입자 신용조사 수수료 지원 있나요?", "relevant_ids": ["funding:PBLN_000000000117664"], "source_type": "funding", "status": "confirmed"}
+{"question": "경력단절여성 인턴 채용하면 기업지원금 400만원 받을 수 있나요?", "relevant_ids": ["funding:PBLN_000000000117666"], "source_type": "funding", "status": "rejected"}
+{"question": "인천 중소기업 기술이전·기술수요조사 신청은 어디서 하나요?", "relevant_ids": ["funding:PBLN_000000000117668"], "source_type": "funding", "status": "confirmed"}
+{"question": "인천 서구 제조기업 제품인증 수수료·시험비 지원 있나요?", "relevant_ids": ["funding:PBLN_000000000117671"], "source_type": "funding", "status": "confirmed"}
+{"question": "폐업 예정 소상공인 취업교육·전직장려수당 100만원 지원 있나요?", "relevant_ids": ["funding:PBLN_000000000117673"], "source_type": "funding", "status": "confirmed"}
+{"question": "소상공인 폐업할 때 점포 철거비·사업정리 컨설팅 지원 있나요?", "relevant_ids": ["funding:PBLN_000000000117676"], "source_type": "funding", "status": "confirmed"}
+{"question": "전북 글로벌 IP스타기업 해외 특허 중간사건 대응 비용 지원 있나요?", "relevant_ids": ["funding:PBLN_000000000117679"], "source_type": "funding", "status": "confirmed"}
+{"question": "DB아이앤씨 상사부문 새 사장 취임 소식 있어?", "relevant_ids": ["news:000e7d24d5f80785b861"], "source_type": "news", "status": "confirmed"}
+{"question": "오세훈 시장이 추석 앞두고 남성사계시장 물가 점검한 기사 있어?", "relevant_ids": ["news:0058678cdf9012b3e4ce"], "source_type": "news", "status": "confirmed"}
+{"question": "써밋 클라비온 등 이번 주 분양 단지 정리한 분양캘린더 기사 있어?", "relevant_ids": ["news:006ed9f09b99b42b9ed0"], "source_type": "news", "status": "rejected"}
+{"question": "한국공항공사 공항 혁신 아이디어 공모전 시상식 기사 있어?", "relevant_ids": ["news:0073fc1b4d6ebfd43b89"], "source_type": "news", "status": "confirmed"}
+{"question": "신중앙시장이 힙당동 상권 덕에 다시 뜬다는 기사 찾아줘", "relevant_ids": ["news:0074b543cf8ba2956abc"], "source_type": "news", "status": "confirmed"}
+{"question": "꼬마김밥 가격 올랐다는 분식점 물가 기사 있어?", "relevant_ids": ["news:0089fc04529e2044400b"], "source_type": "news", "status": "confirmed"}
+{"question": "리테일 바이블 2030 책 소개 기사 있어?", "relevant_ids": ["news:00938a09d9a79e5116d2"], "source_type": "news", "status": "confirmed"}
+{"question": "8월 28일 부산 중구 소식 모음 기사 있어?", "relevant_ids": ["news:0099e914bcad8d9c3821"], "source_type": "news", "status": "rejected"}
+{"question": "강북구 1조908억 추경에 골목상권 사업 들어갔다는 기사 있어?", "relevant_ids": ["news:009fe0bd690c145d10f1"], "source_type": "news", "status": "confirmed"}
+{"question": "위례과천선 안양 연장 국가철도망 반영 추진 기사 있어?", "relevant_ids": ["news:00be88cc8e2319d703b6"], "source_type": "news", "status": "confirmed"}
+{"question": "삼성물산 앙개 더현대 서울 첫 백화점 팝업 기사 있어?", "relevant_ids": ["news:00e0484a9be4b05109c5"], "source_type": "news", "status": "confirmed"}
+{"question": "신중앙시장 디자인혁신 전통시장 착공, 16개 골목 연결 기사 있어?", "relevant_ids": ["news:00e279765cc61d3647a4"], "source_type": "news", "status": "confirmed"}
+{"question": "서장훈 양재역 빌딩 450억 매물 기사 있어?", "relevant_ids": ["news:01039ffd9d76512fbba4"], "source_type": "news", "status": "confirmed"}
+{"question": "신도시에서 원도심으로 회귀하는 주택 수요 기사 있어?", "relevant_ids": ["news:012948465dac27c62018"], "source_type": "news", "status": "confirmed"}
+{"question": "에이스침대 롯데백화점 본점 매장 새단장 소식 있어?", "relevant_ids": ["news:01555d385d838d61a621"], "source_type": "news", "status": "confirmed"}
+{"question": "엑소디움 대우 상도역 민간임대 계약 기사 있어?", "relevant_ids": ["news:01564f4c9ffbb915c15f"], "source_type": "news", "status": "confirmed"}
+{"question": "제주 로컬브랜드가 성수동 상상플래닛에서 행사한 기사 있어?", "relevant_ids": ["news:01678cfdc04673e8d381"], "source_type": "news", "status": "confirmed"}
+{"question": "영등포사랑상품권 추석 90억 발행 5% 할인 기사 있어?", "relevant_ids": ["news:016d79b5dc16ead4fd51"], "source_type": "news", "status": "rejected"}
+{"question": "박성민 의원 추석 앞두고 울산 전통시장 방문 기사 있어?", "relevant_ids": ["news:017638b70ab5742e3e19"], "source_type": "news", "status": "confirmed"}
+{"question": "무신사 뷰티 홍대 매장에 약국 들어갔다는 기사 있어?", "relevant_ids": ["news:018362a14443dff780bd"], "source_type": "news", "status": "confirmed"}
+{"question": "헬리녹스 웨어 도산공원 첫 플래그십 오픈 기사 있어?", "relevant_ids": ["news:01980219a28034b8932f"], "source_type": "news", "status": "confirmed"}
+{"question": "서문시장 4지구 재건축 연내 착공 기사 있어?", "relevant_ids": ["news:0198642f860390e808c9"], "source_type": "news", "status": "confirmed"}
+{"question": "서울 핫플 10곳 2만원 결제 시 7천원 할인 행사 기사 있어?", "relevant_ids": ["news:01a0b40f0fd3d4190200"], "source_type": "news", "status": "confirmed"}
+{"question": "한강맨션 재건축 특별건축구역 변경안 재공람 기사 있어?", "relevant_ids": ["news:01a3befb9c922a470c16"], "source_type": "news", "status": "confirmed"}
+{"question": "2026 뷰티풀라이프 인 서울 DDP 행사 사진 기사 있어?", "relevant_ids": ["news:01a8b3926ef5074a0336"], "source_type": "news", "status": "confirmed"}
+{"question": "추석 앞두고 서울시가 전통시장 고금리 일수 단속한다는 기사 있어?", "relevant_ids": ["news:01aa57659c13cddb7f2f"], "source_type": "news", "status": "confirmed"}
+{"question": "올리브영 부산 남포 타운 900평 대형점 기사 있어?", "relevant_ids": ["news:01b6c8ef682f25281985"], "source_type": "news", "status": "confirmed"}
+{"question": "코웨이 롯데 노원점 백화점 체험매장으로 동북권 강화한다는 기사 있어?", "relevant_ids": ["news:01bd991fe211155304f6"], "source_type": "news", "status": "rejected"}
+{"question": "홈앤쇼핑 시장가자-GO 둔촌역전통시장 디지털 전환 지원 기사 있어?", "relevant_ids": ["news:01c0dc38be77e5fd266a"], "source_type": "news", "status": "rejected"}
+{"question": "이도에스테이트가 런던 라이트룸과 MOU 맺은 원엑스 전시관 기사 있어?", "relevant_ids": ["news:01ca6995636e85d8752e"], "source_type": "news", "status": "confirmed"}
+{"question": "시몬스 뷰티레스트 블랙 현대백화점 목동점 팝업 기사 있어?", "relevant_ids": ["news:01cd7f17ad642e48a8a3"], "source_type": "news", "status": "rejected"}
+{"question": "종로구 8년 연속 행정서비스 1위 기사 있어?", "relevant_ids": ["news:01d23f40f198328496d1"], "source_type": "news", "status": "confirmed"}
+{"question": "코웨이 롯데백화점 노원점 올해 10번째 직영매장 개점 기사 있어?", "relevant_ids": ["news:01f321c9dbe19b349e89"], "source_type": "news", "status": "rejected"}
+{"question": "9월 22일 KB금융·하나은행·농협은행 금융권 소식 모음 기사 있어?", "relevant_ids": ["news:01fb130b8a1d48e818c8"], "source_type": "news", "status": "confirmed"}
+{"question": "도봉구 민선 9기 슬로건 도봉대전환 디자인 확정 기사 있어?", "relevant_ids": ["news:020e17ba8173868ce2d7"], "source_type": "news", "status": "rejected"}
+{"question": "대구 중앙로역을 동성로역으로 바꾸자는 시의원 발언 기사 있어?", "relevant_ids": ["news:0215323df8388fb00b8d"], "source_type": "news", "status": "confirmed"}
+{"question": "광진구 2026년 추석 종합대책 광진사랑상품권 100억 기사 있어?", "relevant_ids": ["news:0220a6035a52de48d00f"], "source_type": "news", "status": "confirmed"}
+{"question": "전재수 부산시장 첫 추경 6374억 동백전 캐시백 기사 있어?", "relevant_ids": ["news:0227acbeba3e2bc432f3"], "source_type": "news", "status": "confirmed"}
+{"question": "관악구 신원시장 바가지요금 없애겠다는 기사 있어?", "relevant_ids": ["news:0227eaa77c5afbcd11b8"], "source_type": "news", "status": "confirmed"}
+{"question": "삼성 서초사옥 18년 자산 144조에서 695조 기사 있어?", "relevant_ids": ["news:02296fc8b03b715e491a"], "source_type": "news", "status": "confirmed"}
