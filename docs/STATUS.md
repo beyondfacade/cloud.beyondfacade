@@ -128,16 +128,32 @@ git log --oneline -1 main; git status --short
 
 ## 4. 안 된 것 · 결함 · 판단 대기
 
-### 4-1. 🔴 테스트가 dev DB를 직접 쓴다 — 오늘 발견, **미수정**
+### 4-1. 🔴 테스트가 dev DB를 직접 쓴다 — 9/24 발견, **미수정 (규모 실측 완료, 다음 세션 착수)**
 
-`backend/tests/conftest.py`가 없다. `session_scope`·`SqlAlchemy*Repository`를 직접 여는 테스트 **24파일**이
+`backend/tests/conftest.py`가 없다. `session_scope`·`SqlAlchemy*Repository`를 직접 여는 테스트가
 `.env`의 dev DB(5434)에 쓴다. 증명: `test_funding_expiry.py`가 `refresh_expirations(date(2026,9,7))`를 부르면
 "연장 복원" 절이 9/7 이후 마감 행을 전부 `is_expired=False`로 되돌린다 — 단독 실행으로 **510 → 0 재현**,
-배치 재실행으로 복구(9/24 09:35). 오늘 서브에이전트들이 전체 pytest를 8회쯤 돌려 하루 종일 되돌아갔고,
-T4-1이 "크론이 안 돈다"고 오판한 원인이다. `test_broker_ingest`·`test_store_ingest`의 간헐 실패("테스트 오염")도
-같은 뿌리로 본다.
-**할 일**: 대구 분화본처럼 테스트 전용 DB(`beyondfacade_test`) + conftest에서 `DATABASE_URL` 강제. 그전까지
-전체 pytest 후엔 `python -m apps.funding.adapter.inbound.cli.funding_collector`를 다시 돌려 플래그를 복구한다.
+배치 재실행으로 복구(9/24 09:35). T4-1이 "크론이 안 돈다"고 오판한 원인이다.
+**그전까지** 전체 pytest 후엔 `python -m apps.funding.adapter.inbound.cli.funding_collector`로 플래그를 복구한다.
+
+**규모 실측(9/24 오전, `beyondfacade_test` DB 만들어 돌려봄)** — 작다. 테스트는 dev 데이터를 전제하지 않는다:
+- 마이그레이션 + `seed_master`(district 25·region 427·industry 10·source_code 25)만 있으면 **전체 pytest 83파일
+  505 passed / 0 failed (6.7s)**. 앞서 기록된 "57 실패"는 마이그레이션이 통째로 롤백돼 테이블이 0개였던 측정 오류.
+- 빈 DB에서 `alembic upgrade head`가 **실패**하는 원인 2가지 (dev DB엔 이미 적용돼 있어 dev엔 영향 없음):
+  ① `66a23fb0c6e9` rag_chunk — `CREATE EXTENSION IF NOT EXISTS vector`가 없다(대구 동일 리비전엔 있음).
+  ② `c7a4f2e19b35`·`a4e7b2c9d813` — `industry_source_code`에 bulk_insert하는데 `industry` 행은 CLI 시드가 넣으므로
+     FK 위반 → 전체 트랜잭션 롤백. 실측 땐 `upgrade e2a08b1e8f19` → `seed_master` → `upgrade head` 2단계로 우회.
+- `DATABASE_URL` 환경변수는 `.env`보다 우선한다(`grid_keymaker_secret_manager` 설계대로) — conftest에서 os.environ만
+  바꾸면 된다. DB 역할은 superuser·CREATEDB 있음.
+
+**할 일 (1시간 내, 백엔드 v0.35.2)**:
+1. `backend/tests/conftest.py` — 대구 `backend/tests/conftest.py` 50줄 이식: `_test`  접미 DB 없으면 생성 →
+   `os.environ["DATABASE_URL"]` 강제(앱 import 전) → session autouse 픽스처에서 `command.upgrade(..., "head")` →
+   `seed_all()`(이미 `apps/master/adapter/inbound/cli/seed_master.py`에 있음).
+2. 마이그레이션 2건 손질: ①에 `CREATE EXTENSION IF NOT EXISTS vector` 추가, ②의 bulk_insert 앞에 `industry`가
+   비어 있으면 건너뛰거나 시드로 이동.
+3. 검증: `beyondfacade_test` DROP 후 `pytest` 한 번에 505 passed, dev DB `funding_program` expired 510 유지.
+   현재 `beyondfacade_test`는 실측용으로 남아 있음(head·시드 완료) — 검증 땐 지우고 다시 만든다.
 
 ### 4-2. 🟡 도커 `beyondfacade-api`(8200)가 낡았다
 이미지 빌드 9/23 22:40(≈`73cc401`). 그 뒤 `main`이 25커밋 전진 — `/intent`·`/finance`·`/hour-gaps`·
