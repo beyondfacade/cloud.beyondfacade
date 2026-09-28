@@ -128,7 +128,7 @@ export function VerdictSection({ regionCode, industry }: VerdictSectionProps) {
           ))}
           <li className="text-[10px] text-[var(--text-secondary)]">
             상대평가 — 같은 업종의 서울 행정동 분포에서 상위 25%면 켜짐, 상위 10%면 강함. 산출{" "}
-            {new Date(verdict.computed_at).toLocaleDateString("ko-KR", { year: "numeric", month: "long", day: "numeric" })}
+            {new Date(verdict.computed_at).toLocaleDateString("ko-KR", { year: "numeric", month: "long", day: "numeric", timeZone: "Asia/Seoul" })}
           </li>
         </ul>
       )}
