@@ -1,6 +1,7 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
+import { ApiError } from "@/shared/api/client";
 import { SidePanel } from "./side-panel";
 
 vi.mock("../api", () => ({
@@ -16,6 +17,9 @@ vi.mock("../api", () => ({
     { hour_band: "14_17", footfall_intensity: 1.4, sales_intensity: 1.6, gap: 0.2 },
   ] })),
   fetchCommerceChangeDetail: vi.fn(async () => ({ region_code: "1168064000", year_quarter: "20262", change_code: "LL", change_name: "다이나믹", operating_months: 110, closed_months: 48, seoul: { operating_months: 118, closed_months: 54 } })),
+  fetchVerdict: vi.fn(async () => {
+    throw new ApiError("VERDICT_NOT_FOUND", "missing");
+  }),
 }));
 
 vi.mock("next/link", () => ({ default: ({ href, children }: { href: string; children: React.ReactNode }) => <a href={href}>{children}</a> }));

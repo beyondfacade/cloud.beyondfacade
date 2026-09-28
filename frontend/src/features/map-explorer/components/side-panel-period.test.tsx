@@ -2,7 +2,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { render, screen, waitFor, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ApiError } from "@/shared/api/client";
-import { fetchCommerceChangeDetail, fetchHourGaps, fetchRegionProfile, fetchRegionSummary } from "../api";
+import { fetchCommerceChangeDetail, fetchHourGaps, fetchRegionProfile, fetchRegionSummary, fetchVerdict } from "../api";
 import { SidePanel } from "./side-panel";
 
 vi.mock("../api", () => ({
@@ -10,6 +10,7 @@ vi.mock("../api", () => ({
   fetchRegionProfile: vi.fn(),
   fetchHourGaps: vi.fn(),
   fetchCommerceChangeDetail: vi.fn(),
+  fetchVerdict: vi.fn(),
 }));
 vi.mock("next/link", () => ({ default: ({ href, children }: { href: string; children: React.ReactNode }) => <a href={href}>{children}</a> }));
 
@@ -33,6 +34,8 @@ beforeEach(() => {
     region_code: REGION, year_quarter: quarter ?? "20262", change_code: "LL", change_name: "다이나믹",
     operating_months: 110, closed_months: 48, seoul: { operating_months: 118, closed_months: 54 },
   }));
+  // 판정 카드는 이 테스트 스위트의 관심사가 아니다 — 404로 조용히 그려지지 않게 한다.
+  vi.mocked(fetchVerdict).mockRejectedValue(new ApiError("VERDICT_NOT_FOUND", "missing"));
 });
 
 function renderPanel(yearQuarter: string | null) {

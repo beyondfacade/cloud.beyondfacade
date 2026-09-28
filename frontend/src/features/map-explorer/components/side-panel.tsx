@@ -13,6 +13,7 @@ import { HourGapSection } from "./hour-gap-chart";
 import { NeighborhoodProfileSection } from "./neighborhood-profile";
 import { StayingPowerSection } from "./staying-power";
 import { TimeBlockSection } from "./time-block-bars";
+import { VerdictSection } from "./verdict-section";
 import styles from "./map-workspace.module.css";
 
 /** 전용 원천이 있는 업종의 추가 섹션 — 업종이 스스로 무엇을 보여줄지 등록한다 (조건 분기 대신 레지스트리). */
@@ -106,6 +107,7 @@ export function SidePanel({ regionCode, industry, yearQuarter = null, budget = n
 
       {regionCode && (
         <>
+          <VerdictSection regionCode={regionCode} industry={industry} />
           <NeighborhoodProfileSection regionCode={regionCode} yearQuarter={yearQuarter} />
           <TimeBlockSection regionCode={regionCode} yearQuarter={yearQuarter} />
           <HourGapSection regionCode={regionCode} industry={industry} yearQuarter={yearQuarter} />
