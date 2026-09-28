@@ -12,7 +12,7 @@
 
 ## Global Constraints
 
-- 판정 대상 = 마스터 18업종 − `academy`·`childcare`·`restaurant_other`·`chicken` = **14종**. 도메인 상수 `EXCLUDED_INDUSTRIES`가 유일한 원천 (설계서 §3).
+- 판정 대상 = 마스터 18업종 − `academy`·`childcare`·`restaurant_other`·`chicken`·`convenience_store` = **13종**(Task 7 Ruling A: 편의점은 스냅샷 전용 원천이라 신호 3개 영구 불가 → 특화 신호 단계까지 제외). 도메인 상수 `EXCLUDED_INDUSTRIES`가 유일한 원천. 프론트 `INDUSTRIES`(select)는 여전히 14종이고, 판정 관련 코드만 `VERDICT_EXCLUDED_INDUSTRIES = {"convenience_store"}`로 편의점을 뺀다.
 - 신호 레벨: 백분위 `p ≥ 75` → `on`, `p ≥ 90` → `strong`. 백분위는 strict("값보다 작은 동의 비율") (설계서 §3-2).
 - 판정: 판정 가능 신호 < 3 → `insufficient`(먼저 검사) / strong ≥ 2 → `red` / on·strong ≥ 1 → `orange` / 그 외 `clear`. 🟢 없음 (설계서 §3-3).
 - 표본 가드: 시작 점포·코호트·폐업 건수 < 10, 상주인구 < 1,000 → `unavailable` (설계서 §3-1).
@@ -2305,7 +2305,16 @@ export const SIGNAL_LABELS: Record<VerdictSignalKey, string> = {
 export function signalLabel(key: string): string {
   return SIGNAL_LABELS[key as VerdictSignalKey] ?? key;
 }
+
+/** 판정 대상에서 빠진 select 업종 — 편의점은 스냅샷 전용 원천이라 백엔드 verdict가 없다(1단계 Ruling A, 특화 신호 단계까지).
+ *  백엔드 `EXCLUDED_INDUSTRIES` 중 프론트 `INDUSTRIES`(14)에 남아 있는 것만 여기 둔다. */
+export const VERDICT_EXCLUDED_INDUSTRIES: ReadonlySet<string> = new Set(["convenience_store"]);
+
+export function isVerdictIndustry(industryId: string): boolean {
+  return (INDUSTRIES as readonly string[]).includes(industryId) && !VERDICT_EXCLUDED_INDUSTRIES.has(industryId);
+}
 ```
+(`import { INDUSTRIES } from "@/shared/industries";` 를 파일 상단에 추가. `shared/verdict.test.ts`에 케이스 하나: `isVerdictIndustry("korean_food")` true, `"convenience_store"` false, `"academy"` false.)
 
 ```ts
 // frontend/src/features/map-explorer/lib/verdict-palette.ts
@@ -2380,8 +2389,8 @@ it("판정 대상 업종은 200과 region_code·value(판정 코드) 쌍 목록�
   for (const r of rows) expect(["red", "orange", "clear", "insufficient"]).toContain(r.value);
 });
 
-it("학원·어린이집·치킨·미등록 업종은 404 INDUSTRY_NOT_FOUND (실 API 미러)", async () => {
-  for (const industry of ["academy", "childcare", "chicken", "restaurant_other", "unknown"]) {
+it("학원·어린이집·치킨·편의점·미등록 업종은 404 INDUSTRY_NOT_FOUND (실 API 미러)", async () => {
+  for (const industry of ["academy", "childcare", "chicken", "restaurant_other", "convenience_store", "unknown"]) {
     const res = await call(`?industry=${industry}`);
     expect(res.status, industry).toBe(404);
     expect((await res.json()).error.code).toBe("INDUSTRY_NOT_FOUND");
@@ -2446,7 +2455,8 @@ Expected: FAIL — 모듈 없음
 
 ```ts
 import type { RegionIndustryVerdict, VerdictCode, VerdictRow, VerdictSignal, VerdictSignalKey } from "@/shared/api/types";
-import { INDUSTRIES, INDUSTRY_LABELS, type IndustryId } from "@/shared/industries";
+import { INDUSTRY_LABELS, type IndustryId } from "@/shared/industries";
+import { isVerdictIndustry } from "@/shared/verdict";
 ```
 
 ```ts
@@ -2460,9 +2470,9 @@ const SIGNAL_SOURCE: Record<VerdictSignalKey, VerdictSignal["source"]> = {
   net_outflow: "store", survival_cliff: "store", early_closure: "store", saturation: "metric", shrinking: "neighborhood",
 };
 
-/** 판정 대상 여부 — 실 API의 EXCLUDED_INDUSTRIES 미러. 프론트 INDUSTRIES 14종과 같은 집합이다. */
+/** 판정 대상 여부 — 실 API의 EXCLUDED_INDUSTRIES 미러 = 프론트 INDUSTRIES 14종 − 편의점(shared/verdict.ts 단일 원천). */
 export function isJudgedIndustry(industryId: string): industryId is IndustryId {
-  return (INDUSTRIES as readonly string[]).includes(industryId);
+  return isVerdictIndustry(industryId);
 }
 
 function signalOf(key: VerdictSignalKey, regionCode: string, industryId: string): VerdictSignal {
@@ -2514,7 +2524,7 @@ export function verdictRows(industryId: string): VerdictRow[] {
 }
 ```
 
-(기존 `import { INDUSTRY_LABELS, type IndustryId } from "@/shared/industries";` 31행은 위 import로 **대체**한다 — 중복 import 금지.)
+(기존 31행 `import { INDUSTRY_LABELS, type IndustryId } …`는 그대로 두고 `isVerdictIndustry` import 한 줄과 types import만 추가한다 — 중복 import 금지.)
 
 ```ts
 // frontend/src/app/api/mock/verdicts/route.ts
@@ -2755,6 +2765,18 @@ export const METRIC_GROUPS = [
       )}
 ```
 
+`metric-coverage.ts` — 편의점×verdict는 백엔드가 404를 주므로 조회 자체를 막고 안내한다. 파일 끝에:
+
+```ts
+/** 판정 지표가 없는 업종 — 편의점(스냅샷 원천, 1단계 판정 제외). `map-view`가 fetch를 끄고 안내 문구를 띄운다. */
+export function isVerdictMissingForIndustry(metric: MapMetricKey, industry: string): boolean {
+  return metric === "verdict" && !isVerdictIndustry(industry);
+}
+```
+(`import { isVerdictIndustry } from "@/shared/verdict";`.) `metric-coverage.test.ts`에 케이스: `("verdict","convenience_store")` true, `("verdict","cafe")` false, `("closure_rate","convenience_store")` false.
+
+`map-view.tsx` — rows 쿼리의 `enabled`에 `&& !isVerdictMissingForIndustry(metric, industry)`를 더하고(기존 enabled 조건이 없으면 `enabled: !isVerdictMissingForIndustry(metric, industry)`), 빈 지도 안내 블록의 조건을 `noData || verdictMissing`으로 넓혀 `verdictMissing`일 때 문구 "편의점은 아직 판정 대상이 아닙니다 — 담배권 특화 신호가 붙으면 열립니다." 를 보여준다(`const verdictMissing = isVerdictMissingForIndustry(metric, industry);`).
+
 `map-view.tsx` 85~89행의 범주 스케일:
 
 ```ts
@@ -2887,6 +2909,18 @@ it("경고 없음·보류 판정은 켜진 신호 목록 대신 한 줄 설명�
   expect(screen.getByText(/표본 부족/)).toBeInTheDocument();
 });
 
+it("판정 제외 업종(편의점)은 요청 없이 섹션을 그리지 않는다", () => {
+  const spy = vi.spyOn(api, "fetchVerdict");
+  const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+  const { container } = render(
+    <QueryClientProvider client={client}>
+      <VerdictSection regionCode="1168064000" industry="convenience_store" />
+    </QueryClientProvider>,
+  );
+  expect(container.querySelector("section")).toBeNull();
+  expect(spy).not.toHaveBeenCalled();
+});
+
 it("판정이 없는 조합(404)은 섹션을 그리지 않는다", async () => {
   vi.spyOn(api, "fetchVerdict").mockRejectedValue(new ApiError("VERDICT_NOT_FOUND", "판정이 없습니다"));
   const { container } = renderSection();
@@ -2914,6 +2948,7 @@ Expected: FAIL — 모듈 없음
 
 import { useQuery } from "@tanstack/react-query";
 import { ApiError } from "@/shared/api/client";
+import { isVerdictIndustry } from "@/shared/verdict";
 import { fetchVerdict } from "../api";
 
 /** 판정 카드 조회 — 404(판정 없음·대상 아님)는 재시도하지 않는다. queryKey는 ["verdict", 동, 업종]. */
@@ -2921,6 +2956,8 @@ export function useVerdict(regionCode: string, industry: string) {
   return useQuery({
     queryKey: ["verdict", regionCode, industry],
     queryFn: () => fetchVerdict(regionCode, industry),
+    // 편의점처럼 판정 대상이 아닌 업종은 요청하지 않는다(백엔드 404) — 카드는 isPending이 아니라 idle이 되어 그리지 않는다
+    enabled: isVerdictIndustry(industry),
     retry: (count, error) => !(error instanceof ApiError) && count < 1,
   });
 }
@@ -2972,6 +3009,7 @@ export function VerdictSection({ regionCode, industry }: VerdictSectionProps) {
   const query = useVerdict(regionCode, industry);
   const [open, setOpen] = useState(false);
 
+  if (!isVerdictIndustry(industry)) return null; // 편의점 등 판정 제외 업종 — 요청도 카드도 없음
   if (query.isPending) {
     return <div className="mt-4 h-16 rounded-lg bg-[var(--bg-raised)]" aria-hidden />;
   }
