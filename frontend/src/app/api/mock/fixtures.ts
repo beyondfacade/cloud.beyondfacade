@@ -429,6 +429,13 @@ const INDUSTRY_SYNONYMS: Record<string, IndustryId> = {
   카페: "cafe", 커피: "cafe", 디저트: "cafe", 편의점: "convenience_store", 미용실: "hair_salon", 헤어: "hair_salon",
   노래방: "karaoke", PC방: "pc_bang", 피시방: "pc_bang", 헬스장: "gym", 헬스: "gym", 당구장: "billiard",
   부동산: "real_estate", 공인중개: "real_estate", 학원: "academy", 교습소: "academy", 어린이집: "childcare",
+  // 음식 6종 (2026-09-28, 백엔드 intent/industry_synonyms.py 미러) — restaurant_other는 동의어 없음(비노출)
+  한식당: "korean_food", 한식: "korean_food", 밥집: "korean_food", 국밥: "korean_food", 고깃집: "korean_food",
+  중국집: "chinese_food", 중식당: "chinese_food", 중식: "chinese_food",
+  일식당: "japanese_food", 일식: "japanese_food", 초밥: "japanese_food", 횟집: "japanese_food", 이자카야: "japanese_food",
+  양식당: "western_food", 양식: "western_food", 파스타: "western_food", 레스토랑: "western_food", 피자: "western_food",
+  분식집: "snack", 분식: "snack", 김밥: "snack", 떡볶이: "snack",
+  호프집: "pub", 호프: "pub", 술집: "pub", 주점: "pub", 포차: "pub",
 };
 
 const AMOUNT = /(\d+(?:\.\d+)?)\s*(억|천만|천|만)/g;

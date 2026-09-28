@@ -24,6 +24,19 @@ it("지원하지 않는 industry는 404 INDUSTRY_NOT_FOUND를 반환한다", asy
   expect((await res.json()).error.code).toBe("INDUSTRY_NOT_FOUND");
 });
 
+it("음식 업종(한식)도 200과 행 배열을 반환한다 — 2026-09-28 업종 확장", async () => {
+  const res = await GET(new Request("http://test/api/mock/metrics?metric=closure_rate&year=2025&industry=korean_food"));
+  expect(res.status).toBe(200);
+  expect(await res.json()).toEqual(
+    expect.arrayContaining([{ region_code: expect.any(String), value: expect.any(Number) }]),
+  );
+});
+
+it("학원·어린이집은 select에서 빠졌지만 실 API가 계속 응답하므로 mock도 200을 유지한다 (HANDOFF §0-11)", async () => {
+  const res = await GET(new Request("http://test/api/mock/metrics?metric=store_count&year=2026&industry=academy"));
+  expect(res.status).toBe(200);
+});
+
 it("업종이 다르면 같은 region·metric이어도 값이 달라진다", async () => {
   const cafeRes = await GET(new Request("http://test/api/mock/metrics?metric=growth_rate&year=2026&industry=cafe"));
   const gymRes = await GET(new Request("http://test/api/mock/metrics?metric=growth_rate&year=2026&industry=gym"));

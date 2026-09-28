@@ -17,6 +17,12 @@ it("동·업종·예산이 다 있으면 A유형과 진단 문장을 준다", as
   expect(r.source).toBe("rule");
 });
 
+it("음식 동의어(국밥집·중국집·술집)는 음식 업종 id로 매핑된다 — 백엔드 industry_synonyms 미러", async () => {
+  expect((await (await call({ text: "역삼1동에 국밥집" })).json()).industry_id).toBe("korean_food");
+  expect((await (await call({ text: "역삼1동에 중국집" })).json()).industry_id).toBe("chinese_food");
+  expect((await (await call({ text: "역삼1동에 술집" })).json()).industry_id).toBe("pub");
+});
+
 it("'역삼동'처럼 번호 동으로 갈라지는 이름은 후보 2개로 되묻는다 (주 경로)", async () => {
   const r = await (await call({ text: "역삼동에 카페" })).json();
   expect(r.intent_type).toBe("C");

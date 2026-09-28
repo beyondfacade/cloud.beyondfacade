@@ -2,6 +2,31 @@
 
 > 2026-09-23 T0-2 병합에서 v0.14.x 충돌로 우리 쪽 4항목(랜딩·E2E·동네 프로필·영업 지속 개월)을 v0.15.0·v0.15.1·v0.16.0·v0.17.0으로 재번호했다. 해당 커밋 메시지의 번호는 병합 전 번호다.
 
+## [v0.28.0] - 2026-09-28
+
+### Added
+- **음식 업종 6종 노출** — `shared/industries.ts`에 한식·중식·일식·양식·분식·호프주점(`korean_food`·`chinese_food`·
+  `japanese_food`·`western_food`·`snack`·`pub`) 추가. 비노출 `restaurant_other`는 라벨에도 두지 않는다.
+  백엔드 v0.39.0 업종 확장(설계서 `docs/superpowers/specs/2026-09-28-industry-expansion-design.md` §4-2) 대응.
+- **업종 select optgroup** — `INDUSTRY_GROUPS`(음식 / 생활 / 여가) 단일 원천을 상권 탐색 컨트롤바와 AI 분석 폼이 공유.
+  음식은 목록 맨 위. 호프·주점은 백엔드 demand_type이 leisure지만 사용자 인지 기준으로 음식 그룹에 둔다.
+- **예시 질문 칩** — 음식 6종 × 3문구(리포트 5섹션 축 유지). 계약 테스트 `shared/industries.test.ts` 신설(판정 대상 14종·
+  학원/어린이집 제외·그룹 합집합·`restaurant_other` 비노출).
+- **mock 관문 동의어** — 국밥집·중국집·초밥·파스타·김밥·술집 등 음식 동의어를 백엔드 `industry_synonyms.py` 미러로 추가,
+  라우트 계약 테스트 3건.
+
+### Changed
+- **학원·어린이집을 판정 대상에서 제외** (HANDOFF §0-11 결정: 정주 인구 보조축) — 업종 select·관문 칩에서 빠지고
+  `INDUSTRIES`는 판정 대상 14종만 든다. 라벨(`INDUSTRY_LABELS`)은 유지해 딥링크·API 응답의 이름 표시는 그대로.
+  `IndustryId` 타입은 라벨 키에서 파생하므로 `SNAPSHOT_INDUSTRIES` 등 기존 예외 처리는 컴파일·동작 변화 없음(정리는 판정 UI 전환 시).
+- **mock 라우트 업종 가드** — `metrics`·`stores`·`finance/prefill`의 `INDUSTRY_NOT_FOUND` 판정을 select 목록이 아닌
+  마스터 전체(`isKnownIndustry`)로 바꿔, 실 API처럼 학원·어린이집에도 계속 200을 준다.
+- 컨트롤바 스냅샷 연도 보정 테스트는 select에서 사라진 어린이집 대신 편의점으로 검사.
+
+### Validation
+- Vitest **326/326** (70파일), `tsc --noEmit`, `git diff --check` 통과.
+- 점포 표본(`store-samples.ts`)에 음식 업종 표본은 넣지 않았다 — 실DB 24구 적재가 끝난 뒤 별도 추출(빈 배열 반환이 정확한 동작).
+
 ## [v0.27.0] - 2026-09-28
 
 ### Changed

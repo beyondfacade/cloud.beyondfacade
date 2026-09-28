@@ -1,6 +1,6 @@
 "use client";
 
-import { INDUSTRIES, INDUSTRY_LABELS } from "@/shared/industries";
+import { INDUSTRY_GROUPS, INDUSTRY_LABELS } from "@/shared/industries";
 import { METRIC_GROUPS, METRIC_LABELS, metricGroupOf, type MapState } from "../lib/map-state";
 import { availableQuarters, availableYears, clampToCoverage } from "../lib/metric-coverage";
 import { formatQuarter } from "../lib/quarters";
@@ -40,10 +40,14 @@ export function ControlBar({ state, onChange }: ControlBarProps) {
           className={FIELD}
           aria-describedby={regionAxis ? INDUSTRY_NOTE_ID : undefined}
         >
-          {INDUSTRIES.map((ind) => (
-            <option key={ind} value={ind}>
-              {INDUSTRY_LABELS[ind]}
-            </option>
+          {INDUSTRY_GROUPS.map((group) => (
+            <optgroup key={group.label} label={group.label}>
+              {group.ids.map((ind) => (
+                <option key={ind} value={ind}>
+                  {INDUSTRY_LABELS[ind]}
+                </option>
+              ))}
+            </optgroup>
           ))}
         </select>
         {regionAxis && (

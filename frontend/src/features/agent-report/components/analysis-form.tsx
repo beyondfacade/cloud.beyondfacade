@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { INDUSTRIES, industryLabel, type IndustryId } from "@/shared/industries";
+import { INDUSTRIES, INDUSTRY_GROUPS, industryLabel, type IndustryId } from "@/shared/industries";
 import type { StartAnalysisParams } from "../hooks/use-agent-report";
 import { exampleQuestions } from "../lib/example-questions";
 import styles from "./analysis-workspace.module.css";
@@ -50,10 +50,14 @@ export function AnalysisForm({ initialRegion, initialIndustry, onSubmit, disable
             {!INDUSTRIES.includes(industry as IndustryId) && industry ? (
               <option value={industry}>{industryLabel(industry)}</option>
             ) : null}
-            {INDUSTRIES.map((id) => (
-              <option key={id} value={id}>
-                {industryLabel(id)}
-              </option>
+            {INDUSTRY_GROUPS.map((group) => (
+              <optgroup key={group.label} label={group.label}>
+                {group.ids.map((id) => (
+                  <option key={id} value={id}>
+                    {industryLabel(id)}
+                  </option>
+                ))}
+              </optgroup>
             ))}
           </select>
         </label>

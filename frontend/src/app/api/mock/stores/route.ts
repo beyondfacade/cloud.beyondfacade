@@ -1,4 +1,4 @@
-import { INDUSTRIES, type IndustryId } from "@/shared/industries";
+import { isKnownIndustry } from "@/shared/industries";
 import { SEOUL_REGIONS_GEOJSON, storesOf } from "../fixtures";
 
 export async function GET(request: Request) {
@@ -15,7 +15,7 @@ export async function GET(request: Request) {
   }
 
   // metrics 라우트의 METRIC_NOT_FOUND 가드와 대칭 — 미지원 industry는 500이 아니라 404로 응답한다.
-  if (!INDUSTRIES.includes(industry as IndustryId)) {
+  if (!isKnownIndustry(industry)) {
     return Response.json(
       { error: { code: "INDUSTRY_NOT_FOUND", message: `지원하지 않는 industry: ${industry}` } },
       { status: 404 },

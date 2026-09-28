@@ -75,10 +75,11 @@ describe("데이터 보유 범위에 맞춘 셀렉터", () => {
   it("범위 밖 연도에서 스냅샷 업종으로 바꾸면 연도를 함께 보정해 올린다", () => {
     const { onChange } = renderBar({ metric: "store_count", industry: "cafe", year: 2020 });
 
-    fireEvent.change(screen.getByRole("combobox", { name: /업종/ }), { target: { value: "childcare" } });
+    // 어린이집은 select에서 빠졌으므로(HANDOFF §0-11) 남은 스냅샷 업종인 편의점으로 검사한다
+    fireEvent.change(screen.getByRole("combobox", { name: /업종/ }), { target: { value: "convenience_store" } });
 
     expect(onChange).toHaveBeenCalledWith(
-      expect.objectContaining({ industry: "childcare", year: SNAPSHOT_YEAR }),
+      expect.objectContaining({ industry: "convenience_store", year: SNAPSHOT_YEAR }),
     );
   });
 

@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { IntentResult } from "@/shared/api/types";
-import { INDUSTRY_LABELS } from "@/shared/industries";
+import { INDUSTRIES, INDUSTRY_LABELS } from "@/shared/industries";
 import { SEOUL_DISTRICTS, districtOf } from "@/shared/seoul-districts";
 import { diagnoseIntent, fetchRegionList, parseIntent } from "../api";
 import { intentToUrl, planUrl } from "../lib/intent-url";
@@ -29,7 +29,7 @@ const EMPTY_DRAFT: IntentResult = {
 };
 
 const DISTRICT_OPTIONS: ChipOption[] = Object.entries(SEOUL_DISTRICTS).map(([key, label]) => ({ key, label }));
-const INDUSTRY_OPTIONS: ChipOption[] = Object.entries(INDUSTRY_LABELS).map(([key, label]) => ({ key, label }));
+const INDUSTRY_OPTIONS: ChipOption[] = INDUSTRIES.map((key) => ({ key, label: INDUSTRY_LABELS[key] }));
 
 export function IntentGate() {
   const router = useRouter();
