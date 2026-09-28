@@ -4,7 +4,7 @@ import { IntentGate } from "@/features/intent-gate/components/intent-gate";
 import { LandingPage } from "@/features/landing/components/landing-page";
 
 export const metadata: Metadata = {
-  title: "서울 상권 아틀라스 | Metabole",
+  title: "서울 상권 메타볼레 | Metabole",
   description: "서울의 변화 속에서, 내 가게의 자리를 찾다. 지도로 동네의 상권 지표를 살펴보고 AI 분석으로 탐색을 이어가세요.",
 };
 

@@ -20,10 +20,10 @@ export function LandingPage({ hero }: LandingPageProps = {}) {
       <header className={styles.header}>
         <Link href="/" className={styles.brand} aria-label="Metabole 첫 화면">
           <span className={`${styles.brandMark} bg-[var(--landing-accent)] text-[var(--landing-on-accent)]`} aria-hidden="true">m.</span>
-          <span>Metabole<span className={`${styles.brandCaption} text-[var(--landing-muted)]`}>서울 상권 아틀라스</span></span>
+          <span>Metabole<span className={`${styles.brandCaption} text-[var(--landing-muted)]`}>서울 상권 메타볼레</span></span>
         </Link>
         <nav className={styles.navigation} aria-label="주요 메뉴">
-          <a href="#about" className={styles.aboutLink}>아틀라스 소개</a>
+          <a href="#about" className={styles.aboutLink}>메타볼레 소개</a>
           <ThemeToggle />
           <Link href="/map" prefetch={false} className={styles.headerExplore}>지도 열기 <Arrow diagonal /></Link>
         </nav>
@@ -32,7 +32,7 @@ export function LandingPage({ hero }: LandingPageProps = {}) {
       <main id="main">
         <section className={styles.hero} aria-labelledby="hero-title">
           <div className={styles.heroCopy}>
-            <p className={`${styles.eyebrow} text-[var(--landing-accent)]`}><span aria-hidden="true" /> SEOUL COMMERCIAL ATLAS</p>
+            <p className={`${styles.eyebrow} text-[var(--landing-accent)]`}><span aria-hidden="true" /> SEOUL COMMERCIAL METABOLE</p>
             <h1 id="hero-title">서울의 변화 속에서,<br />내 가게의<br /><span className="text-[var(--landing-accent)]">자리를 찾다.</span></h1>
             <p className={`${styles.heroDescription} text-[var(--landing-muted)]`}>거리마다 다른 가능성, 데이터로 한 걸음 더 가까이.<br className={styles.desktopBreak} /> 동네의 상권을 살펴보고 나만의 다음을 그려보세요.</p>
             {hero}
@@ -93,7 +93,7 @@ export function LandingPage({ hero }: LandingPageProps = {}) {
 
       <footer className={`${styles.footer} text-[var(--landing-muted)]`}>
         <span className={`${styles.footerBrand} text-[var(--landing-ink)]`}>Metabole<span>도시의 변화, 새로운 가능성.</span></span>
-        <span>SEOUL COMMERCIAL ATLAS</span>
+        <span>SEOUL COMMERCIAL METABOLE</span>
         <a href="#main">맨 위로 <span aria-hidden="true">↑</span></a>
       </footer>
     </div>

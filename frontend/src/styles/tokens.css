@@ -6,7 +6,7 @@
   --border: #e1e5dc;
   --accent: #176e5b;       --accent-fg: #ffffff;
   --ok: #15803d;           --warn: #b45309;         --danger: #b91c1c;
-  /* The atlas landing and workspaces share one semantic palette. */
+  /* The Metabole landing and workspaces share one semantic palette. */
   --landing-bg: var(--bg-base);        --landing-card: var(--bg-surface);
   --landing-ink: var(--text-primary);   --landing-muted: var(--text-secondary);
   --landing-accent: var(--accent);     --landing-on-accent: var(--accent-fg);

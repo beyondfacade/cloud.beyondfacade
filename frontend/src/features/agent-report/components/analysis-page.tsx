@@ -16,7 +16,7 @@ export function AnalysisPage() {
     <main className={styles.workspace}>
       <header className={styles.pageHeader}>
         <div>
-          <p className={`${styles.eyebrow} text-[var(--accent)]`}>SEOUL COMMERCIAL ATLAS / ANALYSIS</p>
+          <p className={`${styles.eyebrow} text-[var(--accent)]`}>SEOUL COMMERCIAL METABOLE / ANALYSIS</p>
           <h1>동네의 가능성을,<br className={styles.mobileBreak} /> 한 장의 분석으로.</h1>
           <p className={`${styles.pageDescription} text-[var(--text-secondary)]`}>궁금한 지역과 업종을 정하고, 상권을 이해할 다음 단서를 찾아보세요.</p>
         </div>

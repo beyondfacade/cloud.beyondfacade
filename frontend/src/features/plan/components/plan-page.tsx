@@ -106,7 +106,7 @@ export function PlanPage() {
   return (
     <main className="mx-auto flex max-w-5xl flex-col gap-10 px-4 py-10" aria-label="자금 계획">
       <header>
-        <p className="text-xs font-medium tracking-wide text-[var(--accent)]">SEOUL COMMERCIAL ATLAS / PLAN</p>
+        <p className="text-xs font-medium tracking-wide text-[var(--accent)]">SEOUL COMMERCIAL METABOLE / PLAN</p>
         <h1 className="mt-2 text-2xl font-semibold tracking-tight text-[var(--text-primary)]">그래서 얼마가 필요한가</h1>
         <p className="mt-2 text-sm text-[var(--text-secondary)]">
           <span className="tabular-nums">{region}</span> · {industryLabel(industry)} — 채워진 값은 실측·공시에서 왔습니다. 출처를 보고 고친 뒤 계산하세요.

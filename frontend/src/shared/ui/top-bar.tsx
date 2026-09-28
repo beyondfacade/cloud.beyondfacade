@@ -19,7 +19,7 @@ export function TopBar() {
       <div className={styles.inner}>
         <Link href="/" className={styles.brand} aria-label="Metabole">
           <span className={styles.mark} aria-hidden="true">m.</span>
-          <span className={styles.wordmark}>Metabole<small>서울 상권 아틀라스</small></span>
+          <span className={styles.wordmark}>Metabole<small>서울 상권 메타볼레</small></span>
         </Link>
         <nav className={styles.navigation} aria-label="주요 메뉴">
           {TABS.map((tab) => {
