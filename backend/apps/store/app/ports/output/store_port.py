@@ -1,7 +1,7 @@
 """Driven Ports — store가 바깥 세계에 요구하는 계약 (ISP: 역할별 분리)."""
 
 from abc import ABC, abstractmethod
-from collections.abc import Iterator
+from collections.abc import Iterator, Sequence
 from datetime import datetime
 
 from apps.store.app.dtos.store_dto import IngestTarget
@@ -15,9 +15,12 @@ class StoreRepositoryPort(ABC):
 
     @abstractmethod
     def latest_source_updated_at(
-        self, industry_id: str, district_code: str
+        self, industry_ids: Sequence[str], district_code: str
     ) -> datetime | None:
-        """증분 수집 커서 — 해당 업종×자치구의 최근 원천 갱신시점."""
+        """증분 수집 커서 — 해당 업종들×자치구의 최근 원천 갱신시점.
+
+        한 슬러그가 여러 업종을 담으면(일반음식점) 그 업종 집합 전체의 max 가 커서다.
+        """
 
     @abstractmethod
     def list_open(self, region_code: str, industry_id: str) -> list[Store]:

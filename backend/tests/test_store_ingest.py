@@ -83,6 +83,24 @@ def test_latest_source_updated_at_returns_cursor():
     store.source_updated_at = future
     StoreInteractor(repository, FakeGateway([store])).ingest([_TARGET])
 
-    cursor = repository.latest_source_updated_at(_TARGET.industry_id, _TARGET.district_code)
+    cursor = repository.latest_source_updated_at([_TARGET.industry_id], _TARGET.district_code)
     assert cursor == future
+    _cleanup()
+
+
+def test_cursor_spans_every_industry_under_one_slug():
+    """일반음식점처럼 슬러그 하나가 여러 업종을 담으면 커서는 그 업종 집합 전체의 max 여야 한다."""
+    _cleanup()
+    repository = SqlAlchemyStoreRepository()
+    korean = _store(1)
+    korean.industry_id = "korean_food"
+    korean.source_updated_at = datetime(2099, 2, 1)
+    pub = _store(2)
+    pub.industry_id = "pub"
+    pub.source_updated_at = datetime(2099, 3, 1)
+    repository.upsert([korean, pub])
+
+    assert repository.latest_source_updated_at(["korean_food"], _TARGET.district_code) == datetime(2099, 2, 1)
+    assert repository.latest_source_updated_at(["korean_food", "pub"], _TARGET.district_code) == datetime(2099, 3, 1)
+    assert repository.latest_source_updated_at([], _TARGET.district_code) is None
     _cleanup()

@@ -7,7 +7,7 @@
 
 import calendar
 import time
-from collections.abc import Iterator
+from collections.abc import Iterator, Mapping
 from datetime import date, datetime
 
 import httpx
@@ -16,6 +16,11 @@ from pyproj import Transformer
 from apps.store.app.dtos.store_dto import IngestTarget
 from apps.store.app.ports.output.store_port import StorePermitGatewayPort
 from apps.store.domain.entities.store_entity import Store
+from apps.store.domain.services.permit_industry_classifier import (
+    PERMIT_CLASSIFIERS,
+    PermitIndustryClassifier,
+    permit_classifier_for,
+)
 from core.matrix.grid_keymaker_secret_manager import get_settings
 
 _BASE_URL = "https://apis.data.go.kr/1741000"
@@ -66,6 +71,12 @@ def _to_wgs84(x_raw: str | None, y_raw: str | None) -> tuple[float | None, float
 
 
 class MoisPermitGateway(StorePermitGatewayPort):
+    def __init__(
+        self, classifiers: Mapping[str, PermitIndustryClassifier] | None = None
+    ) -> None:
+        # 슬러그별 업종 분류 전략 — 없는 슬러그는 앵커 업종 고정 (기존 6종 동작 불변)
+        self._classifiers = dict(PERMIT_CLASSIFIERS if classifiers is None else classifiers)
+
     def iter_stores(
         self, target: IngestTarget, updated_since: datetime | None
     ) -> Iterator[Store]:
@@ -111,14 +122,19 @@ class MoisPermitGateway(StorePermitGatewayPort):
             time.sleep(2**attempt)
         raise RuntimeError("unreachable")
 
-    @staticmethod
-    def _to_entity(item: dict, target: IngestTarget) -> Store:
+    def _to_entity(self, item: dict, target: IngestTarget) -> Store:
         lat, lng = _to_wgs84(item.get("CRD_INFO_X"), item.get("CRD_INFO_Y"))
-        # MNG_NO는 자치구 간 중복됨 (2026-08-25 실측: 강남·송파 표본 400 중 284 동일) — 조합키 필수
+        classifier = self._classifiers.get(target.slug) or permit_classifier_for(
+            target.slug, target.industry_id
+        )
+        name = (item.get("BPLC_NM") or "").strip()
+        # MNG_NO는 자치구 간 중복됨 (2026-08-25 실측: 강남·송파 표본 400 중 284 동일) — 조합키 필수.
+        # 접두는 슬러그 기반(store_prefix) — 재분류돼도 같은 관리번호가 같은 행으로 업서트된다
+        prefix = target.store_prefix or target.industry_id
         return Store(
-            store_id=f"{target.industry_id}:{target.authority_code}:{item['MNG_NO']}",
-            name=(item.get("BPLC_NM") or "").strip(),
-            industry_id=target.industry_id,
+            store_id=f"{prefix}:{target.authority_code}:{item['MNG_NO']}",
+            name=name,
+            industry_id=classifier.classify(item.get("BZSTAT_SE_NM"), name),
             district_code=target.district_code,
             open_date=_parse_date(item.get("LCPMT_YMD")),
             close_date=_parse_date(item.get("CLSBIZ_YMD")),

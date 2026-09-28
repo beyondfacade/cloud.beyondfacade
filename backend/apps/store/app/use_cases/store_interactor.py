@@ -48,7 +48,7 @@ class StoreInteractor(StoreUseCase):
                 None
                 if full
                 else self._repository.latest_source_updated_at(
-                    target.industry_id, target.district_code
+                    list(target.industry_ids) or [target.industry_id], target.district_code
                 )
             )
             stream = self._gateway.iter_stores(target, updated_since=cursor)

@@ -1,5 +1,35 @@
 # Backend Version Log
 
+## [v0.39.0] - 2026-09-28
+
+### Added
+- **음식 업종 8종** — 한식·중식·일식·양식·분식·치킨·호프주점 + 비노출 `restaurant_other`(음식점 기타).
+  마이그레이션 `b7c8d9e0f1a2`: industry 8행, 인허가 매핑 `restaurant_other`↔`general_restaurants` 1행(앵커),
+  상권분석 매핑 7행(CS100001~4·7·8·9), `cafe`↔CS100008(분식) 삭제. `seed_master`도 같은 내용(둘 다 멱등).
+  설계서 `docs/superpowers/specs/2026-09-28-industry-expansion-design.md`
+- **인허가 업종 분류기(Strategy)** — `apps/store/domain/services/permit_industry_classifier.py`.
+  슬러그 하나가 여러 업종을 담는 경우(일반음식점)를 위해 `PermitIndustryClassifier` 추상 +
+  `FixedIndustryClassifier`(기존 6슬러그, 동작 불변) + `BusinessTypeClassifier`(업태구분명 `BZSTAT_SE_NM` → 업종,
+  미매핑·"(한시적)" 상호는 `restaurant_other`). 매핑표는 강남구 파일럿 51,402건 전수 분포 근거
+- 파일럿 스크립트 `scripts/pilot_general_restaurants.py`(JSONL 저장, DB 미적재)·`pilot_analyze_general_restaurants.py`
+- 관문 동의어 — 한식·중식·일식·양식·분식·치킨·호프 계열 40여 개(`industry_synonyms.py`)
+- 테스트 13건: 분류기 7 · 타깃 빌더 4 · 게이트웨이 분류 2 + 커서 집합 1
+
+### Changed
+- **수집 단위가 업종에서 인허가 슬러그로** — `store_collector._build_targets`가 mois 행을 슬러그로 그룹해
+  슬러그당 타깃 1개(같은 슬러그에 업종이 여럿 등록돼도 데이터셋을 한 번만 받는다). `--industry`는 업종 id 또는 슬러그
+- `IngestTarget`에 `industry_ids`(슬러그의 업종 집합, 커서용)·`store_prefix`(store_id 접두) 추가.
+  `StoreRepositoryPort.latest_source_updated_at(industry_ids: Sequence[str], district_code)` — 집합의 max.
+  `MoisPermitGateway._to_entity`가 인스턴스 메서드가 되어 분류기로 업종을 정하고 접두는 슬러그 기반(`restaurant:`)
+- `test_master_seed` 업종 수 10 → 18
+
+### 실측 (강남구 적재 9/28)
+- 51,402건 업서트 → 공간조인 50,022(미판정 32) → `region_industry_metric` 29,229행(+1,400). store 전체 400,598.
+  업종별 한식 19,632 · 양식 12,520 · 기타 6,945 · 분식 5,784 · 일식 3,243 · 중식 1,394 · 호프주점 1,312 · 치킨 572
+- **치킨 주의**: '통닭(치킨)' 업태의 최근 인허가가 2015-05-22 — 이후 신규 치킨집은 호프/통닭·기타로 들어온다.
+  인허가 기반 신호에서 `chicken`은 제외해야 한다(설계서 §3-3)
+- 나머지 24구는 미적재(새벽 수동 1회 예정). 프론트 반영(업종 목록·라벨) 미완
+
 ## [v0.38.0] - 2026-09-25
 
 ### Added

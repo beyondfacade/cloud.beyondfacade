@@ -34,11 +34,23 @@ _INDUSTRIES = [
     ("real_estate", "부동산중개업", "macro"),
     ("academy", "학원", "demographic"),
     ("childcare", "어린이집", "demographic"),
+    # 음식 8종 (2026-09-28 설계서 §3-1) — 일반음식점 인허가 1개 원천을 업태로 나눈다.
+    # restaurant_other 는 비노출: 판정 대상이 아니지만 폐업 마커·포화 분모로 쓴다
+    ("korean_food", "한식", "daily"),
+    ("chinese_food", "중식", "daily"),
+    ("japanese_food", "일식", "daily"),
+    ("western_food", "양식", "daily"),
+    ("snack", "분식", "daily"),
+    ("chicken", "치킨", "daily"),
+    ("pub", "호프·주점", "leisure"),
+    ("restaurant_other", "음식점(기타)", "daily"),
 ]
 
 # 확정된 원천 코드만 시드 (미확정: 편의점 상가정보 업종코드 — 확정 시 추가)
 _SOURCE_CODES = [
     ("cafe", "mois_permit", "rest_cafes"),
+    # 일반음식점은 앵커 1행만 — 건별 업종은 permit_industry_classifier 가 정한다 (6행 등록 시 6중 수집)
+    ("restaurant_other", "mois_permit", "general_restaurants"),
     ("hair_salon", "mois_permit", "beauty_salons"),
     ("karaoke", "mois_permit", "karaoke_rooms"),
     ("pc_bang", "mois_permit", "pc_bangs"),

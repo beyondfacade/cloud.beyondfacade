@@ -22,8 +22,8 @@ def test_seed_all_is_idempotent_and_counts_match():
     with session_scope() as session:
         assert _count(session, DistrictOrm) == 25
         assert _count(session, RegionOrm) == 427
-        assert _count(session, IndustryOrm) == 10
-        assert _count(session, IndustrySourceCodeOrm) >= 9
+        assert _count(session, IndustryOrm) == 18  # 10종 + 음식 8종 (2026-09-28)
+        assert _count(session, IndustrySourceCodeOrm) >= 10
         assert _count(session, IndustrySubcategoryOrm) >= 8
 
 

@@ -1,8 +1,9 @@
 """인허가 점포 수집기 (Driving Adapter, CLI).
 
-- 수집 단위 = 업종(industry_source_code의 mois_permit 매핑) × 자치구(district.opn_authority_code)
-- 증분: DB의 (업종×자치구) 최근 갱신시점 커서 — 첫 실행은 전체 초기적재
-- 실행: python -m apps.store.adapter.inbound.cli.store_collector [--district 강남구] [--industry karaoke]
+- 수집 단위 = 인허가 슬러그(industry_source_code의 mois_permit 매핑) × 자치구(district.opn_authority_code).
+  슬러그 하나에 업종이 여럿이면(일반음식점) 타깃은 슬러그당 1개, 건별 업종은 분류기가 정한다
+- 증분: DB의 (슬러그의 업종 집합 × 자치구) 최근 갱신시점 커서 — 첫 실행은 전체 초기적재
+- 실행: python -m apps.store.adapter.inbound.cli.store_collector [--district 강남구] [--industry karaoke|general_restaurants]
 """
 
 import argparse
@@ -19,17 +20,26 @@ from apps.store.adapter.outbound.repositories.store_repository import (
 )
 from apps.store.app.dtos.store_dto import IngestTarget
 from apps.store.app.use_cases.store_interactor import StoreInteractor
+from apps.store.domain.services.permit_industry_classifier import (
+    PERMIT_STORE_PREFIXES,
+    permit_classifier_for,
+)
 from core.matrix.grid_oracle_database_manager import session_scope
 
 
-def _build_targets(district_name: str | None, industry_id: str | None) -> list[IngestTarget]:
+def _build_targets(district_name: str | None, industry_or_slug: str | None) -> list[IngestTarget]:
     with session_scope() as session:
-        slug_stmt = select(
-            IndustrySourceCodeOrm.industry_id, IndustrySourceCodeOrm.code
-        ).where(IndustrySourceCodeOrm.source_system == "mois_permit")
-        if industry_id:
-            slug_stmt = slug_stmt.where(IndustrySourceCodeOrm.industry_id == industry_id)
-        slugs = session.execute(slug_stmt).all()
+        rows = session.execute(
+            select(IndustrySourceCodeOrm.industry_id, IndustrySourceCodeOrm.code)
+            .where(IndustrySourceCodeOrm.source_system == "mois_permit")
+            .order_by(IndustrySourceCodeOrm.id)
+        ).all()
+        if industry_or_slug:
+            rows = [r for r in rows if industry_or_slug in (r.industry_id, r.code)]
+        # 슬러그당 앵커 업종 1개 — 같은 슬러그에 업종이 여러 행 등록돼도 데이터셋은 한 번만 받는다
+        anchor_by_slug: dict[str, str] = {}
+        for industry_id, slug in rows:
+            anchor_by_slug.setdefault(slug, industry_id)
 
         district_stmt = select(DistrictOrm).where(DistrictOrm.opn_authority_code.is_not(None))
         if district_name:
@@ -38,12 +48,14 @@ def _build_targets(district_name: str | None, industry_id: str | None) -> list[I
 
         return [
             IngestTarget(
-                industry_id=ind,
+                industry_id=anchor,
                 slug=slug,
                 district_code=d.district_code,
                 authority_code=d.opn_authority_code,
+                industry_ids=tuple(sorted(permit_classifier_for(slug, anchor).industry_ids)),
+                store_prefix=PERMIT_STORE_PREFIXES.get(slug),
             )
-            for ind, slug in slugs
+            for slug, anchor in anchor_by_slug.items()
             for d in districts
         ]
 
@@ -51,7 +63,7 @@ def _build_targets(district_name: str | None, industry_id: str | None) -> list[I
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--district", help="자치구명 (예: 강남구) — 생략 시 25개 전체")
-    parser.add_argument("--industry", help="industry_id (예: karaoke) — 생략 시 인허가 6종 전체")
+    parser.add_argument("--industry", help="industry_id 또는 인허가 슬러그 (예: karaoke, general_restaurants) — 생략 시 전체")
     parser.add_argument("--full", action="store_true", help="증분 커서 무시, 전체 재수집 (부분 적재 복구용)")
     args = parser.parse_args()
 

@@ -28,7 +28,7 @@ class FakeRepository(StoreRepositoryPort):
         raise NotImplementedError
 
     def latest_source_updated_at(
-        self, industry_id: str, district_code: str
+        self, industry_ids, district_code: str
     ) -> datetime | None:
         raise NotImplementedError
 

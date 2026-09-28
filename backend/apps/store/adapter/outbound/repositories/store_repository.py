@@ -1,3 +1,4 @@
+from collections.abc import Sequence
 from datetime import date, datetime
 
 from sqlalchemy import and_, func, or_, select, update
@@ -32,12 +33,14 @@ class SqlAlchemyStoreRepository(
         return len(deduped)
 
     def latest_source_updated_at(
-        self, industry_id: str, district_code: str
+        self, industry_ids: Sequence[str], district_code: str
     ) -> datetime | None:
+        if not industry_ids:
+            return None
         with session_scope() as session:
             return session.execute(
                 select(func.max(StoreOrm.source_updated_at)).where(
-                    StoreOrm.industry_id == industry_id,
+                    StoreOrm.industry_id.in_(list(industry_ids)),
                     StoreOrm.district_code == district_code,
                 )
             ).scalar()
