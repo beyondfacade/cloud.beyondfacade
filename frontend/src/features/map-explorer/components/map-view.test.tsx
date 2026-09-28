@@ -31,7 +31,7 @@ function fakeMap() {
 }
 
 function renderMap() {
-  return render(<MapView metric="neighborhood_type" industry="cafe" year={2026} yearQuarter="20211" regionCode="1168064000" onSelectRegion={vi.fn()} />);
+  return render(<MapView metric="neighborhood_type" industry="cafe" year={2026} yearQuarter="20211" regionCode="1168064000" onSelectRegion={vi.fn()} showClosed={false} />);
 }
 
 beforeEach(() => {

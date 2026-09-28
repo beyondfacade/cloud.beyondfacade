@@ -1,6 +1,6 @@
 import { expect, it } from "vitest";
 import type { ChildcareCenter, ConvenienceStore, Store } from "@/shared/api/types";
-import { markerStrategyOf } from "./marker-strategies";
+import { CLOSED_STORE_STRATEGY, markerStrategyOf } from "./marker-strategies";
 
 const CENTER: ChildcareCenter = {
   center_id: "11110000029",
@@ -22,6 +22,7 @@ const STORE: Store = {
   lng: 127.02,
   status_name: "영업",
   open_date: "2026-08-20",
+  close_date: null,
 };
 
 it("어린이집 업종은 어린이집 마커 전략을 쓰고, 팝업에 유형·정원·현원·가동률·대기를 보여준다", () => {
@@ -78,4 +79,13 @@ it("편의점 팝업은 미확인 브랜드를 기타 브랜드로 표시한다"
     road_address: null,
   } as ConvenienceStore).textContent;
   expect(text).toContain("기타 브랜드");
+});
+
+it("폐업 전략은 stores-closed 키로 조회하고 팝업에 폐업일과 영업 개월을 쓴다", () => {
+  expect(CLOSED_STORE_STRATEGY.queryKey("1168064000", "korean_food")).toEqual(["stores-closed", "1168064000", "korean_food"]);
+  const popup = CLOSED_STORE_STRATEGY.buildPopup({
+    store_id: "x", name: "문닫은집", lat: 37.5, lng: 127.0, status_name: "폐업", open_date: "2023-01-10", close_date: "2025-01-10",
+  });
+  expect(popup.textContent).toContain("폐업일 2025-01-10");
+  expect(popup.textContent).toContain("영업 24개월");
 });

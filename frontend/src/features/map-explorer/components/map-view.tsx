@@ -12,6 +12,7 @@ import { bboxOfRegion } from "../lib/region-bbox";
 import { NO_CLOSURE_HISTORY_INDUSTRIES } from "../lib/map-state";
 import { isVerdictMissingForIndustry } from "../lib/metric-coverage";
 import { MapLegend } from "./map-legend";
+import { CLOSED_STORE_STRATEGY } from "./marker-strategies";
 import { RegionMarkers } from "./region-markers";
 import type { IndustryId } from "@/shared/industries";
 import { readAccentColor } from "@/shared/lib/accent-color";
@@ -51,9 +52,11 @@ interface MapViewProps {
   /** 동×분기 지표의 시점. null = 최신. */
   yearQuarter: string | null;
   onSelectRegion: (code: string) => void;
+  /** 최근 2년 폐업 점포 레이어 토글. 기본 꺼짐 — 켜지면 영업 마커 위에 추가로 얹는다. */
+  showClosed: boolean;
 }
 
-export function MapView({ regionCode, metric, industry, year, yearQuarter, onSelectRegion }: MapViewProps) {
+export function MapView({ regionCode, metric, industry, year, yearQuarter, onSelectRegion, showClosed }: MapViewProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<MapLibreGLMap | null>(null);
   const onSelectRegionRef = useRef(onSelectRegion);
@@ -366,6 +369,15 @@ export function MapView({ regionCode, metric, industry, year, yearQuarter, onSel
       )}
       <MapLegend metric={metric} scale={scale} />
       <RegionMarkers mapRef={mapRef} ready={ready} regionCode={regionCode} industry={industry} />
+      <RegionMarkers
+        mapRef={mapRef}
+        ready={ready}
+        regionCode={showClosed ? regionCode : null}
+        industry={industry}
+        strategy={CLOSED_STORE_STRATEGY}
+        sourceId="closed-markers"
+        colorVar="--danger"
+      />
     </div>
   );
 }

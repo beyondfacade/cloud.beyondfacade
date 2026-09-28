@@ -36,8 +36,11 @@ export function fetchRegionSummary(regionCode: string, industry: string): Promis
   return apiGet<RegionSummary>(`/regions/${regionCode}/summary?${params.toString()}`);
 }
 
-export function fetchStores(regionCode: string, industry: string): Promise<Store[]> {
-  const params = new URLSearchParams({ region: regionCode, industry });
+export type StoreStatus = "open" | "closed";
+
+/** 점포 마커 — status=closed는 최근 2년 폐업(백엔드 창). 기본 open은 기존 계약 그대로. */
+export function fetchStores(regionCode: string, industry: string, status: StoreStatus = "open"): Promise<Store[]> {
+  const params = new URLSearchParams({ region: regionCode, industry, status });
   return apiGet<Store[]>(`/stores?${params.toString()}`);
 }
 

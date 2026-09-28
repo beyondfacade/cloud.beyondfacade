@@ -10,6 +10,7 @@ import { NO_CLOSURE_HISTORY_INDUSTRIES } from "../lib/map-state";
 import { ChildcareSummarySection } from "./childcare-summary";
 import { ConvenienceSummarySection } from "./convenience-summary";
 import { HourGapSection } from "./hour-gap-chart";
+import { CLOSED_STORE_STRATEGY } from "./marker-strategies";
 import { NeighborhoodProfileSection } from "./neighborhood-profile";
 import { StayingPowerSection } from "./staying-power";
 import { TimeBlockSection } from "./time-block-bars";
@@ -28,6 +29,8 @@ interface SidePanelProps {
   /** 관문에서 온 예산(원) — 자금 계획 링크에 실어 보낸다. */
   budget?: number | null;
   industry: string;
+  showClosed?: boolean;
+  onToggleClosed?: (next: boolean) => void;
 }
 
 function SkeletonRows() {
@@ -43,7 +46,7 @@ function SkeletonRows() {
   );
 }
 
-export function SidePanel({ regionCode, industry, yearQuarter = null, budget = null }: SidePanelProps) {
+export function SidePanel({ regionCode, industry, yearQuarter = null, budget = null, showClosed, onToggleClosed }: SidePanelProps) {
   const summary = useQuery({
     queryKey: ["region-summary", regionCode, industry],
     queryFn: () => fetchRegionSummary(regionCode!, industry),
@@ -108,6 +111,7 @@ export function SidePanel({ regionCode, industry, yearQuarter = null, budget = n
       {regionCode && (
         <>
           <VerdictSection regionCode={regionCode} industry={industry} />
+          <ClosedStoresToggle regionCode={regionCode} industry={industry} checked={showClosed ?? false} onChange={onToggleClosed ?? (() => {})} />
           <NeighborhoodProfileSection regionCode={regionCode} yearQuarter={yearQuarter} />
           <TimeBlockSection regionCode={regionCode} yearQuarter={yearQuarter} />
           <HourGapSection regionCode={regionCode} industry={industry} yearQuarter={yearQuarter} />
@@ -165,5 +169,28 @@ export function SidePanel({ regionCode, industry, yearQuarter = null, budget = n
         </>
       )}
     </aside>
+  );
+}
+
+function ClosedStoresToggle({ regionCode, industry, checked, onChange }: {
+  regionCode: string; industry: string; checked: boolean; onChange: (next: boolean) => void;
+}) {
+  const closed = useQuery({
+    queryKey: CLOSED_STORE_STRATEGY.queryKey(regionCode, industry),
+    queryFn: () => CLOSED_STORE_STRATEGY.fetch(regionCode, industry),
+    enabled: checked,
+  });
+  return (
+    <div className="mt-2 flex flex-col gap-1 text-xs">
+      <label className="flex items-center gap-2 text-[var(--text-secondary)]">
+        <input type="checkbox" checked={checked} onChange={(e) => onChange(e.target.checked)} />
+        최근 2년 폐업 점포 보기
+      </label>
+      {checked && closed.data && (
+        <p className="text-[var(--text-primary)]">
+          이 동에서 최근 2년 {industryLabel(industry)} <span className="tabular-nums">{closed.data.length}</span>곳 폐업
+        </p>
+      )}
+    </div>
   );
 }

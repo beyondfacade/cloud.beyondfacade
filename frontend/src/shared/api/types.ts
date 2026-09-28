@@ -62,6 +62,7 @@ export interface Store {
   lng: number;
   status_name: string;
   open_date: string;
+  close_date: string | null; // status=open이면 null
 }
 
 /** 어린이집 지도 마커 — 운영 중·좌표 보유 시설 + 최신 현황 (GET /childcare-centers?region=). */

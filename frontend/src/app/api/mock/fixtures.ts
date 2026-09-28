@@ -32,7 +32,7 @@ import type {
   VerdictSignalKey,
 } from "@/shared/api/types";
 import { availableYears, isMetricMissingForIndustry } from "@/features/map-explorer/lib/metric-coverage";
-import { STORE_SAMPLES } from "./store-samples";
+import { STORE_SAMPLES, type StoreSample } from "./store-samples";
 import { INDUSTRY_LABELS, type IndustryId } from "@/shared/industries";
 import { isVerdictIndustry } from "@/shared/verdict";
 import { neighborhoodTypeLabel } from "@/shared/neighborhood";
@@ -110,20 +110,32 @@ export function summaryOf(code: string, industry: string): RegionSummary {
   return { region_code: code, name, industry_id: industry, cards };
 }
 
+/** 영업 중으로 볼 수 있는 상태 — 그 외(폐업/취소류)는 status=closed 표본에 포함. */
+const OPEN_STATUSES = new Set(["영업", "영업중"]);
+
+/** 결정적 폐업일 — 개업일 + (해시 % 36 + 3)개월. 표본에 폐업일 컬럼이 없어 여기서 만든다. */
+function closeDateOf(sample: StoreSample): string {
+  const months = (hashSeed("close", sample.store_id) % 36) + 3;
+  const d = new Date(sample.open_date);
+  d.setMonth(d.getMonth() + months);
+  return d.toISOString().slice(0, 10);
+}
+
 /** region_code·industry_id로 STORE_SAMPLES를 필터링해 마커용 점포 목록을 반환한다.
- *  실적재 데이터가 없는 업종/동 조합은 빈 배열 — 이는 오류가 아니라 실데이터 부재를 그대로 반영한 것. */
-export function storesOf(regionCode: string, industryId: string): Store[] {
-  const samples = STORE_SAMPLES[regionCode] ?? [];
-  return samples
-    .filter((s) => s.industry_id === industryId)
-    .map(({ store_id, name, lat, lng, status_name, open_date }) => ({
-      store_id,
-      name,
-      lat,
-      lng,
-      status_name,
-      open_date,
-    }));
+ *  실적재 데이터가 없는 업종/동 조합은 빈 배열 — 이는 오류가 아니라 실데이터 부재를 그대로 반영한 것.
+ *  status=closed는 표본 중 영업 상태가 아닌 것만, 결정적 close_date와 함께 준다. */
+export function storesOf(regionCode: string, industryId: string, status: "open" | "closed" = "open"): Store[] {
+  const samples = (STORE_SAMPLES[regionCode] ?? []).filter((s) => s.industry_id === industryId);
+  const picked = status === "closed" ? samples.filter((s) => !OPEN_STATUSES.has(s.status_name)) : samples;
+  return picked.map(({ store_id, name, lat, lng, status_name, open_date }) => ({
+    store_id,
+    name,
+    lat,
+    lng,
+    status_name,
+    open_date,
+    close_date: status === "closed" ? closeDateOf({ store_id, name, lat, lng, status_name, open_date, industry_id: industryId }) : null,
+  }));
 }
 
 const CHILDCARE_TYPES = ["국공립", "가정", "민간", "직장"] as const;

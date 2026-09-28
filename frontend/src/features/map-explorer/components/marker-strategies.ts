@@ -56,6 +56,27 @@ const STORE_STRATEGY: MarkerStrategy<Store> = {
     ]),
 };
 
+function monthsBetween(from: string, to: string): number {
+  const a = new Date(from), b = new Date(to);
+  return Math.max(0, (b.getFullYear() - a.getFullYear()) * 12 + (b.getMonth() - a.getMonth()));
+}
+
+/** 최근 2년 폐업 점포 — 영업 마커 위에 얹는 별도 레이어(--danger). 팝업은 언제 열고 얼마나 버텼는지. */
+export const CLOSED_STORE_STRATEGY: MarkerStrategy<Store> = {
+  queryKey: (regionCode, industry) => ["stores-closed", regionCode, industry],
+  fetch: (regionCode, industry) => fetchStores(regionCode, industry, "closed"),
+  buildPopup: (store) =>
+    popupContent([
+      { text: store.name, bold: true },
+      { text: `개업일 ${store.open_date} · 폐업일 ${store.close_date ?? "-"}`, color: "var(--text-secondary)" },
+      {
+        text: store.close_date && store.open_date ? `영업 ${monthsBetween(store.open_date, store.close_date)}개월` : store.status_name,
+        color: "var(--danger)",
+        bold: true,
+      },
+    ]),
+};
+
 const CHILDCARE_STRATEGY: MarkerStrategy<ChildcareCenter> = {
   queryKey: (regionCode) => ["childcare-centers", regionCode],
   fetch: (regionCode) => fetchChildcareCenters(regionCode),

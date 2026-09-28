@@ -2,6 +2,27 @@
 
 > 2026-09-23 T0-2 병합에서 v0.14.x 충돌로 우리 쪽 4항목(랜딩·E2E·동네 프로필·영업 지속 개월)을 v0.15.0·v0.15.1·v0.16.0·v0.17.0으로 재번호했다. 해당 커밋 메시지의 번호는 병합 전 번호다.
 
+## [v0.29.1] - 2026-09-29
+
+### Added
+- **폐업 마커 토글** — `SidePanel`의 `ClosedStoresToggle`(`VerdictSection` 바로 아래). 기본 꺼짐, URL·localStorage 미포함.
+  켜면 영업 마커 위에 최근 2년 폐업 점포를 **추가**로 얹는다(대체 아님).
+- `CLOSED_STORE_STRATEGY: MarkerStrategy<Store>` — 조회 키 `["stores-closed", region, industry]`, 색 `--danger`(WebGL엔
+  `readCssVar` 계산값), 팝업에 개업일·폐업일·영업 개월.
+- 토글 건수 한 줄 "이 동에서 최근 2년 {업종} N곳 폐업" — `CLOSED_STORE_STRATEGY`와 같은 queryKey를 써 지도 레이어 요청과 하나로 합쳐진다.
+- mock `/api/mock/stores`가 `status=open|closed` 지원(기본 open은 기존 응답과 동일 + `close_date: null`), closed는 결정적
+  `close_date`(해시 기반, `Math.random` 미사용), 미지원 status는 404 `STORE_STATUS_NOT_FOUND`.
+
+### Changed
+- `RegionMarkers`가 `strategy`·`sourceId`·`colorVar`를 props로 받도록 파라미터화 — 소스·레이어 id를 `sourceId`에서 파생해 한 지도에
+  레이어를 둘(영업·폐업) 얹을 수 있다. 기본값(`markerStrategyOf(industry)`·`"markers"`·`"--accent"`)은 기존과 동일해 기존 호출부는
+  변경 없이 그대로 동작한다.
+- `Store.close_date: string | null` 추가(status=open이면 null). `fetchStores(regionCode, industry, status = "open")`.
+
+### Validation
+- Vitest **357/357**, `tsc --noEmit` clean. 실 API 역삼1동 한식(`region=1168064000&industry=korean_food&status=closed`) 300건,
+  `close_date` 포함 확인(3200 프록시). 브라우저 화면(빨간 마커·"최근 2년 한식 N곳 폐업" 문구)은 미확인 — 사용자 노트북에서 확인 필요.
+
 ## [v0.29.0] - 2026-09-29
 
 ### Added

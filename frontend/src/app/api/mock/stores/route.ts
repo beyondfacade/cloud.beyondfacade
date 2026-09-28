@@ -22,5 +22,12 @@ export async function GET(request: Request) {
     );
   }
 
-  return Response.json(storesOf(region, industry));
+  const status = searchParams.get("status") ?? "open";
+  if (status !== "open" && status !== "closed") {
+    return Response.json(
+      { error: { code: "STORE_STATUS_NOT_FOUND", message: `지원하지 않는 status: ${status} (open | closed)` } },
+      { status: 404 },
+    );
+  }
+  return Response.json(storesOf(region, industry, status));
 }

@@ -33,3 +33,21 @@ it("실적재 데이터가 없는 업종은 (region·industry 모두 유효해�
   expect(res.status).toBe(200);
   expect(await res.json()).toEqual([]);
 });
+
+// 표본상 cafe는 전 지역 status_name이 "영업"뿐이라(폐업 표본 없음) closed 검증엔 billiard를 쓴다(region 1168052100엔 폐업 표본 有).
+it("status=closed는 폐업 점포만 close_date와 함께 주고, 기본값은 close_date가 null이다", async () => {
+  const closed = await (await GET(new Request("http://test/api/mock/stores?region=1168052100&industry=billiard&status=closed"))).json();
+  expect(closed.length).toBeGreaterThan(0);
+  for (const s of closed) {
+    expect(s.status_name).toBe("폐업");
+    expect(s.close_date).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+  }
+  const open = await (await GET(new Request("http://test/api/mock/stores?region=1168052100&industry=billiard"))).json();
+  for (const s of open) expect(s.close_date).toBeNull();
+});
+
+it("미지원 status는 404 STORE_STATUS_NOT_FOUND", async () => {
+  const res = await GET(new Request("http://test/api/mock/stores?region=1168052100&industry=cafe&status=bogus"));
+  expect(res.status).toBe(404);
+  expect((await res.json()).error.code).toBe("STORE_STATUS_NOT_FOUND");
+});

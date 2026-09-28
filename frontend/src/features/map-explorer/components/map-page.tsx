@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { MapView } from "./map-view";
 import { ControlBar } from "./control-bar";
@@ -17,6 +17,8 @@ export function MapPage() {
   // URL로 직접 들어온 조합도 보정한다 — 예: ?industry=childcare&metric=store_count&year=2020
   const state = clampToCoverage(parseMapState(searchParams));
   const canonical = serializeMapState(state);
+  // 폐업 마커 토글 — URL·localStorage에 넣지 않는다 (설계서 §6-2), 기본 꺼짐.
+  const [showClosed, setShowClosed] = useState(false);
 
   // 보정이 실제로 값을 바꿨으면 URL도 맞춘다. clamp가 멱등이라 한 번 바꾸면 다시 걸리지 않는다.
   useEffect(() => {
@@ -52,10 +54,18 @@ export function MapPage() {
               year={state.year}
               yearQuarter={state.year_quarter}
               onSelectRegion={handleSelectRegion}
+              showClosed={showClosed}
             />
           </div>
         </section>
-        <SidePanel regionCode={state.region} industry={state.industry} budget={state.budget} yearQuarter={state.year_quarter} />
+        <SidePanel
+          regionCode={state.region}
+          industry={state.industry}
+          budget={state.budget}
+          yearQuarter={state.year_quarter}
+          showClosed={showClosed}
+          onToggleClosed={setShowClosed}
+        />
       </div>
     </main>
   );
