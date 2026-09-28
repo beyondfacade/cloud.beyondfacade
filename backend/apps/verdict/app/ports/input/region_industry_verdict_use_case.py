@@ -16,7 +16,7 @@ class RegionIndustryVerdictUseCase(ABC):
 
     @abstractmethod
     def build(self, today: date) -> int:
-        """판정 대상 14업종 × 전 행정동 판정을 재계산·업서트하고 처리 건수를 반환한다 (멱등)."""
+        """판정 대상 13업종 × 전 행정동 판정을 재계산·업서트하고 처리 건수를 반환한다 (멱등)."""
 
     @abstractmethod
     def list_verdict_values(self, industry_id: str) -> list[VerdictValueDto]:
