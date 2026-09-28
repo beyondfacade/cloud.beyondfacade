@@ -747,10 +747,11 @@ function signalOf(key: VerdictSignalKey, regionCode: string, industryId: string)
   const u = unitFrom(hashSeed("verdict", key, regionCode, industryId));
   const name = INDUSTRY_LABELS[industryId as IndustryId] ?? industryId;
   const source = SIGNAL_SOURCE[key];
-  if (u >= 0.9) {
-    return { key, level: "unavailable", value: null, percentile: null, evidence: `표본 부족 — 3년 전 개업 코호트 ${Math.floor(u * 10)}곳 (10곳 미만)`, source };
+  // 하위 8%는 미판정(표본 부족), 나머지 92%를 0~100 백분위로 펼친다 — strong(≥90)·red가 실제로 나온다
+  if (u < 0.08) {
+    return { key, level: "unavailable", value: null, percentile: null, evidence: `표본 부족 — 3년 전 개업 코호트 ${Math.floor(u * 100)}곳 (10곳 미만)`, source };
   }
-  const percentile = Math.round(u * 1000) / 10; // 0.0 ~ 89.9
+  const percentile = Math.round(((u - 0.08) / 0.92) * 1000) / 10; // 0.0 ~ 100.0
   const level = percentile >= 90 ? "strong" : percentile >= 75 ? "on" : "off";
   const top = Math.max(1, Math.round(100 - percentile));
   const EVIDENCE: Record<VerdictSignalKey, string> = {

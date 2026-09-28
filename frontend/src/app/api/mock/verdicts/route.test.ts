@@ -11,7 +11,8 @@ it("판정 대상 업종은 200과 region_code·value(판정 코드) 쌍 목록�
   const rows = await res.json();
   expect(rows.length).toBeGreaterThan(400);
   expect(Object.keys(rows[0]).sort()).toEqual(["region_code", "value"]);
-  expect(new Set(rows.map((r: { value: string }) => r.value)).size).toBeGreaterThan(1);
+  const codes = new Set(rows.map((r: { value: string }) => r.value));
+  expect([...codes].sort()).toEqual(["clear", "insufficient", "orange", "red"]); // 네 판정이 전부 나와야 지도 범례·QA가 가능하다
   for (const r of rows) expect(["red", "orange", "clear", "insufficient"]).toContain(r.value);
 });
 
