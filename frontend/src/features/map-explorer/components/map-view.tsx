@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Map as MapLibreGLMap, setWorkerUrl, type GeoJSONSource, type RasterTileSource } from "maplibre-gl";
+import { Map as MapLibreGLMap, setWorkerUrl, type ErrorEvent as MapErrorEvent, type GeoJSONSource, type MapSourceDataEvent, type RasterTileSource } from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { config } from "@/shared/config";
 import type { CategoryRow, MapMetricKey, MetricRow } from "@/shared/api/types";
@@ -59,6 +59,10 @@ export function MapView({ regionCode, metric, industry, year, yearQuarter, onSel
   const onSelectRegionRef = useRef(onSelectRegion);
   onSelectRegionRef.current = onSelectRegion;
   const [ready, setReady] = useState(false);
+  const [retryCount, setRetryCount] = useState(0);
+  const [mapFailure, setMapFailure] = useState<"initialization" | "tiles" | "source" | null>(null);
+  const failedSourceRef = useRef<string | null>(null);
+  const failedTilesRef = useRef(new Set<string>());
 
   const { geojson, rows, source } = useMapData(metric, { industry, year, yearQuarter });
   // 경계/지표 fetch 실패는 무음 빈 지도가 아니라 배너로 알린다 (side-panel의 role="alert" 관행과 일관).
@@ -91,55 +95,141 @@ export function MapView({ regionCode, metric, industry, year, yearQuarter, onSel
   useEffect(() => {
     if (!containerRef.current) return;
 
-    const map = new MapLibreGLMap({
-      container: containerRef.current,
-      center: SEOUL_CENTER,
-      zoom: INITIAL_ZOOM,
-      style: {
-        version: 8,
-        sources: {
-          [TILE_SOURCE_ID]: {
-            type: "raster",
-            tiles: [vworldTileUrl(currentTheme())],
-            tileSize: 256,
-            attribution: "© VWorld",
+    // Avoid constructing a partial MapLibre instance when WebGL2 is unavailable. MapLibre 6
+    // returns early in this case, and its remove() cannot clean up an instance without painter.
+    const probe = document.createElement("canvas");
+    let supportsWebGL2 = false;
+    try {
+      const context = probe.getContext("webgl2");
+      supportsWebGL2 = !!context;
+      try { context?.getExtension("WEBGL_lose_context")?.loseContext(); } catch { /* Extension unavailable. */ }
+    } catch { /* Context creation failed. */ }
+    probe.width = 0;
+    probe.height = 0;
+    if (!supportsWebGL2) {
+      setMapFailure("initialization");
+      return;
+    }
+
+    let map: MapLibreGLMap;
+    try {
+      map = new MapLibreGLMap({
+        container: containerRef.current,
+        center: SEOUL_CENTER,
+        zoom: INITIAL_ZOOM,
+        style: {
+          version: 8,
+          sources: {
+            [TILE_SOURCE_ID]: {
+              type: "raster",
+              tiles: [vworldTileUrl(currentTheme())],
+              tileSize: 256,
+              attribution: "© VWorld",
+            },
           },
+          layers: [{ id: TILE_LAYER_ID, type: "raster", source: TILE_SOURCE_ID }],
         },
-        layers: [{ id: TILE_LAYER_ID, type: "raster", source: TILE_SOURCE_ID }],
-      },
-    });
+      });
+    } catch {
+      containerRef.current.replaceChildren();
+      setMapFailure("initialization");
+      return;
+    }
+    // MapLibre 6 fires GPUInitializationError during construction and returns early when
+    // WebGL2 is unavailable. That synchronous event precedes any map.on("error") listener.
+    try {
+      if (!map.getCanvas().getContext("webgl2")) {
+        containerRef.current.replaceChildren();
+        setMapFailure("initialization");
+        return;
+      }
+    } catch {
+      containerRef.current.replaceChildren();
+      setMapFailure("initialization");
+      return;
+    }
     mapRef.current = map;
+    let active = true;
+
+    map.on("error", (event: MapErrorEvent & { sourceId?: string; tile?: { tileID?: { key?: string } } }) => {
+      if (!active) return;
+      const error = event.error as Error & { name?: string };
+      if (error.name === "AbortError" || /\babort(?:ed|ing)?\b/i.test(error.message)) return;
+      failedSourceRef.current = event.sourceId ?? null;
+      if (event.sourceId === TILE_SOURCE_ID) {
+        const key = event.tile?.tileID?.key;
+        if (key) failedTilesRef.current.add(key);
+      } else {
+        failedTilesRef.current.clear();
+      }
+      setMapFailure(event.sourceId === TILE_SOURCE_ID ? "tiles" : event.sourceId ? "source" : "initialization");
+    });
+    map.on("sourcedata", (event: MapSourceDataEvent) => {
+      if (!active || event.sourceId !== failedSourceRef.current) return;
+      if (event.sourceId === TILE_SOURCE_ID) {
+        if (event.tile?.state !== "loaded" || !event.coord?.key) return;
+        failedTilesRef.current.delete(event.coord.key);
+        if (failedTilesRef.current.size > 0) return;
+      } else if (event.sourceDataType !== "content") return;
+      failedSourceRef.current = null;
+      setMapFailure(null);
+    });
+    map.on("sourcedataabort", (event: MapSourceDataEvent) => {
+      if (!active || event.sourceId !== TILE_SOURCE_ID || failedSourceRef.current !== TILE_SOURCE_ID) return;
+      const key = event.coord?.key ?? event.tile?.tileID?.key;
+      if (!key || !failedTilesRef.current.delete(key)) return;
+      if (failedTilesRef.current.size === 0) {
+        failedSourceRef.current = null;
+        setMapFailure(null);
+      }
+    });
+    map.on("webglcontextlost", () => {
+      if (active) {
+        failedSourceRef.current = null;
+        failedTilesRef.current.clear();
+        setMapFailure("initialization");
+      }
+    });
+    map.on("webglcontextrestored", () => {
+      if (active) setMapFailure(null);
+    });
 
     map.on("load", () => {
-      map.addSource(REGIONS_SOURCE_ID, {
-        type: "geojson",
-        data: { type: "FeatureCollection", features: [] },
-      });
-      map.addLayer({
-        id: REGIONS_FILL_LAYER_ID,
-        type: "fill",
-        source: REGIONS_SOURCE_ID,
-        paint: { "fill-color": NO_DATA_COLOR, "fill-opacity": 0.55 },
-      });
-      map.addLayer({
-        id: REGIONS_LINE_LAYER_ID,
-        type: "line",
-        source: REGIONS_SOURCE_ID,
-        filter: ["==", ["get", "region_code"], NO_SELECTION],
-        paint: { "line-color": readAccentColor(NO_DATA_COLOR), "line-width": 2 },
-      });
-      map.on("click", REGIONS_FILL_LAYER_ID, (e) => {
-        const code = e.features?.[0]?.properties?.region_code;
-        if (typeof code === "string") onSelectRegionRef.current(code);
-      });
-      setReady(true);
+      if (!active) return;
+      try {
+        map.addSource(REGIONS_SOURCE_ID, {
+          type: "geojson",
+          data: { type: "FeatureCollection", features: [] },
+        });
+        map.addLayer({
+          id: REGIONS_FILL_LAYER_ID,
+          type: "fill",
+          source: REGIONS_SOURCE_ID,
+          paint: { "fill-color": NO_DATA_COLOR, "fill-opacity": 0.55 },
+        });
+        map.addLayer({
+          id: REGIONS_LINE_LAYER_ID,
+          type: "line",
+          source: REGIONS_SOURCE_ID,
+          filter: ["==", ["get", "region_code"], NO_SELECTION],
+          paint: { "line-color": readAccentColor(NO_DATA_COLOR), "line-width": 2 },
+        });
+        map.on("click", REGIONS_FILL_LAYER_ID, (e) => {
+          const code = e.features?.[0]?.properties?.region_code;
+          if (typeof code === "string") onSelectRegionRef.current(code);
+        });
+        setReady(true);
+      } catch {
+        setMapFailure("initialization");
+      }
     });
 
     return () => {
+      active = false;
       map.remove();
-      mapRef.current = null;
+      if (mapRef.current === map) mapRef.current = null;
     };
-  }, []);
+  }, [retryCount]);
 
   // 테마 전환(data-theme) → 래스터 타일 URL 교체 + 선택 강조색(--accent) 재적용.
   useEffect(() => {
@@ -148,6 +238,11 @@ export function MapView({ regionCode, metric, industry, year, yearQuarter, onSel
       if (!map) return;
       const source = map.getSource<RasterTileSource>(TILE_SOURCE_ID);
       source?.setTiles([vworldTileUrl(currentTheme())]);
+      if (failedSourceRef.current === TILE_SOURCE_ID) {
+        failedSourceRef.current = null;
+        failedTilesRef.current.clear();
+        setMapFailure(null);
+      }
       if (map.getLayer(REGIONS_LINE_LAYER_ID)) {
         map.setPaintProperty(REGIONS_LINE_LAYER_ID, "line-color", readAccentColor(NO_DATA_COLOR));
       }
@@ -203,24 +298,61 @@ export function MapView({ regionCode, metric, industry, year, yearQuarter, onSel
     map.setFilter(REGIONS_LINE_LAYER_ID, ["==", ["get", "region_code"], regionCode ?? NO_SELECTION] as any);
   }, [ready, regionCode]);
 
+  const retryMap = () => {
+    const map = mapRef.current;
+    const failedSource = failedSourceRef.current;
+    try {
+      if (map && failedSource === TILE_SOURCE_ID) {
+        map.refreshTiles(TILE_SOURCE_ID);
+        return;
+      }
+      if (map && failedSource === REGIONS_SOURCE_ID && geojson.data) {
+        const source = map.getSource<GeoJSONSource>(REGIONS_SOURCE_ID);
+        if (source) {
+          source.setData(geojson.data);
+          return;
+        }
+      }
+    } catch {
+      // A source that cannot be refreshed needs a new map instance.
+    }
+    failedSourceRef.current = null;
+    failedTilesRef.current.clear();
+    setReady(false);
+    setMapFailure(null);
+    setRetryCount((count) => count + 1);
+  };
+
   return (
     <div className="relative h-full min-h-[320px] w-full">
       <div ref={containerRef} className="h-full w-full" />
-      {loadError && (
-        <div
-          role="alert"
-          className="absolute top-3 left-1/2 z-10 -translate-x-1/2 rounded-md border border-[var(--danger)] bg-[var(--bg-surface)] px-3 py-2 text-sm font-medium text-[var(--danger)] shadow-md"
-        >
-          지도 데이터를 불러오지 못했습니다. 서버 연결을 확인해 주세요.
+      {mapFailure && (
+        <div role="alert" className="absolute top-3 left-1/2 z-10 flex w-[min(90%,24rem)] -translate-x-1/2 flex-col gap-2 rounded-md border border-[var(--danger)] bg-[var(--bg-surface)] px-3 py-2 text-sm text-[var(--danger)] shadow-md">
+          <span>{mapFailure === "initialization" ? "지도를 시작할 수 없습니다. 브라우저의 그래픽 지원을 확인해 주세요." : mapFailure === "tiles" ? "배경 지도 타일을 불러오지 못했습니다. 연결을 확인해 주세요." : "지도 소스를 표시하지 못했습니다. 다시 시도해 주세요."}</span>
+          <button type="button" className="self-start rounded border border-current px-2 py-1 font-medium" onClick={retryMap}>지도 다시 시도</button>
         </div>
       )}
-      {!loadError && noData && (
+      {!mapFailure && loadError && (
+        <div
+          role="alert"
+          className="absolute top-3 left-1/2 z-10 flex w-[min(90%,24rem)] -translate-x-1/2 flex-col gap-2 rounded-md border border-[var(--danger)] bg-[var(--bg-surface)] px-3 py-2 text-sm font-medium text-[var(--danger)] shadow-md"
+        >
+          <span>지도 데이터를 불러오지 못했습니다. 서버 연결을 확인해 주세요.</span>
+          <button type="button" className="self-start rounded border border-current px-2 py-1" onClick={() => {
+            if (geojson.isError) void geojson.refetch();
+            if (rows.isError) void rows.refetch();
+          }}>데이터 다시 시도</button>
+        </div>
+      )}
+      {!mapFailure && !loadError && noData && (
         <div
           role="status"
           className="absolute top-3 left-1/2 z-10 -translate-x-1/2 rounded-md border border-[var(--border)] bg-[var(--bg-surface)] px-3 py-2 text-sm text-[var(--text-secondary)] shadow-md"
         >
           {noClosureHistory
             ? "이 업종의 원천에는 개폐업 이력이 없어 폐업률·성장률이 없습니다. 점포수를 선택해 보세요."
+            : source.axis === "region_quarter"
+              ? yearQuarter ? "해당 분기의 지표 데이터가 없습니다." : "동네 지표 데이터가 없습니다."
             : metric === "store_count"
               ? "해당 업종·연도의 점포수 지표가 없습니다."
               : "해당 업종·연도의 지표 데이터가 없습니다."}

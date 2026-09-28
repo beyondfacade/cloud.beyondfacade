@@ -38,7 +38,7 @@ const DIAGNOSIS = {
 
 async function submit(text: string) {
   fireEvent.change(screen.getByLabelText("어느 동네에서 무엇을 하려고 하세요?"), { target: { value: text } });
-  await act(async () => { fireEvent.click(screen.getByRole("button", { name: /찾아보기/ })); });
+  await act(async () => { fireEvent.click(screen.getByRole("button", { name: /찾아보기|찾는 중/ })); });
 }
 
 beforeEach(() => {
@@ -50,6 +50,128 @@ beforeEach(() => {
 afterEach(() => vi.useRealTimers());
 
 describe("관문 상태 전이", () => {
+  it("동 목록이 일시 실패하면 같은 구를 재시도하여 동을 고를 수 있다", async () => {
+    api.parseIntent.mockResolvedValue(result({ district_code: "11680", industry_id: "cafe", budget_krw: 50_000_000 }));
+    api.fetchRegionList.mockRejectedValueOnce(new Error("temporary"))
+      .mockResolvedValueOnce([{ region_code: "1168064000", name: "역삼1동" }]);
+    api.diagnoseIntent.mockResolvedValue(result({ diagnosis: null }));
+    render(<IntentGate />);
+
+    await submit("강남구 카페, 예산 5천");
+    expect(await screen.findByRole("alert")).toBeInTheDocument();
+    expect(screen.queryByText("강남구의 어느 동인가요?")).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "다시 시도" }));
+    expect(await screen.findByRole("button", { name: "역삼1동" })).toBeInTheDocument();
+    await act(async () => { fireEvent.click(screen.getByRole("button", { name: "역삼1동" })); });
+    await waitFor(() => expect(router.push).toHaveBeenCalledWith("/map?region=1168064000&industry=cafe&budget=50000000"));
+  });
+
+  it("선택한 구의 동 목록이 비어 있으면 재시도에서 새 목록을 받는다", async () => {
+    api.parseIntent.mockResolvedValue(result({ district_code: "11680", industry_id: "cafe" }));
+    api.fetchRegionList.mockResolvedValueOnce([])
+      .mockResolvedValueOnce([{ region_code: "1168064000", name: "역삼1동" }]);
+    render(<IntentGate />);
+
+    await submit("강남구 카페");
+    expect(await screen.findByRole("alert")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "다시 시도" }));
+    expect(await screen.findByRole("button", { name: "역삼1동" })).toBeInTheDocument();
+  });
+
+  it("파싱 실패 뒤 입력을 유지하고 재시도할 수 있다", async () => {
+    api.parseIntent.mockRejectedValueOnce(new Error("temporary"))
+      .mockResolvedValueOnce(result({ industry_id: "gym" }));
+    render(<IntentGate />);
+
+    await submit("헬스장");
+    expect(await screen.findByRole("alert")).toBeInTheDocument();
+    expect(screen.getByLabelText("어느 동네에서 무엇을 하려고 하세요?")).toHaveValue("헬스장");
+    fireEvent.click(screen.getByRole("button", { name: "다시 시도" }));
+    expect(await screen.findByText(/말씀하신 곳을 찾지 못했어요/)).toBeInTheDocument();
+  });
+
+  it("파싱 실패 뒤 직접 동네를 고르거나 지도로 갈 수 있다", async () => {
+    api.parseIntent.mockRejectedValue(new Error("offline"));
+    api.fetchRegionList.mockResolvedValue([{ region_code: "1168064000", name: "역삼1동" }]);
+    render(<IntentGate />);
+
+    await submit("역삼동에 카페");
+    await screen.findByRole("alert");
+    fireEvent.click(screen.getByRole("button", { name: "동네 직접 고르기" }));
+    expect(await screen.findByRole("button", { name: "강남구" })).toBeInTheDocument();
+    await act(async () => { fireEvent.click(screen.getByRole("button", { name: "강남구" })); });
+    expect(await screen.findByRole("button", { name: "역삼1동" })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "아직 몰라요 — 지도에서 고를게요" }));
+    expect(router.push).toHaveBeenCalledWith("/map");
+  });
+
+  it("파싱이 응답하지 않아도 15초 뒤 재시도할 수 있다", async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    api.parseIntent.mockImplementation(() => new Promise(() => {}));
+    render(<IntentGate />);
+
+    await submit("헬스장");
+    expect(screen.getByRole("button", { name: /찾는 중/ })).toBeInTheDocument();
+    await act(async () => { vi.advanceTimersByTime(15_001); });
+    expect(await screen.findByRole("alert")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "다시 시도" })).toBeInTheDocument();
+  });
+
+  it("선택한 구의 동 목록이 응답하지 않아도 15초 뒤 실패를 알린다", async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    api.parseIntent.mockResolvedValue(result({ district_code: "11680", industry_id: "cafe" }));
+    api.fetchRegionList.mockImplementation(() => new Promise(() => {}));
+    render(<IntentGate />);
+
+    await submit("강남구 카페");
+    await act(async () => { vi.advanceTimersByTime(15_001); });
+    expect(await screen.findByRole("alert")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "동네 직접 고르기" })).toBeInTheDocument();
+  });
+
+  it("선택적 진단이 느리면 3초 뒤 예산을 포함한 지도로 간다", async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    api.parseIntent.mockResolvedValue(result({
+      intent_type: "A", region_code: "1168064000", industry_id: "cafe", budget_krw: 50_000_000,
+    }));
+    api.diagnoseIntent.mockImplementation(() => new Promise(() => {}));
+    render(<IntentGate />);
+
+    await submit("역삼1동 카페 예산 5천");
+    await act(async () => { vi.advanceTimersByTime(3_001); });
+    expect(router.push).toHaveBeenCalledWith("/map?region=1168064000&industry=cafe&budget=50000000");
+  });
+
+  it("새 검색이 시작되면 이전 응답이 화면과 이동을 덮지 않는다", async () => {
+    let resolveFirst!: (value: IntentResult) => void;
+    api.parseIntent.mockImplementationOnce(() => new Promise<IntentResult>((resolve) => { resolveFirst = resolve; }))
+      .mockResolvedValueOnce(result({ industry_id: "gym" }));
+    render(<IntentGate />);
+
+    await submit("첫 검색");
+    await submit("헬스장");
+    expect(await screen.findByText(/말씀하신 곳을 찾지 못했어요/)).toBeInTheDocument();
+    await act(async () => { resolveFirst(result({ intent_type: "A", region_code: "1168064000", industry_id: "cafe", diagnosis: DIAGNOSIS })); });
+    expect(screen.getByText(/말씀하신 곳을 찾지 못했어요/)).toBeInTheDocument();
+    expect(screen.queryByText(DIAGNOSIS.sentence)).toBeNull();
+    expect(router.push).not.toHaveBeenCalled();
+  });
+
+  it("이전 진단의 자동 이동은 새 검색을 덮지 않는다", async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    api.parseIntent.mockResolvedValueOnce(result({
+      intent_type: "A", region_code: "1168064000", industry_id: "cafe", diagnosis: DIAGNOSIS,
+    })).mockResolvedValueOnce(result({ industry_id: "gym" }));
+    render(<IntentGate />);
+
+    await submit("역삼1동 카페");
+    expect(await screen.findByText(DIAGNOSIS.sentence)).toBeInTheDocument();
+    await submit("헬스장");
+    expect(await screen.findByText(/말씀하신 곳을 찾지 못했어요/)).toBeInTheDocument();
+    await act(async () => { vi.advanceTimersByTime(AUTO_NAVIGATE_MS + 10); });
+    expect(router.push).not.toHaveBeenCalled();
+  });
+
   it("A유형이면 진단 문장을 보여주고 잠시 뒤 지도로 간다", async () => {
     vi.useFakeTimers({ shouldAdvanceTime: true });
     api.parseIntent.mockResolvedValue(result({
@@ -81,7 +203,7 @@ describe("관문 상태 전이", () => {
     expect(await screen.findByText(/같은 이름의 동이 여럿/)).toBeInTheDocument();
     await act(async () => { fireEvent.click(screen.getByRole("button", { name: "강남구 역삼1동" })); });
 
-    expect(api.diagnoseIntent).toHaveBeenCalledWith("1168064000", "cafe");
+    expect(api.diagnoseIntent).toHaveBeenCalledWith("1168064000", "cafe", expect.any(AbortSignal));
     expect(await screen.findByText(DIAGNOSIS.sentence)).toBeInTheDocument();
   });
 

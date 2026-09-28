@@ -14,7 +14,7 @@ pnpm dev
 bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3200](http://localhost:3200) or [http://127.0.0.1:3200](http://127.0.0.1:3200) in your browser. Development assets from `127.0.0.1` are allowed in `next.config.ts`; to use another developer hostname, add that exact hostname to `allowedDevOrigins` there.
 
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 

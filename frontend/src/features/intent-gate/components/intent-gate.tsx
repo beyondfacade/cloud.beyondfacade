@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { IntentResult } from "@/shared/api/types";
 import { INDUSTRY_LABELS } from "@/shared/industries";
@@ -19,14 +19,14 @@ type Phase =
   | { kind: "pending" }
   | { kind: "clarifyRegion"; draft: IntentResult; options: ChipOption[]; level: "candidates" | "districts" | "dongs" }
   | { kind: "clarifyIndustry"; draft: IntentResult }
-  | { kind: "done"; draft: IntentResult; href: string; sentence: string | null }
-  | { kind: "error" };
+  | { kind: "done"; draft: IntentResult; href: string; sentence: string; requestId: number }
+  | { kind: "error"; draft: IntentResult; retry: { kind: "parse"; text: string } | { kind: "regions"; districtCode: string } };
 
-let regionListCache: Promise<{ region_code: string; name: string }[]> | null = null;
-function regionList() {
-  regionListCache ??= fetchRegionList();
-  return regionListCache;
-}
+const EMPTY_DRAFT: IntentResult = {
+  intent_type: "C", region_code: null, region_name: null, district_code: null,
+  industry_id: null, budget_krw: null, missing: ["region", "industry", "budget"],
+  candidates: [], diagnosis: null, source: "rule",
+};
 
 const DISTRICT_OPTIONS: ChipOption[] = Object.entries(SEOUL_DISTRICTS).map(([key, label]) => ({ key, label }));
 const INDUSTRY_OPTIONS: ChipOption[] = Object.entries(INDUSTRY_LABELS).map(([key, label]) => ({ key, label }));
@@ -35,35 +35,71 @@ export function IntentGate() {
   const router = useRouter();
   const [phase, setPhase] = useState<Phase>({ kind: "idle" });
   const navigate = useCallback((href: string) => router.push(href), [router]);
+  const requestId = useRef(0);
+  const activeRequest = useRef<AbortController | null>(null);
+  const cachedRegions = useRef<{ region_code: string; name: string }[] | null>(null);
+
+  useEffect(() => () => {
+    requestId.current += 1;
+    activeRequest.current?.abort();
+  }, []);
+
+  function beginRequest() {
+    requestId.current += 1;
+    activeRequest.current?.abort();
+    return requestId.current;
+  }
+
+  function isCurrent(id: number) {
+    return requestId.current === id;
+  }
+
+  async function withDeadline<T>(run: (signal: AbortSignal) => Promise<T>, milliseconds: number): Promise<T> {
+    const controller = new AbortController();
+    activeRequest.current = controller;
+    const aborted = new Promise<never>((_, reject) => {
+      controller.signal.addEventListener("abort", () => reject(new Error("Request aborted")), { once: true });
+    });
+    const timer = setTimeout(() => controller.abort(), milliseconds);
+    try {
+      return await Promise.race([run(controller.signal), aborted]);
+    } finally {
+      clearTimeout(timer);
+      if (activeRequest.current === controller) activeRequest.current = null;
+    }
+  }
 
   /** 동이 정해진 뒤의 갈림길 — 업종이 없으면 되묻고, 있으면 진단을 받아 끝낸다. */
-  async function afterRegion(draft: IntentResult) {
+  async function afterRegion(draft: IntentResult, id: number) {
+    if (!isCurrent(id)) return;
     if (!draft.industry_id) {
       setPhase({ kind: "clarifyIndustry", draft });
       return;
     }
-    await finish(draft);
+    await finish(draft, id);
   }
 
   /** A 완성 → 진단이 없으면 두 번째 형태로 한 번 더 묻는다. 진단 실패는 착지를 막지 않는다. */
-  async function finish(draft: IntentResult) {
+  async function finish(draft: IntentResult, id: number) {
     const href = intentToUrl(draft);
     let sentence = draft.diagnosis?.sentence ?? null;
     if (!sentence && draft.region_code && draft.industry_id) {
       setPhase({ kind: "pending" });
-      sentence = await diagnoseIntent(draft.region_code, draft.industry_id)
+      sentence = await withDeadline((signal) => diagnoseIntent(draft.region_code!, draft.industry_id!, signal), 3_000)
         .then((r) => r.diagnosis?.sentence ?? null)
         .catch(() => null);
     }
+    if (!isCurrent(id)) return;
     if (!sentence) {
       navigate(href);
       return;
     }
-    setPhase({ kind: "done", draft, href, sentence });
+    setPhase({ kind: "done", draft, href, sentence, requestId: id });
   }
 
   /** 동이 없을 때 — 후보가 있으면 후보, 구만 잡혔으면 그 구의 동, 아무것도 없으면 25구부터. */
-  async function askRegion(draft: IntentResult) {
+  async function askRegion(draft: IntentResult, id: number) {
+    if (!isCurrent(id)) return;
     if (draft.candidates.length > 0) {
       setPhase({
         kind: "clarifyRegion",
@@ -74,41 +110,65 @@ export function IntentGate() {
       return;
     }
     if (draft.district_code) {
-      await askDongs(draft, draft.district_code);
+      await askDongs(draft, draft.district_code, id);
       return;
     }
     setPhase({ kind: "clarifyRegion", draft, level: "districts", options: DISTRICT_OPTIONS });
   }
 
-  async function askDongs(draft: IntentResult, districtCode: string) {
+  async function askDongs(draft: IntentResult, districtCode: string, id: number) {
     setPhase({ kind: "pending" });
-    const regions = await regionList().catch(() => []);
+    let regions: { region_code: string; name: string }[];
+    try {
+      regions = cachedRegions.current ?? await withDeadline(fetchRegionList, 15_000);
+    } catch {
+      if (isCurrent(id)) setPhase({ kind: "error", draft, retry: { kind: "regions", districtCode } });
+      return;
+    }
+    if (!isCurrent(id)) return;
     const options = regions
       .filter((r) => districtOf(r.region_code) === districtCode)
       .map((r) => ({ key: r.region_code, label: r.name }));
+    if (!options.length) {
+      setPhase({ kind: "error", draft, retry: { kind: "regions", districtCode } });
+      return;
+    }
+    cachedRegions.current = regions;
     setPhase({ kind: "clarifyRegion", draft: { ...draft, district_code: districtCode }, level: "dongs", options });
   }
 
   async function handleSubmit(text: string) {
+    const id = beginRequest();
     setPhase({ kind: "pending" });
     let result: IntentResult;
     try {
-      result = await parseIntent(text);
+      result = await withDeadline((signal) => parseIntent(text, signal), 15_000);
     } catch {
-      setPhase({ kind: "error" });
+      if (isCurrent(id)) setPhase({ kind: "error", draft: EMPTY_DRAFT, retry: { kind: "parse", text } });
       return;
     }
-    if (!result.region_code) await askRegion(result);
-    else await afterRegion(result);
+    if (!isCurrent(id)) return;
+    if (!result.region_code) await askRegion(result, id);
+    else await afterRegion(result, id);
+  }
+
+  function handleRetry() {
+    if (phase.kind !== "error") return;
+    if (phase.retry.kind === "parse") {
+      void handleSubmit(phase.retry.text);
+      return;
+    }
+    const id = beginRequest();
+    void askDongs(phase.draft, phase.retry.districtCode, id);
   }
 
   async function handlePickRegion(key: string) {
     if (phase.kind !== "clarifyRegion") return;
     if (phase.level === "districts") {
-      await askDongs(phase.draft, key);
+      await askDongs(phase.draft, key, requestId.current);
       return;
     }
-    await afterRegion({ ...phase.draft, region_code: key, candidates: [] });
+    await afterRegion({ ...phase.draft, region_code: key, candidates: [] }, requestId.current);
   }
 
   function handleSkipRegion() {
@@ -119,7 +179,7 @@ export function IntentGate() {
 
   async function handlePickIndustry(key: string) {
     if (phase.kind !== "clarifyIndustry") return;
-    await finish({ ...phase.draft, industry_id: key });
+    await finish({ ...phase.draft, industry_id: key }, requestId.current);
   }
 
   function handleSkipIndustry() {
@@ -133,7 +193,14 @@ export function IntentGate() {
       <IntentForm pending={phase.kind === "pending"} onSubmit={handleSubmit} />
 
       {phase.kind === "error" && (
-        <p role="alert" className={styles.error}>요청을 처리하지 못했습니다. 다시 시도해 주세요.</p>
+        <div className={styles.error}>
+          <p role="alert">요청을 처리하지 못했습니다. 다시 시도해 주세요.</p>
+          <div className={styles.chips}>
+            <button className={styles.chip} type="button" onClick={handleRetry}>다시 시도</button>
+            <button className={styles.chip} type="button" onClick={() => setPhase({ kind: "clarifyRegion", draft: phase.draft, level: "districts", options: DISTRICT_OPTIONS })}>동네 직접 고르기</button>
+            <button className={`${styles.chip} ${styles.chipEscape}`} type="button" onClick={() => navigate(intentToUrl({ ...phase.draft, region_code: null }))}>지도에서 고르기</button>
+          </div>
+        </div>
       )}
 
       {phase.kind === "clarifyRegion" && (
@@ -160,8 +227,8 @@ export function IntentGate() {
         />
       )}
 
-      {phase.kind === "done" && phase.sentence && (
-        <DiagnosisLine sentence={phase.sentence} href={phase.href} planHref={planUrl(phase.draft)} onNavigate={navigate} />
+      {phase.kind === "done" && (
+        <DiagnosisLine sentence={phase.sentence} href={phase.href} planHref={planUrl(phase.draft)} onNavigate={(href) => { if (isCurrent(phase.requestId)) navigate(href); }} />
       )}
     </div>
   );

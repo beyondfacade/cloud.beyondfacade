@@ -39,12 +39,15 @@ describe("컨트롤바 두 무리", () => {
     expect(screen.queryByRole("combobox", { name: /분기/ })).toBeNull();
   });
 
-  it("분기를 고르면 year_quarter가 바뀌고, 최신을 고르면 null로 돌아간다", () => {
+  it("최신 자료와 최신 실제 분기를 구별해 선택한다", () => {
     const { onChange, state } = renderBar({ metric: "night_index" });
     const quarter = screen.getByRole("combobox", { name: /분기/ });
+    expect(screen.getByRole("option", { name: "최신 자료" })).toBeInTheDocument();
     fireEvent.change(quarter, { target: { value: "20254" } });
     expect(onChange).toHaveBeenLastCalledWith({ ...state, year_quarter: "20254" });
     fireEvent.change(quarter, { target: { value: "20262" } });
+    expect(onChange).toHaveBeenLastCalledWith({ ...state, year_quarter: "20262" });
+    fireEvent.change(quarter, { target: { value: "" } });
     expect(onChange).toHaveBeenLastCalledWith({ ...state, year_quarter: null });
   });
 

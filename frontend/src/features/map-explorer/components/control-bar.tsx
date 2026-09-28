@@ -3,7 +3,7 @@
 import { INDUSTRIES, INDUSTRY_LABELS } from "@/shared/industries";
 import { METRIC_GROUPS, METRIC_LABELS, metricGroupOf, type MapState } from "../lib/map-state";
 import { availableQuarters, availableYears, clampToCoverage } from "../lib/metric-coverage";
-import { LATEST_QUARTER, formatQuarter } from "../lib/quarters";
+import { formatQuarter } from "../lib/quarters";
 import styles from "./map-workspace.module.css";
 
 const FIELD =
@@ -61,7 +61,7 @@ export function ControlBar({ state, onChange }: ControlBarProps) {
           {METRIC_GROUPS.map((g) => (
             <div key={g.key} role="group" aria-label={g.label} className={styles.metricGroup}>
               <span className={styles.metricGroupLabel}>{g.label}</span>
-              <div className="flex gap-1 rounded-lg border border-[var(--border)] bg-[var(--bg-raised)] p-1">
+              <div className={`${styles.metricButtons} rounded-lg border border-[var(--border)] bg-[var(--bg-raised)] p-1`}>
                 {g.metrics.map((m) => {
                   const selected = state.metric === m;
                   return (
@@ -90,11 +90,11 @@ export function ControlBar({ state, onChange }: ControlBarProps) {
         <label className={`${styles.yearField} flex flex-col gap-2`}>
           <span className={LEGEND}>분기</span>
           <select
-            // null(최신)은 목록의 마지막 분기로 보인다. 최신을 고르면 다시 null로 둬 URL을 짧게 유지한다
-            value={state.year_quarter ?? LATEST_QUARTER}
-            onChange={(e) => change({ ...state, year_quarter: e.target.value === LATEST_QUARTER ? null : e.target.value })}
+            value={state.year_quarter ?? ""}
+            onChange={(e) => change({ ...state, year_quarter: e.target.value || null })}
             className={`${FIELD} tabular-nums`}
           >
+            <option value="">최신 자료</option>
             {quarters.map((yq) => (
               <option key={yq} value={yq}>
                 {formatQuarter(yq)}

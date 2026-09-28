@@ -16,6 +16,7 @@
 .yearField { min-width: 130px; }
 .metricGroups { display: flex; flex-wrap: wrap; gap: 10px 14px; }
 .metricGroup { display: flex; align-items: center; gap: 8px; }
+.metricButtons { display: flex; gap: 4px; }
 .metricGroupLabel { font-size: 11px; font-weight: 600; letter-spacing: .02em; color: var(--text-secondary); }
 /* 동네 무리에서 업종 select는 비활성화가 아니라 흐림 — 값은 사이드패널·마커가 계속 쓴다 */
 .axisMuted { opacity: .55; }
@@ -59,7 +60,11 @@
   .filterTray { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, .8fr); gap: 18px 16px; padding: 17px; border-radius: 13px; }
   .industryField { min-width: 0; grid-column: 1; grid-row: 1; }
   .yearField { min-width: 0; grid-column: 2; grid-row: 1; }
-  .metricField { grid-column: 1 / -1; }
+  .metricField { min-width: 0; grid-column: 1 / -1; }
+  .metricGroups { display: grid; grid-template-columns: minmax(0, 1fr); }
+  .metricGroup { display: grid; min-width: 0; }
+  .metricButtons { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .metricButtons button { min-width: 0; white-space: normal; }
   .mapAndBrief { grid-template-columns: minmax(0, 1fr); height: auto; gap: 17px; margin-top: 17px; }
   .mapSurface { height: 480px; height: clamp(390px, 62dvh, 560px); border-radius: 13px; }
   .mapCaption { padding-inline: 13px; gap: 8px; }
@@ -68,4 +73,10 @@
   .emptyBrief { padding-block: 30px 10px; }
   .emptyBrief p { max-width: 260px; }
   .briefMetrics li { padding-block: 19px; }
+}
+@media (max-width: 380px) {
+  .filterTray { grid-template-columns: minmax(0, 1fr); }
+  .industryField { grid-column: 1; grid-row: 1; }
+  .yearField { grid-column: 1; grid-row: 2; }
+  .metricField { grid-column: 1; grid-row: 3; }
 }

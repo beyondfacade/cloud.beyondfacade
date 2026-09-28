@@ -2,6 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import type { RegionCommerceChangeDetail } from "@/shared/api/types";
+import { ApiError } from "@/shared/api/client";
 import { fetchCommerceChangeDetail } from "../api";
 
 /** 상권변화 코드 → 배지 색 토큰. 이름은 원천 `change_name`을 그대로 쓴다 (조건 분기 대신 테이블). */
@@ -55,16 +56,18 @@ export function StayingPowerBody({ detail }: { detail: RegionCommerceChangeDetai
 }
 
 /** 패널 ④ 얼마나 버티나 — 서울 평균이 옆에 있어야 110개월이 읽힌다. */
-export function StayingPowerSection({ regionCode }: { regionCode: string }) {
+export function StayingPowerSection({ regionCode, yearQuarter }: { regionCode: string; yearQuarter: string | null }) {
   const detail = useQuery({
-    queryKey: ["commerce-change-detail", regionCode],
-    queryFn: () => fetchCommerceChangeDetail(regionCode),
+    queryKey: ["commerce-change-detail", regionCode, yearQuarter],
+    queryFn: () => fetchCommerceChangeDetail(regionCode, yearQuarter ?? undefined),
   });
+  const missingPeriod = !!yearQuarter && detail.error instanceof ApiError && detail.error.code === "COMMERCE_CHANGE_NOT_FOUND";
   return (
     <section className="mt-7 flex flex-col gap-3" aria-label="얼마나 버티나">
       <h3 className="text-sm font-semibold tracking-tight text-[var(--text-primary)]">얼마나 버티나</h3>
       {detail.isPending && <div className="h-20 rounded bg-[var(--bg-raised)]" role="status" aria-label="불러오는 중" />}
-      {detail.isError && <p role="alert" className="text-sm text-[var(--danger)]">상권 변화 자료를 불러오지 못했습니다.</p>}
+      {detail.isError && missingPeriod && <p className="text-sm text-[var(--text-secondary)]">해당 분기 자료 없음</p>}
+      {detail.isError && !missingPeriod && <p role="alert" className="text-sm text-[var(--danger)]">상권 변화 자료를 불러오지 못했습니다.</p>}
       {detail.data && <StayingPowerBody detail={detail.data} />}
     </section>
   );

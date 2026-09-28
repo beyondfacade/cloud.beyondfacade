@@ -1,6 +1,7 @@
 "use client";
 
 import type { BlockIntensities, RegionProfile } from "@/shared/api/types";
+import { ApiError } from "@/shared/api/client";
 import { TIME_BLOCKS, TIME_BLOCK_LABELS, phasesNarrative, timeLabelSentence } from "@/shared/neighborhood";
 import { useRegionProfile } from "../hooks/use-region-profile";
 
@@ -58,18 +59,21 @@ export function TimeBlockBody({ profile }: { profile: RegionProfile }) {
       )}
       {narrative && <p className="text-sm leading-relaxed text-[var(--text-secondary)]">{narrative}</p>}
       <p className="text-xs text-[var(--text-secondary)]">점선이 하루 평균(1.00) · 강조가 정점 블록</p>
+      <p className="text-xs tabular-nums text-[var(--text-secondary)]">기준 {profile.year_quarter.slice(0, 4)}년 {profile.year_quarter.slice(4)}분기</p>
     </>
   );
 }
 
 /** 패널 ② 하루가 어떻게 흐르나 — 프로필 조회는 ①과 같은 키라 요청이 한 번이다. */
-export function TimeBlockSection({ regionCode }: { regionCode: string }) {
-  const profile = useRegionProfile(regionCode);
+export function TimeBlockSection({ regionCode, yearQuarter }: { regionCode: string; yearQuarter: string | null }) {
+  const profile = useRegionProfile(regionCode, yearQuarter);
+  const missingPeriod = !!yearQuarter && profile.error instanceof ApiError && profile.error.code === "REGION_PROFILE_NOT_FOUND";
   return (
     <section className="mt-7 flex flex-col gap-3" aria-label="하루 흐름">
       <h3 className="text-sm font-semibold tracking-tight text-[var(--text-primary)]">하루가 어떻게 흐르나</h3>
       {profile.isPending && <div className="h-24 rounded bg-[var(--bg-raised)]" role="status" aria-label="불러오는 중" />}
-      {profile.isError && <p role="alert" className="text-sm text-[var(--danger)]">하루 흐름을 불러오지 못했습니다.</p>}
+      {profile.isError && missingPeriod && <p className="text-sm text-[var(--text-secondary)]">해당 분기 자료 없음</p>}
+      {profile.isError && !missingPeriod && <p role="alert" className="text-sm text-[var(--danger)]">하루 흐름을 불러오지 못했습니다.</p>}
       {profile.data && <TimeBlockBody profile={profile.data} />}
     </section>
   );

@@ -23,6 +23,7 @@ const INDUSTRY_SECTIONS: Partial<Record<IndustryId, ComponentType<{ regionCode: 
 
 interface SidePanelProps {
   regionCode: string | null;
+  yearQuarter?: string | null;
   /** 관문에서 온 예산(원) — 자금 계획 링크에 실어 보낸다. */
   budget?: number | null;
   industry: string;
@@ -41,7 +42,7 @@ function SkeletonRows() {
   );
 }
 
-export function SidePanel({ regionCode, industry, budget = null }: SidePanelProps) {
+export function SidePanel({ regionCode, industry, yearQuarter = null, budget = null }: SidePanelProps) {
   const summary = useQuery({
     queryKey: ["region-summary", regionCode, industry],
     queryFn: () => fetchRegionSummary(regionCode!, industry),
@@ -98,17 +99,24 @@ export function SidePanel({ regionCode, industry, budget = null }: SidePanelProp
             <p className="text-xs text-[var(--text-secondary)]">
               <span className="tabular-nums">{summary.data.region_code}</span> · {label}
             </p>
+            <p className="text-xs text-[var(--text-secondary)]">업종 요약은 최신 연간 자료 · 선택 분기와 무관</p>
           </header>
+        </>
+      )}
 
-          {/* 창업자의 질문 순서 — ① 어떤 동네인가 ② 하루가 어떻게 흐르나 ③ 내 업종은 언제 돈이 도나
-              ④ 얼마나 버티나 ⑤ 업종 실적. 동네 맥락이 먼저, 업종 상세가 뒤 (무대 설계서 §5) */}
-          <NeighborhoodProfileSection regionCode={regionCode} />
-          <TimeBlockSection regionCode={regionCode} />
-          <HourGapSection regionCode={regionCode} industry={industry} />
-          <StayingPowerSection regionCode={regionCode} />
+      {regionCode && (
+        <>
+          <NeighborhoodProfileSection regionCode={regionCode} yearQuarter={yearQuarter} />
+          <TimeBlockSection regionCode={regionCode} yearQuarter={yearQuarter} />
+          <HourGapSection regionCode={regionCode} industry={industry} yearQuarter={yearQuarter} />
+          <StayingPowerSection regionCode={regionCode} yearQuarter={yearQuarter} />
+        </>
+      )}
 
+      {regionCode && summary.data && (
+        <>
           <section className="mt-7 flex flex-col gap-3" aria-label="업종 실적">
-            <h3 className="text-sm font-semibold tracking-tight text-[var(--text-primary)]">{label} 실적</h3>
+            <h3 className="text-sm font-semibold tracking-tight text-[var(--text-primary)]">{label} 실적 · 최신 연간 요약</h3>
             <ul className={`${styles.briefMetrics} ${styles.briefMetricsInSection}`}>
               {summary.data.cards.map((card) => (
                 <li key={card.label}>
@@ -130,7 +138,12 @@ export function SidePanel({ regionCode, industry, budget = null }: SidePanelProp
             )}
           </section>
 
-          {IndustrySection && <IndustrySection regionCode={regionCode} />}
+          {IndustrySection && (
+            <>
+              <p className="mt-7 text-xs text-[var(--text-secondary)]">다음 현황은 최신 자료 · 선택 분기와 무관</p>
+              <IndustrySection regionCode={regionCode} />
+            </>
+          )}
 
           {/* 패널이 길어져 CTA가 접힌다 — 스크롤 영역 하단에 붙인다 (E2E [5/8] 재현 근거) */}
           <div className={`${styles.briefCta} flex gap-2`}>

@@ -1,6 +1,7 @@
 "use client";
 
 import type { RegionProfile } from "@/shared/api/types";
+import { ApiError } from "@/shared/api/client";
 import { neighborhoodTypeLabel, phasesNarrative, timeLabelSentence } from "@/shared/neighborhood";
 import { useRegionProfile } from "../hooks/use-region-profile";
 
@@ -86,8 +87,9 @@ export function NeighborhoodProfileBody({ profile }: { profile: RegionProfile })
 }
 
 /** 패널 ① 어떤 동네인가 — 창업자의 첫 질문이라 맨 위에 온다. 조회 키는 ②(하루 흐름)와 같아 요청은 한 번이다. */
-export function NeighborhoodProfileSection({ regionCode }: { regionCode: string }) {
-  const profile = useRegionProfile(regionCode);
+export function NeighborhoodProfileSection({ regionCode, yearQuarter }: { regionCode: string; yearQuarter: string | null }) {
+  const profile = useRegionProfile(regionCode, yearQuarter);
+  const missingPeriod = !!yearQuarter && profile.error instanceof ApiError && profile.error.code === "REGION_PROFILE_NOT_FOUND";
 
   return (
     <section className="mt-7 flex flex-col gap-3" aria-label="동네 유형">
@@ -95,7 +97,8 @@ export function NeighborhoodProfileSection({ regionCode }: { regionCode: string 
       {profile.isPending && (
         <div className="h-40 rounded bg-[var(--bg-raised)]" role="status" aria-label="불러오는 중" />
       )}
-      {profile.isError && (
+      {profile.isError && missingPeriod && <p className="text-sm text-[var(--text-secondary)]">해당 분기 자료 없음</p>}
+      {profile.isError && !missingPeriod && (
         <p role="alert" className="text-sm text-[var(--danger)]">
           동네 유형을 불러오지 못했습니다.
         </p>

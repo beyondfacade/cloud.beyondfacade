@@ -43,7 +43,7 @@ export function MapPage() {
       <ControlBar state={state} onChange={handleStateChange} />
       <div className={styles.mapAndBrief}>
         <section className={styles.mapSurface} aria-label="서울 상권 지도">
-          <div className={styles.mapCaption}><span><span className={styles.locationDot} aria-hidden="true" />서울특별시</span><span>행정동 단위 · 지도에서 동네 선택</span></div>
+          <div className={styles.mapCaption}><span><span className={styles.locationDot} aria-hidden="true" />서울특별시</span><span>{state.region ? "상점 위치 · 현재 자료" : "행정동 단위 · 지도에서 동네 선택"}</span></div>
           <div className={styles.mapCanvas}>
             <MapView
               regionCode={state.region}
@@ -55,7 +55,7 @@ export function MapPage() {
             />
           </div>
         </section>
-        <SidePanel regionCode={state.region} industry={state.industry} budget={state.budget} />
+        <SidePanel regionCode={state.region} industry={state.industry} budget={state.budget} yearQuarter={state.year_quarter} />
       </div>
     </main>
   );

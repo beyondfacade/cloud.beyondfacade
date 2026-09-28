@@ -60,10 +60,10 @@ export function HourGapBody({ gap }: { gap: RegionIndustryHourGap }) {
 }
 
 /** 패널 ③ 내 업종은 언제 돈이 도나 — 업종에 따라 바뀐다. 매출 자료가 없는 조합(404)은 한 줄로 말한다. */
-export function HourGapSection({ regionCode, industry }: { regionCode: string; industry: string }) {
+export function HourGapSection({ regionCode, industry, yearQuarter }: { regionCode: string; industry: string; yearQuarter: string | null }) {
   const gap = useQuery({
-    queryKey: ["hour-gaps", regionCode, industry],
-    queryFn: () => fetchHourGaps(regionCode, industry),
+    queryKey: ["hour-gaps", regionCode, industry, yearQuarter],
+    queryFn: () => fetchHourGaps(regionCode, industry, yearQuarter ?? undefined),
     retry: false,
   });
   const notFound = gap.isError && gap.error instanceof ApiError && gap.error.code === "HOUR_GAP_NOT_FOUND";
@@ -74,7 +74,7 @@ export function HourGapSection({ regionCode, industry }: { regionCode: string; i
       </h3>
       {gap.isPending && <div className="h-28 rounded bg-[var(--bg-raised)]" role="status" aria-label="불러오는 중" />}
       {notFound && (
-        <p className="text-sm text-[var(--text-secondary)]">이 동네엔 {industryLabel(industry)} 매출 자료가 없습니다.</p>
+        <p className="text-sm text-[var(--text-secondary)]">{yearQuarter ? "해당 분기 자료 없음" : `이 동네엔 ${industryLabel(industry)} 매출 자료가 없습니다.`}</p>
       )}
       {gap.isError && !notFound && (
         <p role="alert" className="text-sm text-[var(--danger)]">시간대 자료를 불러오지 못했습니다.</p>

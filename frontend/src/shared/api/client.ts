@@ -13,12 +13,13 @@ async function handle<T>(res: Response): Promise<T> {
   throw new ApiError(err.code, err.message);
 }
 
-export const apiGet = <T>(path: string) =>
-  fetch(`${config.apiBase}${path}`).then((r) => handle<T>(r));
+export const apiGet = <T>(path: string, options?: { signal?: AbortSignal }) =>
+  fetch(`${config.apiBase}${path}`, options).then((r) => handle<T>(r));
 
-export const apiPost = <T>(path: string, body: unknown, base: string = config.apiBase) =>
+export const apiPost = <T>(path: string, body: unknown, base: string = config.apiBase, options?: { signal?: AbortSignal }) =>
   fetch(`${base}${path}`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
+    signal: options?.signal,
   }).then((r) => handle<T>(r));

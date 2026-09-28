@@ -18,7 +18,7 @@ export function IntentForm({ pending, onSubmit }: IntentFormProps) {
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     const trimmed = text.trim();
-    if (!trimmed || pending) return;
+    if (!trimmed) return;
     onSubmit(trimmed);
   }
 
@@ -35,7 +35,7 @@ export function IntentForm({ pending, onSubmit }: IntentFormProps) {
             placeholder="예: 역삼동에 카페, 예산 5천"
             autoComplete="off"
           />
-          <button type="submit" disabled={!text.trim() || pending}>
+          <button type="submit" disabled={!text.trim()}>
             {pending ? "찾는 중…" : "찾아보기"}<span aria-hidden="true">↗</span>
           </button>
         </div>

@@ -7,16 +7,16 @@ interface RegionListGeoJSON {
 }
 
 /** 문장 → 의도 (POST /intent 첫 번째 형태). */
-export function parseIntent(text: string): Promise<IntentResult> {
-  return apiPost<IntentResult>("/intent", { text });
+export function parseIntent(text: string, signal?: AbortSignal): Promise<IntentResult> {
+  return apiPost<IntentResult>("/intent", { text }, undefined, { signal });
 }
 
 /** 되묻기로 완성된 코드 쌍 → 진단만 (POST /intent 두 번째 형태, 파서를 건너뛴다). */
-export function diagnoseIntent(regionCode: string, industryId: string): Promise<IntentResult> {
-  return apiPost<IntentResult>("/intent", { region_code: regionCode, industry_id: industryId });
+export function diagnoseIntent(regionCode: string, industryId: string, signal?: AbortSignal): Promise<IntentResult> {
+  return apiPost<IntentResult>("/intent", { region_code: regionCode, industry_id: industryId }, undefined, { signal });
 }
 
 /** 구 → 동 칩에 쓸 행정동 목록. 경계 GeoJSON을 한 번만 받아 이름·코드만 남긴다. */
-export function fetchRegionList(): Promise<{ region_code: string; name: string }[]> {
-  return apiGet<RegionListGeoJSON>("/regions/geojson").then((gj) => gj.features.map((f) => f.properties));
+export function fetchRegionList(signal?: AbortSignal): Promise<{ region_code: string; name: string }[]> {
+  return apiGet<RegionListGeoJSON>("/regions/geojson", { signal }).then((gj) => gj.features.map((f) => f.properties));
 }
