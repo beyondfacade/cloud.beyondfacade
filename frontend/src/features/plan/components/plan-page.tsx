@@ -1,11 +1,12 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import type { FinanceInput, PlanProfile, PlanQuestion } from "@/shared/api/types";
 import { industryLabel } from "@/shared/industries";
-import { fetchFinancePrefill, fetchFundingCandidates, fetchPlanQuestions, simulateFinance } from "../api";
+import { fetchPlanRegion, fetchFinancePrefill, fetchFundingCandidates, fetchPlanQuestions, simulateFinance } from "../api";
 import { buildDefaults, prefillBadges, type AmountField } from "../lib/form-defaults";
 import { emptyDraft, loadDraft, recordCalculation, saveDraft, selectPlan, setCandidatesSeen, setProfile, setQuestions, withScope, type PlanDraft } from "../lib/plan-draft";
 import { CandidateCards } from "./candidate-cards";
@@ -15,6 +16,7 @@ import { PrepSheet } from "./prep-sheet";
 import { ProfileForm } from "./profile-form";
 import { QuestionList } from "./question-list";
 import { ResultFigures } from "./result-figures";
+import styles from "./plan-workspace.module.css";
 
 /** /plan — 프리필 로드 → 폼 → 계산(서버) → 결과 → 최초안/현재안 비교. 초안은 sessionStorage에 산다. */
 export function PlanPage() {
@@ -29,6 +31,14 @@ export function PlanPage() {
     queryFn: () => fetchFinancePrefill(region!, industry!),
     enabled: !!region && !!industry,
   });
+
+  const regionInfo = useQuery({
+    queryKey: ["plan-region", region, industry],
+    queryFn: () => fetchPlanRegion(region!, industry!),
+    enabled: !!region && !!industry,
+    staleTime: 5 * 60 * 1000,
+  });
+  const regionName = regionInfo.data?.name ?? "선택한 동네";
 
   const [draft, setDraft] = useState<PlanDraft>(() => emptyDraft(scope));
   useEffect(() => { setDraft(withScope(loadDraft() ?? emptyDraft(scope), scope)); }, [scope]);
@@ -104,46 +114,69 @@ export function PlanPage() {
   }
 
   return (
-    <main className="mx-auto flex max-w-5xl flex-col gap-10 px-4 py-10" aria-label="자금 계획">
-      <header>
-        <p className="text-xs font-medium tracking-wide text-[var(--accent)]">SEOUL COMMERCIAL METABOLE / PLAN</p>
-        <h1 className="mt-2 text-2xl font-semibold tracking-tight text-[var(--text-primary)]">그래서 얼마가 필요한가</h1>
-        <p className="mt-2 text-sm text-[var(--text-secondary)]">
-          <span className="tabular-nums">{region}</span> · {industryLabel(industry)} — 채워진 값은 실측·공시에서 왔습니다. 출처를 보고 고친 뒤 계산하세요.
-        </p>
+    <main className={styles.page} aria-label="자금 계획">
+      <header className={styles.header}>
+        <Link className={styles.back} href={`/map?${new URLSearchParams({ region, industry })}`}>← 상권 탐색으로</Link>
+        <div className={styles.titleRow}>
+          <h1 className={styles.title}>자금 계획</h1>
+          <p className={styles.context}><span>{regionName}</span><span aria-hidden="true">·</span><span>{industryLabel(industry)}</span></p>
+        </div>
+        <p className={styles.intro}>가게를 열려면 얼마가 필요할까요? 준비 비용과 매달 나갈 돈을 함께 살펴보세요.</p>
+        <ol className={styles.steps} aria-label="자금 계획 순서">
+          <li aria-current={!shown || stale ? "step" : undefined}><span>1</span> 비용 입력</li>
+          <li aria-current={shown && !stale && !prepOpen ? "step" : undefined}><span>2</span> 필요 자금 확인</li>
+          <li aria-current={prepOpen && canPrep ? "step" : undefined}><span>3</span> 상담 준비</li>
+        </ol>
       </header>
-      <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)]">
+      <div className={styles.workspace}>
         <section aria-label="입력">
-          {prefill.isPending && <p role="status" className="mb-4 text-xs text-[var(--text-secondary)]">이 동네의 실측값을 불러오는 중…</p>}
+          {prefill.isPending && <p role="status" className={styles.status}>참고할 평균 매출과 임대료를 불러오고 있어요…</p>}
           {prefill.isError && <p role="alert" className="mb-4 text-xs text-[var(--danger)]">실측값을 불러오지 못했습니다. 직접 입력해도 계산은 됩니다.</p>}
           <PlanForm defaults={defaults.values} prefill={prefill.data ?? null} submitting={calc.isPending}
             onSubmit={(values, unconfirmed) => calc.mutate({ values, unconfirmed })} onValuesChange={onValuesChange} />
           {calc.isError && <p role="alert" className="mt-3 text-xs text-[var(--danger)]">계산에 실패했습니다. 원가율과 수수료율의 합이 100% 미만인지 확인하세요.</p>}
         </section>
-        <div className="flex flex-col gap-10">
-          {shown ? <ResultFigures result={shown.result} /> : (
-            <p className="text-sm text-[var(--text-secondary)]">계산하면 자기자본 외 조달 필요 금액이 여기에 나옵니다.</p>
+        <aside className={styles.sidebar} aria-label="계획 요약">
+          {shown ? <div className={styles.card}>
+            {stale && <p role="status" className={styles.status}>입력값이 바뀌었어요. 다시 계산하면 결과에 반영됩니다.</p>}
+            <ResultFigures result={shown.result} unconfirmed={shown.unconfirmed} />
+            <details className={`${styles.disclosure} mt-6`}>
+              <summary>최초 계획과 비교하기</summary>
+              <div><PlanComparison draft={draft} stale={stale} onSelect={(kind) => update(selectPlan(draft, kind))}
+                onReasonChange={(reason) => update({ ...draft, change_reason: reason })} /></div>
+            </details>
+          </div> : (
+            <div className={`${styles.card} ${styles.empty}`}>
+              <p className={styles.eyebrow}>나의 자금 계획서</p>
+              <h2>얼마를 더 준비해야 할지<br />함께 확인해 볼까요?</h2>
+              <p>비용을 입력하고 계산하면 필요한 자금과 매출 목표를 정리해 드려요.</p>
+              <dl className={styles.previewList}>
+                <div><dt>총 준비자금</dt><dd>계산 후 확인</dd></div>
+                <div><dt>추가로 마련할 돈</dt><dd>계산 후 확인</dd></div>
+                <div><dt>손익분기 월매출</dt><dd>계산 후 확인</dd></div>
+              </dl>
+            </div>
           )}
-          <PlanComparison draft={draft} stale={stale} onSelect={(kind) => update(selectPlan(draft, kind))}
-            onReasonChange={(reason) => update({ ...draft, change_reason: reason })} />
           {shown && !prepOpen && (
-            <button type="button" onClick={() => setPrepOpen(true)} disabled={!canPrep}
-              className="w-fit rounded-lg bg-[var(--accent)] px-4 py-3 text-sm font-semibold text-[var(--accent-fg)] disabled:opacity-40">
+            <button type="button" onClick={() => setPrepOpen(true)} disabled={!canPrep} className={styles.primary}>
               조달·상담 준비 →
             </button>
           )}
-        </div>
+          <p className={styles.note}>자동으로 채워진 값은 참고용이에요. 실제 견적이나 계약 금액을 알면 바꿔서 계산해 보세요.</p>
+        </aside>
       </div>
       {prepOpen && canPrep && (
-        <section className="flex flex-col gap-10 border-t border-[var(--border)] pt-10" aria-label="조달과 상담 준비">
-          <div className="grid gap-10 lg:grid-cols-2">
-            <ProfileForm profile={draft.profile} onChange={(patch: Partial<PlanProfile>) => update(setProfile(draft, patch))} />
-            <CandidateCards candidates={candidates.data?.candidates ?? []} need={need}
-              isPending={candidates.isPending} isError={candidates.isError} />
+        <section className={styles.prep} aria-label="조달과 상담 준비">
+          <h2 className={styles.sectionTitle}>상담 준비</h2>
+          <p className={styles.hint}>계산한 계획을 바탕으로 지원 공고와 상담에서 확인할 내용을 정리해요.</p>
+          <div className={styles.prepGrid}>
+            <div className={styles.card}><ProfileForm profile={draft.profile} onChange={(patch: Partial<PlanProfile>) => update(setProfile(draft, patch))} /></div>
+            <div className={styles.card}><CandidateCards candidates={candidates.data?.candidates ?? []} need={need}
+              isPending={candidates.isPending} isError={candidates.isError} /></div>
           </div>
           <QuestionList questions={draft.questions} isPending={questions.isPending && draft.questions.length === 0}
             isError={questions.isError} onChange={(next: PlanQuestion[]) => update(setQuestions(draft, next))} />
-          <PrepSheet draft={draft} regionName={region} industryLabel={industryLabel(industry)}
+          <PrepSheet draft={draft} regionName={regionName} industryLabel={industryLabel(industry)}
             candidates={candidates.data?.candidates ?? []} caveats={caveats} />
         </section>
       )}

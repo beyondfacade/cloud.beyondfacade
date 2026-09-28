@@ -14,6 +14,16 @@ const prefill: FinancePrefill = {
 };
 
 describe("계획 입력 폼", () => {
+  it("출처 설명이 입력 이름에 섞이지 않고 펼쳐 봐도 계산을 제출하지 않는다", () => {
+    const onSubmit = vi.fn();
+    render(<PlanForm defaults={buildDefaults({ prefill }).values} prefill={prefill} onSubmit={onSubmit} />);
+    expect(screen.getByRole("spinbutton", { name: "예상 월매출" })).toHaveValue(2613);
+    const source = screen.getByText("실측 · 20254 · 603점포");
+    fireEvent.click(source);
+    expect(screen.getByText("평균입니다.")).toBeVisible();
+    expect(onSubmit).not.toHaveBeenCalled();
+  });
+
   it("프리필된 필드에 출처 배지가 붙고 값이 채워진다", () => {
     const { values } = buildDefaults({ budget: "50000000", prefill });
     render(<PlanForm defaults={values} prefill={prefill} onSubmit={() => {}} />);
@@ -41,5 +51,14 @@ describe("계획 입력 폼", () => {
     render(<PlanForm defaults={values} prefill={prefill} onSubmit={() => {}} />);
     fireEvent.change(screen.getByLabelText(/면적/), { target: { value: "50" } });
     expect(screen.getByLabelText(/^월세/)).toHaveValue(328); // 3,275,500원 → 328만원
+  });
+
+  it("직접 입력한 0원은 미확인 비용에서 제외한다", () => {
+    const onSubmit = vi.fn();
+    render(<PlanForm defaults={buildDefaults({ prefill }).values} prefill={prefill} onSubmit={onSubmit} />);
+    fireEvent.change(screen.getByLabelText("보증금"), { target: { value: "0" } });
+    fireEvent.click(screen.getByRole("button", { name: "계산하기" }));
+    expect(onSubmit.mock.calls[0][1]).not.toContain("deposit");
+    expect(onSubmit.mock.calls[0][1]).toContain("monthly_payroll");
   });
 });

@@ -1,5 +1,6 @@
 import { apiGet, apiPost } from "@/shared/api/client";
 import type {
+  RegionSummary,
   FinanceInput,
   FinancePrefill,
   FinanceResult,
@@ -34,4 +35,10 @@ export function fetchFundingCandidates(
 /** 확인할 질문 초안. 계산 결과를 보내지 않는다 — 서버가 input으로 다시 계산한다. */
 export function fetchPlanQuestions(request: PlanQuestionsRequest): Promise<PlanQuestion[]> {
   return apiPost<{ questions: PlanQuestion[] }>("/finance/questions", request).then((r) => r.questions);
+}
+
+/** 화면·상담 자료에 코드를 대신할 동네 이름. 실패해도 자금 계산은 계속 가능하다. */
+export function fetchPlanRegion(regionCode: string, industryId: string): Promise<RegionSummary> {
+  const params = new URLSearchParams({ industry: industryId });
+  return apiGet<RegionSummary>(`/regions/${regionCode}/summary?${params.toString()}`);
 }

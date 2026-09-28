@@ -11,6 +11,12 @@ const result: FinanceResult = {
 };
 
 describe("계산 결과", () => {
+  it("미입력 비용의 0원 가정은 상세를 펼치기 전에도 보인다", () => {
+    render(<ResultFigures result={result} unconfirmed={["deposit", "monthly_payroll"]} />);
+    expect(screen.getByText(/보증금 · 월 인건비/)).toBeVisible();
+    expect(screen.getByText(/0원으로 계산/)).toBeVisible();
+  });
+
   it("헤드라인은 자기자본 외 조달 필요다", () => {
     render(<ResultFigures result={result} />);
     expect(screen.getByText("자기자본 외 조달 필요")).toBeInTheDocument();

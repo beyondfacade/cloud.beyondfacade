@@ -5,6 +5,7 @@ import type { FinanceInput, FinancePrefill } from "@/shared/api/types";
 import { AMOUNT_FIELDS, AMOUNT_LABELS, DEFAULT_AREA_M2, monthlyRentFrom, prefillBadges, type AmountField } from "../lib/form-defaults";
 import { manwonToWon, wonToManwon } from "../lib/money";
 import { SourceBadge } from "./source-badge";
+import styles from "./plan-workspace.module.css";
 
 interface PlanFormProps {
   defaults: FinanceInput;
@@ -15,42 +16,50 @@ interface PlanFormProps {
   onValuesChange?: (values: FinanceInput) => void;
 }
 
-const FIELD =
-  "w-full rounded-md border border-[var(--border)] bg-[var(--bg-surface)] px-3 py-2 text-sm text-[var(--text-primary)] tabular-nums focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]";
-const LABEL = "flex flex-col gap-1.5 text-xs font-medium tracking-wide text-[var(--text-secondary)]";
+const MONEY_HINTS: Partial<Record<AmountField, string>> = {
+  equity: "대출을 제외하고 직접 준비할 수 있는 돈",
+  desired_loan: "빌리려고 생각 중인 금액",
+  expected_monthly_revenue: "한 달 매출 예상액 · 채워진 평균값은 수정할 수 있어요.",
+  monthly_rent: "실제 매물의 월세를 알고 있다면 바꿔 주세요.",
+};
 
-/** 손대지 않은 0은 빈 칸으로 보여준다 — 미입력이 유효한 0원처럼 보이면 안 된다. */
+/** 손대지 않은 0은 빈 칸으로 보여준다. 출처는 입력 라벨과 분리한다. */
 function MoneyField({ name, label, value, touched, onChange, badge }: {
   name: AmountField; label: string; value: number; touched: boolean; onChange: (won: number) => void;
   badge?: { label: string; caveat: string };
 }) {
-  const describedBy = badge ? `${name}-caveat` : undefined;
+  const hint = MONEY_HINTS[name];
+  const describedBy = [`${name}-unit`, hint && `${name}-hint`, badge && `${name}-caveat`].filter(Boolean).join(" ");
   return (
-    <label className={LABEL}>
-      <span className="flex items-center justify-between gap-2">{label}{badge && <SourceBadge id={describedBy!} label={badge.label} caveat={badge.caveat} />}</span>
-      <span className="flex items-center gap-2">
-        <input type="number" inputMode="numeric" name={name} aria-describedby={describedBy}
-          value={touched || value !== 0 ? wonToManwon(value) : ""} placeholder="미입력"
-          onChange={(e) => onChange(manwonToWon(Number(e.target.value) || 0))} className={FIELD} />
-        <span className="shrink-0 text-xs">만원</span>
-      </span>
-    </label>
+    <div className={styles.field}>
+      <label className={styles.label} htmlFor={`plan-${name}`}>{label}</label>
+      <div className={styles.inputWrap}>
+        <input id={`plan-${name}`} type="number" inputMode="numeric" name={name} aria-describedby={describedBy}
+          value={touched || value !== 0 ? wonToManwon(value) : ""} placeholder="금액 입력"
+          onChange={(e) => onChange(manwonToWon(Number(e.target.value) || 0))} className={styles.input} />
+        <span id={`${name}-unit`} className={styles.unit}>만원</span>
+      </div>
+      {hint && <p id={`${name}-hint`} className={styles.hint}>{hint}</p>}
+      {badge && <SourceBadge id={`${name}-caveat`} label={badge.label} caveat={badge.caveat} />}
+    </div>
   );
 }
 
-function RatioField({ name, label, value, onChange, badge }: {
-  name: keyof FinanceInput; label: string; value: number; onChange: (ratio: number) => void; badge?: { label: string; caveat: string };
+function RatioField({ name, label, hint, value, onChange, badge }: {
+  name: keyof FinanceInput; label: string; hint: string; value: number; onChange: (ratio: number) => void; badge?: { label: string; caveat: string };
 }) {
-  const describedBy = badge ? `${name}-caveat` : undefined;
   return (
-    <label className={LABEL}>
-      <span className="flex items-center justify-between gap-2">{label}{badge && <SourceBadge id={describedBy!} label={badge.label} caveat={badge.caveat} />}</span>
-      <span className="flex items-center gap-2">
-        <input type="number" step="0.01" inputMode="decimal" name={name} aria-describedby={describedBy}
-          value={Math.round(value * 10000) / 100} onChange={(e) => onChange((Number(e.target.value) || 0) / 100)} className={FIELD} />
-        <span className="shrink-0 text-xs">%</span>
-      </span>
-    </label>
+    <div className={styles.field}>
+      <label className={styles.label} htmlFor={`plan-${name}`}>{label}</label>
+      <div className={styles.inputWrap}>
+        <input id={`plan-${name}`} type="number" step="0.01" inputMode="decimal" name={name}
+          aria-describedby={`${name}-hint ${name}-unit${badge ? ` ${name}-caveat` : ""}`}
+          value={Math.round(value * 10000) / 100} onChange={(e) => onChange((Number(e.target.value) || 0) / 100)} className={styles.input} />
+        <span id={`${name}-unit`} className={styles.unit}>%</span>
+      </div>
+      <p id={`${name}-hint`} className={styles.hint}>{hint}</p>
+      {badge && <SourceBadge id={`${name}-caveat`} label={badge.label} caveat={badge.caveat} />}
+    </div>
   );
 }
 
@@ -96,33 +105,51 @@ export function PlanForm({ defaults, prefill, submitting, onSubmit, onValuesChan
   );
 
   return (
-    <form onSubmit={submit} className="flex flex-col gap-6" aria-label="자금 계획 입력">
-      <fieldset className="flex flex-col gap-4">
-        <legend className="mb-2 text-sm font-semibold text-[var(--text-primary)]">확인해 주세요 — 채워진 값의 출처를 보고 고치세요</legend>
-        {money("equity")}
-        {money("expected_monthly_revenue")}
-        <label className={LABEL}>면적
-          <span className="flex items-center gap-2">
-            <input type="number" inputMode="numeric" name="area_m2" value={areaM2} min={1} onChange={(e) => changeArea(Math.max(1, Number(e.target.value) || 1))} className={FIELD} />
-            <span className="shrink-0 text-xs">㎡ {rentPerM2 != null && `(월세 = ${rentPerM2}천원/㎡ × 면적)`}</span>
-          </span>
-        </label>
-        {money("monthly_rent")}
-        <div className="grid grid-cols-3 gap-3">
-          <RatioField name="cost_ratio" label="원가율" value={values.cost_ratio} onChange={set("cost_ratio")} badge={badges.get("cost_ratio")} />
-          <RatioField name="fee_ratio" label="수수료율" value={values.fee_ratio} onChange={set("fee_ratio")} />
-          <RatioField name="loan_rate" label="대출금리" value={values.loan_rate} onChange={set("loan_rate")} badge={badges.get("loan_rate")} />
+    <form onSubmit={submit} className={styles.form} aria-label="자금 계획 입력">
+      <section className={styles.card} aria-labelledby="funds-title">
+        <h2 id="funds-title" className={styles.sectionTitle}><span className={styles.sectionNumber}>01</span> 나의 자금</h2>
+        <p className={styles.description}>직접 준비한 돈과 대출로 마련할 돈을 나눠 적어 주세요.</p>
+        <div className={styles.fieldGrid}>{money("equity")}{money("desired_loan")}</div>
+      </section>
+      <section className={styles.card} aria-labelledby="setup-title">
+        <h2 id="setup-title" className={styles.sectionTitle}><span className={styles.sectionNumber}>02</span> 가게 준비 비용</h2>
+        <p className={styles.description}>문을 열기 전에 한 번 들어가는 비용이에요.</p>
+        <div className={styles.fieldGrid}>
+          {money("deposit")}{money("key_money")}{money("interior_cost")}{money("equipment_cost")}
         </div>
-      </fieldset>
-      <fieldset className="flex flex-col gap-4">
-        <legend className="mb-2 text-sm font-semibold text-[var(--text-primary)]">입력해 주세요</legend>
-        {money("deposit")}{money("key_money")}{money("interior_cost")}{money("equipment_cost")}
-        {money("monthly_payroll")}{money("monthly_insurance")}{money("desired_loan")}
-      </fieldset>
-      <button type="submit" disabled={submitting}
-        className="rounded-lg bg-[var(--accent)] px-4 py-3 text-sm font-semibold text-[var(--accent-fg)] hover:opacity-90 disabled:opacity-50">
-        {submitting ? "계산 중…" : "계산하기"}
-      </button>
+      </section>
+      <section className={styles.card} aria-labelledby="monthly-title">
+        <h2 id="monthly-title" className={styles.sectionTitle}><span className={styles.sectionNumber}>03</span> 월 매출과 운영비</h2>
+        <p className={styles.description}>채워진 값은 참고용 평균이에요. 내 가게에 맞게 조정해 주세요.</p>
+        <div className={styles.fieldGrid}>
+          {money("expected_monthly_revenue")}
+          <div className={styles.field}>
+            <label className={styles.label} htmlFor="plan-area">가게 면적</label>
+            <div className={styles.inputWrap}>
+              <input id="plan-area" type="number" inputMode="numeric" name="area_m2" value={areaM2} min={1}
+                aria-describedby="area-hint area-unit" onChange={(e) => changeArea(Math.max(1, Number(e.target.value) || 1))} className={styles.input} />
+              <span id="area-unit" className={styles.unit}>㎡</span>
+            </div>
+            <p id="area-hint" className={styles.hint}>약 {Math.round(areaM2 / 3.3058 * 10) / 10}평{rentPerM2 != null && " · 면적에 맞춰 참고 월세를 계산해요."}</p>
+          </div>
+          {money("monthly_rent")}{money("monthly_payroll")}{money("monthly_insurance")}
+        </div>
+        <details className={styles.advanced}>
+          <summary>원가율·수수료·대출금리 조정</summary>
+          <p className={styles.hint}>기본값으로 계산할 수 있어요. 계약 조건을 알고 있다면 수정해 주세요.</p>
+          <div className={styles.ratioGrid}>
+            <RatioField name="cost_ratio" label="원가율" hint="매출에서 재료·상품 구입에 쓰는 비율" value={values.cost_ratio} onChange={set("cost_ratio")} badge={badges.get("cost_ratio")} />
+            <RatioField name="fee_ratio" label="수수료율" hint="매출에서 카드 결제 등에 쓰는 비율" value={values.fee_ratio} onChange={set("fee_ratio")} />
+            <RatioField name="loan_rate" label="대출금리" hint="빌릴 돈에 적용할 연간 이자율" value={values.loan_rate} onChange={set("loan_rate")} badge={badges.get("loan_rate")} />
+          </div>
+        </details>
+      </section>
+      <div className={styles.submitBar}>
+        <button type="submit" disabled={submitting} className={styles.primary}>
+          {submitting ? "계산 중…" : "계산하기"}
+        </button>
+        <p className={styles.hint}>비용이 없다면 0을 입력해 주세요. 빈칸은 미확인 항목으로 남아요.</p>
+      </div>
     </form>
   );
 }
