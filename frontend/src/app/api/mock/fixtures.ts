@@ -21,14 +21,20 @@ import type {
   ProfileMetricKey,
   RegionCommerceChangeDetail,
   RegionIndustryHourGap,
+  RegionIndustryVerdict,
   RegionProfile,
   RegionSummary,
   Store,
   SummaryCard,
+  VerdictCode,
+  VerdictRow,
+  VerdictSignal,
+  VerdictSignalKey,
 } from "@/shared/api/types";
 import { availableYears, isMetricMissingForIndustry } from "@/features/map-explorer/lib/metric-coverage";
 import { STORE_SAMPLES } from "./store-samples";
 import { INDUSTRY_LABELS, type IndustryId } from "@/shared/industries";
+import { isVerdictIndustry } from "@/shared/verdict";
 import { neighborhoodTypeLabel } from "@/shared/neighborhood";
 import { SEOUL_DISTRICTS, districtOf } from "@/shared/seoul-districts";
 
@@ -720,4 +726,67 @@ export function planQuestionsOf(body: {
   for (const title of (body.candidate_titles ?? []).slice(0, 3)) questions.push({ text: `「${title}」에 해당하는지, 은행 대출과 병행 가능한지`, basis: "후보 공고", kind: "procedure" });
 
   return questions;
+}
+
+// ---------------------------------------------------------------------------
+// 판정 카드 mock — 설계서 2026-09-28-verdict-card-design §3. 판정 규칙은 백엔드 rules.py를 그대로 옮긴 것
+// (보류 우선 → strong 2+ red → on 1+ orange → clear). 값·근거는 해시 기반 결정적.
+// ---------------------------------------------------------------------------
+
+const SIGNAL_KEYS: VerdictSignalKey[] = ["net_outflow", "survival_cliff", "early_closure", "saturation", "shrinking"];
+const SIGNAL_SOURCE: Record<VerdictSignalKey, VerdictSignal["source"]> = {
+  net_outflow: "store", survival_cliff: "store", early_closure: "store", saturation: "metric", shrinking: "neighborhood",
+};
+
+/** 판정 대상 여부 — 실 API의 EXCLUDED_INDUSTRIES 미러 = 프론트 INDUSTRIES 14종 − 편의점(shared/verdict.ts 단일 원천). */
+export function isJudgedIndustry(industryId: string): industryId is IndustryId {
+  return isVerdictIndustry(industryId);
+}
+
+function signalOf(key: VerdictSignalKey, regionCode: string, industryId: string): VerdictSignal {
+  const u = unitFrom(hashSeed("verdict", key, regionCode, industryId));
+  const name = INDUSTRY_LABELS[industryId as IndustryId] ?? industryId;
+  const source = SIGNAL_SOURCE[key];
+  if (u >= 0.9) {
+    return { key, level: "unavailable", value: null, percentile: null, evidence: `표본 부족 — 3년 전 개업 코호트 ${Math.floor(u * 10)}곳 (10곳 미만)`, source };
+  }
+  const percentile = Math.round(u * 1000) / 10; // 0.0 ~ 89.9
+  const level = percentile >= 90 ? "strong" : percentile >= 75 ? "on" : "off";
+  const top = Math.max(1, Math.round(100 - percentile));
+  const EVIDENCE: Record<VerdictSignalKey, string> = {
+    net_outflow: `지난 12개월 폐업 ${20 + Math.floor(u * 30)}곳, 개업 ${15 + Math.floor(u * 10)}곳 (순유출률 +${Math.round(u * 20)}%, 서울 ${name} 상위 ${top}%)`,
+    survival_cliff: `3년 전 개업한 ${name} 40곳 중 ${40 - Math.floor(u * 25)}곳만 남음 (생존율 ${100 - Math.round(u * 62)}%, 서울 ${name} 하위 ${top}%)`,
+    early_closure: `최근 3년 폐업 ${name}의 영업 기간 중위 ${36 - Math.round(u * 20)}개월 (서울 ${name} 하위 ${top}%)`,
+    saturation: `상주인구 1,000명당 ${name} ${(2 + u * 9).toFixed(1)}곳 (서울 상위 ${top}%)`,
+    shrinking: `서울시 상권변화지표 '${u >= 0.75 ? "상권축소" : "정체"}' (2026년 2분기, 동 전체 기준)`,
+  };
+  const value = key === "shrinking" ? (u >= 0.75 ? 1 : 0) : Math.round(u * 100) / 100;
+  return { key, level, value, percentile: key === "shrinking" ? null : percentile, evidence: EVIDENCE[key], source };
+}
+
+function judgeOf(signals: VerdictSignal[]): VerdictCode {
+  const evaluable = signals.filter((s) => s.level !== "unavailable").length;
+  const strong = signals.filter((s) => s.level === "strong").length;
+  const on = signals.filter((s) => s.level === "on" || s.level === "strong").length;
+  if (evaluable < 3) return "insufficient";
+  if (strong >= 2) return "red";
+  if (on >= 1) return "orange";
+  return "clear";
+}
+
+export function verdictOf(regionCode: string, industryId: string): RegionIndustryVerdict {
+  const signals = SIGNAL_KEYS.map((key) => signalOf(key, regionCode, industryId));
+  return {
+    region_code: regionCode,
+    industry_id: industryId,
+    verdict_code: judgeOf(signals),
+    strong_count: signals.filter((s) => s.level === "strong").length,
+    on_count: signals.filter((s) => s.level === "on" || s.level === "strong").length,
+    signals,
+    computed_at: "2026-09-29T04:30:00+09:00",
+  };
+}
+
+export function verdictRows(industryId: string): VerdictRow[] {
+  return REGIONS.map(({ region_code }) => ({ region_code, value: verdictOf(region_code, industryId).verdict_code }));
 }
