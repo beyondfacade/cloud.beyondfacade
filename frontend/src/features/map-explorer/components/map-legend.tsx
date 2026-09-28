@@ -1,8 +1,8 @@
 "use client";
 
 import type { MapMetricKey, NumericMetricKey } from "@/shared/api/types";
-import { neighborhoodTypeLabel } from "@/shared/neighborhood";
 import { METRIC_LABELS } from "../lib/map-state";
+import { METRIC_SOURCES } from "../lib/metric-sources";
 import {
   NO_DATA_COLOR,
   type CategoryColorClass,
@@ -57,12 +57,13 @@ function NumericRows({ metric, classes }: { metric: NumericMetricKey; classes: M
   );
 }
 
-/** 범주 범례는 구간이 아니라 키다 — 이름 + 괄호 설명. 6종은 색만으로 못 가르므로 이 목록이 필수다. */
-function CategoryRows({ classes }: { classes: CategoryColorClass[] }) {
+/** 범주 범례는 구간이 아니라 키다 — 이름 + 괄호 설명. 6종은 색만으로 못 가르므로 이 목록이 필수다.
+ *  이름·설명은 하드코딩하지 않는다 — 원천(METRIC_SOURCES)의 labelOf가 준다. */
+function CategoryRows({ classes, labelOf }: { classes: CategoryColorClass[]; labelOf: (code: string) => { name: string; qualifier: string } }) {
   return (
     <>
       {classes.map(({ color, code }) => {
-        const label = neighborhoodTypeLabel(code);
+        const label = labelOf(code);
         return (
           <li key={code} className="flex items-center gap-2 text-[11px] leading-none text-[var(--text-secondary)]">
             <span aria-hidden className="h-3 w-3 shrink-0 rounded-[2px]" style={{ backgroundColor: color }} />
@@ -79,6 +80,7 @@ function CategoryRows({ classes }: { classes: CategoryColorClass[] }) {
  *  MapLibre 어트리뷰션(우하단 최하부) 바로 위, 좌하단은 Next dev 인디케이터와 겹쳐 피한다.
  *  데이터가 없으면(빈 classes) 렌더링하지 않는다. */
 export function MapLegend({ metric, scale }: MapLegendProps) {
+  const source = METRIC_SOURCES[metric];
   if (scale.classes.length === 0) return null;
   return (
     <div className="absolute right-4 bottom-10 z-10 rounded-xl border border-[var(--border)] bg-[var(--bg-surface)] px-4 py-3">
@@ -88,7 +90,10 @@ export function MapLegend({ metric, scale }: MapLegendProps) {
       )}
       <ul className="mt-2.5 flex flex-col gap-2">
         {scale.kind === "categorical" ? (
-          <CategoryRows classes={scale.classes} />
+          <CategoryRows
+            classes={scale.classes}
+            labelOf={source.kind === "categorical" ? source.labelOf : (code) => ({ name: code, qualifier: "" })}
+          />
         ) : (
           <NumericRows metric={metric as NumericMetricKey} classes={scale.classes} />
         )}

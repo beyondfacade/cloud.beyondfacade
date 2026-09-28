@@ -7,8 +7,12 @@ import type {
   MetricRow,
   ProfileMetricKey,
 } from "@/shared/api/types";
-import { fetchCommerceChangeMetrics, fetchMetrics, fetchProfileMetrics, fetchProfileTypes } from "../api";
+import { NEIGHBORHOOD_TYPES, neighborhoodTypeLabel } from "@/shared/neighborhood";
+import { VERDICT_CODES, verdictLabel } from "@/shared/verdict";
+import { fetchCommerceChangeMetrics, fetchMetrics, fetchProfileMetrics, fetchProfileTypes, fetchVerdictMetrics } from "../api";
 import type { ColorScheme } from "./metric-color";
+import { neighborhoodPalette, type MapTheme } from "./neighborhood-palette";
+import { verdictPalette } from "./verdict-palette";
 
 /** 한 번의 지도 조회가 아는 것 전부. 원천은 자기 축의 값만 쓴다 — 업종×연도 원천은 yearQuarter를,
  *  동×분기 원천은 industry·year를 무시한다. 무시하는 값을 질의 키에 넣으면 같은 응답을 중복 캐싱한다. */
@@ -28,13 +32,16 @@ export interface NumericMetricSource {
   fetch: (query: MetricQuery) => Promise<MetricRow[]>;
 }
 
-/** 범주 지표 — {region_code, type_code}. 범주 팔레트와 이름 범례의 대상.
+/** 범주 지표 — {region_code, type_code}. 팔레트·키 순서·라벨을 원천이 스스로 안다 (지도·범례는 이 셋만 읽는다).
  *  한 타입에 value/category를 섞어 한쪽을 null로 두지 않는다 — 판별 합집합으로 나눈다. */
 export interface CategoricalMetricSource {
   kind: "categorical";
   axis: MetricAxis;
   queryKey: (query: MetricQuery) => unknown[];
   fetch: (query: MetricQuery) => Promise<CategoryRow[]>;
+  palette: (theme: MapTheme) => Record<string, string>;
+  order: readonly string[];
+  labelOf: (code: string) => { name: string; qualifier: string };
 }
 
 export type MetricSource = NumericMetricSource | CategoricalMetricSource;
@@ -80,6 +87,9 @@ export const METRIC_SOURCES: Record<MapMetricKey, MetricSource> = {
     axis: "region_quarter",
     queryKey: ({ yearQuarter }) => ["profile-types", yearQuarter],
     fetch: ({ yearQuarter }) => fetchProfileTypes(yearQuarter ?? undefined),
+    palette: neighborhoodPalette,
+    order: NEIGHBORHOOD_TYPES,
+    labelOf: neighborhoodTypeLabel,
   },
   // 1.0 = 하루 평균. 높을수록 밤에 사람이 머문다 — 한 방향 척도
   night_index: profileMetric("night_index", "sequential"),
@@ -89,4 +99,14 @@ export const METRIC_SOURCES: Record<MapMetricKey, MetricSource> = {
   closure_rate: industryMetric("closure_rate", "sequential"),
   growth_rate: industryMetric("growth_rate", "diverging"),
   store_count: industryMetric("store_count", "sequential"),
+  // 판정 — 업종만 묻고 시점은 배치 최신. year·yearQuarter를 키에 넣으면 같은 응답을 중복 캐싱한다.
+  verdict: {
+    kind: "categorical",
+    axis: "industry_latest",
+    queryKey: ({ industry }) => ["verdicts", industry],
+    fetch: ({ industry }) => fetchVerdictMetrics(industry),
+    palette: verdictPalette,
+    order: VERDICT_CODES,
+    labelOf: verdictLabel,
+  },
 };

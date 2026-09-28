@@ -6,11 +6,11 @@ import "maplibre-gl/dist/maplibre-gl.css";
 import { config } from "@/shared/config";
 import type { CategoryRow, MapMetricKey, MetricRow } from "@/shared/api/types";
 import { useMapData } from "../hooks/use-map-data";
-import { NEIGHBORHOOD_TYPES } from "@/shared/neighborhood";
 import { makeCategoryColorScale, makeMetricColorScale, NO_DATA_COLOR } from "../lib/metric-color";
-import { neighborhoodPalette, type MapTheme } from "../lib/neighborhood-palette";
+import type { MapTheme } from "../lib/neighborhood-palette";
 import { bboxOfRegion } from "../lib/region-bbox";
 import { NO_CLOSURE_HISTORY_INDUSTRIES } from "../lib/map-state";
+import { isVerdictMissingForIndustry } from "../lib/metric-coverage";
 import { MapLegend } from "./map-legend";
 import { RegionMarkers } from "./region-markers";
 import type { IndustryId } from "@/shared/industries";
@@ -64,7 +64,9 @@ export function MapView({ regionCode, metric, industry, year, yearQuarter, onSel
   const failedSourceRef = useRef<string | null>(null);
   const failedTilesRef = useRef(new Set<string>());
 
-  const { geojson, rows, source } = useMapData(metric, { industry, year, yearQuarter });
+  // 편의점×판정은 백엔드가 404를 주는 조합이라 조회 자체를 끈다 — 안내 문구가 이유를 말한다.
+  const verdictMissing = isVerdictMissingForIndustry(metric, industry);
+  const { geojson, rows, source } = useMapData(metric, { industry, year, yearQuarter }, !verdictMissing);
   // 경계/지표 fetch 실패는 무음 빈 지도가 아니라 배너로 알린다 (side-panel의 role="alert" 관행과 일관).
   const loadError = geojson.isError || rows.isError;
   // 실 API는 데이터 미보유 업종·연도에 200 + 빈 배열을 반환한다 — 빈 지도임을 명시.
@@ -85,7 +87,7 @@ export function MapView({ regionCode, metric, industry, year, yearQuarter, onSel
     const data = rows.data ?? [];
     if (source.kind === "categorical") {
       const codes = (data as CategoryRow[]).map((row) => row.type_code);
-      return { kind: "categorical" as const, ...makeCategoryColorScale(codes, neighborhoodPalette(theme), NEIGHBORHOOD_TYPES) };
+      return { kind: "categorical" as const, ...makeCategoryColorScale(codes, source.palette(theme), source.order) };
     }
     const values = (data as MetricRow[]).map((row) => row.value);
     return { kind: "numeric" as const, ...makeMetricColorScale(values, source.scheme) };
@@ -344,18 +346,22 @@ export function MapView({ regionCode, metric, industry, year, yearQuarter, onSel
           }}>데이터 다시 시도</button>
         </div>
       )}
-      {!mapFailure && !loadError && noData && (
+      {!mapFailure && !loadError && (noData || verdictMissing) && (
         <div
           role="status"
           className="absolute top-3 left-1/2 z-10 -translate-x-1/2 rounded-md border border-[var(--border)] bg-[var(--bg-surface)] px-3 py-2 text-sm text-[var(--text-secondary)] shadow-md"
         >
-          {noClosureHistory
-            ? "이 업종의 원천에는 개폐업 이력이 없어 폐업률·성장률이 없습니다. 점포수를 선택해 보세요."
-            : source.axis === "region_quarter"
-              ? yearQuarter ? "해당 분기의 지표 데이터가 없습니다." : "동네 지표 데이터가 없습니다."
-            : metric === "store_count"
-              ? "해당 업종·연도의 점포수 지표가 없습니다."
-              : "해당 업종·연도의 지표 데이터가 없습니다."}
+          {verdictMissing
+            ? "편의점은 아직 판정 대상이 아닙니다 — 담배권 특화 신호가 붙으면 열립니다."
+            : noClosureHistory
+              ? "이 업종의 원천에는 개폐업 이력이 없어 폐업률·성장률이 없습니다. 점포수를 선택해 보세요."
+              : source.axis === "industry_latest"
+                ? "이 업종의 판정이 아직 없습니다. 새벽 배치 후 다시 확인해 주세요."
+              : source.axis === "region_quarter"
+                ? yearQuarter ? "해당 분기의 지표 데이터가 없습니다." : "동네 지표 데이터가 없습니다."
+              : metric === "store_count"
+                ? "해당 업종·연도의 점포수 지표가 없습니다."
+                : "해당 업종·연도의 지표 데이터가 없습니다."}
         </div>
       )}
       <MapLegend metric={metric} scale={scale} />

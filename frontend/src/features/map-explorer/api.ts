@@ -12,9 +12,11 @@ import type {
   CommerceChangeMetricKey,
   RegionCommerceChangeDetail,
   RegionIndustryHourGap,
+  RegionIndustryVerdict,
   RegionProfile,
   RegionSummary,
   Store,
+  VerdictRow,
 } from "@/shared/api/types";
 
 export type RegionProperties = { region_code: string; name: string };
@@ -99,4 +101,18 @@ export function fetchHourGaps(regionCode: string, industry: string, yearQuarter?
   const params = new URLSearchParams({ region: regionCode, industry });
   if (yearQuarter) params.set("year_quarter", yearQuarter);
   return apiGet<RegionIndustryHourGap>(`/hour-gaps?${params.toString()}`);
+}
+
+/** 위험도 단계구분도 — 실 API는 {region_code, value}로 주지만 범주 파이프라인(type_code)으로 옮긴다 (작은 ACL). 시점 파라미터 없음(배치 최신). */
+export function fetchVerdictMetrics(industry: string): Promise<CategoryRow[]> {
+  const params = new URLSearchParams({ industry });
+  return apiGet<VerdictRow[]>(`/verdicts?${params.toString()}`).then((rows) =>
+    rows.map(({ region_code, value }) => ({ region_code, type_code: value })),
+  );
+}
+
+/** 판정 카드 단건 — 판정 대상이 아니면 INDUSTRY_NOT_FOUND, 배치 전·모르는 동이면 VERDICT_NOT_FOUND. */
+export function fetchVerdict(regionCode: string, industry: string): Promise<RegionIndustryVerdict> {
+  const params = new URLSearchParams({ industry });
+  return apiGet<RegionIndustryVerdict>(`/verdicts/${regionCode}?${params.toString()}`);
 }

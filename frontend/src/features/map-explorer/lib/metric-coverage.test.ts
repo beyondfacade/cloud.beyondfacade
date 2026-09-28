@@ -8,6 +8,7 @@ import {
   availableYears,
   clampToCoverage,
   isMetricMissingForIndustry,
+  isVerdictMissingForIndustry,
 } from "./metric-coverage";
 
 describe("지표별 데이터 보유 범위", () => {
@@ -72,5 +73,19 @@ describe("범위 밖 시점 보정", () => {
     const before = { ...DEFAULT_STATE, metric: "store_count" as const, industry: "childcare", year: 2019, region: "1168064000" };
     const after = clampToCoverage(before);
     expect(after).toEqual({ ...before, year: SNAPSHOT_YEAR });
+  });
+});
+
+describe("판정 지표가 없는 업종", () => {
+  it("편의점은 판정 대상이 아니다 — 스냅샷 원천이라 1단계 판정 제외", () => {
+    expect(isVerdictMissingForIndustry("verdict", "convenience_store")).toBe(true);
+  });
+
+  it("일반 업종은 판정 대상이다", () => {
+    expect(isVerdictMissingForIndustry("verdict", "cafe")).toBe(false);
+  });
+
+  it("판정이 아닌 지표는 업종과 무관하게 빠지지 않는다", () => {
+    expect(isVerdictMissingForIndustry("closure_rate", "convenience_store")).toBe(false);
   });
 });

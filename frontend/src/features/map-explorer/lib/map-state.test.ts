@@ -60,13 +60,14 @@ it("SNAPSHOT_INDUSTRIES에 어린이집·편의점이 포함된다", () => {
   expect(SNAPSHOT_INDUSTRIES.has("convenience_store")).toBe(true);
 });
 
-it("지표는 두 무리에서 파생되고 무리 밖 지표가 없다", () => {
-  expect(METRIC_GROUPS.map((g) => g.key)).toEqual(["region", "industry"]);
+it("지표는 세 무리에서 파생되고 무리 밖 지표가 없다", () => {
+  expect(METRIC_GROUPS.map((g) => g.key)).toEqual(["region", "industry", "verdict"]);
   const fromGroups = METRIC_GROUPS.flatMap((g) => [...g.metrics]);
   expect([...METRICS]).toEqual(fromGroups);
   for (const m of METRICS) expect(metricGroupOf(m).metrics).toContain(m);
   expect(metricGroupOf("night_index").axis).toBe("region_quarter");
   expect(metricGroupOf("closure_rate").axis).toBe("industry_year");
+  expect(metricGroupOf("verdict").axis).toBe("industry_latest");
 });
 
 it("year_quarter는 URL을 왕복하고, 형식이 틀리면 null(최신)이다", () => {
@@ -83,4 +84,19 @@ it("무리를 오가도 연도·분기·예산이 각자 유지된다", () => {
   const toIndustry = parseMapState(new URLSearchParams(serializeMapState({ ...landed, metric: "closure_rate" })));
   const backToRegion = parseMapState(new URLSearchParams(serializeMapState({ ...toIndustry, metric: "fnb_share" })));
   expect(backToRegion).toMatchObject({ year: 2023, year_quarter: "20244", budget: 50_000_000, industry: "cafe" });
+});
+
+it("verdict 지표는 industry_latest 축의 세 번째 무리에 있고 라벨은 '창업 경고'다", () => {
+  const group = metricGroupOf("verdict");
+  expect(group.key).toBe("verdict");
+  expect(group.axis).toBe("industry_latest");
+  expect(METRICS).toContain("verdict");
+});
+
+it("industry_latest 축에서는 year를 직렬화하지 않고, 파싱하면 기본 연도로 돌아온다", () => {
+  const s = { industry: "korean_food", metric: "verdict" as const, year: 2021, year_quarter: null, region: "1168064000", budget: null };
+  const params = new URLSearchParams(serializeMapState(s));
+  expect(params.get("year")).toBeNull();
+  expect(params.get("metric")).toBe("verdict");
+  expect(parseMapState(params)).toEqual({ ...s, year: 2026 });
 });

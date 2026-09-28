@@ -24,6 +24,7 @@ interface ControlBarProps {
 export function ControlBar({ state, onChange }: ControlBarProps) {
   const group = metricGroupOf(state.metric);
   const regionAxis = group.axis === "region_quarter";
+  const latestAxis = group.axis === "industry_latest";
   // 업종·지표를 바꾸면 현재 연도가 범위 밖일 수 있다 — 조용히 유효 범위로 당긴다(clamp는 멱등).
   const change = (next: MapState) => onChange(clampToCoverage(next));
   const years = availableYears(state.metric, state.industry);
@@ -90,7 +91,7 @@ export function ControlBar({ state, onChange }: ControlBarProps) {
         </div>
       </div>
 
-      {regionAxis ? (
+      {latestAxis ? null : regionAxis ? (
         <label className={`${styles.yearField} flex flex-col gap-2`}>
           <span className={LEGEND}>분기</span>
           <select

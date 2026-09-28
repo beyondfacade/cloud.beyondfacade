@@ -8,7 +8,7 @@ const probeLoseContext = vi.fn();
 vi.mock("maplibre-gl", () => ({ Map: function MockMap(options: unknown) { return mapConstructor(options); }, setWorkerUrl: vi.fn() }));
 vi.mock("../hooks/use-map-data", () => ({
   useMapData: () => ({
-    geojson: { isError: false, data: mapData.geojsonData, refetch: mapData.refetchGeojson }, rows: { isError: mapData.rowsError, isSuccess: !mapData.rowsError, data: [], refetch: mapData.refetchRows }, source: { kind: "categorical", axis: "region_quarter" },
+    geojson: { isError: false, data: mapData.geojsonData, refetch: mapData.refetchGeojson }, rows: { isError: mapData.rowsError, isSuccess: !mapData.rowsError, data: [], refetch: mapData.refetchRows }, source: { kind: "categorical", axis: "region_quarter", palette: () => ({}), order: [] },
   }),
 }));
 vi.mock("./map-legend", () => ({ MapLegend: () => null }));

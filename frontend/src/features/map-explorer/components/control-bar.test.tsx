@@ -93,3 +93,10 @@ describe("데이터 보유 범위에 맞춘 셀렉터", () => {
     );
   });
 });
+
+it("창업 경고 지표에서는 연도·분기 셀렉터가 모두 숨고 업종 select는 살아 있다", () => {
+  renderBar({ metric: "verdict", industry: "korean_food" });
+  expect(screen.queryByRole("combobox", { name: /연도/ })).toBeNull();
+  expect(screen.queryByRole("combobox", { name: /분기/ })).toBeNull();
+  expect(screen.getByRole("combobox", { name: /업종/ })).toBeInTheDocument();
+});

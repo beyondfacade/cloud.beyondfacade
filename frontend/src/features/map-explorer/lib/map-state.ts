@@ -19,6 +19,8 @@ export const METRIC_GROUPS = [
     axis: "industry_year",
     metrics: ["closure_rate", "growth_rate", "store_count"],
   },
+  // 판정 — 연도·분기가 없다(배치 최신). 첫 화면은 여전히 동네 유형(DEFAULT_STATE); 관문이 verdict로 내려놓는 건 후속.
+  { key: "verdict", label: "판정", axis: "industry_latest", metrics: ["verdict"] },
 ] as const satisfies readonly { key: string; label: string; axis: MetricAxis; metrics: readonly MapMetricKey[] }[];
 
 export type MetricGroup = (typeof METRIC_GROUPS)[number];
@@ -43,6 +45,7 @@ export const METRIC_LABELS: Record<MapMetricKey, string> = {
   closure_rate: "폐업률",
   growth_rate: "성장률",
   store_count: "점포수",
+  verdict: "창업 경고",
 };
 
 /**
@@ -82,7 +85,10 @@ export function serializeMapState(state: MapState): string {
   const params = new URLSearchParams();
   params.set("industry", state.industry);
   params.set("metric", state.metric);
-  params.set("year", String(state.year));
+  // industry_latest 축은 시점이 없다 — year를 실으면 URL이 "2021년 판정"처럼 읽힌다.
+  if (metricGroupOf(state.metric).axis !== "industry_latest") {
+    params.set("year", String(state.year));
+  }
   if (state.year_quarter) {
     params.set("year_quarter", state.year_quarter);
   }

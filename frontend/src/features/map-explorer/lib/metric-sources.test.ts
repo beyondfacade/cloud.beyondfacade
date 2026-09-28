@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { METRICS, METRIC_GROUPS } from "./map-state";
+import { METRICS, METRIC_GROUPS, metricGroupOf } from "./map-state";
 import { METRIC_SOURCES, type MetricQuery } from "./metric-sources";
 
 const Q: MetricQuery = { industry: "cafe", year: 2026, yearQuarter: null };
@@ -55,4 +55,28 @@ describe("지표 원천 레지스트리", () => {
       expect(scheme(m)).toBe("sequential");
     }
   });
+});
+
+it("모든 지표가 원천을 갖고, 원천의 축은 무리의 축과 같다", () => {
+  for (const metric of METRICS) {
+    expect(METRIC_SOURCES[metric].axis, metric).toBe(metricGroupOf(metric).axis);
+  }
+  expect(METRIC_GROUPS.map((g) => g.axis)).toEqual(["region_quarter", "industry_year", "industry_latest"]);
+});
+
+it("범주 원천은 팔레트·순서·라벨을 스스로 안다 — 지도·범례가 동네 유형을 하드코딩하지 않는다", () => {
+  for (const metric of ["neighborhood_type", "verdict"] as const) {
+    const source = METRIC_SOURCES[metric];
+    if (source.kind !== "categorical") throw new Error(`${metric}는 범주 원천이어야 한다`);
+    expect(source.order.length).toBeGreaterThan(0);
+    for (const code of source.order) {
+      expect(source.palette("light")[code], `${metric}/${code} light`).toMatch(/^#/);
+      expect(source.palette("dark")[code], `${metric}/${code} dark`).toMatch(/^#/);
+      expect(source.labelOf(code).name.length).toBeGreaterThan(0);
+    }
+  }
+  const verdict = METRIC_SOURCES.verdict;
+  if (verdict.kind !== "categorical") throw new Error();
+  expect(verdict.order).toEqual(["red", "orange", "clear", "insufficient"]);
+  expect(verdict.queryKey({ industry: "korean_food", year: 2026, yearQuarter: null })).toEqual(["verdicts", "korean_food"]);
 });

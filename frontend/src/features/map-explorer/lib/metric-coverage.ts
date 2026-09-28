@@ -16,6 +16,7 @@
 
 import type { MapMetricKey } from "@/shared/api/types";
 import type { IndustryId } from "@/shared/industries";
+import { isVerdictIndustry } from "@/shared/verdict";
 import {
   METRICS,
   NO_CLOSURE_HISTORY_INDUSTRIES,
@@ -77,3 +78,8 @@ export function isMetricMissingForIndustry(metric: MapMetricKey, industry: strin
 
 /** 모든 지표가 무리에 등록돼 있는지 — 커버리지 규칙이 빠진 지표를 조용히 통과시키지 않게 한다. */
 export const COVERED_METRICS: readonly MapMetricKey[] = METRICS;
+
+/** 판정 지표가 없는 업종 — 편의점(스냅샷 원천, 1단계 판정 제외). `map-view`가 fetch를 끄고 안내 문구를 띄운다. */
+export function isVerdictMissingForIndustry(metric: MapMetricKey, industry: string): boolean {
+  return metric === "verdict" && !isVerdictIndustry(industry);
+}
