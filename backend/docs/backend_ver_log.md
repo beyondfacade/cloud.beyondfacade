@@ -1,5 +1,22 @@
 # Backend Version Log
 
+## [v0.40.0] - 2026-09-29
+
+### Added
+- **verdict BC** — 동×업종 판정 카드 원천. 공통 경고 신호 5개(순유출·생존 절벽·조기 폐업·포화·상권 축소)를
+  업종 안 427동 백분위로 상대평가(75 켜짐·90 강함)해 🔴 red(강함 2+)/🟠 orange(켜짐 1+)/⚪ clear/보류 insufficient(판정 가능 신호 3 미만).
+  신호 = Specification 클래스(`domain/services/signals.py`), 판정 = Chain of Responsibility(`rules.py`), 임계값은 `thresholds.py` 한 곳.
+- 테이블 `region_industry_verdict`(마이그레이션 `c9d0e1f2a3b4`), 배치 `build_verdicts`(크론 `store-collector.sh` 마지막),
+  API `GET /verdicts/myself`·`GET /verdicts?industry=`(범주 계약)·`GET /verdicts/{region_code}?industry=`.
+- 판정 대상 14업종 = 마스터 18 − 학원·어린이집·기타·치킨(`EXCLUDED_INDUSTRIES`).
+
+### Validation
+- 신규 테스트 32 (임계값 6·신호 9·규칙 5·배치 4·리포지토리 1·게이트웨이 3·라우터 4), 전체 574 passed.
+- 실DB 배치 1회: 5,978행, 소요 약 2.3초. 업종별 red/orange/clear/insufficient 분포는 설계서 §11.
+- insufficient 비율이 여러 업종에서 30%를 넘어(최대 billiard 80.1%, convenience_store는 store 원천 자체가 0행이라 100%)
+  설계서 §9대로 `min_sample` 10→5 완화를 시도했으나, 기존 회귀 테스트 4건(`test_verdict_thresholds.py::test_기본_임계값_상수`,
+  `test_verdict_signals.py`의 경계값 3건)이 10을 고정 검증하고 있어 충돌 — 10을 유지하고 결과만 설계서 §11에 기록.
+
 ## [v0.39.0] - 2026-09-28
 
 ### Added

@@ -33,6 +33,9 @@ from apps.neighborhood.adapter.inbound.api.v1.region_commerce_change_router impo
 from apps.news.adapter.inbound.api.v1.news_article_router import router as news_router
 from apps.shock.adapter.inbound.api.v1.shock_event_router import router as shock_router
 from apps.store.adapter.inbound.api.v1.store_router import router as store_router
+from apps.verdict.adapter.inbound.api.v1.region_industry_verdict_router import (
+    router as verdict_router,
+)
 
 app = FastAPI(title="beyondfacade backend")
 app.add_middleware(
@@ -57,6 +60,7 @@ app.include_router(commerce_change_router)
 app.include_router(news_router)
 app.include_router(shock_router)
 app.include_router(store_router)
+app.include_router(verdict_router)
 
 
 @app.get("/health")

@@ -230,3 +230,9 @@ ERD 연결: region·industry에 FK. 1테이블 = 1프랙탈(§12). 역정규화 
 - 업종 특화 신호(담배권 원 등) — §0-7 4번
 - 에이전트 리포트 verdict 섹션이 이 판정을 도구로 읽게 하는 것 — 후속(현재는 LLM 자유 서술)
 - 서비스 이름·톤 — §0-8 팀 결정
+
+## 11. 진행 기록
+
+| 일시 | 단계 | 결과 |
+|---|---|---|
+| 2026-09-29 | 1단계 완료 (BE v0.40.0) | 실DB 배치 1회 5,978행(14업종 × 427동), 소요 약 2.3초. 업종별 red/orange/clear/insufficient: cafe 35/255/130/7, hair_salon 26/237/152/12, korean_food 25/248/141/13, pub 22/182/130/93, pc_bang 14/104/34/275, western_food 11/150/59/207, chinese_food 10/110/32/275, karaoke 10/142/64/211, snack 9/202/104/112, billiard 7/66/12/342, japanese_food 4/148/74/201, gym 2/108/45/272, convenience_store 0/0/0/427, real_estate 0/234/183/10. insufficient 최대 비율은 convenience_store 100%(store 원천에 해당 업종 행이 아예 없음 — 표본 가드가 아니라 구조적 결측, §9 리스크 대응 대상 아님) 다음으로 billiard 80.1%. §9대로 `min_sample` 10→5 완화를 시도해 재실행했더니(billiard 45.4%·pc_bang 43.3%·gym 32.3%·karaoke 30.9%·chinese_food 30.9%로 개선) 기존 회귀 테스트 4건(`test_verdict_thresholds.py::test_기본_임계값_상수`, `test_verdict_signals.py`의 경계값 3건)이 상수 10을 고정 검증하고 있어 깨짐 — Task 7 범위 밖(다른 태스크의 테스트 파일)이라 되돌려 `min_sample=10`을 유지했다. 최종 커밋된 실DB 상태는 10 기준 분포. 표본 부족 완화는 후속 태스크에서 테스트까지 함께 다루는 것을 권장. |
