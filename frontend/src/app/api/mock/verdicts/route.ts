@@ -1,6 +1,6 @@
 import { isJudgedIndustry, verdictRows } from "../fixtures";
 
-/** 위험도 단계구분도 — 범주 계약이지만 필드명은 value(실 API 미러). 판정 대상 14종 외는 404. */
+/** 위험도 단계구분도 — 범주 계약이지만 필드명은 value(실 API 미러). 판정 대상 13종 외는 404. */
 export async function GET(request: Request) {
   const industry = new URL(request.url).searchParams.get("industry") ?? "";
   if (!isJudgedIndustry(industry)) {

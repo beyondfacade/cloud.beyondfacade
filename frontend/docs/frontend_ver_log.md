@@ -19,6 +19,10 @@
   변경 없이 그대로 동작한다.
 - `Store.close_date: string | null` 추가(status=open이면 null). `fetchStores(regionCode, industry, status = "open")`.
 
+### Fixed
+- 최종 리뷰 반영: 스냅샷·학원 업종에서 폐업 토글 숨김(거짓 0곳 방지), 산출일 KST 표기, 판정 없음 테스트 강화,
+  편의점 외 업종 안내 문구, mock 폐업일 창 정렬.
+
 ### Validation
 - Vitest **357/357**, `tsc --noEmit` clean. 실 API 역삼1동 한식(`region=1168064000&industry=korean_food&status=closed`) 300건,
   `close_date` 포함 확인(3200 프록시). 브라우저 화면(빨간 마커·"최근 2년 한식 N곳 폐업" 문구)은 미확인 — 사용자 노트북에서 확인 필요.

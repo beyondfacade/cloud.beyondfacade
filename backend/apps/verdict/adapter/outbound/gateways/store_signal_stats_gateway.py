@@ -23,7 +23,13 @@ class StoreSignalStatsGateway(StoreSignalStatsPort):
 
         days_open = StoreOrm.close_date - StoreOrm.open_date  # PostgreSQL: date − date = 일수(int)
         in_cohort = and_(StoreOrm.open_date >= cohort_from, StoreOrm.open_date < cohort_to)
-        closed_3y = and_(StoreOrm.close_date.is_not(None), StoreOrm.close_date >= since_3y, StoreOrm.close_date <= today)
+        # days_open >= 0: close_date < open_date인 오염 행은 조기 폐업 집계(건수·중앙값)에서 제외한다.
+        closed_3y = and_(
+            StoreOrm.close_date.is_not(None),
+            StoreOrm.close_date >= since_3y,
+            StoreOrm.close_date <= today,
+            days_open >= 0,
+        )
 
         with session_scope() as session:
             rows = session.execute(

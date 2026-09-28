@@ -44,6 +44,7 @@ def test_store_집계_12개월_코호트_중위개월():
         _store(5, region, d(1195), d(795)),   # 코호트 · 400일 만에 폐업 → 미생존 · closed_3y (start 아님: 12개월 전 이미 폐업)
         _store(6, region, d(1195), d(95)),    # 코호트 · 1100일 뒤 폐업 → 생존(≥1095) · start · closed_12m · closed_3y
         _store(7, region, d(2000), d(200)),   # start · closed_12m · closed_3y (영업 1800일)
+        _store(8, region, d(100), d(200)),    # 오염 행: 폐업일<개업일(영업일수 -100일) — opened_12m·closed_12m엔 잡히되 closed_3y·중앙값에서는 빠져야 함
     ]
     try:
         with session_scope() as session:
@@ -51,10 +52,11 @@ def test_store_집계_12개월_코호트_중위개월():
         stat = next(s for s in StoreSignalStatsGateway().signal_stats(_TODAY)
                     if s.region_code == region and s.industry_id == _INDUSTRY)
         # 실적재 행은 2099 창에 안 잡힌다(개업·폐업일이 전부 과거) — 시험 행만 센다
-        assert stat.start_store_count == 5  # 1, 2, 4, 6, 7 (5는 12개월 전 이미 폐업, 3은 그 뒤 개업)
-        assert stat.opened_12m == 1  # 3
-        assert stat.closed_12m == 3  # 2, 6, 7
+        assert stat.start_store_count == 5  # 1, 2, 4, 6, 7 (5는 12개월 전 이미 폐업, 3은 그 뒤 개업, 8은 12개월 전 미개업)
+        assert stat.opened_12m == 2  # 3, 8
+        assert stat.closed_12m == 4  # 2, 6, 7, 8
         assert stat.cohort_size == 3 and stat.cohort_survived == 2  # 4·5·6 중 4·6
+        # 8은 close_date가 창 안이지만 days_open<0(폐업일<개업일)이라 제외 — 오염 행이 껴도 4·중앙값 그대로
         assert stat.closed_3y_count == 4  # 2, 5, 6, 7
         # 영업일수 700·400·1100·1800 → 중위 900일 ≈ 29.6개월
         assert stat.closed_3y_median_months == pytest.approx(900 / 30.4375, rel=1e-3)

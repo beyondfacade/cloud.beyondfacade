@@ -6,6 +6,10 @@
 - `GET /stores?status=open|closed`(기본 open, closed = 최근 2년 폐업·좌표 보유). `StoreMarkerResponse.close_date` 추가.
   미지원 status는 404 `STORE_STATUS_NOT_FOUND`. 리포지토리 `list_closed_since`, 인터랙터는 status → 조회 전략 Strategy 맵(`_LISTERS`)으로 분기(if/elif 없음).
 
+### Fixed
+- 폐업일<개업일 오염 행을 조기 폐업 집계에서 제외(`StoreSignalStatsGateway.closed_3y`에 `days_open >= 0` 추가) —
+  음수 영업일수 행이 조기 폐업 건수·중앙값을 끌어내리던 것을 막는다.
+
 ### Validation
 - 신규 테스트 3(마커 계약 close_date·status=closed·미지원 status 404 — `test_store_list_open.py`; `list_closed_since` since 경계·좌표 없는 행 제외 — `test_store_list_closed_repository.py`), 전체 577 passed.
 - 실 API(8201, region=1168064000 역삼1동 × industry=korean_food): status=closed 최근 2년 폐업 300건, status 기본값(open)은 응답 불변(`close_date: null`), status=bogus → 404 `STORE_STATUS_NOT_FOUND`.

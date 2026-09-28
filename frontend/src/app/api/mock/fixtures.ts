@@ -113,11 +113,28 @@ export function summaryOf(code: string, industry: string): RegionSummary {
 /** 영업 중으로 볼 수 있는 상태 — 그 외(폐업/취소류)는 status=closed 표본에 포함. */
 const OPEN_STATUSES = new Set(["영업", "영업중"]);
 
-/** 결정적 폐업일 — 개업일 + (해시 % 36 + 3)개월. 표본에 폐업일 컬럼이 없어 여기서 만든다. */
+/** 결정적 폐업일 — 개업일 + (해시 % 36 + 3)개월. 표본에 폐업일 컬럼이 없어 여기서 만든다.
+ *  실 API 계약(today − 2y ≤ close_date ≤ today)을 벗어나면 결정적으로 그 창 안으로 접는다. */
 function closeDateOf(sample: StoreSample): string {
   const months = (hashSeed("close", sample.store_id) % 36) + 3;
   const d = new Date(sample.open_date);
   d.setMonth(d.getMonth() + months);
+
+  const today = new Date();
+  const twoYearsAgo = new Date(today);
+  twoYearsAgo.setDate(twoYearsAgo.getDate() - 730);
+  const offsetDays = hashSeed("close", sample.store_id) % 700;
+
+  if (d.getTime() > today.getTime()) {
+    const clamped = new Date(today);
+    clamped.setDate(clamped.getDate() - offsetDays);
+    return clamped.toISOString().slice(0, 10);
+  }
+  if (d.getTime() < twoYearsAgo.getTime()) {
+    const clamped = new Date(twoYearsAgo);
+    clamped.setDate(clamped.getDate() + offsetDays);
+    return clamped.toISOString().slice(0, 10);
+  }
   return d.toISOString().slice(0, 10);
 }
 

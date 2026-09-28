@@ -180,6 +180,11 @@ function ClosedStoresToggle({ regionCode, industry, checked, onChange }: {
     queryFn: () => CLOSED_STORE_STRATEGY.fetch(regionCode, industry),
     enabled: checked,
   });
+  // 스냅샷 원천(childcare·convenience_store)·close_date NULL(academy) 업종은 폐업 이력이 없다 —
+  // 토글을 보이면 "0곳 폐업"이 거짓이 된다 (source absence ≠ zero).
+  if (NO_CLOSURE_HISTORY_INDUSTRIES.has(industry as IndustryId)) {
+    return null;
+  }
   return (
     <div className="mt-2 flex flex-col gap-1 text-xs">
       <label className="flex items-center gap-2 text-[var(--text-secondary)]">

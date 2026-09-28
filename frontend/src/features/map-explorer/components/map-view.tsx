@@ -14,7 +14,7 @@ import { isVerdictMissingForIndustry } from "../lib/metric-coverage";
 import { MapLegend } from "./map-legend";
 import { CLOSED_STORE_STRATEGY } from "./marker-strategies";
 import { RegionMarkers } from "./region-markers";
-import type { IndustryId } from "@/shared/industries";
+import { industryLabel, type IndustryId } from "@/shared/industries";
 import { readAccentColor } from "@/shared/lib/accent-color";
 
 // maplibre-gl은 GeoJSON 타일링을 Web Worker에서 수행하며, 워커 스크립트 URL을 import.meta.url 기반으로
@@ -355,7 +355,7 @@ export function MapView({ regionCode, metric, industry, year, yearQuarter, onSel
           className="absolute top-3 left-1/2 z-10 -translate-x-1/2 rounded-md border border-[var(--border)] bg-[var(--bg-surface)] px-3 py-2 text-sm text-[var(--text-secondary)] shadow-md"
         >
           {verdictMissing
-            ? "편의점은 아직 판정 대상이 아닙니다 — 담배권 특화 신호가 붙으면 열립니다."
+            ? `${industryLabel(industry)}은(는) 아직 판정 대상이 아닙니다 — 특화 신호가 붙으면 열립니다.`
             : noClosureHistory
               ? "이 업종의 원천에는 개폐업 이력이 없어 폐업률·성장률이 없습니다. 점포수를 선택해 보세요."
               : source.axis === "industry_latest"

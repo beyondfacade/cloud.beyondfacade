@@ -22,6 +22,7 @@ vi.mock("../api", () => ({
   fetchVerdict: vi.fn(async () => {
     throw new ApiError("VERDICT_NOT_FOUND", "missing");
   }),
+  fetchConvenienceSummary: vi.fn(async () => ({ region_code: "1168064000", store_count: 0, brands: [], source_stdr_ym: null })),
 }));
 
 vi.mock("next/link", () => ({ default: ({ href, children }: { href: string; children: React.ReactNode }) => <a href={href}>{children}</a> }));
@@ -64,5 +65,11 @@ describe("사이드패널 서사 순서", () => {
     ).toBeInTheDocument();
     fireEvent.click(screen.getByRole("checkbox", { name: /최근 2년 폐업 점포 보기/ }));
     expect(onToggle).toHaveBeenCalledWith(false);
+  });
+
+  it("스냅샷 원천 업종(편의점)은 폐업 이력이 없어 토글이 아예 뜨지 않는다", async () => {
+    renderPanel({ regionCode: "1168064000", industry: "convenience_store" });
+    await screen.findByText("낮 인구 우위형");
+    expect(screen.queryByRole("checkbox", { name: /최근 2년 폐업 점포 보기/ })).toBeNull();
   });
 });

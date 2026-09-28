@@ -117,7 +117,7 @@ export function VerdictSection({ regionCode, industry }: VerdictSectionProps) {
                 <span className="text-[var(--text-primary)]">{signalLabel(s.key)}</span>
                 <span className="ml-1 text-[var(--text-secondary)]">
                   · {LEVEL_LABEL[s.level]}
-                  {s.percentile !== null && <span className="tabular-nums"> · 서울 상위 {Math.max(1, Math.round(100 - s.percentile))}%</span>}
+                  {s.percentile !== null && <span className="tabular-nums"> · 나쁜 쪽 상위 {Math.max(1, Math.round(100 - s.percentile))}%</span>}
                 </span>
                 <span className="ml-1 rounded border border-[var(--border)] px-1 text-[10px] text-[var(--text-secondary)]">
                   {SOURCE_LABEL[s.source]}
@@ -127,7 +127,8 @@ export function VerdictSection({ regionCode, industry }: VerdictSectionProps) {
             </li>
           ))}
           <li className="text-[10px] text-[var(--text-secondary)]">
-            상대평가 — 같은 업종의 서울 행정동 분포에서 상위 25%면 켜짐, 상위 10%면 강함. 산출 {verdict.computed_at.slice(0, 10)}
+            상대평가 — 같은 업종의 서울 행정동 분포에서 상위 25%면 켜짐, 상위 10%면 강함. 산출{" "}
+            {new Date(verdict.computed_at).toLocaleDateString("ko-KR", { year: "numeric", month: "long", day: "numeric" })}
           </li>
         </ul>
       )}

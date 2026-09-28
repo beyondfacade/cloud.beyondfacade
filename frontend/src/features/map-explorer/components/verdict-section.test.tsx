@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, expect, it, vi } from "vitest";
 import type { RegionIndustryVerdict, VerdictSignal } from "@/shared/api/types";
 import { ApiError } from "@/shared/api/client";
@@ -52,6 +52,7 @@ it("판정 배지와 켜진 신호를 강함 먼저 보여주고, 근거 보기�
   fireEvent.click(screen.getByRole("button", { name: /근거 보기/ }));
   expect(screen.getByText("표본 부족 — 상주인구 900명")).toBeInTheDocument();
   expect(screen.getAllByTestId("all-signal")).toHaveLength(5);
+  expect(screen.getByText(/2026년 9월 29일/)).toBeInTheDocument();
 });
 
 it("경고 없음·보류 판정은 켜진 신호 목록 대신 한 줄 설명을 보여준다", async () => {
@@ -75,17 +76,19 @@ it("판정 제외 업종(편의점)은 요청 없이 섹션을 그리지 않는�
 });
 
 it("판정이 없는 조합(404)은 섹션을 그리지 않는다", async () => {
-  vi.spyOn(api, "fetchVerdict").mockRejectedValue(new ApiError("VERDICT_NOT_FOUND", "판정이 없습니다"));
+  const spy = vi.spyOn(api, "fetchVerdict").mockRejectedValue(new ApiError("VERDICT_NOT_FOUND", "판정이 없습니다"));
   const { container } = renderSection();
-  await new Promise((r) => setTimeout(r, 0));
-  expect(container.querySelector("section")).toBeNull();
+  await waitFor(() => expect(spy).toHaveBeenCalled());
+  await waitFor(() => expect(container.firstChild).toBeNull());
+  expect(screen.queryByRole("alert")).toBeNull();
 });
 
 it("판정 대상 업종이 아닌 404(INDUSTRY_NOT_FOUND)도 섹션을 그리지 않는다", async () => {
-  vi.spyOn(api, "fetchVerdict").mockRejectedValue(new ApiError("INDUSTRY_NOT_FOUND", "판정 대상 업종이 아닙니다"));
+  const spy = vi.spyOn(api, "fetchVerdict").mockRejectedValue(new ApiError("INDUSTRY_NOT_FOUND", "판정 대상 업종이 아닙니다"));
   const { container } = renderSection();
-  await new Promise((r) => setTimeout(r, 0));
-  expect(container.querySelector("section")).toBeNull();
+  await waitFor(() => expect(spy).toHaveBeenCalled());
+  await waitFor(() => expect(container.firstChild).toBeNull());
+  expect(screen.queryByRole("alert")).toBeNull();
 });
 
 it("그 외 오류는 한 줄 안내를 보여준다", async () => {
