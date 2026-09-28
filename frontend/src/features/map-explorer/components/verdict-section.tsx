@@ -22,6 +22,12 @@ const LEVEL_LABEL: Record<VerdictSignal["level"], string> = {
   unavailable: "미판정",
 };
 
+const SOURCE_LABEL: Record<VerdictSignal["source"], string> = {
+  store: "인허가",
+  metric: "지표",
+  neighborhood: "상권분석",
+};
+
 /** 켜진 신호만, strong 먼저. 백엔드 순서(SIGNAL_KEYS)는 같은 레벨 안에서 유지된다(안정 정렬). */
 function firedSignals(signals: VerdictSignal[]): VerdictSignal[] {
   const rank: Record<VerdictSignal["level"], number> = { strong: 0, on: 1, off: 2, unavailable: 3 };
@@ -80,6 +86,9 @@ export function VerdictSection({ regionCode, industry }: VerdictSectionProps) {
               <span className="ml-1 text-[11px]" style={{ color: s.level === "strong" ? "var(--danger)" : "var(--warn)" }}>
                 {LEVEL_LABEL[s.level]}
               </span>
+              <span className="ml-1 rounded border border-[var(--border)] px-1 text-[10px] text-[var(--text-secondary)]">
+                {SOURCE_LABEL[s.source]}
+              </span>
               <p className="text-[var(--text-secondary)]">{s.evidence}</p>
             </li>
           ))}
@@ -109,6 +118,9 @@ export function VerdictSection({ regionCode, industry }: VerdictSectionProps) {
                 <span className="ml-1 text-[var(--text-secondary)]">
                   · {LEVEL_LABEL[s.level]}
                   {s.percentile !== null && <span className="tabular-nums"> · 서울 상위 {Math.max(1, Math.round(100 - s.percentile))}%</span>}
+                </span>
+                <span className="ml-1 rounded border border-[var(--border)] px-1 text-[10px] text-[var(--text-secondary)]">
+                  {SOURCE_LABEL[s.source]}
                 </span>
               </span>
               <span className="text-[var(--text-secondary)]">{s.evidence}</span>

@@ -28,7 +28,7 @@ const FIVE = [
 ];
 
 function renderSection() {
-  const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+  const client = new QueryClient({ defaultOptions: { queries: { retry: false, retryDelay: 0 } } });
   return render(
     <QueryClientProvider client={client}>
       <VerdictSection regionCode="1168064000" industry="korean_food" />
@@ -47,6 +47,7 @@ it("판정 배지와 켜진 신호를 강함 먼저 보여주고, 근거 보기�
   expect(fired[1]).toContain("상권 축소");
   expect(fired[2]).toContain("순유출");
   expect(fired).toHaveLength(3);
+  expect(fired[0]).toContain("인허가");
   expect(screen.queryByText("표본 부족 — 상주인구 900명")).toBeNull();
   fireEvent.click(screen.getByRole("button", { name: /근거 보기/ }));
   expect(screen.getByText("표본 부족 — 상주인구 900명")).toBeInTheDocument();
@@ -58,7 +59,7 @@ it("경고 없음·보류 판정은 켜진 신호 목록 대신 한 줄 설명�
   renderSection();
   expect(await screen.findByRole("status", { name: /판정 보류/ })).toBeInTheDocument();
   expect(screen.queryAllByTestId("fired-signal")).toHaveLength(0);
-  expect(screen.getByText(/표본 부족/)).toBeInTheDocument();
+  expect(screen.getByText(/판정을 보류했습니다/)).toBeInTheDocument();
 });
 
 it("판정 제외 업종(편의점)은 요청 없이 섹션을 그리지 않는다", () => {
@@ -75,6 +76,13 @@ it("판정 제외 업종(편의점)은 요청 없이 섹션을 그리지 않는�
 
 it("판정이 없는 조합(404)은 섹션을 그리지 않는다", async () => {
   vi.spyOn(api, "fetchVerdict").mockRejectedValue(new ApiError("VERDICT_NOT_FOUND", "판정이 없습니다"));
+  const { container } = renderSection();
+  await new Promise((r) => setTimeout(r, 0));
+  expect(container.querySelector("section")).toBeNull();
+});
+
+it("판정 대상 업종이 아닌 404(INDUSTRY_NOT_FOUND)도 섹션을 그리지 않는다", async () => {
+  vi.spyOn(api, "fetchVerdict").mockRejectedValue(new ApiError("INDUSTRY_NOT_FOUND", "판정 대상 업종이 아닙니다"));
   const { container } = renderSection();
   await new Promise((r) => setTimeout(r, 0));
   expect(container.querySelector("section")).toBeNull();
