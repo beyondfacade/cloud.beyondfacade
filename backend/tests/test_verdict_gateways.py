@@ -71,9 +71,9 @@ def test_동_맥락은_전_행정동을_한_행씩_준다():
     assert all(c.store_count >= 0 for c in counts)
 
 
-def test_판정_대상_업종은_제외_4종을_뺀_14종():
+def test_판정_대상_업종은_제외_5종을_뺀_13종():
     judged = IndustryCatalogGateway().judged_industries()
     ids = {i.industry_id for i in judged}
-    assert len(ids) == 14
+    assert len(ids) == 13
     assert ids.isdisjoint(EXCLUDED_INDUSTRIES)
     assert next(i.name for i in judged if i.industry_id == "korean_food") == "한식"

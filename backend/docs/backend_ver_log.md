@@ -8,14 +8,17 @@
   신호 = Specification 클래스(`domain/services/signals.py`), 판정 = Chain of Responsibility(`rules.py`), 임계값은 `thresholds.py` 한 곳.
 - 테이블 `region_industry_verdict`(마이그레이션 `c9d0e1f2a3b4`), 배치 `build_verdicts`(크론 `store-collector.sh` 마지막),
   API `GET /verdicts/myself`·`GET /verdicts?industry=`(범주 계약)·`GET /verdicts/{region_code}?industry=`.
-- 판정 대상 14업종 = 마스터 18 − 학원·어린이집·기타·치킨(`EXCLUDED_INDUSTRIES`).
+- 판정 대상 13업종 = 마스터 18 − 학원·어린이집·기타·치킨·편의점(`EXCLUDED_INDUSTRIES`). 편의점은 스냅샷 전용 원천이라
+  store 인허가 행이 없어 신호 3개가 영구 불가 — 표본 부족이 아니라 원천 결측이므로 판정 대상에서 뺀다(4단계 담배권
+  특화 신호 때 재포함, HANDOFF §0-9).
 
 ### Validation
 - 신규 테스트 32 (임계값 6·신호 9·규칙 5·배치 4·리포지토리 1·게이트웨이 3·라우터 4), 전체 574 passed.
-- 실DB 배치 1회: 5,978행, 소요 약 2.3초. 업종별 red/orange/clear/insufficient 분포는 설계서 §11.
-- insufficient 비율이 여러 업종에서 30%를 넘어(최대 billiard 80.1%, convenience_store는 store 원천 자체가 0행이라 100%)
-  설계서 §9대로 `min_sample` 10→5 완화를 시도했으나, 기존 회귀 테스트 4건(`test_verdict_thresholds.py::test_기본_임계값_상수`,
-  `test_verdict_signals.py`의 경계값 3건)이 10을 고정 검증하고 있어 충돌 — 10을 유지하고 결과만 설계서 §11에 기록.
+- 실DB 배치 1회: 5,551행(13 × 427), 소요 약 2.2초. 업종별 red/orange/clear/insufficient 분포는 설계서 §11.
+- insufficient 비율 요약(min_sample 10 유지, Ruling): ≤3% — cafe·hair_salon·korean_food·real_estate /
+  22~26% — pub·snack / 47~49% — western_food·japanese_food·karaoke / 64% — pc_bang·chinese_food·gym / 80% — billiard.
+  저밀도 업종의 높은 보류 비율은 §3-3이 약속한 정직한 보류로 남긴다 — min_sample을 5로 낮추면 여전히 30~45%가
+  보류이고 5건 표본의 백분위는 노이즈라 판단, 임계값·Task 3 테스트는 그대로 둔다(Ruling B, 설계서 §11).
 
 ## [v0.39.0] - 2026-09-28
 

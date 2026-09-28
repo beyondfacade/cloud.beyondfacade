@@ -47,4 +47,6 @@ def test_기본_임계값_상수():
 
 def test_신호_키_순서와_제외_업종():
     assert SIGNAL_KEYS == ("net_outflow", "survival_cliff", "early_closure", "saturation", "shrinking")
-    assert EXCLUDED_INDUSTRIES == frozenset({"academy", "childcare", "restaurant_other", "chicken"})
+    assert EXCLUDED_INDUSTRIES == frozenset(
+        {"academy", "childcare", "restaurant_other", "chicken", "convenience_store"}
+    )

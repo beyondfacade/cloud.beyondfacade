@@ -16,9 +16,12 @@ VERDICT_ORANGE = "orange"
 VERDICT_CLEAR = "clear"
 VERDICT_INSUFFICIENT = "insufficient"
 
-# 판정 대상에서 빼는 업종 — 학원·어린이집(HANDOFF §0-11 보조축), 기타(비노출), 치킨(2017-09 이후 신규 인허가 없음).
+# 판정 대상에서 빼는 업종 — 학원·어린이집(HANDOFF §0-11 보조축), 기타(비노출), 치킨(2017-09 이후 신규 인허가 없음),
+# 편의점(스냅샷 전용 원천 — store 인허가 행이 없어 신호 3개가 영구 불가; 4단계 담배권 특화 신호 때 재포함).
 # 프론트 `shared/industries.ts`의 INDUSTRIES 14종과 같은 집합이어야 한다.
-EXCLUDED_INDUSTRIES: frozenset[str] = frozenset({"academy", "childcare", "restaurant_other", "chicken"})
+EXCLUDED_INDUSTRIES: frozenset[str] = frozenset(
+    {"academy", "childcare", "restaurant_other", "chicken", "convenience_store"}
+)
 
 
 @dataclass(frozen=True)

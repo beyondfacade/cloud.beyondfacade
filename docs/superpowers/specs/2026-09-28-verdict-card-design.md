@@ -22,7 +22,7 @@
 
 ## 3. 신호 정의
 
-전부 동×업종 단위, **판정 대상 14업종** = 마스터 18업종 − 학원·어린이집(§0-11 보조축) − `restaurant_other`(비노출) − `chicken`(인허가 '통닭' 업태가 2017-09 이후 신규 발급 없음, 업종 확장 설계서 §3-3). 제외 목록은 `IndustryCatalogPort`가 아니라 도메인 상수 `EXCLUDED_INDUSTRIES`로 두어 프론트 `INDUSTRIES` 14종과 같은 집합이 되게 한다. 배치 실행일 `today` 기준.
+전부 동×업종 단위, **판정 대상 13업종** = 마스터 18업종 − 학원·어린이집(§0-11 보조축) − `restaurant_other`(비노출) − `chicken`(인허가 '통닭' 업태가 2017-09 이후 신규 발급 없음, 업종 확장 설계서 §3-3) − `convenience_store`(스냅샷 전용 원천이라 store 인허가 행이 없어 신호 3개가 영구 불가 — 표본 부족이 아니라 원천 결측이므로 제외, 4단계 담배권 특화 신호 때 재포함, 9/29 Ruling A). 제외 목록은 `IndustryCatalogPort`가 아니라 도메인 상수 `EXCLUDED_INDUSTRIES`로 둔다. 프론트 `INDUSTRIES`는 아직 편의점 포함 14종 — 판정 카드·지도의 제외 반영은 2단계(FE)에서. 배치 실행일 `today` 기준.
 
 ### 3-1. 신호 5개
 
@@ -34,7 +34,7 @@
 | `saturation` | 포화 | 최신 연말 `store_count`(region_industry_metric, 최신 연도) ÷ (최신 분기 `resident_total` ÷ 1,000) | metric + region_profile | 높을수록 | resident_total < 1,000 또는 결측 |
 | `shrinking` | 상권 축소 | 최신 분기 `region_commerce_change.change_code == 'HL'`(상권축소) | neighborhood | 이진 | 해당 동·분기 행 없음 |
 
-`shrinking`은 동 단위라 같은 동의 14업종에 동일하게 켜진다. 업종 무관 신호라는 점을 근거 문장에 밝힌다("동 전체 상권변화지표").
+`shrinking`은 동 단위라 같은 동의 13업종에 동일하게 켜진다. 업종 무관 신호라는 점을 근거 문장에 밝힌다("동 전체 상권변화지표").
 
 ### 3-2. 상대평가 — 레벨 산출
 
@@ -136,10 +136,10 @@ ERD 연결: region·industry에 FK. 1테이블 = 1프랙탈(§12). 역정규화 
 
 ### 4-4. 배치 `build_verdicts`
 
-1. 판정 대상 14업종 조회(IndustryCatalogPort).
+1. 판정 대상 13업종 조회(IndustryCatalogPort).
 2. StoreSignalStatsPort가 store 전량을 **한 번의 group_by(region_code, industry_id)** 로 세 집계를 반환: 12개월 개폐업·시작 점포수, 코호트 크기·생존 수, 최근 3년 폐업 영업개월 목록(중위값은 SQL `percentile_cont(0.5)`).
 3. RegionContextPort가 동별 최신 연도 store_count(업종별)·최신 분기 resident_total·최신 분기 commerce_change(+서울 베이스라인)를 반환.
-4. 업종별로 `derive_levels()`가 가드 통과 동의 분포에서 백분위·레벨을 매기고, `judge()`가 판정. 5,978행(14×427) 업서트, `computed_at = now`.
+4. 업종별로 `derive_levels()`가 가드 통과 동의 분포에서 백분위·레벨을 매기고, `judge()`가 판정. 5,551행(13×427) 업서트, `computed_at = now`.
 5. 실행 위치: `scripts/store-collector.sh`에서 `build_metrics` **바로 다음 줄**. 도커 8200 이미지는 결과 테이블만 읽는다(fp16 색인·지표와 같은 패턴).
 6. 예상 시간: store 88만 행 group_by 3종 — 지표 집계(12초)와 같은 자릿수.
 
@@ -191,7 +191,7 @@ ERD 연결: region·industry에 FK. 1테이블 = 1프랙탈(§12). 역정규화 
 
 | 단계 | 내용 | 버전 | 완료 기준 |
 |---|---|---|---|
-| 1 | verdict BC: 도메인(신호·임계값·규칙) TDD → 게이트웨이 → 배치 → 마이그레이션 → 라우터(`/myself` 먼저) → `store-collector.sh` 한 줄 | BE v0.40.0 | 실DB 배치 1회, 14업종 판정 분포(red/orange/clear/insufficient 비율) 기록, `GET /verdicts?industry=korean_food` 427동 |
+| 1 | verdict BC: 도메인(신호·임계값·규칙) TDD → 게이트웨이 → 배치 → 마이그레이션 → 라우터(`/myself` 먼저) → `store-collector.sh` 한 줄 | BE v0.40.0 | 실DB 배치 1회, 13업종 판정 분포(red/orange/clear/insufficient 비율) 기록, `GET /verdicts?industry=korean_food` 427동 |
 | 2 | 프론트 카드 + 지도: types → mock 라우트·픽스처·계약 테스트 → `metric-sources`·`map-state` 축 → `VerdictSection` → 범례 | FE v0.29.0 | Vitest 전부, 3200 실 API로 역삼1동 한식 카드 확인 |
 | 3 | 폐업 마커: 백엔드 `status` + `close_date` → mock → `CLOSED_STORE_STRATEGY` + 토글 | BE v0.40.1 · FE v0.29.1 | 강남 한식 2년 폐업 마커 실표시, 건수 문구 |
 
@@ -218,7 +218,7 @@ ERD 연결: region·industry에 FK. 1테이블 = 1프랙탈(§12). 역정규화 
 | 리스크 | 대응 |
 |---|---|
 | 양도·양수가 폐업+개업으로 잡혀 순유출·조기폐업이 부풀림(§0-10 라벨 오염) | 1단계 실DB 분포 기록 때 `early_closure` 중위값이 비정상(3개월 미만) 동을 표본 확인. 교차검증은 백테스트 단계 |
-| 상권축소가 동 단위라 14업종에 동일하게 켜져 판정이 동 전체로 쏠림 | 신호 1개일 뿐이라 단독으로는 🟠까지. 근거 문장에 "동 전체 기준" 명시 |
+| 상권축소가 동 단위라 13업종에 동일하게 켜져 판정이 동 전체로 쏠림 | 신호 1개일 뿐이라 단독으로는 🟠까지. 근거 문장에 "동 전체 기준" 명시 |
 | 백분위 상대평가는 항상 상위 25%를 켬 — 업종 전체가 좋아도 누군가는 🟠 | §0-8 결정 사항. 카드 문구를 "서울 같은 업종 중 상위 N%"로 써서 상대 기준임을 드러냄 |
 | 표본 부족 동이 많으면 지도가 보류 색으로 덮임 | 1단계 분포 기록에서 insufficient 비율 확인, 30% 넘으면 가드 10 → 5 재검토(상수 한 곳) |
 | 폐업 마커 수백 개 렌더 | 동 선택 시에만, 토글 기본 꺼짐. 1,000 초과 실측 시 상한 도입 |
@@ -230,9 +230,11 @@ ERD 연결: region·industry에 FK. 1테이블 = 1프랙탈(§12). 역정규화 
 - 업종 특화 신호(담배권 원 등) — §0-7 4번
 - 에이전트 리포트 verdict 섹션이 이 판정을 도구로 읽게 하는 것 — 후속(현재는 LLM 자유 서술)
 - 서비스 이름·톤 — §0-8 팀 결정
+- 저밀도 업종(당구장·PC방·중식·헬스장)의 높은 보류 비율 — 구(district) 단위 보완 집계는 후속
 
 ## 11. 진행 기록
 
 | 일시 | 단계 | 결과 |
 |---|---|---|
 | 2026-09-29 | 1단계 완료 (BE v0.40.0) | 실DB 배치 1회 5,978행(14업종 × 427동), 소요 약 2.3초. 업종별 red/orange/clear/insufficient: cafe 35/255/130/7, hair_salon 26/237/152/12, korean_food 25/248/141/13, pub 22/182/130/93, pc_bang 14/104/34/275, western_food 11/150/59/207, chinese_food 10/110/32/275, karaoke 10/142/64/211, snack 9/202/104/112, billiard 7/66/12/342, japanese_food 4/148/74/201, gym 2/108/45/272, convenience_store 0/0/0/427, real_estate 0/234/183/10. insufficient 최대 비율은 convenience_store 100%(store 원천에 해당 업종 행이 아예 없음 — 표본 가드가 아니라 구조적 결측, §9 리스크 대응 대상 아님) 다음으로 billiard 80.1%. §9대로 `min_sample` 10→5 완화를 시도해 재실행했더니(billiard 45.4%·pc_bang 43.3%·gym 32.3%·karaoke 30.9%·chinese_food 30.9%로 개선) 기존 회귀 테스트 4건(`test_verdict_thresholds.py::test_기본_임계값_상수`, `test_verdict_signals.py`의 경계값 3건)이 상수 10을 고정 검증하고 있어 깨짐 — Task 7 범위 밖(다른 태스크의 테스트 파일)이라 되돌려 `min_sample=10`을 유지했다. 최종 커밋된 실DB 상태는 10 기준 분포. 표본 부족 완화는 후속 태스크에서 테스트까지 함께 다루는 것을 권장. |
+| 2026-09-29 | Fix round 1 — 컨트롤러 Ruling A/B 반영 | **Ruling A(편의점 제외)**: `convenience_store`는 스냅샷 전용 원천이라 store 인허가 행이 없어 신호 3개가 영구 불가 — "표본 부족"이라 표시하면 근거가 틀린 문장이 되므로 `EXCLUDED_INDUSTRIES`에 추가해 판정 대상을 13업종으로 좁혔다(4단계 담배권 특화 신호 때 재포함). `test_verdict_thresholds.py::test_신호_키_순서와_제외_업종`(집합 5종)·`test_verdict_gateways.py::test_판정_대상_업종은_제외_5종을_뺀_13종`(len 13) 갱신, CLI·크론 문구의 "14업종"도 "13업종"으로 정정. 배치가 upsert-only라 기존 `convenience_store` 427행이 남아있어 `delete from region_industry_verdict where industry_id = 'convenience_store'`로 1회 정리(427행 삭제) 후 재실행 — 5,551행(13×427), 소요 약 2.2초. 나머지 13업종 분포는 사실상 동일(±1 수준의 미세한 차이는 `date.today()` 창이 9/28→9/29로 하루 밀린 데서 온 것으로, 코드 변경과 무관): cafe 36/252/132/7, hair_salon 26/236/153/12, korean_food 25/249/140/13, pub 22/182/130/93, pc_bang 14/104/34/275, western_food 11/151/58/207, chinese_food 10/110/32/275, karaoke 10/142/64/211, snack 9/200/106/112, billiard 7/66/12/342, japanese_food 3/153/70/201, gym 2/108/45/272, real_estate 0/234/183/10. **Ruling B(min_sample 10 유지)**: 5로 낮춰도 저밀도 업종은 여전히 30~45%가 보류이고 5건 표본의 백분위는 노이즈이므로, §3-3이 약속한 "정직한 보류"를 지키기 위해 임계값과 Task 3 회귀 테스트를 그대로 둔다. 전체 스위트 574 passed(변경된 테스트 포함) 재확인. |
