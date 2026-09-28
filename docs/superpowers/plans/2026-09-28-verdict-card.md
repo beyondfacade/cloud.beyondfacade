@@ -2385,8 +2385,8 @@ it("판정 대상 업종은 200과 region_code·value(판정 코드) 쌍 목록�
   const rows = await res.json();
   expect(rows.length).toBeGreaterThan(400);
   expect(Object.keys(rows[0]).sort()).toEqual(["region_code", "value"]);
-  expect(new Set(rows.map((r: { value: string }) => r.value)).size).toBeGreaterThan(1);
-  for (const r of rows) expect(["red", "orange", "clear", "insufficient"]).toContain(r.value);
+  const codes = new Set(rows.map((r: { value: string }) => r.value));
+  expect([...codes].sort()).toEqual(["clear", "insufficient", "orange", "red"]); // 네 판정이 전부 나와야 지도 범례·QA가 가능하다
 });
 
 it("학원·어린이집·치킨·편의점·미등록 업종은 404 INDUSTRY_NOT_FOUND (실 API 미러)", async () => {
@@ -2479,10 +2479,11 @@ function signalOf(key: VerdictSignalKey, regionCode: string, industryId: string)
   const u = unitFrom(hashSeed("verdict", key, regionCode, industryId));
   const name = INDUSTRY_LABELS[industryId as IndustryId] ?? industryId;
   const source = SIGNAL_SOURCE[key];
-  if (u >= 0.9) {
-    return { key, level: "unavailable", value: null, percentile: null, evidence: `표본 부족 — 3년 전 개업 코호트 ${Math.floor(u * 10)}곳 (10곳 미만)`, source };
+  // 하위 8%는 미판정(표본 부족), 나머지 92%를 0~100 백분위로 펼친다 — strong(≥90)·red가 실제로 나온다 (Task 9 리뷰에서 잡은 플랜 결함 수정)
+  if (u < 0.08) {
+    return { key, level: "unavailable", value: null, percentile: null, evidence: `표본 부족 — 3년 전 개업 코호트 ${Math.floor(u * 100)}곳 (10곳 미만)`, source };
   }
-  const percentile = Math.round(u * 1000) / 10; // 0.0 ~ 89.9
+  const percentile = Math.round(((u - 0.08) / 0.92) * 1000) / 10; // 0.0 ~ 100.0
   const level = percentile >= 90 ? "strong" : percentile >= 75 ? "on" : "off";
   const top = Math.max(1, Math.round(100 - percentile));
   const EVIDENCE: Record<VerdictSignalKey, string> = {
