@@ -21,14 +21,15 @@ export type RegionMetricKey = CommerceChangeMetricKey | ProfileMetricKey | "neig
 /** 숫자 계약({region_code, value})으로 오는 지표. 범례 값 표기·분위수 스케일의 대상. */
 export type NumericMetricKey = MetricKey | CommerceChangeMetricKey | ProfileMetricKey;
 
-/** 범주 계약({region_code, type_code})으로 오는 지표. 숫자 계약과 경로가 다르다 (map-metric-contract §5). */
-export type CategoricalMetricKey = "neighborhood_type";
+/** 범주 계약({region_code, type_code})으로 오는 지표. 숫자 계약과 경로가 다르다 (map-metric-contract §5).
+ *  verdict는 API가 {region_code, value}로 주지만 api.ts가 type_code로 옮겨 같은 범주 파이프라인을 탄다. */
+export type CategoricalMetricKey = "neighborhood_type" | "verdict";
 
 /** 지도 단계구분도가 그릴 수 있는 전체 지표. 원천은 넷으로 갈리지만 호출하는 쪽은 METRIC_SOURCES 한 곳만 안다. */
-export type MapMetricKey = MetricKey | RegionMetricKey;
+export type MapMetricKey = MetricKey | RegionMetricKey | "verdict";
 
-/** 지표의 축 — 셀렉터가 이 값을 정직하게 따라간다. 업종×연도 지표에 분기를, 동×분기 지표에 업종을 묻지 않는다. */
-export type MetricAxis = "industry_year" | "region_quarter";
+/** 지표의 축 — 셀렉터가 이 값을 정직하게 따라간다. industry_latest는 업종만 묻고 시점은 "배치 최신"이라 연도·분기 select를 숨긴다. */
+export type MetricAxis = "industry_year" | "region_quarter" | "industry_latest";
 
 export interface MetricRow {
   region_code: string;
@@ -333,4 +334,37 @@ export interface PlanQuestionsRequest {
     policy_confirmation_status: PreparationStatus;
   };
   change_reason: string;
+}
+
+// ---------------------------------------------------------------------------
+// 판정 카드 (GET /verdicts, GET /verdicts/{region_code}) — 설계서 2026-09-28-verdict-card-design §4-5
+// ---------------------------------------------------------------------------
+
+export type VerdictCode = "red" | "orange" | "clear" | "insufficient";
+export type VerdictSignalLevel = "off" | "on" | "strong" | "unavailable";
+export type VerdictSignalKey = "net_outflow" | "survival_cliff" | "early_closure" | "saturation" | "shrinking";
+
+export interface VerdictSignal {
+  key: VerdictSignalKey;
+  level: VerdictSignalLevel;
+  value: number | null;
+  percentile: number | null; // 나쁜 방향 백분위 0~100. 이진 신호·미판정은 null
+  evidence: string; // 백엔드가 만든 근거 한 문장 — 화면은 그대로 띄운다
+  source: "store" | "metric" | "neighborhood";
+}
+
+export interface RegionIndustryVerdict {
+  region_code: string;
+  industry_id: string;
+  verdict_code: VerdictCode;
+  strong_count: number;
+  on_count: number;
+  signals: VerdictSignal[]; // 항상 5개, 고정 순서
+  computed_at: string;
+}
+
+/** 위험도 단계구분도 행 (GET /verdicts?industry=). 범주 계약이지만 필드명은 value다. */
+export interface VerdictRow {
+  region_code: string;
+  value: VerdictCode;
 }
