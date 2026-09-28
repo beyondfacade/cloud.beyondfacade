@@ -107,6 +107,26 @@ class SqlAlchemyStoreRepository(
             )
             return [to_entity(row) for row in rows]
 
+    def list_closed_since(self, region_code: str, industry_id: str, since: date) -> list[Store]:
+        with session_scope() as session:
+            rows = (
+                session.execute(
+                    select(StoreOrm)
+                    .where(
+                        StoreOrm.region_code == region_code,
+                        StoreOrm.industry_id == industry_id,
+                        StoreOrm.close_date.is_not(None),
+                        StoreOrm.close_date >= since,
+                        StoreOrm.lat.is_not(None),
+                        StoreOrm.lng.is_not(None),
+                    )
+                    .order_by(StoreOrm.close_date.desc(), StoreOrm.store_id)
+                )
+                .scalars()
+                .all()
+            )
+            return [to_entity(row) for row in rows]
+
     def list_pending(
         self, industry_ids: list[str], limit: int | None = None
     ) -> list[Store]:

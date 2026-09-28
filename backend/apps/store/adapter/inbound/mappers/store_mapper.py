@@ -21,4 +21,5 @@ def to_marker_response(dto: StoreDto) -> StoreMarkerResponse:
         lng=dto.lng,
         status_name=dto.status_name,
         open_date=dto.open_date,
+        close_date=dto.close_date,
     )

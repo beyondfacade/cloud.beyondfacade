@@ -23,3 +23,10 @@ class StoreUseCase(ABC):
 
         미등록 업종은 IndustryNotFoundError.
         """
+
+    @abstractmethod
+    def list_stores(self, region_code: str, industry_id: str, status: str) -> list[StoreDto]:
+        """지도 마커용 — status=open은 list_open_stores와 같고, closed는 최근 2년 폐업 점포.
+
+        미등록 업종은 IndustryNotFoundError, 미지원 status는 StoreStatusNotFoundError.
+        """

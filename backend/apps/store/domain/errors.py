@@ -3,3 +3,7 @@
 
 class IndustryNotFoundError(Exception):
     """industry 마스터에 등록되지 않은 업종."""
+
+
+class StoreStatusNotFoundError(Exception):
+    """지원하지 않는 status 값 (open | closed)."""

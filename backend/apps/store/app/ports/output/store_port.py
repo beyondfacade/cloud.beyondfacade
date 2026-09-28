@@ -2,7 +2,7 @@
 
 from abc import ABC, abstractmethod
 from collections.abc import Iterator, Sequence
-from datetime import datetime
+from datetime import date, datetime
 
 from apps.store.app.dtos.store_dto import IngestTarget
 from apps.store.domain.entities.store_entity import Store
@@ -25,6 +25,10 @@ class StoreRepositoryPort(ABC):
     @abstractmethod
     def list_open(self, region_code: str, industry_id: str) -> list[Store]:
         """해당 행정동×업종의 영업 중(close_date 없음)·좌표 보유 점포 목록."""
+
+    @abstractmethod
+    def list_closed_since(self, region_code: str, industry_id: str, since: date) -> list[Store]:
+        """해당 행정동×업종의 폐업 점포(close_date ≥ since)·좌표 보유 목록 — 폐업 마커용."""
 
 
 class IndustryCatalogPort(ABC):

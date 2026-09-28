@@ -1,7 +1,8 @@
 """store 목록 검증 — GET /stores?region=&industry= 마커 계약·404 에러 바디 (Fake 포트)."""
 
 from collections.abc import Iterator
-from datetime import date, datetime
+from dataclasses import replace
+from datetime import date, datetime, timedelta
 
 import pytest
 from fastapi.testclient import TestClient
@@ -39,6 +40,18 @@ class FakeRepository(StoreRepositoryPort):
             if s.region_code == region_code
             and s.industry_id == industry_id
             and s.close_date is None
+            and s.lat is not None
+            and s.lng is not None
+        ]
+
+    def list_closed_since(self, region_code: str, industry_id: str, since):
+        return [
+            s
+            for s in self._stores
+            if s.region_code == region_code
+            and s.industry_id == industry_id
+            and s.close_date is not None
+            and s.close_date >= since
             and s.lat is not None
             and s.lng is not None
         ]
@@ -116,6 +129,7 @@ def test_stores_endpoint_returns_marker_contract():
             "lng": 127.03,
             "status_name": "영업",
             "open_date": "2020-01-02",
+            "close_date": None,
         }
     ]
 
@@ -127,3 +141,24 @@ def test_stores_endpoint_404_on_unknown_industry():
     body = response.json()
     assert body["error"]["code"] == "INDUSTRY_NOT_FOUND"
     assert body["error"]["message"]
+
+
+def test_status_closed는_최근_폐업_점포를_close_date와_함께_준다():
+    closed = replace(_store("c1"), close_date=date.today() - timedelta(days=30), status_name="폐업")
+    client = _client([_store("s1"), closed])
+    res = client.get("/stores?region=1168064000&industry=cafe&status=closed")
+    assert res.status_code == 200
+    body = res.json()
+    assert [s["store_id"] for s in body] == ["c1"]
+    assert body[0]["close_date"] == closed.close_date.isoformat()
+    assert body[0]["status_name"] == "폐업"
+    # 기본값(open)에는 폐업 점포가 없고 close_date는 null
+    default = client.get("/stores?region=1168064000&industry=cafe").json()
+    assert [s["store_id"] for s in default] == ["s1"]
+    assert default[0]["close_date"] is None
+
+
+def test_미지원_status는_404_STORE_STATUS_NOT_FOUND():
+    res = _client([_store("s1")]).get("/stores?region=1168064000&industry=cafe&status=bogus")
+    assert res.status_code == 404
+    assert res.json()["error"]["code"] == "STORE_STATUS_NOT_FOUND"

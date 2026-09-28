@@ -1,5 +1,6 @@
+from collections.abc import Callable
 from dataclasses import asdict
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 from itertools import batched
 
 from apps.store.app.dtos.store_dto import IngestTarget, StoreDto
@@ -9,9 +10,19 @@ from apps.store.app.ports.output.store_port import (
     StorePermitGatewayPort,
     StoreRepositoryPort,
 )
-from apps.store.domain.errors import IndustryNotFoundError
+from apps.store.domain.entities.store_entity import Store
+from apps.store.domain.errors import IndustryNotFoundError, StoreStatusNotFoundError
 
 _CHUNK_SIZE = 500
+_CLOSED_WINDOW_DAYS = 730  # 최근 2년 (설계서 §6-1)
+
+# status → 조회 전략. 새 상태는 항목 추가로 끝난다.
+_LISTERS: dict[str, Callable[[StoreRepositoryPort, str, str], list[Store]]] = {
+    "open": lambda repo, region, industry: repo.list_open(region, industry),
+    "closed": lambda repo, region, industry: repo.list_closed_since(
+        region, industry, date.today() - timedelta(days=_CLOSED_WINDOW_DAYS)
+    ),
+}
 
 
 class StoreInteractor(StoreUseCase):
@@ -63,3 +74,11 @@ class StoreInteractor(StoreUseCase):
             StoreDto(**asdict(store))
             for store in self._repository.list_open(region_code, industry_id)
         ]
+
+    def list_stores(self, region_code: str, industry_id: str, status: str) -> list[StoreDto]:
+        lister = _LISTERS.get(status)
+        if lister is None:
+            raise StoreStatusNotFoundError(status)
+        if not self._industry_catalog.exists(industry_id):
+            raise IndustryNotFoundError(industry_id)
+        return [StoreDto(**asdict(store)) for store in lister(self._repository, region_code, industry_id)]

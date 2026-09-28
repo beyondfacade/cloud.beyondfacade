@@ -22,7 +22,7 @@ class StoreResponse(BaseModel):
 
 
 class StoreMarkerResponse(BaseModel):
-    """지도 마커 응답 단위 (프론트엔드 계약) — 좌표 보유 영업 점포만."""
+    """좌표 보유 점포. status=open은 영업 중(close_date null), closed는 최근 2년 폐업."""
 
     store_id: str
     name: str
@@ -30,3 +30,4 @@ class StoreMarkerResponse(BaseModel):
     lng: float
     status_name: str
     open_date: date | None
+    close_date: date | None = None
