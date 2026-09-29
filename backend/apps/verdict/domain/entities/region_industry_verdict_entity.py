@@ -32,9 +32,11 @@ BASIS_PROXY = "proxy"  # 대리 원천의 개별 이력 (편의점 = 담배소�
 BASIS_AGGREGATE = "aggregate"  # 동×분기 집계 (부동산 = 서울시 상권분석)
 
 # 판정 대상에서 빼는 업종 — 학원·어린이집(HANDOFF §0-11 보조축), 기타(비노출), 치킨(2017-09 이후 신규 인허가 없음),
-# 편의점(스냅샷 전용 원천 — store 인허가 행이 없어 신호 3개가 영구 불가; 4단계 담배권 특화 신호 때 재포함),
-# 부동산(원천에 폐업 이력 없음 — 브이월드 API·공공데이터 파일·서울 열린데이터 모두 현재 사무소만, 설계서 §7).
-# 판정 대상 = 프론트 `INDUSTRIES`(14) − 편의점 − 부동산. 프론트는 `shared/verdict.ts`의 `VERDICT_EXCLUDED_INDUSTRIES`로
+# 편의점(스냅샷 전용 원천 — store 인허가 행이 없어 신호 3개가 영구 불가; 4단계 담배권 특화 신호로 재포함 심사)
+#   (9/29 재포함 게이트 미달 — 경고 lift 1.00×, docs/verdict-backtest.md 재포함 심사 절),
+# 부동산(원천에 폐업 이력 없음 — 브이월드 API·공공데이터 파일·서울 열린데이터 모두 현재 사무소만, 설계서 §7)
+#   (9/29 재포함 게이트 미달 — 경고 lift 1.04×, docs/verdict-backtest.md 재포함 심사 절).
+# 판정 대상 = 프론트 `INDUSTRIES`(14) − 편의점 − 부동산 = 12업종. 프론트는 `shared/verdict.ts`의 `VERDICT_EXCLUDED_INDUSTRIES`로
 # 같은 차집합을 만든다 — `INDUSTRIES` 14종과 그대로 같은 집합이 아니다.
 EXCLUDED_INDUSTRIES: frozenset[str] = frozenset(
     {"academy", "childcare", "restaurant_other", "chicken", "convenience_store", "real_estate"}

@@ -16,6 +16,7 @@
 ### Changed
 - `ADVISORY_SIGNAL_KEYS`에 `tobacco_gap` 추가(진입 가능성 신호 — 등급 계산 제외).
 - 인터랙터 `compute(..., industries=)`·`backtest(..., industry_ids=)` — 원천마다 1회 로드, 판정 행에 프로필 `basis`, 백테스트 결과는 원천별로 읽어 그 원천 업종만 남긴다. 집계 기반 업종은 백테스트 "전체" 합산에서 뺀다(`_SCOPES_OF_BASIS`). `BacktestReportDto.industry_basis`.
+- **판정 대상 재포함 (9/29 게이트)** — 편의점(담배소매인 이력, 경고 lift 1.00×)·부동산(상권분석 집계, 1.04×) 둘 다 게이트(≥ 1.10×) 미달이라 `EXCLUDED_INDUSTRIES`는 그대로 두고 상수 주석에 결과만 적었다 → 판정 대상 12업종 유지. `docs/verdict-backtest.md` 재생성(재포함 심사 절). "읽는 법"을 실제 결과(둘 다 미달)로 바꾸고, 편의점 승계 접기가 T 이후 최대 90일을 내다보는 작은 미래 참조 편향을 적었다.
 
 ### Fixed
 - `seed_master.py`의 `_SOURCE_CODES`에 `real_estate ↔ seoul_commercial CS200033` 백필 — 마이그레이션 `c7a4f2e19b35`는 industry 테이블이 비어 있으면(빈 테스트 DB) 이 매핑을 건너뛰고 다시 채우지 않는다. `seed_master`는 매 실행 시 industry를 먼저 merge하므로 여기서 멱등하게 백필한다.
