@@ -530,6 +530,17 @@ def test_시스템_프롬프트가_도구를_facts에_없는_것에만_쓰게_�
     assert "지어내지 않는다" in rule
 
 
+def test_시스템_프롬프트가_공통_충격을_업종_악재로_쓰지_못하게_한다():
+    """업종 충격이 없으면 전 업종 공통 충격이 대신 실린다 — 그걸 한식 악재로 읽으면 안 된다."""
+    from apps.agent.app.use_cases.analysis_interactor import SYSTEM_PROMPT
+
+    contract = SYSTEM_PROMPT[
+        SYSTEM_PROMPT.find("[reasons 섹션 출력 계약]") : SYSTEM_PROMPT.find("[conditions 섹션 출력 계약]")
+    ]
+    assert "industry_specific" in contract
+    assert "전 업종 공통 충격" in contract
+
+
 def test_시스템_프롬프트가_표_대신_해석_문장을_쓰게_한다():
     """숫자는 시각 자료가 보여준다 — 글이 짧아져야 리포트가 빨라진다 (설계서 §3-5)."""
     from apps.agent.app.use_cases.analysis_interactor import SYSTEM_PROMPT
@@ -713,7 +724,7 @@ def test_facts는_LLM을_부르기_전에_먼저_나간다():
         ("facts",),
         ("agent_status", "facts", "done"),
     ]
-    assert events[2].payload == collector.facts
+    assert events[2].payload == {"facts": collector.facts}  # 프론트 계약은 중첩이다
     assert collector.calls == [("1168064000", "korean_food", 50_000_000)]
 
 
@@ -727,7 +738,7 @@ def test_수집한_사실이_LLM_첫_메시지에_통째로_실린다():
     user_message = llm.calls[0][1]["content"]
     assert user_message.startswith("분석 지역: 1168064000")
     assert "사용자 질문: 괜찮을까요?" in user_message
-    assert json.loads(user_message.split("[FACTS]\n")[1]) == _FACTS
+    assert json.loads(user_message.split("[FACTS]\n")[1]) == _FACTS  # 프롬프트에는 사실만
 
 
 def test_LLM이_판정_대안을_빼먹으면_코드가_facts로_채운다():

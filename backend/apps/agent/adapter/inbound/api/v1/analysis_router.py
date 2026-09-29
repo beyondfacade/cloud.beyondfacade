@@ -127,5 +127,6 @@ def _with_stable_report_id(event: AgentEvent, analysis_id: str) -> AgentEvent:
 
 
 def _sse_frame(event: AgentEvent) -> str:
-    data = json.dumps({"type": event.type, **event.payload}, ensure_ascii=False)
+    # default=str — 직렬화 못 하는 값 하나가 프레임을 죽이면 스트림 전체가 잘린다
+    data = json.dumps({"type": event.type, **event.payload}, ensure_ascii=False, default=str)
     return f"event: {event.type}\ndata: {data}\n\n"

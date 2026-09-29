@@ -1,6 +1,7 @@
 """ReportFactsCollector — LLM 호출 전 사실 선수집의 키 완전성·실패 격리 (Fake 포트, DB 없음)."""
 
 import json
+import time
 from datetime import datetime
 
 import pytest
@@ -16,12 +17,22 @@ from apps.rag.domain.entities.rag_chunk_entity import RagHit
 
 
 class FakeRegionFacts(RegionFactsPort):
-    def __init__(self, failing: set[str] = frozenset()) -> None:
+    def __init__(
+        self,
+        failing: set[str] = frozenset(),
+        slow: dict[str, float] | None = None,
+        industry_shocks: bool = True,
+    ) -> None:
         self._failing = failing
+        self._slow = slow or {}
+        self._industry_shocks = industry_shocks
+        self.shock_calls: list[str | None] = []
 
     def _guard(self, name: str) -> None:
         if name in self._failing:
             raise RuntimeError(f"{name} 조회 실패")
+        if name in self._slow:
+            time.sleep(self._slow[name])
 
     def metrics_history(self, region_code: str, industry_id: str) -> list[dict]:
         self._guard("metrics_history")
@@ -43,6 +54,9 @@ class FakeRegionFacts(RegionFactsPort):
 
     def shocks(self, industry_id: str | None, limit: int) -> list[dict]:
         self._guard("shocks")
+        self.shock_calls.append(industry_id)
+        if industry_id is not None and not self._industry_shocks:
+            return []  # 한식처럼 원천에 업종 영향 행이 없는 업종
         return [{"event_id": "E1", "name": "재난지원금", "limit_seen": limit}]
 
     def latest_rates(self) -> dict:
@@ -179,7 +193,8 @@ def test_요약이_실패해도_지역_키와_뉴스_검색은_코드로_돈다(
 
     facts = collector.collect("1168064000", "korean_food", None)
 
-    assert facts["region"]["name"] is None
+    assert facts["region"]["name"] == "1168064000"  # FE는 string으로 읽는다 — null을 주지 않는다
+    assert facts["region"]["industry_name"] == "korean_food"
     assert facts["region"]["code"] == "1168064000"
     assert news.queries == [("1168064000 korean_food", "news")]
 
@@ -214,3 +229,43 @@ def test_타_BC_사실도_각자_격리된다(key: str):
 
     assert facts[key]["available"] is False
     assert facts["metrics_history"]  # 나머지는 그대로
+
+
+# --- 충격은 업종이 비면 전 업종 공통으로 되돌린다 (리뷰 라운드 1) ---
+
+
+def test_업종_충격이_있으면_업종별로_표시한다():
+    region = FakeRegionFacts(industry_shocks=True)
+
+    facts = _collector(region=region).collect("1168064000", "korean_food", None)
+
+    assert region.shock_calls == ["korean_food"]
+    assert facts["shocks"][0]["industry_specific"] is True
+
+
+def test_업종_충격이_없으면_전_업종_공통_충격으로_되돌린다():
+    """한식처럼 원천에 업종 영향 행이 없는 업종에서 reasons 절의 충격 재료가 통째로 비지 않게."""
+    region = FakeRegionFacts(industry_shocks=False)
+
+    facts = _collector(region=region).collect("1168064000", "korean_food", None)
+
+    assert region.shock_calls == ["korean_food", None]
+    assert facts["shocks"][0]["industry_specific"] is False
+
+
+# --- 수집은 항목을 동시에 돈다 (리뷰 라운드 1) ---
+
+
+def test_느린_항목이_나머지를_기다리게_하지_않는다():
+    """항목마다 제 세션을 여는 독립 조회다 — 직렬이면 0.6초, 동시면 0.2초대."""
+    region = FakeRegionFacts(
+        slow={"metrics_history": 0.2, "population": 0.2, "neighborhood_profile": 0.2}
+    )
+
+    started = time.monotonic()
+    facts = _collector(region=region).collect("1168064000", "korean_food", None)
+    elapsed = time.monotonic() - started
+
+    assert elapsed < 0.45, f"동시 수집이 아니다 ({elapsed:.2f}초)"
+    assert list(facts) == list(FACTS_KEYS)  # 순서는 계약이다
+    assert facts["metrics_history"][0]["year"] == 2024

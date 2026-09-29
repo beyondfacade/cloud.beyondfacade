@@ -2,6 +2,7 @@
 
 import json
 from collections.abc import Iterator
+from datetime import datetime
 from uuid import UUID
 
 from fastapi.testclient import TestClient
@@ -19,7 +20,7 @@ _FACTS["budget"] = None
 
 _FIXED_EVENTS = (
     AgentEvent("agent_status", {"agent": "orchestrator", "status": "running"}),
-    AgentEvent("facts", _FACTS),
+    AgentEvent("facts", {"facts": _FACTS}),
     AgentEvent("report_delta", {"section": "verdict", "markdown": "### 판정\n\n테스트"}),
     AgentEvent(
         "report_done",
@@ -116,8 +117,19 @@ def test_facts_프레임이_열두_키를_그대로_싣는다():
     frame = [line for line in body.splitlines() if line.startswith("data: ")][1]
     payload = json.loads(frame[len("data: ") :])
     assert payload["type"] == "facts"
-    assert set(payload) == {"type", *FACTS_KEYS}
-    assert payload["region"]["name"] == "역삼1동"
+    # 프론트 계약은 중첩이다 — {type:"facts", facts:{…12키}} (설계서 §4-1)
+    assert set(payload) == {"type", "facts"}
+    assert set(payload["facts"]) == set(FACTS_KEYS)
+    assert payload["facts"]["region"]["name"] == "역삼1동"
+
+
+def test_직렬화할_수_없는_값이_섞여도_프레임이_끊기지_않는다():
+    """SSE 프레임 하나가 TypeError로 죽으면 스트림 전체가 잘린다 — 문자열로라도 내보낸다."""
+    from apps.agent.adapter.inbound.api.v1.analysis_router import _sse_frame
+
+    frame = _sse_frame(AgentEvent("facts", {"facts": {"computed_at": datetime(2026, 9, 29)}}))
+
+    assert json.loads(frame.split("data: ")[1])["facts"]["computed_at"] == "2026-09-29 00:00:00"
 
 
 def test_unknown_analysis_id_returns_404_body():

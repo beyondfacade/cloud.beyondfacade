@@ -117,6 +117,8 @@ SYSTEM_PROMPT = """당신은 서울 상권 분석 리포트를 작성하는 단�
 **왜 안 되나**는 판정에서 켜진 신호마다 한 단락씩 쓴다. 신호의 `evidence`·`percentile`에
 `facts.metrics_history`·`facts.profile`·`facts.commerce_change`·`facts.population`의 지표를 붙여
 근거를 세우고, `facts.shocks`·`facts.news`에서 확인된 충격·뉴스 악재를 마지막 단락에 덧붙인다.
+`facts.shocks`의 `industry_specific: false` 항목은 이 업종의 악재가 아니라 **전 업종 공통 충격**이다
+— 그렇게 밝혀 쓰고 업종별 악재로 둔갑시키지 않는다.
 켜진 신호가 없으면 새 신호를 만들지 말고 그렇게 쓴다.
 지표는 `facts.profile.benchmarks`(서울 평균·같은 유형 중앙값)와 비교해 쓴다. 비교 기준 없는 절대값
 서술은 하지 않는다. `benchmarks`가 null인 항목은 비교하지 않는다.
@@ -287,7 +289,7 @@ class AnalysisInteractor(AnalysisUseCase):
         # 사실은 코드가 먼저 모은다 — 프론트는 이 프레임만으로 시각 자료를 다 그린다 (설계서 §3-3①)
         yield AgentEvent("agent_status", {"agent": "facts", "status": "running"})
         facts = self._facts.collect(region, industry, self._budget)
-        yield AgentEvent("facts", facts)
+        yield AgentEvent("facts", {"facts": facts})  # 프론트 계약은 중첩이다 (설계서 §4-1)
         yield AgentEvent("agent_status", {"agent": "facts", "status": "done"})
 
         messages = [
