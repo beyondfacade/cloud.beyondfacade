@@ -130,13 +130,10 @@ class ReportFactsCollector:
 
         되돌려받는 요청 값(`industry_id`·`stage`)과 `disclaimer`는 버린다 — 앞의 둘은 호출부가
         이미 알고, 면책 문구는 funding 절 프롬프트 계약이 이미 갖는다.
-        `target`은 공고 분야(`field_category`)다 — 카드의 '대상' 줄이 그 값을 읽는다.
+        `target`은 **넣지 않는다** — 원천의 분야(`field_category`)는 대상이 아니다("대상: 금융"은
+        거짓말이다). 프론트는 `target`이 없으면 '대상' 줄을 지운다.
         """
-        candidates = self._funding_facts.candidates(industry, None, None)["candidates"]
-        return [
-            {**item, "target": item["field_category"]} if "field_category" in item else item
-            for item in candidates
-        ]
+        return self._funding_facts.candidates(industry, None, None)["candidates"]
 
     def _news(self, region_future: Future) -> list[dict]:
         """동 이름 + 업종명으로 뉴스를 찾는다."""

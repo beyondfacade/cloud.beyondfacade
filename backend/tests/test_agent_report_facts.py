@@ -193,12 +193,15 @@ def test_지원사업_후보는_공고_배열_그대로_싣는다():
     assert [c["program_id"] for c in facts["funding_candidates"]] == ["P1", "P2"]
 
 
-def test_지원사업_후보의_대상은_공고_분야를_옮긴다():
-    """카드의 '대상' 줄이 이 값이다 — 원천에 분야가 없는 공고는 그 줄을 지운다."""
+def test_지원사업_후보에_대상을_지어_넣지_않는다():
+    """공고의 분야(`field_category`)는 대상이 아니다 — "대상: 금융"은 거짓말이다.
+
+    `target`이 없으면 프론트가 '대상' 줄을 지운다. 분야 자체는 그대로 남긴다.
+    """
     candidates = _collector().collect("1168064000", "korean_food", None)["funding_candidates"]
 
-    assert candidates[0]["target"] == "금융"
-    assert "target" not in candidates[1]
+    assert all("target" not in candidate for candidate in candidates)
+    assert candidates[0]["field_category"] == "금융"
 
 
 def test_프로필은_시간대_블록_강도를_함께_싣는다():
