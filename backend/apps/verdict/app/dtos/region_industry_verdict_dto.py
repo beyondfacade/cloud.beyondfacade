@@ -166,3 +166,4 @@ class BacktestReportDto:
     horizon_days: int
     buckets: tuple[BacktestBucketDto, ...]
     signal_buckets: tuple[BacktestSignalBucketDto, ...]
+    industry_basis: tuple[tuple[str, str], ...] = ()  # (industry_id, basis) — 표의 † 표기·심사 절 원천 칸

@@ -127,6 +127,10 @@ class FakeCatalog(IndustryCatalogPort):
     def judged_industries(self):
         return [JudgedIndustry("cafe", "카페")]
 
+    def named_industries(self, industry_ids):
+        wanted = set(industry_ids)
+        return [i for i in self.judged_industries() if i.industry_id in wanted]
+
 
 class FakeRegions(RegionCatalogPort):
     def regions(self):

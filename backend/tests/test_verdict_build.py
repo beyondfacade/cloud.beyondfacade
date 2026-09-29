@@ -78,6 +78,10 @@ class FakeCatalog(IndustryCatalogPort):
     def judged_industries(self):
         return [JudgedIndustry("korean_food", "한식")]
 
+    def named_industries(self, industry_ids):
+        wanted = set(industry_ids)
+        return [i for i in self.judged_industries() if i.industry_id in wanted]
+
 
 class FakeOutcomes(EntrantOutcomePort):
     def entrant_outcomes(self, as_of, entry_days, horizon_days):

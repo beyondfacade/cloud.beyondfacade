@@ -7,14 +7,30 @@ from datetime import date
 
 from apps.verdict.app.dtos.region_industry_verdict_dto import EntrantOutcome
 from apps.verdict.domain.entities.region_industry_verdict_entity import (
+    ALL_SIGNAL_KEYS,
+    BASIS_AGGREGATE,
+    BASIS_PERMIT,
+    BASIS_PROXY,
     LEVEL_OFF,
     LEVEL_ON,
     LEVEL_STRONG,
-    SIGNAL_KEYS,
     RegionIndustryVerdict,
 )
 
 VERDICT_ORDER: tuple[str, ...] = ("red", "orange", "clear", "insufficient")
+
+
+def _pooled(industry_id: str) -> tuple[str | None, ...]:
+    return (None, industry_id)
+
+
+def _own(industry_id: str) -> tuple[str | None, ...]:
+    return (industry_id,)
+
+
+# 버킷 범위 — 전체(None) 합산에 넣을지는 판정 원천이 정한다. 집계 기반은 결과 단위(점포수 대비 폐업)가 달라
+# 진입 코호트와 합산하지 않는다 (업종 특화 신호 설계서 §7-3). 표 조회라 분기 없음.
+_SCOPES_OF_BASIS = {BASIS_PERMIT: _pooled, BASIS_PROXY: _pooled, BASIS_AGGREGATE: _own}
 
 
 def quarter_before(as_of: date) -> str:
@@ -43,7 +59,7 @@ def summarize(verdicts: Sequence[RegionIndustryVerdict], outcomes: Iterable[Entr
     for v in verdicts:
         o = by_key.get((v.region_code, v.industry_id))
         opened, closed = (o.opened, o.closed_within) if o else (0, 0)
-        for industry in (None, v.industry_id):
+        for industry in _SCOPES_OF_BASIS[v.basis](v.industry_id):
             cell = acc.setdefault((industry, v.verdict_code), [0, 0, 0])
             cell[0] += 1
             cell[1] += opened
@@ -82,10 +98,10 @@ def summarize_signals(verdicts: Sequence[RegionIndustryVerdict], outcomes: Itera
             fired = _FIRED_OF.get(signal.level)
             if fired is None:
                 continue
-            for industry in (None, v.industry_id):
+            for industry in _SCOPES_OF_BASIS[v.basis](v.industry_id):
                 cell = acc.setdefault((industry, signal.key, fired), [0, 0, 0])
                 cell[0] += 1
                 cell[1] += opened
                 cell[2] += closed
-    ordered = sorted(acc, key=lambda k: (k[0] is not None, k[0] or "", SIGNAL_KEYS.index(k[1]), not k[2]))
+    ordered = sorted(acc, key=lambda k: (k[0] is not None, k[0] or "", ALL_SIGNAL_KEYS.index(k[1]), not k[2]))
     return [SignalBucket(industry, key, fired, *acc[(industry, key, fired)]) for industry, key, fired in ordered]

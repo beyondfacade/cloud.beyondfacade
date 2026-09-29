@@ -144,3 +144,8 @@ def test_진입_코호트_결과는_T_이후_1년_개업_중_3년_내_폐업을_
     finally:
         with session_scope() as session:
             session.execute(delete(StoreOrm).where(StoreOrm.store_id.like(f"{_PREFIX}%")))
+
+
+def test_이름_조회는_판정_제외_업종도_돌려준다():
+    named = IndustryCatalogGateway().named_industries(["real_estate", "convenience_store"])
+    assert [(i.industry_id, i.name) for i in named] == [("convenience_store", "편의점"), ("real_estate", "부동산중개업")]
