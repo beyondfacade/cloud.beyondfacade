@@ -182,9 +182,9 @@
 - [ ] **에이전트 리포트 verdict 섹션** — 지금은 LLM 자유 서술. `GET /verdicts/{region}`을 도구로 읽어 "판정은 규칙, 문장은 LLM"(§0-10)으로 맞춘다.
 
 **B. verdict BC 후속 (작음)**
-- [ ] 배치 prune — `build_verdicts`가 업서트만 해서 업종을 제외하면 옛 행이 남는다(9/28 편의점 행은 수동 delete). `build()`에서 판정 대상 외 행 삭제 한 줄.
+- [x] 배치 prune — `build()`가 업서트 뒤 판정 대상 외 업종 행을 지운다(9/29, BE v0.40.2 `delete_other_industries`).
 - [ ] 저밀도 업종 보류 비율 — 당구장 80%·PC방/중식/헬스장 64%·양식/일식/노래방 47~49%가 `insufficient`. 구(district) 단위 보완 집계 또는 카드에 "표본이 작은 업종" 안내. `min_sample=10`은 유지 판정(설계서 §11).
-- [ ] 폐업일 < 개업일 오염 행 실태 — 조기 폐업 집계에서는 제외했지만(9/29) 건수 미측정. 백테스트 전에 한 번 세기.
+- [x] 폐업일 < 개업일 오염 행 실태 — 9/29 실측 **0건**(store 888,322행). `days_open >= 0` 가드는 방어용으로 유지, 백테스트 라벨 오염 걱정은 양도·양수 쪽(§0-10)만 남음.
 - [ ] `SNAPSHOT_INDUSTRIES`·`NO_CLOSURE_HISTORY_INDUSTRIES`·`_NO_CLOSURE_HISTORY` 정리(§0-11 후속) — 판정 UI 전환 시.
 
 **C. 데이터 후속 (음식 업종 확장 §0-9)**

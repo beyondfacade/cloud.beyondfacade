@@ -1,6 +1,7 @@
 """Driven Ports — verdict가 바깥 세계에 요구하는 계약 (ISP: 역할별 분리)."""
 
 from abc import ABC, abstractmethod
+from collections.abc import Iterable
 from datetime import date
 
 from apps.verdict.app.dtos.region_industry_verdict_dto import (
@@ -24,6 +25,10 @@ class RegionIndustryVerdictRepositoryPort(ABC):
     @abstractmethod
     def find(self, region_code: str, industry_id: str) -> RegionIndustryVerdict | None:
         """복합키 단건 — 없으면 None."""
+
+    @abstractmethod
+    def delete_other_industries(self, keep_industry_ids: Iterable[str]) -> int:
+        """판정 대상에서 빠진 업종의 행을 지운다(배치 prune) — 삭제 건수 반환."""
 
 
 class StoreSignalStatsPort(ABC):

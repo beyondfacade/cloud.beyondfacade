@@ -1,5 +1,16 @@
 # Backend Version Log
 
+## [v0.40.2] - 2026-09-29
+
+### Changed
+- 판정 배치 prune — `build()`가 업서트 뒤 판정 대상 외 업종의 옛 행을 지운다(`RegionIndustryVerdictRepositoryPort.delete_other_industries`).
+  업종을 `EXCLUDED_INDUSTRIES`에 넣으면 다음 새벽 배치에서 행이 자동 정리된다(9/28 편의점 427행 수동 delete 재발 방지, HANDOFF §0-12 B).
+
+### Validation
+- 신규 테스트 2(Fake 배치 prune — `test_verdict_build.py`; 실DB 리포지토리 prune이 대상 외 업종만 지움 — `test_verdict_repository.py`), 전체 579 passed.
+- 실DB 배치 1회: 5,551행(13업종 × 427동) 그대로, 삭제 0건.
+- 폐업일<개업일 오염 행 실측(HANDOFF §0-12 B 항목): store 888,322행 중 **0건** — `days_open >= 0` 가드는 방어용으로 유지.
+
 ## [v0.40.1] - 2026-09-29
 
 ### Added

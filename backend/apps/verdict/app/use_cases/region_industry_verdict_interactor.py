@@ -1,4 +1,4 @@
-"""Application Service — 얇은 조율: 게이트웨이 3종 → 업종별 분포 → 신호 평가 → 판정 → 업서트."""
+"""Application Service — 얇은 조율: 게이트웨이 3종 → 업종별 분포 → 신호 평가 → 판정 → 업서트 → 제외 업종 prune."""
 
 from collections.abc import Sequence
 from dataclasses import asdict
@@ -78,7 +78,9 @@ class RegionIndustryVerdictInteractor(RegionIndustryVerdictUseCase):
         for industry in industries:
             inputs = [self._input(ctx, industry, stats, counts) for ctx in contexts]
             verdicts.extend(self._judge_industry(inputs, computed_at))
-        return self._repository.upsert(verdicts)
+        processed = self._repository.upsert(verdicts)
+        self._repository.delete_other_industries(i.industry_id for i in industries)  # 제외된 업종의 옛 행 prune
+        return processed
 
     def list_verdict_values(self, industry_id: str) -> list[VerdictValueDto]:
         self._require_judged(industry_id)

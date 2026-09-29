@@ -1,4 +1,6 @@
-from sqlalchemy import select
+from collections.abc import Iterable
+
+from sqlalchemy import delete, select
 
 from apps.verdict.adapter.outbound.orm_mappers.region_industry_verdict_orm_mapper import (
     to_entity,
@@ -34,3 +36,10 @@ class SqlAlchemyRegionIndustryVerdictRepository(RegionIndustryVerdictRepositoryP
         with session_scope() as session:
             orm = session.get(RegionIndustryVerdictOrm, (region_code, industry_id))
             return None if orm is None else to_entity(orm)
+
+    def delete_other_industries(self, keep_industry_ids: Iterable[str]) -> int:
+        with session_scope() as session:
+            result = session.execute(
+                delete(RegionIndustryVerdictOrm).where(RegionIndustryVerdictOrm.industry_id.not_in(list(keep_industry_ids)))
+            )
+            return result.rowcount

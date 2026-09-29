@@ -23,13 +23,13 @@ def _two_region_codes() -> list[str]:
         return session.execute(select(RegionOrm.region_code).order_by(RegionOrm.region_code).limit(2)).scalars().all()
 
 
-def _verdict(region_code: str, code: str) -> RegionIndustryVerdict:
+def _verdict(region_code: str, code: str, industry_id: str = _INDUSTRY) -> RegionIndustryVerdict:
     signals = tuple(
         SignalResult(key=k, level="on" if k == "net_outflow" else "off", value=0.1, percentile=80.0,
                      evidence=f"{k} 근거 — 한글 포함", source="store")
         for k in ("net_outflow", "survival_cliff", "early_closure", "saturation", "shrinking")
     )
-    return RegionIndustryVerdict(region_code, _INDUSTRY, code, 0, 1, signals, datetime(2026, 9, 28, 4, 30, tzinfo=timezone.utc))
+    return RegionIndustryVerdict(region_code, industry_id, code, 0, 1, signals, datetime(2026, 9, 28, 4, 30, tzinfo=timezone.utc))
 
 
 def _cleanup(region_codes: list[str]) -> None:
@@ -51,5 +51,17 @@ def test_업서트는_멱등이고_signals가_JSON으로_왕복된다():
         assert repo.find("0000000000", _INDUSTRY) is None
         listed = repo.list_by_industry(_INDUSTRY)
         assert [v.region_code for v in listed if v.region_code in codes] == sorted(codes)
+    finally:
+        _cleanup(codes)
+
+
+def test_판정_대상_외_업종_행만_지운다():
+    codes = _two_region_codes()
+    repo = SqlAlchemyRegionIndustryVerdictRepository()
+    try:
+        repo.upsert([_verdict(codes[0], "clear"), _verdict(codes[1], "clear", industry_id="convenience_store")])
+        assert repo.delete_other_industries([_INDUSTRY]) == 1
+        assert repo.find(codes[1], "convenience_store") is None
+        assert repo.find(codes[0], _INDUSTRY) is not None
     finally:
         _cleanup(codes)

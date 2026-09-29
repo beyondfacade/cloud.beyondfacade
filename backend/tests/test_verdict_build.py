@@ -1,6 +1,6 @@
 """판정 배치 — Fake 포트로 업종별 상대평가·업서트·조회 검증 (설계서 §4-4)."""
 
-from datetime import date
+from datetime import date, datetime, timezone
 
 import pytest
 
@@ -41,6 +41,13 @@ class FakeRepository(RegionIndustryVerdictRepositoryPort):
 
     def find(self, region_code, industry_id):
         return self.rows.get((region_code, industry_id))
+
+    def delete_other_industries(self, keep_industry_ids):
+        keep = set(keep_industry_ids)
+        doomed = [k for k in self.rows if k[1] not in keep]
+        for k in doomed:
+            del self.rows[k]
+        return len(doomed)
 
 
 class FakeStoreStats(StoreSignalStatsPort):
@@ -128,6 +135,17 @@ def test_조회는_판정_대상_업종만_받는다():
         interactor.list_verdict_values("academy")
     with pytest.raises(IndustryNotFoundError):
         interactor.find("1168000001", "chicken")
+
+
+def test_배치는_판정_대상에서_빠진_업종의_옛_행을_지운다():
+    repo, interactor = _interactor([], [_context("1168000001")], [])
+    stale = RegionIndustryVerdict("1168000001", "convenience_store", VERDICT_INSUFFICIENT, 0, 0, (), datetime(2026, 9, 28, tzinfo=timezone.utc))
+    repo.upsert([stale])
+
+    interactor.build(date(2026, 9, 28))
+
+    assert repo.find("1168000001", "convenience_store") is None
+    assert repo.find("1168000001", "korean_food") is not None
 
 
 def test_myself는_하드코딩_행을_돌려준다():
