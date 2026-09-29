@@ -40,6 +40,7 @@
   mock 라우트와 응답 계약은 유지. 부동산 제외 집합 변경은 명세 §8의 Task 4 담당으로 남김.
 
 ### Fixed
+- 분석 SSE 전용 Route Handler와 rewrite 경로 제외로 프록시 버퍼링을 해소하고 스트림·오류 상태·연결 취소 신호를 그대로 전달.
 - mock 판정에서 참고 신호 `shrinking`을 평가 가능·강함·켜짐 카운트에서 제외하고 최소 판정 신호를 2개로 맞춤.
   UI도 공통 `ADVISORY_SIGNAL_KEYS`를 사용하며 보류 안내에 같은 기준을 표시.
 - mock 분석 POST가 요청 본문을 검증하여 지역·업종 누락과 음수·비정수 예산에 400 `INVALID_ANALYSIS_REQUEST`를 반환.
