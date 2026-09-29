@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import type { ComponentType } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { industryLabel, type IndustryId } from "@/shared/industries";
 import { fetchRegionSummary } from "../api";
@@ -10,6 +11,29 @@ import { CLOSED_STORE_STRATEGY } from "./marker-strategies";
 import { NeighborhoodLine } from "./neighborhood-line";
 import { VerdictSection } from "./verdict-section";
 import styles from "./map-workspace.module.css";
+
+type BriefBody = ComponentType<{ regionCode: string; industry: string }>;
+
+function DefaultBrief({ regionCode, industry }: { regionCode: string; industry: string }) {
+  return (
+    <>
+      <VerdictSection regionCode={regionCode} industry={industry} />
+      <NeighborhoodLine regionCode={regionCode} />
+    </>
+  );
+}
+
+function ConvenienceBrief({ regionCode, industry }: { regionCode: string; industry: string }) {
+  return (
+    <>
+      <VerdictSection regionCode={regionCode} industry={industry} />
+      <ConvenienceSummarySection regionCode={regionCode} />
+    </>
+  );
+}
+
+/** 업종별 brief 본문 — 조건 분기 대신 레지스트리 (CLAUDE.md §5). 없는 업종은 DefaultBrief. */
+const BRIEF_BODIES: Partial<Record<string, BriefBody>> = { convenience_store: ConvenienceBrief };
 
 interface SidePanelProps {
   regionCode: string | null;
@@ -92,17 +116,10 @@ export function SidePanel({ regionCode, industry, budget = null, showClosed, onT
 
       {regionCode && (
         <>
-          {industry === "convenience_store" ? (
-            <>
-              <ConvenienceSummarySection regionCode={regionCode} />
-              <p className="mt-2 text-xs text-[var(--text-secondary)]">판정은 담배권 특화 신호 단계에서 제공</p>
-            </>
-          ) : (
-            <>
-              <VerdictSection regionCode={regionCode} industry={industry} />
-              <NeighborhoodLine regionCode={regionCode} />
-            </>
-          )}
+          {(() => {
+            const Body = BRIEF_BODIES[industry] ?? DefaultBrief;
+            return <Body regionCode={regionCode} industry={industry} />;
+          })()}
           <ClosedStoresToggle regionCode={regionCode} industry={industry} checked={showClosed ?? false} onChange={onToggleClosed ?? (() => {})} />
         </>
       )}

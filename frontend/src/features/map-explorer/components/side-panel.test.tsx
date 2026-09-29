@@ -1,6 +1,7 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { verdictExclusionNotice } from "@/shared/verdict";
 import { SidePanel } from "./side-panel";
 
 beforeEach(() => {
@@ -20,6 +21,7 @@ beforeEach(() => {
       regions: [{ region_code: "1168065000", region_name: "역삼2동", verdict_code: "orange", strong_count: 0, on_count: 1 }],
     });
     if (path.includes("/verdicts/")) return Response.json({
+      basis: "permit",
       region_code: "1168064000", industry_id: url.searchParams.get("industry"), verdict_code: "orange", on_count: 1, strong_count: 0,
       signals: [{ key: "net_outflow", level: "on", evidence: "순유출 근거", source: "store", value: 0.1, percentile: 80 }], computed_at: "2026-09-29T04:30:00+09:00",
     });
@@ -86,10 +88,11 @@ describe("사이드패널 한 화면 요약", () => {
     expect(onToggle).toHaveBeenCalledWith(false);
   });
 
-  it("편의점은 현황 한 줄과 특화 신호 안내만 본문에 보여준다", async () => {
+  it("편의점은 판정 준비 중 안내와 현황 한 줄을 보여준다", async () => {
     renderPanel({ industry: "convenience_store" });
     expect(await screen.findByText("편의점 149곳 · 기준 2026년 6월")).toBeInTheDocument();
-    expect(screen.getByText("판정은 담배권 특화 신호 단계에서 제공")).toBeInTheDocument();
+    expect(screen.getByText(verdictExclusionNotice("convenience_store"))).toBeInTheDocument();
+    expect(screen.queryByText("판정은 담배권 특화 신호 단계에서 제공")).toBeNull();
     expect(screen.queryByRole("region", { name: "창업 경고 판정" })).toBeNull();
     expect(screen.queryByText(/낮 인구 우위형/)).toBeNull();
     expect(screen.queryByRole("checkbox")).toBeNull();
@@ -100,6 +103,7 @@ describe("사이드패널 한 화면 요약", () => {
   it("부동산은 판정 없이 동네 한 줄과 CTA를 표시한다", async () => {
     renderPanel({ industry: "real_estate" });
     await screen.findByText("낮 인구 우위형 · 점심·오후가 하루의 정점");
+    expect(screen.getByText(verdictExclusionNotice("real_estate"))).toBeInTheDocument();
     expect(screen.queryByRole("region", { name: "창업 경고 판정" })).toBeNull();
     expect(screen.getByRole("link", { name: "AI 분석 리포트 보기" })).toHaveAttribute("href", "/analysis?region=1168064000&industry=real_estate");
   });

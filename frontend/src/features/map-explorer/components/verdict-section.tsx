@@ -1,8 +1,8 @@
 "use client";
 
 import { ApiError } from "@/shared/api/client";
-import { industryLabel } from "@/shared/industries";
-import { isVerdictIndustry } from "@/shared/verdict";
+import { INDUSTRIES, industryLabel } from "@/shared/industries";
+import { isVerdictIndustry, verdictExclusionNotice } from "@/shared/verdict";
 import { VerdictCard } from "@/shared/ui/verdict-card";
 import { useVerdict } from "../hooks/use-verdict";
 import { VerdictAlternatives } from "./verdict-alternatives";
@@ -20,7 +20,12 @@ interface VerdictSectionProps {
 export function VerdictSection({ regionCode, industry }: VerdictSectionProps) {
   const query = useVerdict(regionCode, industry);
 
-  if (!isVerdictIndustry(industry)) return null; // 편의점 등 판정 제외 업종 — 요청도 카드도 없음
+  if (!isVerdictIndustry(industry)) {
+    // select 업종인데 판정 제외면 안내 한 줄(설계서 §13), select 밖 업종(학원·어린이집)은 아무것도 그리지 않는다
+    return (INDUSTRIES as readonly string[]).includes(industry)
+      ? <p className="mt-3 text-xs text-[var(--text-secondary)]">{verdictExclusionNotice(industry)}</p>
+      : null;
+  }
   if (query.isPending) {
     return <div className="mt-4 h-16 rounded-lg bg-[var(--bg-raised)]" aria-hidden />;
   }

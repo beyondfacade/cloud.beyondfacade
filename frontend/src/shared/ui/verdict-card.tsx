@@ -1,5 +1,5 @@
 import type { RegionIndustryVerdict, VerdictCode, VerdictSignal } from "@/shared/api/types";
-import { ADVISORY_SIGNAL_KEYS, signalLabel, verdictLabel } from "@/shared/verdict";
+import { ADVISORY_SIGNAL_KEYS, VERDICT_BASIS_BADGE, signalLabel, verdictLabel } from "@/shared/verdict";
 
 /** 판정 → 배지 색 토큰. 🔴 --danger · 🟠 --warn · ⚪ 보조 텍스트 · 보류 테두리색 (조건 분기 대신 테이블). */
 const BADGE_TOKEN: Record<VerdictCode, string> = {
@@ -37,7 +37,8 @@ function firedSignals(signals: VerdictSignal[]): VerdictSignal[] {
 export function VerdictCard({ verdict, industryLabel }: { verdict: RegionIndustryVerdict; industryLabel: string }) {
   const label = verdictLabel(verdict.verdict_code);
   const fired = firedSignals(verdict.signals);
-  const advisory = verdict.signals.find((s) => ADVISORY_SIGNAL_KEYS.has(s.key) && (s.level === "on" || s.level === "strong"));
+  const advisories = verdict.signals.filter((s) => ADVISORY_SIGNAL_KEYS.has(s.key) && (s.level === "on" || s.level === "strong"));
+  const basisBadge = VERDICT_BASIS_BADGE[verdict.basis];
   const color = BADGE_TOKEN[verdict.verdict_code];
 
   return (
@@ -50,6 +51,11 @@ export function VerdictCard({ verdict, industryLabel }: { verdict: RegionIndustr
       >
         <span className="text-lg font-semibold" style={{ color }}>{label.name}</span>
         <span className="text-xs text-[var(--text-secondary)]">{label.qualifier}</span>
+        {basisBadge && (
+          <span title={basisBadge.description} className="rounded border border-[var(--border)] px-1 text-[10px] text-[var(--text-secondary)]">
+            {basisBadge.label}
+          </span>
+        )}
       </div>
 
       {fired.length > 0 ? (
@@ -75,7 +81,9 @@ export function VerdictCard({ verdict, industryLabel }: { verdict: RegionIndustr
         </p>
       )}
 
-      {advisory && <p className="text-xs text-[var(--text-secondary)]">참고: {advisory.evidence}</p>}
+      {advisories.map((s) => (
+        <p key={s.key} className="text-xs text-[var(--text-secondary)]">참고: {s.evidence}</p>
+      ))}
 
       {verdict.computed_at && <p className="text-xs tabular-nums text-[var(--text-secondary)]">산출일 <time dateTime={verdict.computed_at}>{verdict.computed_at.slice(0, 10)}</time></p>}
     </section>

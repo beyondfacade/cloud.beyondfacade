@@ -3,6 +3,7 @@ import { render, screen, waitFor } from "@testing-library/react";
 import { afterEach, expect, it, vi } from "vitest";
 import type { RegionIndustryVerdict, VerdictSignal } from "@/shared/api/types";
 import { ApiError } from "@/shared/api/client";
+import { verdictExclusionNotice } from "@/shared/verdict";
 import * as api from "../api";
 import { VerdictSection } from "./verdict-section";
 
@@ -108,15 +109,27 @@ it("경고 없음·보류 판정은 켜진 신호 목록 대신 한 줄 설명�
   expect(screen.getByText("표본이 부족해 판정을 보류했습니다.")).toBeInTheDocument();
 });
 
-it.each(["convenience_store", "real_estate"])("판정 제외 업종 %s은 요청 없이 섹션을 그리지 않는다", (industry) => {
+it.each(["convenience_store", "real_estate"])("판정 제외 업종 %s은 요청 없이 안내 한 줄을 보여준다", (industry) => {
   const spy = vi.spyOn(api, "fetchVerdict");
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
-  const { container } = render(
+  render(
     <QueryClientProvider client={client}>
       <VerdictSection regionCode="1168064000" industry={industry} />
     </QueryClientProvider>,
   );
-  expect(container.querySelector("section")).toBeNull();
+  expect(screen.getByText(verdictExclusionNotice(industry))).toBeInTheDocument();
+  expect(spy).not.toHaveBeenCalled();
+});
+
+it("판정 대상이 아닌 select 밖 업종(학원)은 아무것도 그리지 않는다", () => {
+  const spy = vi.spyOn(api, "fetchVerdict");
+  const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+  const { container } = render(
+    <QueryClientProvider client={client}>
+      <VerdictSection regionCode="1168064000" industry="academy" />
+    </QueryClientProvider>,
+  );
+  expect(container.firstChild).toBeNull();
   expect(spy).not.toHaveBeenCalled();
 });
 

@@ -5,10 +5,12 @@
 ## [v0.33.0] - 2026-09-29
 
 ### Added
+- **판정 원천 배지·안내** (설계서 §7-2·§13) — `VerdictCard`에 원천 배지("집계 기반 판정"·"담배소매인 이력 기준", 설명 툴팁), 켜진 참고 신호 전부를 "참고:" 줄로. brief: 판정 제외 select 업종은 카드 대신 "판정 준비 중인 업종 — {사유}" 한 줄.
 - **판정 원천 계약** (업종 특화 신호 설계서 §9-3) — `VerdictBasis`(`permit`·`proxy`·`aggregate`), `RegionIndustryVerdict.basis`, 신호 키 `closure_rate`·`tobacco_gap`·`trade_per_office`, 원천 `tobacco`·`commerce`·`molit`. `shared/verdict.ts`: 라벨(폐업률·담배권 빈자리·사무소당 거래), `VERDICT_BASIS_BADGE`, `verdictExclusionNotice`. mock은 업종별 원천·신호 목록·미지원 신호를 백엔드 프로필대로 미러(Codex).
 
 ### Changed
 - `ADVISORY_SIGNAL_KEYS`에 `tobacco_gap`·`trade_per_office`. `VERDICT_EXCLUDED_INDUSTRIES`는 그대로 유지 — 9/29 재포함 게이트 미달(편의점 경고 lift 1.00×·부동산 1.04×, 기준 1.10× 미만).
+- 사이드패널 편의점 분기를 업종별 본문 레지스트리(`BRIEF_BODIES`)로 교체, 하드코딩 문구 "판정은 담배권 특화 신호 단계에서 제공" 제거(Codex).
 
 ## [v0.32.0] - 2026-09-29
 
