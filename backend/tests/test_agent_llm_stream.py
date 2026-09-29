@@ -97,18 +97,22 @@ class _StubChunk:
 
 
 class _StubModels:
-    """generate_content_stream 스텁 — 대본을 순서대로 낸다(대본이 예외면 던진다)."""
+    """generate_content(_stream) 스텁 — 대본을 순서대로 낸다(대본이 예외면 던진다)."""
 
     def __init__(self, scripts: list) -> None:
         self._scripts = list(scripts)
         self.calls: list[dict] = []
 
     def generate_content_stream(self, *, model, contents, config):
-        self.calls.append({"model": model, "contents": contents})
+        self.calls.append({"model": model, "contents": contents, "config": config})
         script = self._scripts.pop(0)
         if isinstance(script, Exception):
             raise script
         return iter(script)
+
+    def generate_content(self, *, model, contents, config):
+        self.calls.append({"model": model, "contents": contents, "config": config})
+        return self._scripts.pop(0)
 
 
 @pytest.fixture
@@ -183,3 +187,18 @@ def test_gemini_stream은_빈_스트림도_계약을_지킨다(gemini):
 
     assert [event.kind for event in events] == ["tool_calls", "usage"]
     assert events[0].tool_calls == []
+
+
+def test_gemini는_사전_추론을_끄고_부른다(gemini):
+    """리포트 작성은 facts를 옮겨 쓰는 일이다. 2026-09-29 실측 — thinking ON 첫 토큰 11.7초 vs OFF 1.1초.
+
+    chat()·stream()이 같은 `_config()`를 쓰므로 두 경로 모두 꺼져 있어야 한다.
+    """
+    adapter, models = gemini(
+        [[_StubChunk(text="글")], _StubChunk(text="글", usage=_StubUsage(1, 1))]
+    )
+
+    list(adapter.stream([{"role": "user", "content": "써줘"}], []))
+    adapter.chat([{"role": "user", "content": "써줘"}], [])
+
+    assert [call["config"].thinking_config.thinking_budget for call in models.calls] == [0, 0]

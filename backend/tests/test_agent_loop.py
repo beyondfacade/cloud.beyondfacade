@@ -926,3 +926,32 @@ def test_시스템_프롬프트가_섹션을_쓰기_시작하면_도구를_금�
     from apps.agent.app.use_cases.analysis_interactor import SYSTEM_PROMPT
 
     assert "섹션을 쓰기 시작하면 도구를 부르지 않는다" in SYSTEM_PROMPT
+
+
+def test_빈_턴이_와도_마무리_요청으로_다시_쓰게_한다():
+    """글도 도구 호출도 없는 턴은 예외가 안 난다(생각하다 MAX_TOKENS·세이프티 차단).
+
+    여기서 끝내 버리면 다섯 절이 모두 '분석 데이터가 부족합니다'로 나간다.
+    """
+    empty = LLMTurn(text="", tool_calls=[], usage=LLMUsage(input_tokens=5, output_tokens=0))
+    llm = FakeLLM([empty, _final_turn()])
+    interactor = _interactor(llm, [_market_tool()], now=lambda: 0.0)
+
+    events = list(interactor.run("1168064000", "korean_food", None))
+
+    assert len(llm.calls) == 2, "빈 턴 뒤 마무리 스트림을 돌리지 않았다"
+    assert llm.calls[1][-1]["content"].startswith("도구 호출을 멈추고")
+    deltas = {e.payload["section"]: e.payload["markdown"] for e in events if e.type == "report_delta"}
+    assert deltas["verdict"] == "### 판정\n\n🔴 위험."
+    assert all("분석 데이터가 부족합니다" not in md for md in deltas.values())
+
+
+def test_마커_없는_글만_온_턴은_다시_쓰게_하지_않는다():
+    """글은 썼는데 마커를 안 붙인 경우다 — 같은 글을 한 번 더 쓰게 하면 왕복만 는다(현행 유지)."""
+    llm = FakeLLM([_final_turn("마커 없이 그냥 쓴 리포트입니다.")])
+    interactor = _interactor(llm, [_market_tool()], now=lambda: 0.0)
+
+    events = list(interactor.run("1168064000", "korean_food", None))
+
+    assert len(llm.calls) == 1
+    assert len([e for e in events if e.type == "report_delta"]) == 5  # 전부 폴백

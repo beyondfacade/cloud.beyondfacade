@@ -327,9 +327,16 @@ class AnalysisInteractor(AnalysisUseCase):
 
         def stream_turn(turn: _StreamTurn) -> Iterator[AgentEvent]:
             """스트림 한 턴 — 조각은 그때그때 내보내고 결과·usage는 turn에 쌓는다."""
+            # 측정용 실제 시계다(주입 시계는 벽시계 예산 전용). 첫 조각 도달과 첫 마커(=첫
+            # report_delta) 시각을 따로 봐야 지연이 SDK 쪽인지 서문 쪽인지 갈린다.
+            began = time.monotonic()
             try:
                 for event in self._llm.stream(messages, specs):
-                    yield from emit(turn.handle(event))
+                    first_text = event.kind == "text" and not turn.wrote
+                    chunks = turn.handle(event)
+                    if first_text:
+                        LOGGER.debug("스트림 첫 텍스트 조각 %.2fs", time.monotonic() - began)
+                    yield from emit(chunks)
             except Exception:  # LLM 장애·타임아웃으로 스트림을 끊지 않는다 — 모은 것까지로 마무리
                 LOGGER.warning("스트림 턴 실패 — 모은 것까지로 리포트를 맺는다", exc_info=True)
                 turn.failed = True
@@ -386,7 +393,9 @@ class AnalysisInteractor(AnalysisUseCase):
                 settled = turn.wrote
                 break
             if not turn.tool_calls:
-                settled = True
+                # 글도 도구 호출도 없는 턴은 실패가 아니라 **빈 턴**이다(생각하다 MAX_TOKENS,
+                # 세이프티 차단 — 예외가 안 난다). 여기서 끝내면 다섯 절이 모두 폴백이 된다.
+                settled = turn.wrote
                 break
             messages.append(_assistant_message(turn.text, turn.tool_calls))
 

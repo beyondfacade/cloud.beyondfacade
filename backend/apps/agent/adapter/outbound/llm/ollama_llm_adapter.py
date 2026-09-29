@@ -62,7 +62,6 @@ class OllamaLLMAdapter(LLMGatewayPort):
             ),
         )
 
-
     def stream(self, messages: list[dict], tools: list[LLMToolSpec]) -> Iterator[LLMStreamEvent]:
         """`stream: true` NDJSON — 줄마다 message.content 조각, 도구 호출은 마지막 메시지에 온다."""
         tool_calls: list[LLMToolCall] = []

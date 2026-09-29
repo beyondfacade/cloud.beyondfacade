@@ -17,6 +17,10 @@
 - `AnalysisInteractor.__init__(llm, tools, facts, budget=None, now=…)` — 수집기와 세션 예산을 주입받는다. user 메시지에 `[FACTS]\n<json>`이 붙는다. 도구 루프·재프롬프트·벽시계 예산·마무리 턴은 현행 그대로(스트리밍은 Task 2).
 - **인터랙터가 스트림을 소비한다** — `run()`이 facts 뒤에 `agent_status writer running`을 내고 `_llm.stream()`을 돈다. 텍스트 조각은 `SectionSplitter`를 거쳐 **조각 단위 `report_delta`**로 즉시 나가고(같은 section이 여러 번 온다 — 프론트는 append), 턴이 도구 호출로 끝나면 현행대로 도구를 실행하고 다음 스트림 턴을 잇는다(턴 한도 12·벽시계 예산 180초 불변). 스테이지 `done` 규칙에 한 갈래 추가 — **본문 첫 조각이 나오면 열린 도구 스테이지를 전부 닫는다**(프롬프트가 "섹션을 쓰기 시작하면 도구를 부르지 않는다"를 이미 금지한다). 스트림이 **첫 조각 뒤에** 끊기면 흘린 글까지만 남기고 마무리 턴을 다시 돌리지 않는다. 누락 섹션 폴백(`_FACT_FALLBACKS`·"분석 데이터가 부족합니다")은 그대로, 끝에 `writer done` → `orchestrator done` → `report_done`. `_StreamTurn`이 조각 종류를 테이블로 갈라 `if/elif` 없이 누적한다(CLAUDE.md §5).
 - **`[verdict 섹션 출력 계약]` 축소** — 배지·신호 목록·근거·산출일은 이제 화면의 판정 카드가 그린다. 글은 **배지 한 줄 해석 1~2문장**(등급·켜진 신호 수만)으로 묶고 신호 나열·산출일을 금지했다 — 같은 말을 화면이 두 번 하지 않게. 나머지 4개 섹션 계약과 `[분량]`(전체 2,000자, 출력 토큰 1.5k 이하)은 불변.
+- **Gemini 사전 추론(thinking) 끔** — `_config()`(chat·stream 공용)에 `thinking_config=ThinkingConfig(thinking_budget=0)`. 리포트 작성은 facts를 해석해 옮겨 쓰는 일이라 사전 추론이 값을 못 한다. 2026-09-29 실측(같은 시스템 프롬프트·facts): thinking ON **첫 토큰 11.7초·완료 22.5초** → OFF **첫 토큰 1.1초·완료 8.4~9.0초**. §6 목표(첫 report_delta 4초)는 이 설정이 있어야 잡힌다.
+- `concat_sections(chunks, order=SECTION_ORDER)` — 저장본은 도착 순서가 아니라 **계약 순서**로 정렬한다(폴백 섹션은 LLM이 쓴 절보다 늦게 나가므로 도착 순서로 두면 글이 뒤엉킨다). `order`에 없는 섹션은 버리지 않고 뒤에 도착 순서로 남긴다. 라우터 영속화가 이 기본값을 쓴다.
+- **다시 열린 섹션은 빈 줄로 띄운다** — 중복 마커로 섹션이 다시 열리면 첫 조각 앞에 `\n\n`을 한 번 넣는다(없으면 저장본이 "초안.최종본."처럼 붙는다).
+- 스트림 턴의 **첫 텍스트 조각 도달 시각**을 DEBUG로 남긴다(`time.monotonic` 실제 시계 — 주입 시계는 벽시계 예산 전용). T5 측정에서 TTFT를 "SDK 첫 조각"과 "첫 마커(첫 `report_delta`)"로 가르기 위함.
 - **저장·평가의 report_md는 섹션별로 잇는다** — 라우터 `save_report`와 `run_agent_eval`이 `concat_sections`를 쓴다(조각마다 빈 줄을 넣으면 저장본이 글이 아니게 된다). `agent_eval_scoring.section_completion`도 같은 섹션의 조각을 **덮어쓰지 않고 이어 붙인다**(마지막 조각만 보고 채점하던 문제).
 - `AgentEvent` 독스트링에 스테이지 `writer`와 "report_delta는 조각 단위" 명시.
 - **충격은 업종이 비면 전 업종 공통으로 되돌린다** — `shocks(industry)`가 0건이면(한식·양식·중식·제과점 등 원천에 업종 영향 행이 없는 업종) `shocks(None)` 상위 5건을 대신 싣고, 각 행에 `industry_specific`(True/False)을 표시한다. reasons 절 계약에 "`industry_specific: false`는 전 업종 공통 충격이다 — 업종별 악재로 둔갑시키지 않는다" 한 줄 추가.
@@ -25,11 +29,15 @@
 - `RegionFactsPort.metrics` → `metrics_history`로 이름 정리(같은 조회를 두 벌 두지 않는다 — 유일한 소비자였던 `get_region_metrics` 도구가 사라졌다). `RegionFactsGateway.summary`는 업종명(`industry_name`)을 함께 싣는다 — `facts.region`의 이름 두 개와 뉴스 검색 질의가 여기서 나온다.
 - `AgentEvent` 독스트링에 `facts` 이벤트와 스테이지 `facts` 추가. `agent_eval_scoring` 기대 섹션 5개는 불변.
 
+### Fixed
+- **빈 턴을 완성으로 보던 회귀** — 글도 도구 호출도 없는 턴(생각하다 MAX_TOKENS, 세이프티 차단 — 둘 다 예외가 안 난다)을 `settled = True`로 봐 `_FINAL_REQUEST` 마무리 턴을 건너뛰었다. 그 결과 다섯 절이 모두 "분석 데이터가 부족합니다"로 나갈 수 있었다. `settled = turn.wrote`로 고쳐 **글이 한 조각이라도 나간 턴만** 완성으로 본다(마커 없는 글만 온 턴은 종전대로 다시 쓰게 하지 않는다).
+- `ollama_llm_adapter.py` 메서드 사이 빈 줄 2개 → 1개 (PEP 8).
+
 ### Validation
 - 신규 테스트 RED→GREEN: `test_agent_report_fallback.py` 9(폴백 포매터 — 켜진 신호만·참고 분리·산출일·판정 없음·빈 축), `test_agent_report_facts.py` 13(12키 완전성·항목별 실패 격리 6종·뉴스 질의·JSON 직렬화), `test_agent_region_facts.py` 순증 8(실 DB — 연도 정렬·빈 목록·업종명, 대역 — hour_gap 6구간·자료 없음·상권 변화 서울 평균·자료 없음), `test_agent_loop.py` 순증 6(facts 이벤트 순서·`[FACTS]` 적재·판정 대안 코드 폴백·LLM 문장 우선·프롬프트 가드 2), `test_agent_router.py` 순증 1(`facts` 프레임 12키). 실 LLM 호출 없음(Fake LLM).
 - 전체 pytest **650 passed**(622 → 650). 리뷰 라운드 1 순증 5: 충격 두 갈래 2·동시 수집(느린 항목 3개가 서로를 기다리지 않는다, 순서 보존) 1·SSE `default=str` 1·공통 충격 프롬프트 가드 1.
 - Task 2 신규 테스트 RED→GREEN: `test_agent_section_stream.py` 10(경계에 걸친 마커·서문 버림·서문만·중복 마커·한 글자 스트림·앞뒤 공백·본문 대괄호 오인 금지·sections_seen 순서·flush 1회성·concat), `test_agent_llm_stream.py` 6(Ollama NDJSON 순서·도구 호출·`stream: true` 바디 / Gemini 조각 순서·첫 조각 전 429 재시도·첫 조각 뒤 예외 전파·빈 스트림), `test_agent_fallback_llm.py` 순증 4(스트림 정상·첫 조각 전 폴백·첫 조각 뒤 예외·키 없음), `test_agent_loop.py` 순증 6(조각 단위 delta·서문 제거·중단 시 흘린 글 보존+나머지 폴백·writer 스테이지 개폐·프롬프트 가드 2), `test_agent_router.py` 순증 1(섹션별 report_md), `test_agent_eval_scoring.py` 순증 1(조각 이어 붙이기), `test_agent_sse_timeline.py` 3(줄 포매터·미지 이벤트·요약 OK/NG). 실 LLM·실 네트워크 호출 없음(Fake 스트림·SDK 스텁·httpx MockTransport).
-- 전체 pytest **681 passed**(650 → 681).
+- 전체 pytest **687 passed**(650 → 681 → 리뷰 라운드 1에서 687). 라운드 1 순증 6: 빈 턴 마무리 재요청 1·마커 없는 글 유지 1·thinking off(chat·stream 양쪽) 1·계약 순서 저장 1·모르는 섹션 보존 1·섹션 순서 상수 일치 1(중복 마커 빈 줄·라우터 순서는 기존 테스트 확장).
 - **에이전트 평가 JSONL 의미 변화** — `run_agent_eval`이 `events`를 통째로 기록하므로 각 레코드에 `facts` 프레임(≈15KB)이 함께 실린다(파일이 그만큼 커진다). `section_completion`은 이제 판정·대안 절을 **코드 폴백으로도 complete로 센다** — LLM이 두 절을 안 써도 facts로 채워지므로 "LLM이 쓴 섹션 수"가 아니라 "화면에 나간 섹션 수"를 뜻한다(기대 섹션 5개는 불변).
 - 실 DB 실측(역삼1동 1168064000×한식): 수집 콜드 1.07초·웜 0.14초, 15,340자. `hour_gap`은 원천에 한식이 없어 `available: false`(시간대 원천 업종 9종 — academy·billiard·cafe·convenience_store·gym·hair_salon·karaoke·pc_bang·real_estate). 카페로는 20254 분기 6구간 정상. `shocks`는 한식 0건이라 전 업종 공통 5건으로 되돌아간다(`industry_specific: false`).
 

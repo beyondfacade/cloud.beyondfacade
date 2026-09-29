@@ -1,6 +1,10 @@
 """SectionSplitter — 스트림 조각을 [SECTION:name] 마커로 가르는 순수 분할기 (설계서 §3-3③)."""
 
-from apps.agent.domain.services.section_stream import SectionSplitter, concat_sections
+from apps.agent.domain.services.section_stream import (
+    SECTION_ORDER,
+    SectionSplitter,
+    concat_sections,
+)
 
 
 def _feed_all(splitter: SectionSplitter, pieces: list[str]) -> list[tuple[str, str]]:
@@ -43,7 +47,9 @@ def test_같은_마커가_다시_나오면_그_섹션에_이어_붙인다():
 
     chunks = _feed_all(splitter, ["[SECTION:verdict]초안.", "[SECTION:verdict]최종본."])
 
-    assert chunks == [("verdict", "초안."), ("verdict", "최종본.")]
+    # 다시 열 때 빈 줄을 한 번 넣는다 — 안 넣으면 저장본이 "초안.최종본."으로 붙어 버린다
+    assert chunks == [("verdict", "초안."), ("verdict", "\n\n최종본.")]
+    assert concat_sections(chunks) == "초안.\n\n최종본."
     assert splitter.sections_seen == ["verdict"]
 
 
@@ -100,3 +106,23 @@ def test_concat_sections는_섹션별로_잇고_섹션끼리는_빈_줄로_나�
     chunks = [("verdict", "🔴 "), ("verdict", "비추천."), ("reasons", "폐업률이 높다.")]
 
     assert concat_sections(chunks) == "🔴 비추천.\n\n폐업률이 높다."
+
+
+def test_concat_sections는_도착_순서가_뒤섞여도_계약_순서로_저장한다():
+    """폴백 섹션은 LLM이 쓴 섹션 뒤에 붙는다 — 저장본까지 그 순서면 글이 뒤엉킨다 (설계서 §5)."""
+    chunks = [("funding", "공고."), ("verdict", "판정."), ("reasons", "이유.")]
+
+    assert concat_sections(chunks) == "판정.\n\n이유.\n\n공고."
+
+
+def test_concat_sections는_모르는_섹션도_버리지_않는다():
+    chunks = [("stray", "미지의 절."), ("verdict", "판정.")]
+
+    assert concat_sections(chunks) == "판정.\n\n미지의 절."
+
+
+def test_섹션_순서_상수는_인터랙터_계약과_같다():
+    """두 벌이 어긋나면 저장 순서와 방출 순서가 갈린다."""
+    from apps.agent.app.use_cases.analysis_interactor import _SECTIONS
+
+    assert tuple(name for name, _ in _SECTIONS) == SECTION_ORDER

@@ -213,8 +213,10 @@ def test_저장되는_report_md는_조각을_섹션별로_이어_붙인_글이�
 
     class _ChunkedUseCase(FakeAnalysisUseCase):
         def run(self, region, industry, question):
+            # 폴백 섹션은 LLM이 쓴 절보다 늦게 나간다 — 저장본은 계약 순서로 정렬돼야 한다
             yield AgentEvent("report_delta", {"section": "verdict", "markdown": "🔴 "})
             yield AgentEvent("report_delta", {"section": "verdict", "markdown": "비추천."})
+            yield AgentEvent("report_delta", {"section": "funding", "markdown": "공고 2건."})
             yield AgentEvent("report_delta", {"section": "reasons", "markdown": "폐업률이 높다."})
             yield AgentEvent("report_done", {"report_id": "x", "citations": []})
 
@@ -228,4 +230,4 @@ def test_저장되는_report_md는_조각을_섹션별로_이어_붙인_글이�
     ]
     client.get(f"/analysis/{analysis_id}/events")
 
-    assert saved["report_md"] == "🔴 비추천.\n\n폐업률이 높다."
+    assert saved["report_md"] == "🔴 비추천.\n\n폐업률이 높다.\n\n공고 2건."

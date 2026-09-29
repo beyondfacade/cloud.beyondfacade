@@ -27,6 +27,10 @@ _RETRY_BASE_DELAY = 0.5
 _RETRY_MAX_DELAY = 4.0
 _RETRY_BUDGET_SECONDS = 30.0
 
+# 리포트 작성은 facts를 해석해 옮겨 쓰는 일이라 사전 추론이 필요 없다. 2026-09-29 실측(같은
+# 시스템 프롬프트·facts): thinking ON 첫 토큰 11.7초·완료 22.5초 → OFF 첫 토큰 1.1초·완료 8.4~9.0초.
+_THINKING_OFF = types.ThinkingConfig(thinking_budget=0)
+
 
 def to_gemini_contents(messages: list[dict]) -> tuple[str, list[dict]]:
     """Ollama chat 포맷 메시지 → Gemini (system_instruction, contents) 변환.
@@ -154,8 +158,10 @@ class GeminiLLMAdapter(LLMGatewayPort):
     def _config(
         self, system_instruction: str, tools: list[LLMToolSpec]
     ) -> "types.GenerateContentConfig":
+        """chat()·stream()이 함께 쓰는 호출 설정 — 사전 추론은 끈다(_THINKING_OFF)."""
         return types.GenerateContentConfig(
             system_instruction=system_instruction or None,
+            thinking_config=_THINKING_OFF,
             tools=(
                 [types.Tool(function_declarations=to_function_declarations(tools))]
                 if tools
