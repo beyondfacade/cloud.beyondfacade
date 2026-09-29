@@ -28,6 +28,11 @@ const FIVE = [
 ];
 
 function renderSection() {
+  vi.spyOn(api, "fetchVerdictAlternatives").mockResolvedValue({
+    region_code: "1168064000", industry_id: "korean_food", neighborhood_type: "office",
+    industries: [{ industry_id: "snack", industry_name: "분식", verdict_code: "clear", strong_count: 0, on_count: 0 }],
+    regions: [],
+  });
   const client = new QueryClient({ defaultOptions: { queries: { retry: false, retryDelay: 0 } } });
   return render(
     <QueryClientProvider client={client}>
@@ -95,4 +100,21 @@ it("그 외 오류는 한 줄 안내를 보여준다", async () => {
   vi.spyOn(api, "fetchVerdict").mockRejectedValue(new Error("network"));
   renderSection();
   expect(await screen.findByRole("alert")).toHaveTextContent("판정을 불러오지 못했습니다");
+});
+
+it("비추천·조건부 카드는 대안 줄을 붙인다", async () => {
+  vi.spyOn(api, "fetchVerdict").mockResolvedValue(verdict("red", FIVE));
+  renderSection();
+  expect(await screen.findByTestId("alt-industries")).toHaveTextContent("굳이 이 동네라면");
+  expect(screen.getByTestId("alt-industries")).toHaveTextContent("분식");
+});
+
+it("경고 없음 카드는 대안을 요청하지 않는다", async () => {
+  vi.spyOn(api, "fetchVerdict").mockResolvedValue(verdict("clear", FIVE.map((s) => ({ ...s, level: "off" }))));
+  renderSection();
+  const spy = vi.mocked(api.fetchVerdictAlternatives);
+  expect(await screen.findByRole("status", { name: /경고 없음/ })).toBeInTheDocument();
+  await new Promise((r) => setTimeout(r, 0)); // 대안 컴포넌트가 마운트됐다면 이 틱에 queryFn이 돌았을 것
+  expect(screen.queryByTestId("alt-industries")).toBeNull();
+  expect(spy).not.toHaveBeenCalled();
 });

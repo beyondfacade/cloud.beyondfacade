@@ -13,6 +13,7 @@ import type {
   RegionCommerceChangeDetail,
   RegionIndustryHourGap,
   RegionIndustryVerdict,
+  VerdictAlternatives,
   RegionProfile,
   RegionSummary,
   Store,
@@ -118,4 +119,10 @@ export function fetchVerdictMetrics(industry: string): Promise<CategoryRow[]> {
 export function fetchVerdict(regionCode: string, industry: string): Promise<RegionIndustryVerdict> {
   const params = new URLSearchParams({ industry });
   return apiGet<RegionIndustryVerdict>(`/verdicts/${regionCode}?${params.toString()}`);
+}
+
+/** 대안 두 축 — 404 규칙은 단건과 같다. 기준이 경고 없음이면 두 목록이 모두 빈다. */
+export function fetchVerdictAlternatives(regionCode: string, industry: string): Promise<VerdictAlternatives> {
+  const params = new URLSearchParams({ industry });
+  return apiGet<VerdictAlternatives>(`/verdicts/${regionCode}/alternatives?${params.toString()}`);
 }

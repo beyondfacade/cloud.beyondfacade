@@ -2,6 +2,20 @@
 
 > 2026-09-23 T0-2 병합에서 v0.14.x 충돌로 우리 쪽 4항목(랜딩·E2E·동네 프로필·영업 지속 개월)을 v0.15.0·v0.15.1·v0.16.0·v0.17.0으로 재번호했다. 해당 커밋 메시지의 번호는 병합 전 번호다.
 
+## [v0.30.0] - 2026-09-29
+
+### Added
+- **판정 카드 대안 2줄** — `VerdictAlternatives`(`VerdictSection`의 켜진 신호 아래, 근거 보기 위). 자체 훅 `useVerdictAlternatives`
+  (queryKey `["verdict-alternatives", 동, 업종]`, 404 재시도 없음). "굳이 이 동네라면 ○○ · ○○" / "굳이 {업종}(이)라면 ○○동 · ○○동 (같은 {유형} 동네 중)".
+  항목마다 판정 라벨(경고 없음·조건부) 표시. 경고 없음 카드는 요청 자체를 하지 않고, 로딩·오류·빈 결과는 아무것도 그리지 않는다.
+- `fetchVerdictAlternatives` + 타입 `VerdictAlternatives`·`AlternativeIndustry`·`AlternativeRegion` (`shared/api/types.ts`).
+- mock `GET /api/mock/verdicts/[regionCode]/alternatives` — 백엔드 순위 규칙(clear·orange만, 키 `(판정 순위, strong, on)` 기준보다 작은 것만 3개)을 `fixtures.alternativesOf`로 미러. 계약 테스트 3.
+- `shared/korean.withConditionalParticle` — 이라면/라면.
+
+### Validation
+- 신규 테스트 9(컴포넌트 3·mock 계약 3·카드 통합 2·조사 1), 전체 **367/367 passed**, `tsc --noEmit` clean.
+- 실 API(3200 → 8201 프록시) 역삼1동 카페 `/verdicts/1168064000/alternatives` 200. 브라우저 화면은 미확인 — 노트북에서 확인 필요.
+
 ## [v0.29.1] - 2026-09-29
 
 ### Added

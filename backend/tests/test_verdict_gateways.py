@@ -8,6 +8,7 @@ from sqlalchemy import delete, select
 from apps.master.adapter.outbound.orms.region_orm import RegionOrm
 from apps.store.adapter.outbound.orms.store_orm import StoreOrm
 from apps.verdict.adapter.outbound.gateways.industry_catalog_gateway import IndustryCatalogGateway
+from apps.verdict.adapter.outbound.gateways.region_catalog_gateway import RegionCatalogGateway
 from apps.verdict.adapter.outbound.gateways.region_context_gateway import RegionContextGateway
 from apps.verdict.adapter.outbound.gateways.store_signal_stats_gateway import StoreSignalStatsGateway
 from apps.verdict.domain.entities.region_industry_verdict_entity import EXCLUDED_INDUSTRIES
@@ -79,3 +80,11 @@ def test_판정_대상_업종은_제외_5종을_뺀_13종():
     assert len(ids) == 13
     assert ids.isdisjoint(EXCLUDED_INDUSTRIES)
     assert next(i.name for i in judged if i.industry_id == "korean_food") == "한식"
+
+
+def test_동_카탈로그는_전_행정동_이름과_최신_유형을_준다():
+    regions = RegionCatalogGateway().regions()
+    with session_scope() as session:
+        expected = session.execute(select(RegionOrm.region_code, RegionOrm.name).order_by(RegionOrm.region_code)).all()
+    assert [(r.region_code, r.name) for r in regions] == [tuple(e) for e in expected]
+    assert all(r.neighborhood_type is None or isinstance(r.neighborhood_type, str) for r in regions)

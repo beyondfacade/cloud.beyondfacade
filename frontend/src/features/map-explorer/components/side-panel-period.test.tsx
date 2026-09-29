@@ -11,6 +11,7 @@ vi.mock("../api", () => ({
   fetchHourGaps: vi.fn(),
   fetchCommerceChangeDetail: vi.fn(),
   fetchVerdict: vi.fn(),
+  fetchVerdictAlternatives: vi.fn(),
 }));
 vi.mock("next/link", () => ({ default: ({ href, children }: { href: string; children: React.ReactNode }) => <a href={href}>{children}</a> }));
 

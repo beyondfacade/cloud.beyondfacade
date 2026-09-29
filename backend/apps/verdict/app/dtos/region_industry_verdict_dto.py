@@ -1,4 +1,4 @@
-"""verdict BC DTO — 응답용 3종 + 게이트웨이 출력 4종. 프레임워크 타입 없음."""
+"""verdict BC DTO — 응답용(판정·범주값·대안) + 게이트웨이 출력(집계·맥락·점포수·업종·동). 프레임워크 타입 없음."""
 
 from dataclasses import dataclass
 from datetime import datetime
@@ -72,3 +72,41 @@ class LatestStoreCount:
 class JudgedIndustry:
     industry_id: str
     name: str
+
+
+@dataclass(frozen=True)
+class RegionInfo:
+    """동 카탈로그 — 이름과 최신 분기 동네 유형(프로필이 없으면 None)."""
+
+    region_code: str
+    name: str
+    neighborhood_type: str | None
+
+
+@dataclass(frozen=True)
+class AlternativeIndustryDto:
+    industry_id: str
+    industry_name: str
+    verdict_code: str
+    strong_count: int
+    on_count: int
+
+
+@dataclass(frozen=True)
+class AlternativeRegionDto:
+    region_code: str
+    region_name: str
+    verdict_code: str
+    strong_count: int
+    on_count: int
+
+
+@dataclass(frozen=True)
+class VerdictAlternativesDto:
+    """대안 두 축 (설계서 §12) — industries는 동네 고정, regions는 업종 고정(같은 동네 유형 안에서)."""
+
+    region_code: str
+    industry_id: str
+    neighborhood_type: str | None
+    industries: tuple[AlternativeIndustryDto, ...]
+    regions: tuple[AlternativeRegionDto, ...]

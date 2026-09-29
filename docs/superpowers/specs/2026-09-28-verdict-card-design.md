@@ -240,3 +240,24 @@ ERD 연결: region·industry에 FK. 1테이블 = 1프랙탈(§12). 역정규화 
 | 2026-09-29 | Fix round 1 — 컨트롤러 Ruling A/B 반영 | **Ruling A(편의점 제외)**: `convenience_store`는 스냅샷 전용 원천이라 store 인허가 행이 없어 신호 3개가 영구 불가 — "표본 부족"이라 표시하면 근거가 틀린 문장이 되므로 `EXCLUDED_INDUSTRIES`에 추가해 판정 대상을 13업종으로 좁혔다(4단계 담배권 특화 신호 때 재포함). `test_verdict_thresholds.py::test_신호_키_순서와_제외_업종`(집합 5종)·`test_verdict_gateways.py::test_판정_대상_업종은_제외_5종을_뺀_13종`(len 13) 갱신, CLI·크론 문구의 "14업종"도 "13업종"으로 정정. 배치가 upsert-only라 기존 `convenience_store` 427행이 남아있어 `delete from region_industry_verdict where industry_id = 'convenience_store'`로 1회 정리(427행 삭제) 후 재실행 — 5,551행(13×427), 소요 약 2.2초. 나머지 13업종 분포는 사실상 동일(±1 수준의 미세한 차이는 `date.today()` 창이 9/28→9/29로 하루 밀린 데서 온 것으로, 코드 변경과 무관): cafe 36/252/132/7, hair_salon 26/236/153/12, korean_food 25/249/140/13, pub 22/182/130/93, pc_bang 14/104/34/275, western_food 11/151/58/207, chinese_food 10/110/32/275, karaoke 10/142/64/211, snack 9/200/106/112, billiard 7/66/12/342, japanese_food 3/153/70/201, gym 2/108/45/272, real_estate 0/234/183/10. **Ruling B(min_sample 10 유지)**: 5로 낮춰도 저밀도 업종은 여전히 30~45%가 보류이고 5건 표본의 백분위는 노이즈이므로, §3-3이 약속한 "정직한 보류"를 지키기 위해 임계값과 Task 3 회귀 테스트를 그대로 둔다. 전체 스위트 574 passed(변경된 테스트 포함) 재확인. |
 | 2026-09-29 | 2단계 완료 (FE v0.29.0) | Task 8~11: 판정 타입·`shared/verdict.ts`(라벨·`isVerdictIndustry`) → mock `/verdicts`·`/verdicts/[regionCode]` + 결정적 픽스처 → 지도 `verdict` 범주 지표(축 `industry_latest`, 팔레트 `lib/verdict-palette.ts`) → 사이드패널 `VerdictSection`(자체 훅 `useVerdict`, 404는 섹션 없음, 배지 4색은 토큰, 켜진 신호 strong 먼저, "근거 보기"에 5개 전부). Task 11에서 브리프 스니펫 결함 2건을 고쳐 커밋: `verdict-section.tsx`에 빠진 `isVerdictIndustry` import 추가, 판정 보류 안내문이 배지 qualifier와 "표본 부족" 문자열을 중복시켜 테스트가 `getByText`로 유일 매치를 못 하던 것을 문구를 바꿔 해소. 내 `side-panel.tsx` 삽입이 `../api` 전체를 목으로 가는 기존 `side-panel.test.tsx`·`side-panel-period.test.tsx`의 `fetchVerdict` 부재를 깨뜨려 두 파일에 mock을 추가해 복구. 전체 스위트 **353/353 passed**, `tsc --noEmit` clean. 실 API 역삼1동 한식 `/verdicts` 응답 200 확인(3200 프록시). 카드 렌더는 브라우저 미확인 — 사용자 노트북에서 확인 필요. `/map` SSR grep은 무매치(페이지가 `Suspense fallback`만 SSR하고 지역·업종 의존 콘텐츠는 하이드레이션 후 클라이언트에서 채우는 기존 패턴 — §14, 회귀 아님). Fix round 1(리뷰 반영): 원천 태그(`SOURCE_LABEL` — 인허가·지표·상권분석) 표시 누락, `INDUSTRY_NOT_FOUND` 미테스트, 훅의 `retryDelay: 0`(프로덕션 코드 오염)을 테스트 `QueryClient` 기본값으로 이동, 검증 문구 과장 — 4건 모두 반영. |
 | 2026-09-29 | 3단계 완료 (BE v0.40.1 · FE v0.29.1) | Task 12(BE): `GET /stores?status=open\|closed`(기본 open, 기존 응답 그대로) — closed는 최근 2년 폐업만, 마커 행에 `close_date` 추가(open은 null), 미지원 status는 404 `STORE_STATUS_NOT_FOUND`. 실측 역삼1동 한식 closed 300건. Task 13(FE): `Store.close_date`·`fetchStores(…, status)` → `CLOSED_STORE_STRATEGY`(queryKey `["stores-closed", region, industry]`, 팝업 개업일·폐업일·영업 개월, `--danger`) → `RegionMarkers`를 `strategy`·`sourceId`·`colorVar` props로 파라미터화(소스·레이어 id를 `sourceId`에서 파생)해 `MapView`에 두 번째 인스턴스(폐업 레이어)를 얹음 → `map-page.tsx`의 `showClosed` 상태(기본 꺼짐, URL·localStorage 미포함) → `SidePanel`의 `ClosedStoresToggle`(`VerdictSection` 바로 아래, 체크박스 + "이 동에서 최근 2년 {업종} N곳 폐업" — 같은 queryKey라 지도 레이어와 요청 1회로 합쳐짐). 브리프 스니펫 결함 2건을 고쳐 반영: (1) Step 1 테스트가 지정한 `region=1168052100&industry=cafe`는 표본상 cafe가 전 지역 `status_name: "영업"`뿐이라(폐업 표본 0건) `status=closed` 검증이 항상 빈 배열이 되는 구조적 불일치 — 동일 region의 `billiard`(폐업 표본 有, 전부 정확히 "폐업" 상태)로 교체, 나머지 단언은 그대로. (2) 건수 문구가 `<span className="tabular-nums">` 안에 숫자를 감싸 텍스트가 여러 노드로 쪼개져 RTL 기본 `findByText` 정규식이 못 찾음(RTL 문서에 명시된 알려진 제약) — `textContent` 함수 매처로 교체. 전체 스위트 **357/357 passed**, `tsc --noEmit` clean. 실 API 확인: `curl .../stores?region=1168064000&industry=korean_food&status=closed` → 300건, `close_date` 포함. 브라우저 화면(빨간 마커·건수 문구)은 미확인 — 사용자 노트북에서 확인 필요. |
+
+## 12. 대안 두 축 (2026-09-29, HANDOFF §0-7 2번 · §0-8 "두 축 모두" 결정)
+
+**입력은 `region_industry_verdict` 한 테이블 + 동네 유형 한 컬럼(`region_profile_quarter.neighborhood_type` 최신 분기). 신규 집계·배치 없음.**
+
+- 동네 고정: 같은 동에서 판정 대상 13업종 중 자기 업종을 뺀 나머지.
+- 업종 고정: 같은 업종에서 **동네 유형이 같은** 동 중 자기 동을 뺀 나머지. 동에 프로필이 없으면(유형 None) 빈 목록.
+
+**순위 규칙 (domain/services/alternatives.py, 두 축 공통)**
+- 후보는 `clear`·`orange`만 — `red`는 비추천이라 대안이 아니고 `insufficient`는 근거가 없다.
+- 정렬 키 `(VERDICT_RANK[code], strong_count, on_count, id)`, `VERDICT_RANK = clear 0 · orange 1 · red 2 · insufficient 3`.
+- **기준(현재 동×업종)보다 키가 작은 것만** 남긴다 → 기준이 `clear`면 대안 없음(카드에 안 그림), `insufficient`면 clear·orange 전부가 대안.
+- 상위 3개(`ALTERNATIVE_LIMIT`).
+
+**API** `GET /verdicts/{region_code}/alternatives?industry=` →
+`{region_code, industry_id, neighborhood_type: str|null, industries: [{industry_id, industry_name, verdict_code, strong_count, on_count}], regions: [{region_code, region_name, verdict_code, strong_count, on_count}]}`.
+404는 단건과 동일(`INDUSTRY_NOT_FOUND` / 기준 판정이 없으면 `VERDICT_NOT_FOUND`).
+
+**프론트** — `VerdictSection` 아래 `VerdictAlternatives`(자체 훅 `useVerdictAlternatives`, queryKey `["verdict-alternatives", 동, 업종]`) 2줄:
+"굳이 이 동네라면 ○○ · ○○ · ○○" / "굳이 {업종}이라면 ○○동 · ○○동 · ○○동 (같은 {유형} 동네 중)". 두 목록이 모두 비면 아무것도 그리지 않는다.
+클릭해 지도 이동·업종 전환은 후속(관문→판정 착지와 같이).

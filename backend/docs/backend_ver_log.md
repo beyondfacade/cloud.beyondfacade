@@ -1,5 +1,20 @@
 # Backend Version Log
 
+## [v0.41.0] - 2026-09-29
+
+### Added
+- **대안 두 축** `GET /verdicts/{region_code}/alternatives?industry=` (설계서 §12, HANDOFF §0-7 2번) —
+  `industries`(동네 고정: 같은 동의 다른 판정 업종) · `regions`(업종 고정: 최신 분기 `neighborhood_type`이 같은 다른 동) · `neighborhood_type`.
+  404는 단건과 동일(`INDUSTRY_NOT_FOUND` / 기준 판정 없으면 `VERDICT_NOT_FOUND`).
+- `domain/services/alternatives.py` — 순위 규칙 한 곳: 후보는 clear·orange만, 키 `(판정 순위, strong, on)`이 **기준보다 작은 것만**, 키→id 순 3개.
+  기준이 clear면 대안 없음, insufficient면 clear·orange 전부 후보.
+- 포트 `RegionIndustryVerdictRepositoryPort.list_by_region`, 신규 `RegionCatalogPort.regions()`(region 이름 + 최신 분기 유형) + `RegionCatalogGateway`.
+  신규 테이블·배치 없음 — `region_industry_verdict` 조회 + `region_profile_quarter` 한 컬럼 조인.
+
+### Validation
+- 신규 테스트 8(순위 규칙 3·인터랙터 2 — `test_verdict_alternatives.py`; 리포지토리 `list_by_region`; 게이트웨이 427동 이름·유형; 라우터 200/404), 전체 587 passed.
+- 실DB(8201) 역삼1동: 한식 → 동네 고정 호프·주점(orange 0/2)·당구장·카페, 업종 고정 삼성2동(clear)…; 카페 → 업종 고정 구로제3동·문래동·서초1동(같은 office 유형). 모르는 동 404 `VERDICT_NOT_FOUND`, 치킨 404 `INDUSTRY_NOT_FOUND`.
+
 ## [v0.40.2] - 2026-09-29
 
 ### Changed

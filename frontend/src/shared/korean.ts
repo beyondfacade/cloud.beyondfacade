@@ -4,3 +4,10 @@ export function withTopicParticle(word: string): string {
   if (last < 0xac00 || last > 0xd7a3) return `${word}는`;
   return (last - 0xac00) % 28 === 0 ? `${word}는` : `${word}은`;
 }
+
+/** 받침 유무로 조건 조사(이라면/라면)를 붙인다. 한글이 아니면 '라면'. */
+export function withConditionalParticle(word: string): string {
+  const last = word.charCodeAt(word.length - 1);
+  if (last < 0xac00 || last > 0xd7a3) return `${word}라면`;
+  return (last - 0xac00) % 28 === 0 ? `${word}라면` : `${word}이라면`;
+}

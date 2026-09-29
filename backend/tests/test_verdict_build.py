@@ -12,6 +12,7 @@ from apps.verdict.app.dtos.region_industry_verdict_dto import (
 )
 from apps.verdict.app.ports.output.region_industry_verdict_port import (
     IndustryCatalogPort,
+    RegionCatalogPort,
     RegionContextPort,
     RegionIndustryVerdictRepositoryPort,
     StoreSignalStatsPort,
@@ -38,6 +39,9 @@ class FakeRepository(RegionIndustryVerdictRepositoryPort):
 
     def list_by_industry(self, industry_id):
         return sorted((v for v in self.rows.values() if v.industry_id == industry_id), key=lambda v: v.region_code)
+
+    def list_by_region(self, region_code):
+        return sorted((v for v in self.rows.values() if v.region_code == region_code), key=lambda v: v.industry_id)
 
     def find(self, region_code, industry_id):
         return self.rows.get((region_code, industry_id))
@@ -74,6 +78,11 @@ class FakeCatalog(IndustryCatalogPort):
         return [JudgedIndustry("korean_food", "한식")]
 
 
+class FakeRegions(RegionCatalogPort):
+    def regions(self):
+        return []
+
+
 def _stat(region: str, closed_12m: int) -> StoreSignalStat:
     return StoreSignalStat(
         region_code=region, industry_id="korean_food", start_store_count=100, opened_12m=10,
@@ -93,7 +102,7 @@ def _interactor(stats, contexts, counts):
     repo = FakeRepository()
     return repo, RegionIndustryVerdictInteractor(
         repository=repo, store_stats=FakeStoreStats(stats),
-        region_context=FakeContext(contexts, counts), industry_catalog=FakeCatalog(),
+        region_context=FakeContext(contexts, counts), industry_catalog=FakeCatalog(), region_catalog=FakeRegions(),
     )
 
 

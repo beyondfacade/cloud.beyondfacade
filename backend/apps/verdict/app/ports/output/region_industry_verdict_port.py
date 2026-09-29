@@ -8,6 +8,7 @@ from apps.verdict.app.dtos.region_industry_verdict_dto import (
     JudgedIndustry,
     LatestStoreCount,
     RegionContext,
+    RegionInfo,
     StoreSignalStat,
 )
 from apps.verdict.domain.entities.region_industry_verdict_entity import RegionIndustryVerdict
@@ -21,6 +22,10 @@ class RegionIndustryVerdictRepositoryPort(ABC):
     @abstractmethod
     def list_by_industry(self, industry_id: str) -> list[RegionIndustryVerdict]:
         """해당 업종의 전 행정동 판정을 region_code 순으로."""
+
+    @abstractmethod
+    def list_by_region(self, region_code: str) -> list[RegionIndustryVerdict]:
+        """해당 동의 전 업종 판정을 industry_id 순으로 (대안 동네 고정 축)."""
 
     @abstractmethod
     def find(self, region_code: str, industry_id: str) -> RegionIndustryVerdict | None:
@@ -51,3 +56,9 @@ class IndustryCatalogPort(ABC):
     @abstractmethod
     def judged_industries(self) -> list[JudgedIndustry]:
         """판정 대상 업종 — industry 마스터 − EXCLUDED_INDUSTRIES."""
+
+
+class RegionCatalogPort(ABC):
+    @abstractmethod
+    def regions(self) -> list[RegionInfo]:
+        """전 행정동 이름 + 최신 분기 동네 유형 (대안 업종 고정 축)."""

@@ -5,12 +5,15 @@ from dataclasses import asdict
 from datetime import date, datetime, timezone
 
 from apps.verdict.app.dtos.region_industry_verdict_dto import (
+    AlternativeIndustryDto,
+    AlternativeRegionDto,
     JudgedIndustry,
     LatestStoreCount,
     RegionContext,
     RegionIndustryVerdictDto,
     SignalResultDto,
     StoreSignalStat,
+    VerdictAlternativesDto,
     VerdictValueDto,
 )
 from apps.verdict.app.ports.input.region_industry_verdict_use_case import (
@@ -18,6 +21,7 @@ from apps.verdict.app.ports.input.region_industry_verdict_use_case import (
 )
 from apps.verdict.app.ports.output.region_industry_verdict_port import (
     IndustryCatalogPort,
+    RegionCatalogPort,
     RegionContextPort,
     RegionIndustryVerdictRepositoryPort,
     StoreSignalStatsPort,
@@ -30,6 +34,7 @@ from apps.verdict.domain.entities.region_industry_verdict_entity import (
     SignalResult,
 )
 from apps.verdict.domain.errors import IndustryNotFoundError
+from apps.verdict.domain.services.alternatives import rank_alternatives
 from apps.verdict.domain.services.rules import judge, on_count, strong_count
 from apps.verdict.domain.services.signals import SIGNALS, Signal, SignalInput
 from apps.verdict.domain.services.thresholds import DEFAULT_THRESHOLDS, VerdictThresholds
@@ -47,6 +52,7 @@ class RegionIndustryVerdictInteractor(RegionIndustryVerdictUseCase):
         store_stats: StoreSignalStatsPort,
         region_context: RegionContextPort,
         industry_catalog: IndustryCatalogPort,
+        region_catalog: RegionCatalogPort,
         thresholds: VerdictThresholds = DEFAULT_THRESHOLDS,
         signals: Sequence[Signal] = SIGNALS,
     ) -> None:
@@ -54,6 +60,7 @@ class RegionIndustryVerdictInteractor(RegionIndustryVerdictUseCase):
         self._store_stats = store_stats
         self._region_context = region_context
         self._industry_catalog = industry_catalog
+        self._region_catalog = region_catalog
         self._thresholds = thresholds
         self._signals = tuple(signals)
 
@@ -90,6 +97,36 @@ class RegionIndustryVerdictInteractor(RegionIndustryVerdictUseCase):
         self._require_judged(industry_id)
         entity = self._repository.find(region_code, industry_id)
         return None if entity is None else _to_dto(entity)
+
+    def alternatives(self, region_code: str, industry_id: str) -> VerdictAlternativesDto | None:
+        industries = self._industry_catalog.judged_industries()
+        if industry_id not in {i.industry_id for i in industries}:
+            raise IndustryNotFoundError(industry_id)
+        base = self._repository.find(region_code, industry_id)
+        if base is None:
+            return None
+        names = {i.industry_id: i.name for i in industries}
+        regions = {r.region_code: r for r in self._region_catalog.regions()}
+        me = regions.get(region_code)
+        neighborhood_type = me.neighborhood_type if me else None
+
+        same_region = [v for v in self._repository.list_by_region(region_code) if v.industry_id != industry_id]
+        same_type = [
+            v for v in self._repository.list_by_industry(industry_id)
+            if v.region_code != region_code and neighborhood_type is not None
+            and (r := regions.get(v.region_code)) is not None and r.neighborhood_type == neighborhood_type
+        ]
+        return VerdictAlternativesDto(
+            region_code=region_code, industry_id=industry_id, neighborhood_type=neighborhood_type,
+            industries=tuple(
+                AlternativeIndustryDto(v.industry_id, names[v.industry_id], v.verdict_code, v.strong_count, v.on_count)
+                for v in rank_alternatives(base, same_region, key=lambda v: v.industry_id)
+            ),
+            regions=tuple(
+                AlternativeRegionDto(v.region_code, regions[v.region_code].name, v.verdict_code, v.strong_count, v.on_count)
+                for v in rank_alternatives(base, same_type, key=lambda v: v.region_code)
+            ),
+        )
 
     # --- 내부 ---
 

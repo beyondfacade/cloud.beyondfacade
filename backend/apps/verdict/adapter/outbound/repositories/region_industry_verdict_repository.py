@@ -32,6 +32,15 @@ class SqlAlchemyRegionIndustryVerdictRepository(RegionIndustryVerdictRepositoryP
             ).scalars().all()
             return [to_entity(row) for row in rows]
 
+    def list_by_region(self, region_code: str) -> list[RegionIndustryVerdict]:
+        with session_scope() as session:
+            rows = session.execute(
+                select(RegionIndustryVerdictOrm)
+                .where(RegionIndustryVerdictOrm.region_code == region_code)
+                .order_by(RegionIndustryVerdictOrm.industry_id)
+            ).scalars().all()
+            return [to_entity(row) for row in rows]
+
     def find(self, region_code: str, industry_id: str) -> RegionIndustryVerdict | None:
         with session_scope() as session:
             orm = session.get(RegionIndustryVerdictOrm, (region_code, industry_id))

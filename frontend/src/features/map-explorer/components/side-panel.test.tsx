@@ -22,6 +22,9 @@ vi.mock("../api", () => ({
   fetchVerdict: vi.fn(async () => {
     throw new ApiError("VERDICT_NOT_FOUND", "missing");
   }),
+  fetchVerdictAlternatives: vi.fn(async () => {
+    throw new ApiError("VERDICT_NOT_FOUND", "missing");
+  }),
   fetchConvenienceSummary: vi.fn(async () => ({ region_code: "1168064000", store_count: 0, brands: [], source_stdr_ym: null })),
 }));
 

@@ -369,3 +369,29 @@ export interface VerdictRow {
   region_code: string;
   value: VerdictCode;
 }
+
+// 대안 두 축 (GET /verdicts/{region_code}/alternatives?industry=) — 설계서 §12
+// industries = 동네 고정(같은 동, 다른 업종) · regions = 업종 고정(같은 동네 유형, 다른 동). 둘 다 기준보다 신호가 적은 clear·orange만, 3개까지.
+export interface AlternativeIndustry {
+  industry_id: string;
+  industry_name: string;
+  verdict_code: VerdictCode;
+  strong_count: number;
+  on_count: number;
+}
+
+export interface AlternativeRegion {
+  region_code: string;
+  region_name: string;
+  verdict_code: VerdictCode;
+  strong_count: number;
+  on_count: number;
+}
+
+export interface VerdictAlternatives {
+  region_code: string;
+  industry_id: string;
+  neighborhood_type: string | null; // 프로필이 없는 동은 null → regions는 빈 배열
+  industries: AlternativeIndustry[];
+  regions: AlternativeRegion[];
+}

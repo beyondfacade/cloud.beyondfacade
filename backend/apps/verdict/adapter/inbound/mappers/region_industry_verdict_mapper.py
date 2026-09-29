@@ -3,11 +3,18 @@
 from dataclasses import asdict
 
 from apps.verdict.adapter.inbound.api.schemas.region_industry_verdict_schema import (
+    AlternativeIndustryResponse,
+    AlternativeRegionResponse,
     RegionIndustryVerdictResponse,
     SignalResultResponse,
+    VerdictAlternativesResponse,
     VerdictValueResponse,
 )
-from apps.verdict.app.dtos.region_industry_verdict_dto import RegionIndustryVerdictDto, VerdictValueDto
+from apps.verdict.app.dtos.region_industry_verdict_dto import (
+    RegionIndustryVerdictDto,
+    VerdictAlternativesDto,
+    VerdictValueDto,
+)
 
 
 def to_response(dto: RegionIndustryVerdictDto) -> RegionIndustryVerdictResponse:
@@ -20,3 +27,11 @@ def to_response(dto: RegionIndustryVerdictDto) -> RegionIndustryVerdictResponse:
 
 def to_value_response(dto: VerdictValueDto) -> VerdictValueResponse:
     return VerdictValueResponse(**asdict(dto))
+
+
+def to_alternatives_response(dto: VerdictAlternativesDto) -> VerdictAlternativesResponse:
+    return VerdictAlternativesResponse(
+        region_code=dto.region_code, industry_id=dto.industry_id, neighborhood_type=dto.neighborhood_type,
+        industries=[AlternativeIndustryResponse(**asdict(a)) for a in dto.industries],
+        regions=[AlternativeRegionResponse(**asdict(a)) for a in dto.regions],
+    )

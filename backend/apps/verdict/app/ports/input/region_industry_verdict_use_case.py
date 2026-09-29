@@ -5,6 +5,7 @@ from datetime import date
 
 from apps.verdict.app.dtos.region_industry_verdict_dto import (
     RegionIndustryVerdictDto,
+    VerdictAlternativesDto,
     VerdictValueDto,
 )
 
@@ -25,3 +26,7 @@ class RegionIndustryVerdictUseCase(ABC):
     @abstractmethod
     def find(self, region_code: str, industry_id: str) -> RegionIndustryVerdictDto | None:
         """카드용 단건 — 없으면 None. 판정 대상이 아니면 IndustryNotFoundError."""
+
+    @abstractmethod
+    def alternatives(self, region_code: str, industry_id: str) -> VerdictAlternativesDto | None:
+        """대안 두 축 — 기준 판정이 없으면 None. 판정 대상이 아니면 IndustryNotFoundError."""

@@ -6,6 +6,7 @@ import { ApiError } from "@/shared/api/client";
 import { industryLabel } from "@/shared/industries";
 import { isVerdictIndustry, signalLabel, verdictLabel } from "@/shared/verdict";
 import { useVerdict } from "../hooks/use-verdict";
+import { VerdictAlternatives } from "./verdict-alternatives";
 
 /** 판정 → 배지 색 토큰. 🔴 --danger · 🟠 --warn · ⚪ 보조 텍스트 · 보류 테두리색 (조건 분기 대신 테이블). */
 const BADGE_TOKEN: Record<VerdictCode, string> = {
@@ -100,6 +101,8 @@ export function VerdictSection({ regionCode, industry }: VerdictSectionProps) {
             : "서울 같은 업종 동네와 비교해 켜진 경고 신호가 없습니다."}
         </p>
       )}
+
+      {verdict.verdict_code !== "clear" && <VerdictAlternatives regionCode={regionCode} industry={industry} />}
 
       <button
         type="button"

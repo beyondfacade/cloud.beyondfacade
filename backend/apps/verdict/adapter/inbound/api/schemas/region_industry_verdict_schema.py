@@ -27,3 +27,29 @@ class VerdictValueResponse(BaseModel):
 
     region_code: str
     value: str
+
+
+class AlternativeIndustryResponse(BaseModel):
+    industry_id: str
+    industry_name: str
+    verdict_code: str
+    strong_count: int
+    on_count: int
+
+
+class AlternativeRegionResponse(BaseModel):
+    region_code: str
+    region_name: str
+    verdict_code: str
+    strong_count: int
+    on_count: int
+
+
+class VerdictAlternativesResponse(BaseModel):
+    """대안 두 축 (설계서 §12) — industries 동네 고정 · regions 업종 고정(같은 neighborhood_type 안에서)."""
+
+    region_code: str
+    industry_id: str
+    neighborhood_type: str | None
+    industries: list[AlternativeIndustryResponse]
+    regions: list[AlternativeRegionResponse]

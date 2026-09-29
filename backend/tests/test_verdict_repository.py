@@ -65,3 +65,14 @@ def test_판정_대상_외_업종_행만_지운다():
         assert repo.find(codes[0], _INDUSTRY) is not None
     finally:
         _cleanup(codes)
+
+
+def test_동_기준_목록은_업종순이다():
+    codes = _two_region_codes()
+    repo = SqlAlchemyRegionIndustryVerdictRepository()
+    try:
+        repo.upsert([_verdict(codes[0], "clear", industry_id="pub"), _verdict(codes[0], "orange"), _verdict(codes[1], "clear")])
+        listed = repo.list_by_region(codes[0])
+        assert [(v.industry_id, v.verdict_code) for v in listed] == [(_INDUSTRY, "orange"), ("pub", "clear")]
+    finally:
+        _cleanup(codes)

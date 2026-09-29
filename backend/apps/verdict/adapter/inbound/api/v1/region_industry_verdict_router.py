@@ -3,9 +3,14 @@ from fastapi.responses import JSONResponse
 
 from apps.verdict.adapter.inbound.api.schemas.region_industry_verdict_schema import (
     RegionIndustryVerdictResponse,
+    VerdictAlternativesResponse,
     VerdictValueResponse,
 )
-from apps.verdict.adapter.inbound.mappers.region_industry_verdict_mapper import to_response, to_value_response
+from apps.verdict.adapter.inbound.mappers.region_industry_verdict_mapper import (
+    to_alternatives_response,
+    to_response,
+    to_value_response,
+)
 from apps.verdict.app.ports.input.region_industry_verdict_use_case import RegionIndustryVerdictUseCase
 from apps.verdict.dependencies.region_industry_verdict_dependencies import get_region_industry_verdict_use_case
 from apps.verdict.domain.errors import IndustryNotFoundError
@@ -49,3 +54,19 @@ def find_verdict(
     if dto is None:
         return _not_found("VERDICT_NOT_FOUND", f"판정이 없습니다: {region_code} × {industry}")
     return to_response(dto)
+
+
+@router.get("/{region_code}/alternatives", response_model=VerdictAlternativesResponse)
+def find_alternatives(
+    region_code: str,
+    industry: str,
+    use_case: RegionIndustryVerdictUseCase = Depends(get_region_industry_verdict_use_case),
+) -> VerdictAlternativesResponse | JSONResponse:
+    """대안 두 축 (설계서 §12) — 404는 단건과 같다."""
+    try:
+        dto = use_case.alternatives(region_code, industry)
+    except IndustryNotFoundError:
+        return _not_found("INDUSTRY_NOT_FOUND", f"판정 대상 업종이 아닙니다: {industry}")
+    if dto is None:
+        return _not_found("VERDICT_NOT_FOUND", f"판정이 없습니다: {region_code} × {industry}")
+    return to_alternatives_response(dto)

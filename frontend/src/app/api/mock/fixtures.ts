@@ -22,6 +22,7 @@ import type {
   RegionCommerceChangeDetail,
   RegionIndustryHourGap,
   RegionIndustryVerdict,
+  VerdictAlternatives,
   RegionProfile,
   RegionSummary,
   Store,
@@ -33,7 +34,7 @@ import type {
 } from "@/shared/api/types";
 import { availableYears, isMetricMissingForIndustry } from "@/features/map-explorer/lib/metric-coverage";
 import { STORE_SAMPLES, type StoreSample } from "./store-samples";
-import { INDUSTRY_LABELS, type IndustryId } from "@/shared/industries";
+import { INDUSTRIES, INDUSTRY_LABELS, type IndustryId } from "@/shared/industries";
 import { isVerdictIndustry } from "@/shared/verdict";
 import { neighborhoodTypeLabel } from "@/shared/neighborhood";
 import { SEOUL_DISTRICTS, districtOf } from "@/shared/seoul-districts";
@@ -814,6 +815,51 @@ export function verdictOf(regionCode: string, industryId: string): RegionIndustr
     on_count: signals.filter((s) => s.level === "on" || s.level === "strong").length,
     signals,
     computed_at: "2026-09-29T04:30:00+09:00",
+  };
+}
+
+// 대안 두 축 — 백엔드 domain/services/alternatives.py의 순위 규칙을 그대로 옮긴 것 (설계서 §12).
+// 후보는 clear·orange만, 키 (판정 순위, strong, on)가 기준보다 작은 것만, 키→id 순으로 3개.
+const VERDICT_RANK: Record<VerdictCode, number> = { clear: 0, orange: 1, red: 2, insufficient: 3 };
+const ALTERNATIVE_LIMIT = 3;
+
+function signalKey(v: RegionIndustryVerdict): [number, number, number] {
+  return [VERDICT_RANK[v.verdict_code], v.strong_count, v.on_count];
+}
+
+function keyLess(a: number[], b: number[]): boolean {
+  for (let i = 0; i < a.length; i++) if (a[i] !== b[i]) return a[i] < b[i];
+  return false;
+}
+
+function rankAlternatives(base: RegionIndustryVerdict, candidates: RegionIndustryVerdict[], id: (v: RegionIndustryVerdict) => string): RegionIndustryVerdict[] {
+  const baseKey = signalKey(base);
+  return candidates
+    .filter((v) => (v.verdict_code === "clear" || v.verdict_code === "orange") && keyLess(signalKey(v), baseKey))
+    .sort((a, b) => (keyLess(signalKey(a), signalKey(b)) ? -1 : keyLess(signalKey(b), signalKey(a)) ? 1 : id(a).localeCompare(id(b))))
+    .slice(0, ALTERNATIVE_LIMIT);
+}
+
+export function alternativesOf(regionCode: string, industryId: string): VerdictAlternatives {
+  const base = verdictOf(regionCode, industryId);
+  const neighborhoodType = regionProfileOf(regionCode, LATEST_PROFILE_QUARTER).neighborhood_type;
+  const sameRegion = INDUSTRIES.filter((id) => id !== industryId && isJudgedIndustry(id)).map((id) => verdictOf(regionCode, id));
+  const sameType = REGIONS
+    .filter((r) => r.region_code !== regionCode && regionProfileOf(r.region_code, LATEST_PROFILE_QUARTER).neighborhood_type === neighborhoodType)
+    .map((r) => verdictOf(r.region_code, industryId));
+  const nameOf = (code: string) => REGIONS.find((r) => r.region_code === code)?.name ?? code;
+  return {
+    region_code: regionCode,
+    industry_id: industryId,
+    neighborhood_type: neighborhoodType,
+    industries: rankAlternatives(base, sameRegion, (v) => v.industry_id).map((v) => ({
+      industry_id: v.industry_id, industry_name: INDUSTRY_LABELS[v.industry_id as IndustryId] ?? v.industry_id,
+      verdict_code: v.verdict_code, strong_count: v.strong_count, on_count: v.on_count,
+    })),
+    regions: rankAlternatives(base, sameType, (v) => v.region_code).map((v) => ({
+      region_code: v.region_code, region_name: nameOf(v.region_code),
+      verdict_code: v.verdict_code, strong_count: v.strong_count, on_count: v.on_count,
+    })),
   };
 }
 

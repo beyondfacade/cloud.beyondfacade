@@ -5,8 +5,11 @@ from datetime import datetime, timezone
 from fastapi.testclient import TestClient
 
 from apps.verdict.app.dtos.region_industry_verdict_dto import (
+    AlternativeIndustryDto,
+    AlternativeRegionDto,
     RegionIndustryVerdictDto,
     SignalResultDto,
+    VerdictAlternativesDto,
     VerdictValueDto,
 )
 from apps.verdict.app.ports.input.region_industry_verdict_use_case import RegionIndustryVerdictUseCase
@@ -40,6 +43,17 @@ class FakeUseCase(RegionIndustryVerdictUseCase):
         if industry_id != "korean_food":
             raise IndustryNotFoundError(industry_id)
         return _DTO if region_code == "1168064000" else None
+
+    def alternatives(self, region_code, industry_id):
+        if industry_id != "korean_food":
+            raise IndustryNotFoundError(industry_id)
+        if region_code != "1168064000":
+            return None
+        return VerdictAlternativesDto(
+            region_code=region_code, industry_id=industry_id, neighborhood_type="office",
+            industries=(AlternativeIndustryDto("snack", "분식", "clear", 0, 0),),
+            regions=(AlternativeRegionDto("1168065000", "삼성1동", "orange", 0, 1),),
+        )
 
 
 def _client() -> TestClient:
@@ -77,4 +91,16 @@ def test_단건은_신호_5개를_담고_없으면_404_VERDICT_NOT_FOUND():
     assert body["verdict_code"] == "red" and body["signals"][0]["key"] == "net_outflow"
     assert body["signals"][0]["percentile"] == 95.0
     missing = _client().get("/verdicts/0000000000?industry=korean_food")
+    assert missing.status_code == 404 and missing.json()["error"]["code"] == "VERDICT_NOT_FOUND"
+
+
+def test_대안은_두_축을_담고_404는_단건과_같다():
+    res = _client().get("/verdicts/1168064000/alternatives?industry=korean_food")
+    assert res.status_code == 200
+    body = res.json()
+    assert body["neighborhood_type"] == "office"
+    assert body["industries"] == [{"industry_id": "snack", "industry_name": "분식", "verdict_code": "clear", "strong_count": 0, "on_count": 0}]
+    assert body["regions"][0]["region_name"] == "삼성1동"
+    assert _client().get("/verdicts/1168064000/alternatives?industry=chicken").json()["error"]["code"] == "INDUSTRY_NOT_FOUND"
+    missing = _client().get("/verdicts/0000000000/alternatives?industry=korean_food")
     assert missing.status_code == 404 and missing.json()["error"]["code"] == "VERDICT_NOT_FOUND"
