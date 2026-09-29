@@ -5,6 +5,15 @@
 ## [v0.32.0] - 2026-09-29
 
 ### Added
+- **리포트 v2 Task 4 시각 자료** — 공유 `VerdictCard`(판정 배지·켜진 신호 최대 3개·참고 줄·산출일),
+  `SignalBars`(5신호·75/90 기준선), 대안 두 축 카드(각 3개), 지원사업 후보 카드(최대 5개),
+  연도별 점포수·폐업률·성장률 인라인 SVG 추세 추가. 점포수와 비율은 별도 축, 값은 `<title>`로 제공.
+- **Task 4 차트 복원** — `82505a8^`의 동네 프로필·하루 흐름·시간대 어긋남·영업 지속을
+  `agent-report/components/charts/`에 props 기반으로 복원. 하루 흐름 막대는 CSS, 꺾은선은 SVG,
+  색은 모두 기존 토큰 사용. 삭제된 시간대 어휘·결정론 문장 로직과 테스트도 리포트 내부에 복원.
+- **Task 4 TDD 검증** — 신규 모듈 미존재 및 facts만 수신하는 뷰의 Red 확인 후 Green.
+  차트의 정상·빈 값·수집 실패, facts만/본문 추가/필드 누락, 백분위 경계·색,
+  중복 제목 제거·인용 유지 검증. 전체 Vitest **82파일·417테스트** 및 `npx tsc --noEmit` 통과.
 - **리포트 v2 Task 3 사실 계약** — `ReportFacts` 12개 키와 항목별 `available: false` 실패 형태,
   `facts` SSE 이벤트 및 리듀서 저장 추가. 확정 응답은 기존 타입을 재사용하고 인구·충격·뉴스·지원사업 후보는
   Task 4 카드 구현 전까지 느슨한 도구 응답 타입으로 유지.
@@ -12,6 +21,13 @@
   SSE 이벤트 순서·12키·결정적 픽스처 재사용·연도별 이력·다섯 섹션 문장 조각 결합 검증.
 
 ### Changed
+- **Task 4 리포트 레이아웃** — facts 수신 즉시 5개 섹션을 "그림 위·글 아래"로 표시하고,
+  본문 미수신 섹션에 스켈레톤 한 줄 제공. 실패·누락 항목은 해당 그림 자리에서 "자료 없음" 처리.
+  빈 리포트·인용 목록은 유지. `VerdictSection`은 기존 훅·대안 조회를 유지하며 공유 카드 사용;
+  기존 `verdict-section.test.tsx`·`side-panel.test.tsx` 수정 없이 통과.
+- **Task 4 사실 표시 타입** — 충격·지원사업에서 화면이 쓰는 필드만 선택적으로 좁힘.
+  후보의 `program_id|id`, `target|target_text`와 충격의 `event_id|id`, `name|title`, `period|start` 대응.
+  인구·뉴스는 사용하지 않으므로 느슨한 타입 유지. 지원사업 원문은 HTTP(S) 링크와 `rel="noopener"` 적용.
 - 진행 스테이지의 `verdict`를 `facts`("사실 수집")·`writer`("리포트 작성")로 교체.
   `market/shock/funding`은 idle일 때 숨기고 열린 상태·도구 내역만 표시.
 - mock SSE를 orchestrator → facts 선수집 → writer 문장 조각 → writer/orchestrator 완료 → report_done으로 변경.

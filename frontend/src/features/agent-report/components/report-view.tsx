@@ -3,6 +3,7 @@ import remarkGfm from "remark-gfm";
 import type { ReportSection } from "@/shared/api/types";
 import { GradeBadge } from "@/shared/ui/grade-badge";
 import type { AgentState } from "../lib/agent-events";
+import { ReportVisuals } from "./report-visuals";
 import styles from "./analysis-workspace.module.css";
 
 const SECTION_ORDER: ReportSection[] = ["verdict", "reasons", "conditions", "alternatives", "funding"];
@@ -36,7 +37,7 @@ interface ReportViewProps {
 }
 
 export function ReportView({ state }: ReportViewProps) {
-  const sections = SECTION_ORDER.filter((s) => state.sections[s]);
+  const sections = SECTION_ORDER.filter((s) => state.facts || state.sections[s]);
 
   if (sections.length === 0) {
     return (
@@ -69,11 +70,17 @@ export function ReportView({ state }: ReportViewProps) {
       </header>
       <div className={styles.reportBody}>
         {sections.map((section, index) => (
-          <section key={section} className={`${styles.reportSection} border-[var(--border)]`}>
+          <section key={section} aria-label={SECTION_LABEL[section]} className={`${styles.reportSection} border-[var(--border)]`}>
             <p className={`${styles.sectionNumber} text-[var(--accent)]`} aria-hidden="true">{String(index + 1).padStart(2, "0")} / ANALYSIS</p>
-            <div className={`${styles.markdown} report-markdown`}>
-              <ReactMarkdown remarkPlugins={[remarkGfm]}>{state.sections[section]}</ReactMarkdown>
-            </div>
+            {state.facts && <>
+              <h2 className="mb-5 text-xl font-semibold text-[var(--text-primary)]">{SECTION_LABEL[section]}</h2>
+              <ReportVisuals facts={state.facts} section={section} />
+            </>}
+            {state.sections[section] ? <div className={`${styles.markdown} report-markdown`}>
+              <ReactMarkdown remarkPlugins={[remarkGfm]}>{state.facts
+                ? state.sections[section].replace(new RegExp(`^#{1,6}\\s+${SECTION_LABEL[section]}\\s*\\n`), "")
+                : state.sections[section]}</ReactMarkdown>
+            </div> : <div role="status" aria-label="본문 작성 중" className="h-4 w-3/4 animate-pulse rounded bg-[var(--bg-raised)] motion-reduce:animate-none" />}
           </section>
         ))}
         {state.done && citations.length > 0 && (

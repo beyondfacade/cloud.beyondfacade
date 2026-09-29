@@ -27,12 +27,33 @@ export interface ReportFacts {
     closure_rate: number;
     growth_rate: number;
   }[] | UnavailableFact;
-  // 백엔드 도구 응답 형태 미확정: Task 4에서 카드에 필요한 필드만 좁힌다.
+  // 화면이 쓰지 않는 인구·뉴스는 도구 응답을 그대로 보존한다.
   population: Record<string, unknown> | UnavailableFact;
-  shocks: Array<Record<string, unknown>> | UnavailableFact;
+  shocks: ReportShock[] | UnavailableFact;
   news: Array<Record<string, unknown>> | UnavailableFact;
-  funding_candidates: Array<Record<string, unknown>> | UnavailableFact;
+  funding_candidates: ReportFundingCandidate[] | UnavailableFact;
   budget: number | null;
+}
+
+/** 리포트 카드가 사용하는 필드만 좁힌다. 도구별 ID·대상 필드 차이와 누락을 허용한다. */
+export interface ReportFundingCandidate extends Record<string, unknown> {
+  program_id?: string;
+  id?: string;
+  title?: string;
+  org?: string | null;
+  summary?: string | null;
+  target?: string | null;
+  target_text?: string | null;
+  url?: string | null;
+}
+
+export interface ReportShock extends Record<string, unknown> {
+  event_id?: string;
+  id?: string;
+  name?: string;
+  title?: string;
+  period?: string | null;
+  start?: string | null;
 }
 
 export type MetricKey = "closure_rate" | "growth_rate" | "store_count";
