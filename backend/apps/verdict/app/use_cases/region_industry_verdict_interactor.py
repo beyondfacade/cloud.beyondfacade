@@ -8,6 +8,7 @@ from apps.verdict.app.dtos.region_industry_verdict_dto import (
     AlternativeIndustryDto,
     AlternativeRegionDto,
     BacktestBucketDto,
+    BacktestGateDto,
     BacktestReportDto,
     BacktestSignalBucketDto,
     EntrantOutcome,
@@ -41,7 +42,7 @@ from apps.verdict.domain.entities.region_industry_verdict_entity import (
 )
 from apps.verdict.domain.errors import IndustryNotFoundError
 from apps.verdict.domain.services.alternatives import rank_alternatives
-from apps.verdict.domain.services.backtest import quarter_before, summarize, summarize_signals
+from apps.verdict.domain.services.backtest import GATE_POLICIES, quarter_before, reinclusion_gate, summarize, summarize_signals
 from apps.verdict.domain.services.profiles import PermitProfile, SignalProfile
 from apps.verdict.domain.services.rules import judge, on_count, strong_count
 from apps.verdict.domain.services.signals import SIGNALS, Signal, SignalInput
@@ -126,17 +127,24 @@ class RegionIndustryVerdictInteractor(RegionIndustryVerdictUseCase):
         verdicts = self.compute(as_of, quarter_max=quarter_max, year_max=year_max, industries=industries)
         outcomes = self._outcomes(industries, as_of, entry_days, horizon_days)
         names = {i.industry_id: i.name for i in industries}
+        basis_of = {i.industry_id: self._source_of(i.industry_id).profile.basis for i in industries}
+        buckets = summarize(verdicts, outcomes)
         return BacktestReportDto(
             as_of=as_of, quarter_max=quarter_max, year_max=year_max, entry_days=entry_days, horizon_days=horizon_days,
             buckets=tuple(
                 BacktestBucketDto(b.industry_id, names.get(b.industry_id), b.verdict_code, b.pairs, b.opened, b.closed)
-                for b in summarize(verdicts, outcomes)
+                for b in buckets
             ),
             signal_buckets=tuple(
                 BacktestSignalBucketDto(b.industry_id, names.get(b.industry_id), b.signal_key, b.fired, b.pairs, b.opened, b.closed)
                 for b in summarize_signals(verdicts, outcomes)
             ),
-            industry_basis=tuple((i.industry_id, self._source_of(i.industry_id).profile.basis) for i in industries),
+            industry_basis=tuple(basis_of.items()),
+            gates=tuple(
+                BacktestGateDto(g.industry_id, names.get(g.industry_id), basis_of[g.industry_id], g.passed, g.warn_lift,
+                                g.warn_opened, g.clear_opened, g.warn_pairs, g.clear_pairs, g.reason)
+                for g in (reinclusion_gate(buckets, i, GATE_POLICIES[basis_of[i]]) for i in basis_of)
+            ),
         )
 
     def list_verdict_values(self, industry_id: str) -> list[VerdictValueDto]:

@@ -2,6 +2,8 @@
 
 from datetime import date, datetime, timezone
 
+import pytest
+
 from apps.verdict.app.dtos.region_industry_verdict_dto import (
     EntrantOutcome,
     JudgedIndustry,
@@ -19,7 +21,16 @@ from apps.verdict.app.ports.output.region_industry_verdict_port import (
 )
 from apps.verdict.app.use_cases.region_industry_verdict_interactor import RegionIndustryVerdictInteractor
 from apps.verdict.domain.entities.region_industry_verdict_entity import RegionIndustryVerdict, SignalResult
-from apps.verdict.domain.services.backtest import quarter_before, quarter_of, shift_quarter, summarize, summarize_signals
+from apps.verdict.domain.services.backtest import (
+    GATE_POLICIES,
+    OutcomeBucket,
+    quarter_before,
+    quarter_of,
+    reinclusion_gate,
+    shift_quarter,
+    summarize,
+    summarize_signals,
+)
 
 _AT = datetime(2026, 9, 29, tzinfo=timezone.utc)
 
@@ -173,3 +184,45 @@ def test_백테스트는_상한을_넘겨_T시점_판정을_내고_결과와_조
     assert sum(b.pairs for b in overall.values()) == 20
     fired = {(b.signal_key, b.fired): b for b in report.signal_buckets if b.industry_id is None}
     assert fired[("net_outflow", True)].rate > fired[("net_outflow", False)].rate
+
+
+# --- 재포함 게이트 ---
+
+def _b(industry, code, pairs, opened, closed):
+    return OutcomeBucket(industry, code, pairs, opened, closed)
+
+
+def test_게이트는_경고_lift_1_10과_표본을_모두_넘어야_통과한다():
+    buckets = [
+        _b("convenience_store", "red", 3, 20, 8),
+        _b("convenience_store", "orange", 100, 400, 80),
+        _b("convenience_store", "clear", 80, 200, 30),
+        _b("convenience_store", "insufficient", 50, 60, 30),  # 보류는 게이트에 안 들어간다
+        _b(None, "clear", 1, 1, 1),
+    ]
+    gate = reinclusion_gate(buckets, "convenience_store", GATE_POLICIES["proxy"])
+    assert gate.passed and gate.reason == "통과"
+    assert gate.warn_lift == pytest.approx((88 / 420) / (30 / 200))
+    assert (gate.warn_opened, gate.clear_opened, gate.warn_pairs, gate.clear_pairs) == (420, 200, 103, 80)
+
+
+def test_게이트_경고_lift가_1_10_미만이면_미달이다():
+    gate = reinclusion_gate([_b("x", "orange", 100, 400, 60), _b("x", "clear", 80, 200, 30)], "x", GATE_POLICIES["proxy"])
+    assert not gate.passed and "경고 lift 1.00×" in gate.reason
+
+
+def test_게이트_대리_원천은_개업_50곳_미만이면_미달이다():
+    gate = reinclusion_gate([_b("x", "orange", 10, 49, 20), _b("x", "clear", 10, 200, 20)], "x", GATE_POLICIES["proxy"])
+    assert not gate.passed and "개업" in gate.reason
+
+
+def test_게이트_집계_원천은_동_30곳_미만이면_미달이다():
+    gate = reinclusion_gate(
+        [_b("x", "orange", 29, 5000, 900), _b("x", "clear", 200, 20000, 2000)], "x", GATE_POLICIES["aggregate"]
+    )
+    assert not gate.passed and "동×업종" in gate.reason
+
+
+def test_게이트_경고_없음_판정이_없으면_lift를_못_내고_미달이다():
+    gate = reinclusion_gate([_b("x", "orange", 50, 500, 50)], "x", GATE_POLICIES["proxy"])
+    assert not gate.passed and gate.warn_lift is None and "계산 불가" in gate.reason

@@ -158,6 +158,22 @@ class BacktestSignalBucketDto:
 
 
 @dataclass(frozen=True)
+class BacktestGateDto:
+    """재포함 게이트 결과 (업종 특화 신호 설계서 §8)."""
+
+    industry_id: str
+    industry_name: str | None
+    basis: str
+    passed: bool
+    warn_lift: float | None
+    warn_opened: int
+    clear_opened: int
+    warn_pairs: int
+    clear_pairs: int
+    reason: str
+
+
+@dataclass(frozen=True)
 class BacktestReportDto:
     as_of: date
     quarter_max: str
@@ -167,3 +183,4 @@ class BacktestReportDto:
     buckets: tuple[BacktestBucketDto, ...]
     signal_buckets: tuple[BacktestSignalBucketDto, ...]
     industry_basis: tuple[tuple[str, str], ...] = ()  # (industry_id, basis) — 표의 † 표기·심사 절 원천 칸
+    gates: tuple[BacktestGateDto, ...] = ()

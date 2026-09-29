@@ -116,3 +116,61 @@ def summarize_signals(verdicts: Sequence[RegionIndustryVerdict], outcomes: Itera
                 cell[2] += closed
     ordered = sorted(acc, key=lambda k: (k[0] is not None, k[0] or "", ALL_SIGNAL_KEYS.index(k[1]), not k[2]))
     return [SignalBucket(industry, key, fired, *acc[(industry, key, fired)]) for industry, key, fired in ordered]
+
+
+@dataclass(frozen=True)
+class GatePolicy:
+    min_lift: float  # 경고(🔴+🟠) 폐업률 ÷ ⚪ 폐업률 하한
+    min_opened: int  # 경고·⚪ 각각의 개업(또는 집계 노출) 하한
+    min_pairs: int  # 경고·⚪ 각각의 동×업종 하한
+
+
+# 재포함 게이트 (업종 특화 신호 설계서 §8). 1.10 = 작동한다고 본 카페 1.36·미용실 1.16과 못 가른 나머지(≤1.08) 사이.
+# 대리 원천은 개업 50곳(폐업률 15%에서 표준오차 약 5%p), 집계 원천은 결과 단위가 동이라 동 30곳.
+GATE_POLICIES: dict[str, GatePolicy] = {
+    BASIS_PERMIT: GatePolicy(min_lift=1.10, min_opened=50, min_pairs=0),
+    BASIS_PROXY: GatePolicy(min_lift=1.10, min_opened=50, min_pairs=0),
+    BASIS_AGGREGATE: GatePolicy(min_lift=1.10, min_opened=0, min_pairs=30),
+}
+
+_WARN_CODES = frozenset({"red", "orange"})
+
+
+@dataclass(frozen=True)
+class GateResult:
+    industry_id: str
+    passed: bool
+    warn_lift: float | None
+    warn_opened: int
+    clear_opened: int
+    warn_pairs: int
+    clear_pairs: int
+    reason: str  # "통과" 또는 "미달 — …"
+
+
+def _fmt_lift(lift: float | None) -> str:
+    return "계산 불가" if lift is None else f"{lift:.2f}×"
+
+
+def reinclusion_gate(buckets: Iterable[OutcomeBucket], industry_id: str, policy: GatePolicy) -> GateResult:
+    """업종 버킷으로 재포함 게이트를 판정한다. 보류(insufficient)는 넣지 않는다."""
+    own = [b for b in buckets if b.industry_id == industry_id]
+    warn = [b for b in own if b.verdict_code in _WARN_CODES]
+    clear = [b for b in own if b.verdict_code == "clear"]
+    w_pairs, w_opened, w_closed = sum(b.pairs for b in warn), sum(b.opened for b in warn), sum(b.closed for b in warn)
+    c_pairs, c_opened, c_closed = sum(b.pairs for b in clear), sum(b.opened for b in clear), sum(b.closed for b in clear)
+    lift = None if not (w_opened and c_opened and c_closed) else (w_closed / w_opened) / (c_closed / c_opened)
+    failures = [
+        message
+        for failed, message in (
+            (min(w_pairs, c_pairs) < policy.min_pairs,
+             f"동×업종 경고 {w_pairs}·경고 없음 {c_pairs} < {policy.min_pairs}"),
+            (min(w_opened, c_opened) < policy.min_opened,
+             f"개업 경고 {w_opened:,}·경고 없음 {c_opened:,} < {policy.min_opened}"),
+            (lift is None or lift < policy.min_lift,
+             f"경고 lift {_fmt_lift(lift)} < {policy.min_lift:.2f}×"),
+        )
+        if failed
+    ]
+    reason = "통과" if not failures else "미달 — " + "; ".join(failures)
+    return GateResult(industry_id, not failures, lift, w_opened, c_opened, w_pairs, c_pairs, reason)
