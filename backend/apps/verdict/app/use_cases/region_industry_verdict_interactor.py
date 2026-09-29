@@ -50,7 +50,7 @@ from apps.verdict.domain.services.thresholds import DEFAULT_THRESHOLDS, VerdictT
 
 _EMPTY_STAT = dict(
     start_store_count=0, opened_12m=0, closed_12m=0, cohort_size=0, cohort_survived=0,
-    closed_3y_count=0, closed_3y_median_months=None, gap_candidates=0, gap_blocked=0,
+    closed_3y_count=0, closed_3y_median_months=None, gap_candidates=0, gap_blocked=0, trade_12m=None,
 )
 
 

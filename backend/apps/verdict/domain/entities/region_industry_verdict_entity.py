@@ -8,12 +8,13 @@ SIGNAL_KEYS: tuple[str, ...] = ("net_outflow", "survival_cliff", "early_closure"
 
 # 업종 특화 신호 — 특정 원천 프로필에만 있다 (업종 특화 신호 설계서 §9-2). 백테스트 정렬·표 칸은 ALL_SIGNAL_KEYS 순서.
 # signals 튜플은 "항상 5개"가 아니라 프로필이 정한 개수·순서다: 인허가 5 · 편의점 6 · 부동산 5.
-SPECIFIC_SIGNAL_KEYS: tuple[str, ...] = ("closure_rate", "tobacco_gap")
+SPECIFIC_SIGNAL_KEYS: tuple[str, ...] = ("closure_rate", "tobacco_gap", "trade_per_office")
 ALL_SIGNAL_KEYS: tuple[str, ...] = SIGNAL_KEYS + SPECIFIC_SIGNAL_KEYS
 
 # 참고 신호 — 평가·저장은 하되 strong_count/on_count/evaluable_count(등급 계산)에서는 뺀다.
 # 상권 축소는 백테스트 lift 0.96×(무신호, 판정 카드 설계서 §7). 담배권 빈자리는 폐업 위험이 아니라 진입 가능성을 잰다(업종 특화 신호 설계서 §6-2).
-ADVISORY_SIGNAL_KEYS: frozenset[str] = frozenset({"shrinking", "tobacco_gap"})
+# 사무소당 거래는 법정동→행정동 배분이 근사라 참고 신호다(업종 특화 신호 설계서 §11).
+ADVISORY_SIGNAL_KEYS: frozenset[str] = frozenset({"shrinking", "tobacco_gap", "trade_per_office"})
 
 LEVEL_OFF = "off"
 LEVEL_ON = "on"

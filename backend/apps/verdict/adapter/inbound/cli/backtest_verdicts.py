@@ -18,6 +18,7 @@ _LABEL = {"red": "🔴 비추천", "orange": "🟠 조건부", "clear": "⚪ 경
 _SIGNAL_LABEL = {
     "net_outflow": "순유출", "survival_cliff": "생존 절벽", "early_closure": "조기 폐업", "saturation": "포화",
     "shrinking": "상권 축소", "closure_rate": "폐업률", "tobacco_gap": "담배권 빈자리",
+    "trade_per_office": "사무소당 거래",
 }
 _BASIS_LABEL = {"permit": "인허가", "proxy": "담배소매인 이력", "aggregate": "상권분석 집계 †"}
 _NAME_SUFFIX = {"aggregate": " †"}  # 집계 기반 — 개업 대신 점포수, 3년 폐업 대신 이후 12분기 폐업 (설계서 §7-3)

@@ -20,6 +20,7 @@ from apps.verdict.domain.services.signals import (
     SourcedSignal,
     SurvivalCliffSignal,
     TobaccoGapSignal,
+    TradePerOfficeSignal,
     UnsupportedSignal,
 )
 
@@ -76,4 +77,5 @@ class AggregateProfile(SignalProfile):
             UnsupportedSignal(EarlyClosureSignal.key, _COMMERCE, _NO_STORE_HISTORY),
             SourcedSignal(SaturationSignal(), _COMMERCE),
             ShrinkingSignal(),
+            TradePerOfficeSignal(),
         )

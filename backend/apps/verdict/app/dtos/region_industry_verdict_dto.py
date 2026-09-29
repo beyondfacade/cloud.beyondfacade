@@ -52,6 +52,8 @@ class StoreSignalStat:
     # 담배권 빈자리 (편의점 원천만 채운다, 업종 특화 신호 설계서 §6) — 다른 원천은 0 → 가드가 unavailable로 만든다
     gap_candidates: int = 0
     gap_blocked: int = 0
+    # 행정동 배분 아파트 매매 12개월 합 (부동산 원천만 채운다, 업종 특화 신호 설계서 §11)
+    trade_12m: float | None = None
 
 
 @dataclass(frozen=True)

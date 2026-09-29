@@ -45,6 +45,7 @@ class SignalInput:
     # 담배권 빈자리 (편의점 원천) — 기본값 0이면 TobaccoGapSignal 가드가 unavailable로 만든다
     gap_candidates: int = 0
     gap_blocked: int = 0
+    trade_12m: float | None = None  # 행정동 배분 아파트 매매 12개월 합 (부동산 원천)
 
 
 def _top(percentile: float) -> int:
@@ -299,6 +300,30 @@ class UnsupportedSignal(Signal):
 
     def unavailable_reason(self, i, t):
         return self._reason
+
+
+class TradePerOfficeSignal(Signal):
+    """중개사무소당 아파트 매매 — 낮을수록 나쁨. 법정동 배분이 근사라 참고 신호 (업종 특화 신호 설계서 §11)."""
+
+    key = "trade_per_office"
+    source = "molit"
+
+    def raw_value(self, i, t):
+        if i.trade_12m is None or i.latest_store_count is None or i.latest_store_count < t.min_sample:
+            return None
+        return i.trade_12m / i.latest_store_count
+
+    def worse(self, value):
+        return -value
+
+    def evidence(self, i, value, percentile):
+        return (
+            f"지난 12개월 아파트 매매 {i.trade_12m:,.0f}건 ÷ 중개사무소 {i.latest_store_count}곳 = 사무소당 {value:.1f}건 "
+            f"(서울 {i.industry_name} 하위 {_top(percentile)}%, 국토부 실거래가)"
+        )
+
+    def unavailable_reason(self, i, t):
+        return f"실거래 배분 없음 또는 중개사무소 {t.min_sample}곳 미만"
 
 
 SIGNALS: tuple[Signal, ...] = (

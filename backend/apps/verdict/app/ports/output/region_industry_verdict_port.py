@@ -90,3 +90,9 @@ class IndustrySignalDataPort(ABC):
     @abstractmethod
     def entrant_outcomes(self, as_of: date, entry_days: int, horizon_days: int) -> list[EntrantOutcome]:
         """백테스트 결과 라벨 — 진입 코호트, 또는 집계 원천이면 재고 결과(설계서 §7-3)."""
+
+
+class TradeCountsPort(ABC):
+    @abstractmethod
+    def trades_by_region(self, month_from: str, month_to: str) -> dict[str, float]:
+        """[month_from, month_to] 아파트 매매 건수를 행정동으로 배분한 합 (업종 특화 신호 설계서 §11)."""

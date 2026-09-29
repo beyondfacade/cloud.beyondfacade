@@ -11,6 +11,7 @@
 - **상권분석 집계 원천** (설계서 §7) — `CommerceAggregateSignalData`: `region_commerce_store`(업종 ↔ `seoul_commercial` 코드)에서 최근 4분기 폐업·4분기 전 점포수(폐업률 재료), 분기 상한 점포수(포화), 재고 결과(T 분기 점포수 대비 이후 폐업). `quarter_of`·`shift_quarter`. 의존성에 `real_estate` 등록(판정 대상 편입은 게이트 후).
 - **재포함 게이트** (설계서 §8) — `reinclusion_gate`(경고 lift = (🔴+🟠) 폐업률 ÷ ⚪ ≥ 1.10×, 표본: 대리 원천 개업 각 50·집계 원천 동 각 30), `BacktestReportDto.gates`. CLI `backtest_verdicts --candidates convenience_store,real_estate` → "재포함 심사" 절(원천·판정별 폐업률·경고 lift·게이트)과 심사 업종 신호별 lift. 업종표의 집계 기반 업종 † 표기, 신호 칸에 폐업률·담배권 빈자리.
 - **아파트 매매 건수 수집** (설계서 §11, 파일럿 통과) — 신규 `housing` BC(엔티티·ORM·게이트웨이·CLI, 라우터 없음), 보조 테이블 `apt_trade_count`(자치구×법정동×월, 마이그레이션 `e1f2a3b4c5d6`), `load_apt_trade_counts --from 202101`(적재된 구·월 건너뜀, 멱등 업서트).
+- **중개사무소당 거래 참고 신호** (설계서 §11) — `TradePerOfficeSignal`(`trade_per_office`, source `molit`, 낮을수록 나쁨, 참고 신호), `legal_dong_of`·`allocate`(store 지번주소 분포로 법정동 → 행정동 배분)·`month_window`(기준월 2개월 전까지 12개월), `TradeCountsPort`·`AptTradeGateway`, 집계 원천 Decorator `TradeEnrichedSignalData`. `AggregateProfile` 끝에 추가. 스모크: 배분 적중률 99.98%(77,977 / 77,995건, 창 202508~202607).
 
 ### Changed
 - `ADVISORY_SIGNAL_KEYS`에 `tobacco_gap` 추가(진입 가능성 신호 — 등급 계산 제외).

@@ -33,7 +33,7 @@ def _input(**overrides) -> SignalInput:
 
 
 def test_신호_키_상수와_빈자리_가드():
-    assert ALL_SIGNAL_KEYS == SIGNAL_KEYS + ("closure_rate", "tobacco_gap")
+    assert ALL_SIGNAL_KEYS == SIGNAL_KEYS + ("closure_rate", "tobacco_gap", "trade_per_office")
     assert T.min_gap_candidates == 30
 
 
@@ -59,7 +59,7 @@ def test_부동산_프로필은_폐업률과_포화만_계산하고_코호트_�
     profile = AggregateProfile()
     assert profile.basis == "aggregate"
     assert tuple(s.key for s in profile.signals()) == (
-        "closure_rate", "survival_cliff", "early_closure", "saturation", "shrinking",
+        "closure_rate", "survival_cliff", "early_closure", "saturation", "shrinking", "trade_per_office",
     )
     results = {s.key: s.evaluate(_input(), T, [0.1]) for s in profile.signals()}
     for key in ("survival_cliff", "early_closure"):
