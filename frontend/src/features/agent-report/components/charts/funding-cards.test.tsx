@@ -2,6 +2,16 @@ import { render, screen } from "@testing-library/react";
 import { expect, it } from "vitest";
 import { FundingCards } from "./funding-cards";
 
+it.each([
+  [null, "업종에 맞는 지원사업", "업종에 맞는 지원사업"],
+  ["", "업종에 맞는 지원사업", "업종에 맞는 지원사업"],
+  ["지원 요약", "추천 이유", "지원 요약"],
+  [null, null, "요약 없음"],
+])("요약 %s와 추천 이유 %s에 따라 한 줄 설명과 툴팁을 표시한다", (summary, why, expected) => {
+  render(<FundingCards candidates={[{ title: "공고", summary, why }]} />);
+  expect(screen.getByText(expected)).toHaveAttribute("title", expected);
+});
+
 it("후보 다섯 개까지 기관 요약 대상과 안전한 원문 링크를 표시한다", () => {
   render(<FundingCards candidates={Array.from({ length: 6 }, (_, i) => ({ id: `${i}`, title: `공고${i}`, org: "서울시", summary: "지원 요약", target: "소상공인", url: `https://example.com/${i}` }))} />);
   expect(screen.getAllByRole("link", { name: "원문" })).toHaveLength(5);

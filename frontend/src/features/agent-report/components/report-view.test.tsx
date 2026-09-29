@@ -77,3 +77,23 @@ it("사실 섹션 제목과 같은 마크다운 제목은 중복하지 않고 �
   expect(screen.getAllByRole("heading", { name: "판정", exact: true })).toHaveLength(1);
   expect(screen.getByText("첫 해석입니다.")).toBeInTheDocument();
 });
+
+it.each(["## 판정", "판정"])("첫 본문 조각이 제목 '%s'뿐이어도 중복 제목을 지우고 후속 본문을 유지한다", (markdown) => {
+  const initial = { ...initialAgentState(), facts: reportFacts() };
+  const next = applyAgentEvent(initial, { type: "report_delta", section: "verdict", markdown });
+  const { rerender } = render(<ReportView state={next} />);
+  expect(screen.getAllByText("판정", { exact: true })).toHaveLength(1);
+
+  rerender(<ReportView state={applyAgentEvent(next, { type: "report_delta", section: "verdict", markdown: "\n\n첫 해석입니다." })} />);
+  expect(screen.getAllByText("판정", { exact: true })).toHaveLength(1);
+  expect(screen.getByText("첫 해석입니다.")).toBeInTheDocument();
+});
+
+it.each([
+  ["카페", "카페는 언제 돈이 도나"],
+  ["미용실", "미용실은 언제 돈이 도나"],
+])("사실의 업종 %s에 맞춰 시간대 제목과 조사를 표시한다", (industryName, title) => {
+  const facts = reportFacts();
+  render(<ReportView state={{ ...initialAgentState(), facts: { ...facts, region: { ...facts.region, industry_name: industryName } } }} />);
+  expect(screen.getByRole("heading", { level: 3, name: title })).toBeInTheDocument();
+});

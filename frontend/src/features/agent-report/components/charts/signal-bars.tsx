@@ -10,9 +10,9 @@ export function SignalBars({ verdict }: { verdict?: ReportFacts["verdict"] }) {
   const data = availableFact(verdict);
   if (!data) return <p className="text-sm text-[var(--text-secondary)]">자료 없음</p>;
   return (
-    <div aria-label="신호 백분위" className="space-y-3">
+    <div role="group" aria-label="신호 백분위" className="space-y-3">
       <p className="text-xs text-[var(--text-secondary)]">서울 같은 업종 대비 경고 백분위 (0~100)</p>
-      <div className="relative h-4 text-xs tabular-nums text-[var(--text-secondary)]" aria-label="백분위 기준선">
+      <div role="group" className="relative h-4 text-xs tabular-nums text-[var(--text-secondary)]" aria-label="백분위 기준선">
         {[75, 90].map((n) => <span key={n} className="absolute -translate-x-1/2" style={{ left: `${n}%` }}>{n}</span>)}
       </div>
       <ul className="space-y-3">

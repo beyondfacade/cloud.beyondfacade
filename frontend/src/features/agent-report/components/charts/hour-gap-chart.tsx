@@ -2,6 +2,7 @@
 
 import { availableFact } from "../../lib/available-fact";
 import type { UnavailableFact, HourGapBand, RegionIndustryHourGap } from "@/shared/api/types";
+import { withTopicParticle } from "@/shared/korean";
 import { HOUR_BANDS, hourBandLabel } from "../../lib/neighborhood-charts";
 import { hourGapSentence } from "../../lib/hour-gap-sentence";
 
@@ -55,12 +56,12 @@ export function HourGapBody({ gap }: { gap: RegionIndustryHourGap }) {
   );
 }
 
-export function HourGapChart({ hourGap }: { hourGap?: RegionIndustryHourGap | UnavailableFact }) {
+export function HourGapChart({ hourGap, industryName = "업종" }: { hourGap?: RegionIndustryHourGap | UnavailableFact; industryName?: string }) {
   const data = availableFact(hourGap);
   if (!data || !data.bands?.length) return <p className="text-sm text-[var(--text-secondary)]">자료 없음</p>;
   return (
     <section className="flex flex-col gap-3" aria-label="업종 시간대">
-      <h3 className="text-sm font-semibold text-[var(--text-primary)]">업종 시간대</h3>
+      <h3 className="text-sm font-semibold text-[var(--text-primary)]">{withTopicParticle(industryName)} 언제 돈이 도나</h3>
       <HourGapBody gap={data} />
     </section>
   );

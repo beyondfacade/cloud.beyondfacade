@@ -3,6 +3,12 @@ import { expect, it } from "vitest";
 import { reportFacts } from "../../lib/report-facts.fixture";
 import { MetricTrend } from "./metric-trend";
 
+it("이력이 배열이 아닌 응답이면 자료 없음으로 표시한다", () => {
+  const history = {} as ReturnType<typeof reportFacts>["metrics_history"];
+  render(<MetricTrend history={history} />);
+  expect(screen.getByText("자료 없음")).toBeInTheDocument();
+});
+
 it("연도별 점포수와 두 비율을 단위를 나눠 그리고 값 툴팁을 제공한다", () => {
   const { container } = render(<MetricTrend history={reportFacts().metrics_history} />);
   expect(screen.getByRole("img", { name: "점포수 추세" })).toBeInTheDocument();

@@ -3,6 +3,14 @@ import { expect, it } from "vitest";
 import { reportFacts } from "../../lib/report-facts.fixture";
 import { SignalBars } from "./signal-bars";
 
+it("신호 백분위와 기준선을 이름 있는 그룹으로 노출한다", () => {
+  render(<SignalBars verdict={reportFacts().verdict} />);
+  const group = screen.getByRole("group", { name: "신호 백분위" });
+  const thresholds = within(group).getByRole("group", { name: "백분위 기준선" });
+  expect(within(thresholds).getByText("75")).toBeInTheDocument();
+  expect(within(thresholds).getByText("90")).toBeInTheDocument();
+});
+
 it("다섯 신호와 백분위 기준선 및 참고 표시를 그린다", () => {
   render(<SignalBars verdict={reportFacts().verdict} />);
   expect(screen.getAllByRole("listitem")).toHaveLength(5);

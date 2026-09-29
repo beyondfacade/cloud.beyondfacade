@@ -45,7 +45,7 @@ function TrendPlot({ rows, metrics, label }: { rows: History; metrics: Metric[];
 
 export function MetricTrend({ history }: { history?: ReportFacts["metrics_history"] }) {
   const data = availableFact(history);
-  if (!data) return <p className="text-sm text-[var(--text-secondary)]">자료 없음</p>;
+  if (!Array.isArray(data)) return <p className="text-sm text-[var(--text-secondary)]">자료 없음</p>;
   const rows = data.filter((row) => Number.isFinite(row.year)).toSorted((a, b) => a.year - b.year).slice(-8);
   if (rows.length < 2) return <p className="text-sm text-[var(--text-secondary)]">추세 자료 없음</p>;
   return <section className="space-y-3" aria-label="연도별 지표 추세">

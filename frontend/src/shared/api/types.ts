@@ -42,6 +42,7 @@ export interface ReportFundingCandidate extends Record<string, unknown> {
   title?: string;
   org?: string | null;
   summary?: string | null;
+  why?: string | null;
   target?: string | null;
   target_text?: string | null;
   url?: string | null;

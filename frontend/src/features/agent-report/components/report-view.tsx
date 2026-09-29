@@ -78,7 +78,7 @@ export function ReportView({ state }: ReportViewProps) {
             </>}
             {state.sections[section] ? <div className={`${styles.markdown} report-markdown`}>
               <ReactMarkdown remarkPlugins={[remarkGfm]}>{state.facts
-                ? state.sections[section].replace(new RegExp(`^#{1,6}\\s+${SECTION_LABEL[section]}\\s*\\n`), "")
+                ? state.sections[section].replace(new RegExp(`^(#{1,6}\\s+)?${SECTION_LABEL[section]}\\s*(\\n|$)`), "")
                 : state.sections[section]}</ReactMarkdown>
             </div> : <div role="status" aria-label="본문 작성 중" className="h-4 w-3/4 animate-pulse rounded bg-[var(--bg-raised)] motion-reduce:animate-none" />}
           </section>

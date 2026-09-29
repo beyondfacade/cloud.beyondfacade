@@ -39,7 +39,7 @@ const VISUALS = {
   </>,
   conditions: (facts: ReportFacts) => <>
     <TimeBlockBars profile={facts.profile} />
-    <HourGapChart hourGap={facts.hour_gap} />
+    <HourGapChart hourGap={facts.hour_gap} industryName={facts.region?.industry_name} />
   </>,
   alternatives: (facts: ReportFacts) => <AlternativesCards alternatives={facts.alternatives} />,
   funding: (facts: ReportFacts) => <FundingCards candidates={facts.funding_candidates} />,

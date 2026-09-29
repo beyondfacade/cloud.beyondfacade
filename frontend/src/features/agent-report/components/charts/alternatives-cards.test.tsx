@@ -3,6 +3,24 @@ import { expect, it } from "vitest";
 import { reportFacts } from "../../lib/report-facts.fixture";
 import { AlternativesCards } from "./alternatives-cards";
 
+it.each([
+  ["red", "비추천", "var(--danger)"],
+  ["orange", "조건부", "var(--warn)"],
+  ["clear", "경고 없음", "var(--text-secondary)"],
+  ["insufficient", "판정 보류", "var(--border)"],
+] as const)("대안의 %s 판정을 해당 색상의 배지로 표시한다", (code, label, color) => {
+  const alternatives = reportFacts().alternatives;
+  if ("available" in alternatives) throw new Error("대안 없음");
+  render(<AlternativesCards alternatives={{ ...alternatives,
+    industries: [{ ...alternatives.industries[0], verdict_code: code }],
+    regions: [{ ...alternatives.regions[0], verdict_code: code }],
+  }} />);
+  for (const badge of screen.getAllByText(label)) {
+    expect(badge).toHaveStyle({ color });
+    expect(badge.style.borderColor).toBe(color);
+  }
+});
+
 it("두 축에 이름과 판정 라벨을 최대 세 개씩 표시한다", () => {
   const alternatives = reportFacts().alternatives;
   if ("available" in alternatives) throw new Error("대안 없음");
