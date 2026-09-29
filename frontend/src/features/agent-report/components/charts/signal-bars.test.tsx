@@ -20,13 +20,20 @@ it("다섯 신호와 백분위 기준선 및 참고 표시를 그린다", () => 
   expect(within(screen.getByText("상권 축소").closest("li")!).getByText("참고")).toBeInTheDocument();
   expect(screen.getAllByText("미판정")).toHaveLength(2);
 });
-it("실패한 사실은 자료 없음이고 빈 신호는 다섯 미판정이다", () => {
+it("인허가 판정 응답에 없는 업종 특화 신호는 그리지 않는다", () => {
+  render(<SignalBars verdict={reportFacts().verdict} />);
+  expect(screen.queryByText("폐업률")).not.toBeInTheDocument();
+  expect(screen.queryByText("담배권 빈자리")).not.toBeInTheDocument();
+  expect(screen.queryByText("사무소당 거래")).not.toBeInTheDocument();
+});
+
+it("실패한 사실은 자료 없음이고 빈 신호는 막대를 그리지 않는다", () => {
   const { rerender } = render(<SignalBars verdict={{ available: false, reason: "없음" }} />);
   expect(screen.getByText("자료 없음")).toBeInTheDocument();
   const verdict = reportFacts().verdict;
   if ("available" in verdict) throw new Error("판정 없음");
   rerender(<SignalBars verdict={{ ...verdict, signals: [] }} />);
-  expect(screen.getAllByText("미판정")).toHaveLength(5);
+  expect(screen.queryAllByRole("listitem")).toHaveLength(0);
 });
 
 it("백분위는 영과 백 경계 안에 표시하고 신호 레벨별 토큰을 쓴다", () => {

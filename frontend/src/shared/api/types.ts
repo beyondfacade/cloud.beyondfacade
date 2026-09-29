@@ -384,7 +384,12 @@ export interface PlanQuestionsRequest {
 
 export type VerdictCode = "red" | "orange" | "clear" | "insufficient";
 export type VerdictSignalLevel = "off" | "on" | "strong" | "unavailable";
-export type VerdictSignalKey = "net_outflow" | "survival_cliff" | "early_closure" | "saturation" | "shrinking";
+export type VerdictSignalKey =
+  | "net_outflow" | "survival_cliff" | "early_closure" | "saturation" | "shrinking"
+  | "closure_rate" | "tobacco_gap" | "trade_per_office"; // 업종 특화 — 부동산 폐업률·편의점 담배권 빈자리·사무소당 거래
+export type VerdictSignalSource = "store" | "metric" | "neighborhood" | "tobacco" | "commerce" | "molit";
+/** 판정 원천 — permit 인허가 개별 이력 · proxy 담배소매인 대리 이력(편의점) · aggregate 상권분석 동×분기 집계(부동산). */
+export type VerdictBasis = "permit" | "proxy" | "aggregate";
 
 export interface VerdictSignal {
   key: VerdictSignalKey;
@@ -392,16 +397,17 @@ export interface VerdictSignal {
   value: number | null;
   percentile: number | null; // 나쁜 방향 백분위 0~100. 이진 신호·미판정은 null
   evidence: string; // 백엔드가 만든 근거 한 문장 — 화면은 그대로 띄운다
-  source: "store" | "metric" | "neighborhood";
+  source: VerdictSignalSource;
 }
 
 export interface RegionIndustryVerdict {
   region_code: string;
   industry_id: string;
+  basis: VerdictBasis;
   verdict_code: VerdictCode;
   strong_count: number;
   on_count: number;
-  signals: VerdictSignal[]; // 항상 5개, 고정 순서
+  signals: VerdictSignal[]; // 프로필이 정한 개수·순서 — 인허가 5 · 편의점 6 · 부동산 6
   computed_at: string;
 }
 

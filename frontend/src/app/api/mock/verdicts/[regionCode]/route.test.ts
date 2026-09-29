@@ -7,6 +7,23 @@ function call(regionCode: string, query = "?industry=korean_food") {
   });
 }
 
+it("단건은 판정 원천 basis를 싣는다 — 인허가 업종은 permit", async () => {
+  const v = await (await call("1168064000")).json();
+  expect(v.basis).toBe("permit");
+});
+
+it("편의점은 판정 대상이 아니라 404 INDUSTRY_NOT_FOUND", async () => {
+  const res = await call("1168064000", "?industry=convenience_store");
+  expect(res.status).toBe(404);
+  expect((await res.json()).error.code).toBe("INDUSTRY_NOT_FOUND");
+});
+
+it("부동산은 판정 대상이 아니라 404 INDUSTRY_NOT_FOUND", async () => {
+  const res = await call("1168064000", "?industry=real_estate");
+  expect(res.status).toBe(404);
+  expect((await res.json()).error.code).toBe("INDUSTRY_NOT_FOUND");
+});
+
 it("단건은 신호 5개를 유지하되 참고 신호를 빼고 판정 가능 신호가 한 개이면 보류한다", async () => {
   const res = await call("1135056000", "?industry=chinese_food"); // 월계1동
   expect(res.status).toBe(200);

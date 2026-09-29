@@ -20,6 +20,9 @@ const SOURCE_LABEL: Record<VerdictSignal["source"], string> = {
   store: "인허가",
   metric: "지표",
   neighborhood: "상권분석",
+  tobacco: "담배소매인",
+  commerce: "상권분석 집계",
+  molit: "국토부 실거래가",
 };
 
 /** 참고 신호(shrinking)를 뺀 켜진 신호 최대 3개, strong 먼저. 백엔드 순서(SIGNAL_KEYS)는 같은 레벨 안에서 유지된다(안정 정렬). */

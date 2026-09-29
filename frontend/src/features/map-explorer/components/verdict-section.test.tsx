@@ -12,6 +12,7 @@ const signal = (key: VerdictSignal["key"], level: VerdictSignal["level"], eviden
 
 function verdict(code: RegionIndustryVerdict["verdict_code"], signals: VerdictSignal[]): RegionIndustryVerdict {
   return {
+    basis: "permit",
     region_code: "1168064000", industry_id: "korean_food", verdict_code: code,
     strong_count: signals.filter((s) => s.key !== "shrinking" && s.level === "strong").length,
     on_count: signals.filter((s) => s.key !== "shrinking" && (s.level === "on" || s.level === "strong")).length,

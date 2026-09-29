@@ -1,5 +1,5 @@
-import type { ReportFacts, VerdictSignalLevel, VerdictSignalKey } from "@/shared/api/types";
-import { ADVISORY_SIGNAL_KEYS, SIGNAL_LABELS, signalLabel } from "@/shared/verdict";
+import type { ReportFacts, VerdictSignalLevel } from "@/shared/api/types";
+import { ADVISORY_SIGNAL_KEYS, signalLabel } from "@/shared/verdict";
 import { availableFact } from "../../lib/available-fact";
 
 const COLORS: Record<VerdictSignalLevel, string> = {
@@ -16,11 +16,10 @@ export function SignalBars({ verdict }: { verdict?: ReportFacts["verdict"] }) {
         {[75, 90].map((n) => <span key={n} className="absolute -translate-x-1/2" style={{ left: `${n}%` }}>{n}</span>)}
       </div>
       <ul className="space-y-3">
-        {(Object.keys(SIGNAL_LABELS) as VerdictSignalKey[]).map((key) => {
-          const signal = data.signals?.find((s) => s.key === key);
-          const value = signal?.percentile;
+        {data.signals.map((signal) => {
+          const { key, percentile: value } = signal;
           const percentile = typeof value === "number" && Number.isFinite(value) ? Math.min(100, Math.max(0, value)) : null;
-          const color = COLORS[signal?.level ?? "unavailable"];
+          const color = COLORS[signal.level];
           return (
             <li key={key}>
               <div className="mb-1 flex items-center gap-2 text-xs text-[var(--text-secondary)]">

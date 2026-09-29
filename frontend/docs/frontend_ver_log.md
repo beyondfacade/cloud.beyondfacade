@@ -2,6 +2,14 @@
 
 > 2026-09-23 T0-2 병합에서 v0.14.x 충돌로 우리 쪽 4항목(랜딩·E2E·동네 프로필·영업 지속 개월)을 v0.15.0·v0.15.1·v0.16.0·v0.17.0으로 재번호했다. 해당 커밋 메시지의 번호는 병합 전 번호다.
 
+## [v0.33.0] - 2026-09-29
+
+### Added
+- **판정 원천 계약** (업종 특화 신호 설계서 §9-3) — `VerdictBasis`(`permit`·`proxy`·`aggregate`), `RegionIndustryVerdict.basis`, 신호 키 `closure_rate`·`tobacco_gap`·`trade_per_office`, 원천 `tobacco`·`commerce`·`molit`. `shared/verdict.ts`: 라벨(폐업률·담배권 빈자리·사무소당 거래), `VERDICT_BASIS_BADGE`, `verdictExclusionNotice`. mock은 업종별 원천·신호 목록·미지원 신호를 백엔드 프로필대로 미러(Codex).
+
+### Changed
+- `ADVISORY_SIGNAL_KEYS`에 `tobacco_gap`·`trade_per_office`. `VERDICT_EXCLUDED_INDUSTRIES`는 그대로 유지 — 9/29 재포함 게이트 미달(편의점 경고 lift 1.00×·부동산 1.04×, 기준 1.10× 미만).
+
 ## [v0.32.0] - 2026-09-29
 
 ### Added

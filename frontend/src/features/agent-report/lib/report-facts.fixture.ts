@@ -5,6 +5,7 @@ export function reportFacts(): ReportFacts {
   return {
     region: { code: "1168064000", name: "역삼1동", industry_id: "cafe", industry_name: "카페" },
     verdict: {
+      basis: "permit",
       region_code: "1168064000", industry_id: "cafe", verdict_code: "orange", strong_count: 1, on_count: 2,
       computed_at: "2026-09-29T04:30:00+09:00",
       signals: [

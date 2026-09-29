@@ -29,9 +29,11 @@ import type {
   Store,
   SummaryCard,
   VerdictCode,
+  VerdictBasis,
   VerdictRow,
   VerdictSignal,
   VerdictSignalKey,
+  VerdictSignalSource,
 } from "@/shared/api/types";
 import { STORE_SAMPLES, type StoreSample } from "./store-samples";
 import { INDUSTRIES, INDUSTRY_LABELS, type IndustryId } from "@/shared/industries";
@@ -773,9 +775,28 @@ export function planQuestionsOf(body: {
 // (보류 우선 → strong 2+ red → on 1+ orange → clear). 값·근거는 해시 기반 결정적.
 // ---------------------------------------------------------------------------
 
-const SIGNAL_KEYS: VerdictSignalKey[] = ["net_outflow", "survival_cliff", "early_closure", "saturation", "shrinking"];
-const SIGNAL_SOURCE: Record<VerdictSignalKey, VerdictSignal["source"]> = {
+// 업종별 판정 원천 — 백엔드 dependencies의 sources 미러 (업종 특화 신호 설계서 §4). 판정 대상 여부는 isVerdictIndustry가 정한다.
+const BASIS_BY_INDUSTRY: Partial<Record<string, VerdictBasis>> = { convenience_store: "proxy", real_estate: "aggregate" };
+// 백엔드 profiles.py 미러 — 원천별 신호 순서
+const SIGNAL_KEYS_BY_BASIS: Record<VerdictBasis, VerdictSignalKey[]> = {
+  permit: ["net_outflow", "survival_cliff", "early_closure", "saturation", "shrinking"],
+  proxy: ["net_outflow", "survival_cliff", "early_closure", "saturation", "shrinking", "tobacco_gap"],
+  aggregate: ["closure_rate", "survival_cliff", "early_closure", "saturation", "shrinking", "trade_per_office"],
+};
+// 원천 표기 교체 (SourcedSignal 미러) — 없는 키는 SIGNAL_SOURCE 기본값
+const SOURCE_BY_BASIS: Record<VerdictBasis, Partial<Record<VerdictSignalKey, VerdictSignalSource>>> = {
+  permit: {},
+  proxy: { net_outflow: "tobacco", survival_cliff: "tobacco", early_closure: "tobacco", saturation: "tobacco" },
+  aggregate: { survival_cliff: "commerce", early_closure: "commerce", saturation: "commerce" },
+};
+// 원천이 재료를 주지 않는 신호 (UnsupportedSignal 미러)
+const UNSUPPORTED_BY_BASIS: Record<VerdictBasis, ReadonlySet<VerdictSignalKey>> = {
+  permit: new Set(), proxy: new Set(), aggregate: new Set(["survival_cliff", "early_closure"]),
+};
+const UNSUPPORTED_EVIDENCE = "집계 원천 — 개별 점포 개업·폐업일이 없어 산출하지 않음";
+const SIGNAL_SOURCE: Record<VerdictSignalKey, VerdictSignalSource> = {
   net_outflow: "store", survival_cliff: "store", early_closure: "store", saturation: "metric", shrinking: "neighborhood",
+  closure_rate: "commerce", tobacco_gap: "tobacco", trade_per_office: "molit",
 };
 
 /** 판정 대상 여부 — 실 API의 EXCLUDED_INDUSTRIES 미러 = 프론트 INDUSTRIES 14종 − 편의점·부동산(shared/verdict.ts 단일 원천). */
@@ -783,10 +804,13 @@ export function isJudgedIndustry(industryId: string): industryId is IndustryId {
   return isVerdictIndustry(industryId);
 }
 
-function signalOf(key: VerdictSignalKey, regionCode: string, industryId: string): VerdictSignal {
+function signalOf(key: VerdictSignalKey, regionCode: string, industryId: string, basis: VerdictBasis): VerdictSignal {
+  const source = SOURCE_BY_BASIS[basis][key] ?? SIGNAL_SOURCE[key];
+  if (UNSUPPORTED_BY_BASIS[basis].has(key)) {
+    return { key, level: "unavailable", value: null, percentile: null, evidence: UNSUPPORTED_EVIDENCE, source };
+  }
   const u = unitFrom(hashSeed("verdict", key, regionCode, industryId));
   const name = INDUSTRY_LABELS[industryId as IndustryId] ?? industryId;
-  const source = SIGNAL_SOURCE[key];
   // 하위 8%는 미판정(표본 부족), 나머지 92%를 0~100 백분위로 펼친다 — strong(≥90)·red가 실제로 나온다
   if (u < 0.08) {
     return { key, level: "unavailable", value: null, percentile: null, evidence: `표본 부족 — 3년 전 개업 코호트 ${Math.floor(u * 100)}곳 (10곳 미만)`, source };
@@ -800,6 +824,9 @@ function signalOf(key: VerdictSignalKey, regionCode: string, industryId: string)
     early_closure: `최근 3년 폐업 ${name}의 영업 기간 중위 ${36 - Math.round(u * 20)}개월 (서울 ${name} 하위 ${top}%)`,
     saturation: `상주인구 1,000명당 ${name} ${(2 + u * 9).toFixed(1)}곳 (서울 상위 ${top}%)`,
     shrinking: `서울시 상권변화지표 '${u >= 0.75 ? "상권축소" : "정체"}' (2026년 2분기, 동 전체 기준)`,
+    closure_rate: `지난 4분기 폐업 ${5 + Math.floor(u * 30)}곳 (4분기 전 점포 ${60 + Math.floor(u * 100)}곳의 ${Math.round(u * 8)}%, 서울 ${name} 상위 ${top}%, 서울시 상권분석 집계)`,
+    tobacco_gap: `이 동 상가 자리 ${300 + Math.floor(u * 900)}곳 중 ${50 + Math.round(u * 30)}%가 영업 중인 담배소매인 50m 안 — 새 담배소매인 지정이 어렵다 (서울 상위 ${top}%)`,
+    trade_per_office: `지난 12개월 아파트 매매 ${100 + Math.floor(u * 400)}건 ÷ 중개사무소 ${40 + Math.floor(u * 60)}곳 = 사무소당 ${(1 + u * 6).toFixed(1)}건 (서울 ${name} 하위 ${top}%, 국토부 실거래가)`,
   };
   const value = key === "shrinking" ? (u >= 0.75 ? 1 : 0) : Math.round(u * 100) / 100;
   return { key, level, value, percentile: key === "shrinking" ? null : percentile, evidence: EVIDENCE[key], source };
@@ -817,12 +844,14 @@ function judgeOf(signals: VerdictSignal[]): VerdictCode {
 }
 
 export function verdictOf(regionCode: string, industryId: string): RegionIndustryVerdict {
-  const signals = SIGNAL_KEYS.map((key) => signalOf(key, regionCode, industryId));
+  const basis = BASIS_BY_INDUSTRY[industryId] ?? "permit";
+  const signals = SIGNAL_KEYS_BY_BASIS[basis].map((key) => signalOf(key, regionCode, industryId, basis));
   const judging = signals.filter((s) => !ADVISORY_SIGNAL_KEYS.has(s.key));
   return {
     region_code: regionCode,
     industry_id: industryId,
     verdict_code: judgeOf(signals),
+    basis,
     strong_count: judging.filter((s) => s.level === "strong").length,
     on_count: judging.filter((s) => s.level === "on" || s.level === "strong").length,
     signals,
