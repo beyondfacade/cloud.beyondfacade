@@ -1,6 +1,6 @@
 """신호 — Specification 패턴 (CLAUDE.md §5). 신호 하나 = 클래스 하나, 새 신호는 클래스 추가로 끝난다.
 값·가드·나쁜 방향·근거 문장은 신호가 스스로 안다. 백분위 분포는 인터랙터가 업종별로 넘긴다 (설계서 §3).
-signals()가 내는 개수는 "항상 5개"가 아니라 프로필(profiles.py)이 정한 개수·순서다 — 인허가 5 · 편의점 6 · 부동산 5."""
+signals()가 내는 개수는 "항상 5개"가 아니라 프로필(profiles.py)이 정한 개수·순서다 — 인허가 5 · 편의점 6 · 부동산 6."""
 
 from abc import ABC, abstractmethod
 from collections.abc import Sequence

@@ -160,6 +160,19 @@ def test_집계_원천_백테스트는_상한을_넘기고_전체_합산에서_�
     assert {b.signal_key for b in report.signal_buckets} <= {"closure_rate", "saturation", "shrinking"}
 
 
+def test_등록됐지만_판정_대상이_아닌_업종은_원천을_건드리지_않는다():
+    """제외 업종의 원천을 등록해도 compute()가 그 업종을 targets에 안 넣으면 원천은 아예 안 읽는다
+    (배선 주석이 약속하는 비용 0 보장, Important 리뷰 §5)."""
+    data = FakeData("convenience_store")
+    interactor = _interactor(
+        [JudgedIndustry("korean_food", "한식")],  # convenience_store는 judged에 없음
+        {"convenience_store": IndustrySource(TobaccoProxyProfile(), data)},
+    )
+    verdicts = interactor.compute(date(2026, 9, 29))
+    assert data.calls == []
+    assert all(v.industry_id != "convenience_store" for v in verdicts)
+
+
 def test_등록되지_않은_업종은_기존_인허가_원천을_쓰고_전체_합산에_들어간다():
     report = _interactor([JudgedIndustry("korean_food", "한식")], {}).backtest(date(2022, 6, 30))
     assert report.industry_basis == (("korean_food", "permit"),)

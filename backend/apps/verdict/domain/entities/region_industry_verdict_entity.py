@@ -7,7 +7,7 @@ from datetime import datetime
 SIGNAL_KEYS: tuple[str, ...] = ("net_outflow", "survival_cliff", "early_closure", "saturation", "shrinking")
 
 # 업종 특화 신호 — 특정 원천 프로필에만 있다 (업종 특화 신호 설계서 §9-2). 백테스트 정렬·표 칸은 ALL_SIGNAL_KEYS 순서.
-# signals 튜플은 "항상 5개"가 아니라 프로필이 정한 개수·순서다: 인허가 5 · 편의점 6 · 부동산 5.
+# signals 튜플은 "항상 5개"가 아니라 프로필이 정한 개수·순서다: 인허가 5 · 편의점 6 · 부동산 6.
 SPECIFIC_SIGNAL_KEYS: tuple[str, ...] = ("closure_rate", "tobacco_gap", "trade_per_office")
 ALL_SIGNAL_KEYS: tuple[str, ...] = SIGNAL_KEYS + SPECIFIC_SIGNAL_KEYS
 
@@ -60,6 +60,6 @@ class RegionIndustryVerdict:
     verdict_code: str  # red | orange | clear | insufficient
     strong_count: int
     on_count: int  # on + strong
-    signals: tuple[SignalResult, ...]  # 프로필의 신호, SIGNAL_KEYS 순서
+    signals: tuple[SignalResult, ...]  # 프로필의 신호, 프로필 순서
     computed_at: datetime
     basis: str = BASIS_PERMIT  # permit | proxy | aggregate

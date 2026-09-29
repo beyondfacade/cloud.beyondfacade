@@ -226,3 +226,25 @@ def test_게이트_집계_원천은_동_30곳_미만이면_미달이다():
 def test_게이트_경고_없음_판정이_없으면_lift를_못_내고_미달이다():
     gate = reinclusion_gate([_b("x", "orange", 50, 500, 50)], "x", GATE_POLICIES["proxy"])
     assert not gate.passed and gate.warn_lift is None and "계산 불가" in gate.reason
+
+
+def test_게이트_경고_lift가_정확히_1_10이면_통과한다():
+    gate = reinclusion_gate(
+        [_b("x", "orange", 100, 1000, 550), _b("x", "clear", 80, 1000, 500)], "x", GATE_POLICIES["proxy"]
+    )
+    assert gate.passed and gate.warn_lift == pytest.approx(1.10)
+
+
+@pytest.mark.parametrize("basis", ["proxy", "permit"])
+def test_게이트_개업이_양쪽_정확히_50곳이면_통과한다(basis):
+    gate = reinclusion_gate(
+        [_b("x", "orange", 10, 50, 25), _b("x", "clear", 10, 50, 10)], "x", GATE_POLICIES[basis]
+    )
+    assert gate.passed
+
+
+def test_게이트_집계_원천은_동x업종이_양쪽_정확히_30곳이면_통과한다():
+    gate = reinclusion_gate(
+        [_b("x", "orange", 30, 5000, 1200), _b("x", "clear", 30, 5000, 500)], "x", GATE_POLICIES["aggregate"]
+    )
+    assert gate.passed

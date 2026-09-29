@@ -15,12 +15,13 @@
 - 분석 CLI `real_estate_survivor_backcast`(설계서 §10) — 현재 영업 부동산 사무소 등록 연도별 수 ÷ 아카이브 개업 수, 동 분포. 기록만(신호 아님). DB 읽기는 `SurvivorBackcastGateway`(store·commerce cross-BC 접근을 이 게이트웨이 안에만 가둠), 순수 계산은 `domain/services/survivor_backcast.py`.
 
 ### Changed
-- `ADVISORY_SIGNAL_KEYS`에 `tobacco_gap` 추가(진입 가능성 신호 — 등급 계산 제외).
+- `ADVISORY_SIGNAL_KEYS`에 `tobacco_gap`·`trade_per_office` 추가(진입 가능성·참고 신호 — 등급 계산 제외).
 - 인터랙터 `compute(..., industries=)`·`backtest(..., industry_ids=)` — 원천마다 1회 로드, 판정 행에 프로필 `basis`, 백테스트 결과는 원천별로 읽어 그 원천 업종만 남긴다. 집계 기반 업종은 백테스트 "전체" 합산에서 뺀다(`_SCOPES_OF_BASIS`). `BacktestReportDto.industry_basis`.
 - **판정 대상 재포함 (9/29 게이트)** — 편의점(담배소매인 이력, 경고 lift 1.00×)·부동산(상권분석 집계, 1.04×) 둘 다 게이트(≥ 1.10×) 미달이라 `EXCLUDED_INDUSTRIES`는 그대로 두고 상수 주석에 결과만 적었다 → 판정 대상 12업종 유지. `docs/verdict-backtest.md` 재생성(재포함 심사 절). "읽는 법"을 실제 결과(둘 다 미달)로 바꾸고, 편의점 승계 접기가 T 이후 최대 90일을 내다보는 작은 미래 참조 편향을 적었다.
 
 ### Fixed
 - `seed_master.py`의 `_SOURCE_CODES`에 `real_estate ↔ seoul_commercial CS200033` 백필 — 마이그레이션 `c7a4f2e19b35`는 industry 테이블이 비어 있으면(빈 테스트 DB) 이 매핑을 건너뛰고 다시 채우지 않는다. `seed_master`는 매 실행 시 industry를 먼저 merge하므로 여기서 멱등하게 백필한다.
+- 최종 리뷰 fix-wave — `backtest_verdicts.render_markdown`이 `--candidates` 없이도 게이트 결과·재포함 심사 절 포인터를 하드코딩해 찍던 것을 고쳐, 두 "읽는 법" 불릿을 재포함 심사 절 안으로 옮기고 `candidates.gates`에서 통과/미달을 그대로 읽게 했다(`docs/verdict-backtest.md` 재생성, 표 수치는 동일). 신호 개수 주석("부동산 5" → 6), 인터랙터 모듈 docstring("게이트웨이 3종" → "업종별 원천"), `ADVISORY_SIGNAL_KEYS` Changed 줄에 `trade_per_office` 보강, `docs/STATUS.md` 에피소드 수(약 20,900 → 21,126, spec §17 실측)도 바로잡았다. 테스트: 등록됐지만 판정 대상이 아닌 업종은 원천을 안 읽는다, `reinclusion_gate` 정확 경계(lift 1.10·개업 50·동×업종 30) 통과.
 
 ## [v0.45.0] - 2026-09-29
 

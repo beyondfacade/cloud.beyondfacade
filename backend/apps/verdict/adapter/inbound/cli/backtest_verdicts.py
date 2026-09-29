@@ -9,7 +9,12 @@ import sys
 from datetime import date, timedelta
 from pathlib import Path
 
-from apps.verdict.app.dtos.region_industry_verdict_dto import BacktestBucketDto, BacktestReportDto, BacktestSignalBucketDto
+from apps.verdict.app.dtos.region_industry_verdict_dto import (
+    BacktestBucketDto,
+    BacktestGateDto,
+    BacktestReportDto,
+    BacktestSignalBucketDto,
+)
 from apps.verdict.dependencies.region_industry_verdict_dependencies import get_region_industry_verdict_use_case
 from apps.verdict.domain.entities.region_industry_verdict_entity import ALL_SIGNAL_KEYS
 from apps.verdict.domain.services.backtest import VERDICT_ORDER
@@ -77,6 +82,19 @@ def _signal_lines(report: BacktestReportDto, industries: list[str | None]) -> li
     return lines
 
 
+def _gate_read_me(gates: tuple[BacktestGateDto, ...]) -> list[str]:
+    """게이트 결과를 그대로 옮긴 "읽는 법" — 결과가 바뀌어도 다시 손대지 않도록 하드코딩하지 않는다 (P11)."""
+    outcomes = ", ".join(f"{g.industry_name or g.industry_id} {'통과' if g.passed else '미달'}" for g in gates)
+    return [
+        f"- 업종 특화 원천(담배소매인 이력·상권분석 집계)으로 재포함 심사를 받았다 — {outcomes} (위 표 게이트 열). "
+        "미달한 업종은 판정 대상에서 계속 빼고, 통과한 업종은 재포함을 검토한다. "
+        "† 표시 업종은 집계 기반이라 개업 대신 T 분기 점포수, 3년 내 폐업 대신 이후 12분기 폐업 수를 세며 전체 합산에 넣지 않는다. "
+        "헬스장은 원천 확인 결과 정상(연 3% 폐업이 실제)이라 그대로 둔다.",
+        "- 편의점 승계 접기는 폐업 ±90일 안 같은 지번 새 지정을 한 영업으로 잇는다 — T 직전 폐업이 T 뒤 90일 안 새 지정으로 접히면 "
+        "T 이후 최대 90일을 내다본 셈이라 작은 미래 참조 편향이 있다(고치지 않고 기록만 한다).",
+    ]
+
+
 def _candidate_lines(report: BacktestReportDto) -> list[str]:
     lines = [
         "", "## 재포함 심사 — 업종 특화 원천 (업종 특화 신호 설계서 §8)", "",
@@ -95,6 +113,7 @@ def _candidate_lines(report: BacktestReportDto) -> list[str]:
             + f" | {lift} | {gate.reason} |"
         )
     lines += ["", "### 심사 업종 신호별 lift", "", *_signal_lines(report, [g.industry_id for g in report.gates])]
+    lines += ["", "### 읽는 법", "", *_gate_read_me(report.gates)]
     return lines
 
 
@@ -139,12 +158,6 @@ def render_markdown(report: BacktestReportDto, today: date, candidates: Backtest
         "",
         "- **업종별 표가 정본이다.** 전체 lift에는 업종 구성 효과가 섞인다 — 🔴가 몰린 업종의 기저 폐업률이 높으면 신호와 무관하게 전체 lift가 오른다.",
         "- 판정 보류는 표본 가드(10곳 미만)에 걸린 조합이라 폐업률 비교 대상이 아니다.",
-        "- 편의점·부동산은 업종 특화 원천(담배소매인 이력·상권분석 집계)으로 재포함 심사를 받았으나 9/29 게이트(경고 lift ≥ 1.10×)에 "
-        "둘 다 미달해 판정 대상에서 계속 뺀다 — 아래 재포함 심사 절. "
-        "† 표시 업종은 집계 기반이라 개업 대신 T 분기 점포수, 3년 내 폐업 대신 이후 12분기 폐업 수를 세며 전체 합산에 넣지 않는다. "
-        "헬스장은 원천 확인 결과 정상(연 3% 폐업이 실제)이라 그대로 둔다.",
-        "- 편의점 승계 접기는 폐업 ±90일 안 같은 지번 새 지정을 한 영업으로 잇는다 — T 직전 폐업이 T 뒤 90일 안 새 지정으로 접히면 "
-        "T 이후 최대 90일을 내다본 셈이라 작은 미래 참조 편향이 있다(고치지 않고 기록만 한다).",
         "- 개업 수가 두 자리인 칸(당구장·노래방·PC방 등)은 lift가 우연에 흔들린다.",
         "- 신호별 lift는 신호 하나만 떼어 본 것이다(다른 신호 통제 없음). 1.0× 근처면 그 신호는 그 업종에서 동 간 폐업 차이를 못 가른다.",
     ]

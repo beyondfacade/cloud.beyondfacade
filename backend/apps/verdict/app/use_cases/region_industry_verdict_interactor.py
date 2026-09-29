@@ -1,4 +1,4 @@
-"""Application Service — 얇은 조율: 게이트웨이 3종 → 업종별 분포 → 신호 평가 → 판정 → 업서트 → 제외 업종 prune."""
+"""Application Service — 얇은 조율: 업종별 원천(기본 인허가 포트 3종) → 업종별 분포 → 신호 평가 → 판정 → 업서트 → 제외 업종 prune."""
 
 from collections.abc import Mapping, Sequence
 from dataclasses import asdict
