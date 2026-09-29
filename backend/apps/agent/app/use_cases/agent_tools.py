@@ -10,10 +10,8 @@ from dataclasses import dataclass
 
 from apps.agent.app.ports.output.agent_port import (
     FinanceFactsPort,
-    FundingFactsPort,
     LLMToolSpec,
     RegionFactsPort,
-    VerdictFactsPort,
 )
 from apps.rag.app.ports.input.rag_use_case import RagSearchUseCase
 from apps.rag.domain.entities.rag_chunk_entity import RagHit
@@ -98,7 +96,7 @@ def compare_rent_vs_buy(
     }
 
 
-def _hit_to_dict(hit: RagHit) -> dict:
+def hit_to_dict(hit: RagHit) -> dict:
     return {
         "chunk_id": hit.chunk_id,
         "source_type": hit.source_type,
@@ -134,98 +132,22 @@ def build_tools(
     facts: RegionFactsPort,
     rag_search: RagSearchUseCase,
     finance: FinanceFactsPort,
-    funding: FundingFactsPort,
-    verdict: VerdictFactsPort,
     budget: int | None = None,
 ) -> list[AgentTool]:
-    """12종 도구를 조립한다 — 이름/분기는 registry(리스트) 하나로, if/elif 없이."""
+    """facts가 대신할 수 없는 4종만 조립한다 — 이름/분기는 registry(리스트) 하나로, if/elif 없이.
 
-    def run_get_verdict(args: dict) -> str:
-        result = verdict.verdict(args["region_code"], args["industry_id"])
-        return json.dumps(result, ensure_ascii=False)
-
-    def cite_get_verdict(args: dict, _result: str) -> list[dict]:
-        return _fact_citation(
-            "region_industry_verdict",
-            region_code=args["region_code"],
-            industry_id=args["industry_id"],
-        )
-
-    def run_get_verdict_alternatives(args: dict) -> str:
-        result = verdict.alternatives(args["region_code"], args["industry_id"])
-        return json.dumps(result, ensure_ascii=False)
-
-    def run_get_region_metrics(args: dict) -> str:
-        result = facts.metrics(args["region_code"], args["industry"])
-        return json.dumps(result, ensure_ascii=False)
-
-    def cite_get_region_metrics(args: dict, _result: str) -> list[dict]:
-        return _fact_citation(
-            "region_industry_metric",
-            region_code=args["region_code"],
-            industry=args["industry"],
-        )
-
-    def run_get_region_summary(args: dict) -> str:
-        result = facts.summary(args["region_code"], args["industry_id"])
-        return json.dumps(result, ensure_ascii=False)
-
-    def cite_get_region_summary(args: dict, _result: str) -> list[dict]:
-        return _fact_citation(
-            "region_summary",
-            region_code=args["region_code"],
-            industry_id=args["industry_id"],
-        )
-
-    def run_get_neighborhood_profile(args: dict) -> str:
-        result = facts.neighborhood_profile(args["region_code"])
-        return json.dumps(result, ensure_ascii=False)
-
-    def cite_get_neighborhood_profile(args: dict, _result: str) -> list[dict]:
-        return _fact_citation("region_profile_quarter", region_code=args["region_code"])
-
-    def run_get_population(args: dict) -> str:
-        result = facts.population(args["region_code"])
-        return json.dumps(result, ensure_ascii=False)
-
-    def cite_get_population(args: dict, _result: str) -> list[dict]:
-        return _fact_citation("population_stat", region_code=args["region_code"])
-
-    def run_search_shocks(args: dict) -> str:
-        events = facts.shocks(args.get("industry_id"), args["limit"])
-        rates = facts.latest_rates()
-        return json.dumps({"events": events, "latest_rates": rates}, ensure_ascii=False)
-
-    def cite_search_shocks(_args: dict, result: str) -> list[dict]:
-        parsed = json.loads(result)
-        citations = [
-            {"grade": "fact", "source": "shock_event", "event_id": e["event_id"], "url": e.get("source_url")}
-            for e in parsed["events"]
-        ]
-        citations.append({"grade": "fact", "source": "interest_rate"})
-        return citations
+    판정·지표·프로필·인구·충격·지원사업 후보는 `ReportFactsCollector`가 LLM 호출 전에 이미
+    모아 `[FACTS]`로 넣는다(설계서 §3-1). 도구는 "facts에 없는 것"에만 남는다 — 사용자 입력이
+    있어야 도는 계산 2종과, 질의를 LLM이 정해야 하는 RAG 재검색 2종이다.
+    """
 
     def run_search_news(args: dict) -> str:
         hits = rag_search.search(args["query"], top_k=args.get("top_k", 5), source_type="news")
-        return json.dumps([_hit_to_dict(h) for h in hits], ensure_ascii=False)
+        return json.dumps([hit_to_dict(h) for h in hits], ensure_ascii=False)
 
     def run_search_funding(args: dict) -> str:
         hits = rag_search.search(args["query"], top_k=args.get("top_k", 5), source_type="funding")
-        return json.dumps([_hit_to_dict(h) for h in hits], ensure_ascii=False)
-
-    def run_get_funding_candidates(args: dict) -> str:
-        result = funding.candidates(
-            args.get("industry_id"), args.get("external_funding_need"), args.get("stage")
-        )
-        return json.dumps(result, ensure_ascii=False)
-
-    def cite_get_funding_candidates(_args: dict, result: str) -> list[dict]:
-        """후보 공고는 원문 링크가 근거다 — RAG 신호가 아니라 결정론 필터 결과라 fact 등급."""
-        parsed = json.loads(result)
-        return [
-            {"grade": "fact", "source": "funding_program", "title": c["title"], "url": c["url"]}
-            for c in parsed["candidates"]
-        ]
+        return json.dumps([hit_to_dict(h) for h in hits], ensure_ascii=False)
 
     def run_finance_simulation(args: dict) -> str:
         # 계산은 finance BC 엔진이 한다 — LLM은 표를 읽고 설명만 한다 (설계서 §6)
@@ -253,138 +175,10 @@ def build_tools(
         return json.dumps(result, ensure_ascii=False)
 
     return [
-        # 판정 도구가 앞자리다 — 리포트 첫 섹션이 판정이라 LLM이 판정부터 읽어야 한다 (설계서 §5-2)
-        AgentTool(
-            spec=LLMToolSpec(
-                name="get_verdict",
-                description=(
-                    "행정동×업종의 창업 판정 카드를 조회한다 — 등급·신호 5개(근거·백분위·참고 여부)·산출일. "
-                    "판정이 없거나 판정 대상 업종이 아니면 available=false와 이유를 돌려준다."
-                ),
-                input_schema={
-                    "type": "object",
-                    "properties": {
-                        "region_code": {"type": "string", "description": "행정동 코드"},
-                        "industry_id": {"type": "string", "description": "업종 ID"},
-                    },
-                    "required": ["region_code", "industry_id"],
-                },
-            ),
-            stage="verdict",
-            run=run_get_verdict,
-            cite=cite_get_verdict,
-        ),
-        AgentTool(
-            spec=LLMToolSpec(
-                name="get_verdict_alternatives",
-                description=(
-                    "판정 대안 두 축을 조회한다 — 같은 동네의 다른 업종, 같은 업종의 다른 동네. "
-                    "기준 판정이 없으면 available=false와 이유를 돌려준다."
-                ),
-                input_schema={
-                    "type": "object",
-                    "properties": {
-                        "region_code": {"type": "string", "description": "행정동 코드"},
-                        "industry_id": {"type": "string", "description": "업종 ID"},
-                    },
-                    "required": ["region_code", "industry_id"],
-                },
-            ),
-            stage="verdict",
-            run=run_get_verdict_alternatives,
-            cite=cite_get_verdict,
-        ),
-        AgentTool(
-            spec=LLMToolSpec(
-                name="get_region_metrics",
-                description="행정동×업종의 연도별 지표(점포수·폐업률·성장률)를 조회한다.",
-                input_schema={
-                    "type": "object",
-                    "properties": {
-                        "region_code": {"type": "string", "description": "행정동 코드"},
-                        "industry": {"type": "string", "description": "업종 ID"},
-                    },
-                    "required": ["region_code", "industry"],
-                },
-            ),
-            stage="market",
-            run=run_get_region_metrics,
-            cite=cite_get_region_metrics,
-        ),
-        AgentTool(
-            spec=LLMToolSpec(
-                name="get_region_summary",
-                description="행정동×업종 요약 카드(최신 연도 점포수·폐업률·성장률)를 조회한다.",
-                input_schema={
-                    "type": "object",
-                    "properties": {
-                        "region_code": {"type": "string", "description": "행정동 코드"},
-                        "industry_id": {"type": "string", "description": "업종 ID"},
-                    },
-                    "required": ["region_code", "industry_id"],
-                },
-            ),
-            stage="market",
-            run=run_get_region_summary,
-            cite=cite_get_region_summary,
-        ),
-        AgentTool(
-            spec=LLMToolSpec(
-                name="get_neighborhood_profile",
-                description=(
-                    "행정동의 동네 유형·시간대 특성과 판정 근거, 유동인구 연령 구성, 상권 변화 지표, "
-                    "집객시설 구성, 아파트 평균 시가를 조회한다. reasons 절의 지표 근거와 "
-                    "conditions 절의 시간대 조건을 쓰는 재료다."
-                ),
-                input_schema={
-                    "type": "object",
-                    "properties": {
-                        "region_code": {"type": "string", "description": "행정동 코드"},
-                    },
-                    "required": ["region_code"],
-                },
-            ),
-            stage="market",
-            run=run_get_neighborhood_profile,
-            cite=cite_get_neighborhood_profile,
-        ),
-        AgentTool(
-            spec=LLMToolSpec(
-                name="get_population",
-                description="행정동의 최신 연령 분포와 학령(5~19세) 인구 합계를 조회한다.",
-                input_schema={
-                    "type": "object",
-                    "properties": {
-                        "region_code": {"type": "string", "description": "행정동 코드"},
-                    },
-                    "required": ["region_code"],
-                },
-            ),
-            stage="market",
-            run=run_get_population,
-            cite=cite_get_population,
-        ),
-        AgentTool(
-            spec=LLMToolSpec(
-                name="search_shocks",
-                description="업종(선택) 충격 이벤트 목록과 최신 금리를 조회한다.",
-                input_schema={
-                    "type": "object",
-                    "properties": {
-                        "industry_id": {"type": "string", "description": "업종 ID (생략 시 전체)"},
-                        "limit": {"type": "integer", "description": "조회할 최대 건수"},
-                    },
-                    "required": ["limit"],
-                },
-            ),
-            stage="shock",
-            run=run_search_shocks,
-            cite=cite_search_shocks,
-        ),
         AgentTool(
             spec=LLMToolSpec(
                 name="search_news",
-                description="관련 뉴스 기사를 유사도 검색한다.",
+                description="관련 뉴스 기사를 유사도 검색한다. facts.news로 부족할 때만 쓴다.",
                 input_schema={
                     "type": "object",
                     "properties": {
@@ -401,7 +195,10 @@ def build_tools(
         AgentTool(
             spec=LLMToolSpec(
                 name="search_funding",
-                description="관련 정책자금 공고를 유사도 검색한다(만료분 제외).",
+                description=(
+                    "관련 정책자금 공고를 유사도 검색한다(만료분 제외). "
+                    "facts.funding_candidates로 부족할 때만 쓴다."
+                ),
                 input_schema={
                     "type": "object",
                     "properties": {
@@ -414,33 +211,6 @@ def build_tools(
             stage="funding",
             run=run_search_funding,
             cite=_cite_rag_hits,
-        ),
-        AgentTool(
-            spec=LLMToolSpec(
-                name="get_funding_candidates",
-                description=(
-                    "서울 창업자에게 해당할 수 있는 미만료 정책자금 공고를 규칙으로 걸러 상위 8건 돌려준다. "
-                    "유사도 검색(search_funding)과 달리 지역·대상·마감을 확정적으로 판정한다. 자격 확정이 아니다."
-                ),
-                input_schema={
-                    "type": "object",
-                    "properties": {
-                        "industry_id": {"type": "string", "description": "업종 ID (선택)"},
-                        "external_funding_need": {
-                            "type": "integer",
-                            "description": "자기자본 외 조달 필요 금액(원, 선택) — 필터에는 쓰이지 않고 문장에 쓴다",
-                        },
-                        "stage": {
-                            "type": "string",
-                            "description": "pre(사업자등록 전) | registered(등록 후). 생략 가능",
-                        },
-                    },
-                    "required": [],
-                },
-            ),
-            stage="funding",
-            run=run_get_funding_candidates,
-            cite=cite_get_funding_candidates,
         ),
         AgentTool(
             spec=LLMToolSpec(

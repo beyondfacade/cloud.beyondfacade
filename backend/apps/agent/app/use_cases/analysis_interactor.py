@@ -3,6 +3,10 @@
 `app/` 레이어이므로 FastAPI·SQLAlchemy·어댑터를 import하지 않는다. 도구는 주입받는다
 (조립은 Task 11의 Composition Root).
 
+사실은 LLM을 부르기 전에 `ReportFactsCollector`가 모아 `facts` 이벤트로 먼저 내보내고,
+같은 값을 첫 user 메시지의 `[FACTS]`에 넣는다 (설계서 §3-3). 도구 루프는 남지만 facts가
+대신할 수 없는 4종만 돈다.
+
 스테이지 개폐 규칙 (agent_status의 running/done 짝):
 - `running`: 그 스테이지의 도구가 처음 실행될 때 1회만 — 열린 스테이지 집합에 등록한다.
 - `done`: ① 뒤이은 턴의 도구 호출 목록에 그 스테이지가 더 이상 없을 때, ② 루프가 끝난 뒤
@@ -32,7 +36,12 @@ from apps.agent.app.ports.output.agent_port import (
     LLMUsage,
 )
 from apps.agent.app.use_cases.agent_tools import AgentTool
+from apps.agent.app.use_cases.report_facts import ReportFactsCollector
 from apps.agent.domain.entities.agent_event_entity import AgentEvent
+from apps.agent.domain.services.report_fallback import (
+    alternatives_markdown,
+    verdict_markdown,
+)
 
 LOGGER = logging.getLogger("beyondfacade.agent.loop")
 
@@ -55,42 +64,49 @@ _SECTIONS = (
 
 _SECTION_MARKER = re.compile(r"\[SECTION:(\w+)\]")
 
+# LLM이 빼먹어도 코드가 facts로 쓸 수 있는 섹션 — 섹션 이름이 곧 facts 키다 (설계서 §3-3④).
+# if/elif 대신 테이블 디스패치 (CLAUDE.md §5).
+_FACT_FALLBACKS = {"verdict": verdict_markdown, "alternatives": alternatives_markdown}
+
 _FINAL_REQUEST = (
     "도구 호출을 멈추고, 지금까지 수집한 내용만으로 최종 리포트를 "
     "5개 섹션 마커 형식에 맞춰 지금 작성하라."
 )
 
 SYSTEM_PROMPT = """당신은 서울 상권 분석 리포트를 작성하는 단일 에이전트다.
-도구로 사실을 수집한 뒤, 아래 응답 규칙 5종을 지켜 최종 리포트를 작성한다.
+리포트에 필요한 사실은 이미 수집되어 사용자 메시지의 `[FACTS]` JSON으로 주어진다.
+당신이 할 일은 사실을 모으는 것이 아니라 **사실을 해석해 글을 쓰는 것**이다.
+아래 응답 규칙 5종을 지켜 최종 리포트를 작성한다.
 
 [응답 규칙]
 ① 외국인 관련 수치는 "업종 타겟 정합성" 문맥으로만 사용한다. 비하·차별적 표현은 금지한다.
 ② 2020~2022년 폐업률은 재난지원금·손실보상으로 폐업이 지연되어 왜곡되었을 가능성을 명시한다.
 ③ 대출 중개와 특정 은행·상품 추천은 금지한다. 모든 금리·한도는 "예상치"임을 고지한다.
-④ 정형 도구 결과는 [확인된 사실], RAG 검색 결과는 [참고 신호]로 표기한다.
-⑤ 판정 등급·켜진 신호·대안은 `get_verdict`/`get_verdict_alternatives` 값을 그대로 옮긴다.
-   이 두 도구를 다른 어떤 도구보다 **가장 먼저 호출한다** — 나머지 절이 판정을 설명하는 절이다.
-   등급을 바꾸거나 신호를 새로 만들거나 🟢 추천을 쓰지 않는다. 판정이 없으면(`available: false`)
-   "판정 없음"이라 쓰고 `reason`을 이유로 붙인다. 도구가 오류를 돌려주면(`error` 키) 판정을 쓰지 말고
-   "판정 조회 실패"라고 적는다 — 등급을 지어내지 않는다. `advisory: true` 신호는 켜진 경고가 아니라
-   "참고"로만 적는다 — 등급 계산에 들어가지 않은 신호다.
-   판정 도구 다음에는 `get_funding_candidates`(funding 절의 지원사업 금액)와 `compare_rent_vs_buy`
-   (conditions 절의 임대료 상한)를 **반드시 호출한다** — 호출 없이 지어내지 않는다.
-   `run_finance_simulation`은 사용자가 13개 입력을 모두 주었을 때만 호출한다(예산이 주어졌으면
-   그 값을 자기자본 기본값으로) — 13개 입력이 없으면 추정값으로 계산하지 말고, 손익분기 매출은
-   `/plan`에서 계산한 값을 기준으로 상담하라고 안내한다.
+④ `[FACTS]`의 정형 값과 도구 계산 결과는 [확인된 사실], 검색 결과(`facts.news`·`search_*`)는
+   [참고 신호]로 표기한다.
+⑤ 판정 등급·켜진 신호·대안·지표는 `[FACTS]` 값을 그대로 옮긴다. 등급을 바꾸거나 신호를 새로 만들거나
+   🟢 추천을 쓰지 않는다. 값이 `available: false`면 그 `reason`을 이유로 붙여 "판정 없음"처럼 그대로
+   쓴다 — 없는 값을 지어내지 않는다. `advisory: true` 신호는 켜진 경고가 아니라 "참고"로만 적는다.
+   도구는 `[FACTS]`에 없는 것에만 쓴다 — `run_finance_simulation`은 사용자가 13개 입력을 모두
+   주었을 때만(예산이 주어졌으면 그 값을 자기자본 기본값으로), `compare_rent_vs_buy`는 임대료 상한을
+   계산할 때만, `search_news`·`search_funding`은 facts의 뉴스·공고가 모자랄 때만 호출한다.
+
+[분량]
+숫자는 화면의 시각 자료가 이미 보여준다. **표·숫자 나열 대신 해석 2~4문장**으로 쓴다 —
+같은 숫자를 다시 늘어놓지 말고 "그래서 무엇을 뜻하는지"를 쓴다. 리포트 전체를 2,000자 이내로 맺는다.
 
 [최종 리포트 형식]
-수집이 끝나면 도구를 더 호출하지 말고, 아래 5개 마커를 순서대로 모두 포함한 마크다운 한 벌을 출력한다.
+아래 5개 마커를 순서대로 모두 포함한 마크다운 한 벌을 출력한다.
 [SECTION:verdict] 판정
 [SECTION:reasons] 왜 안 되나
 [SECTION:conditions] 그래도 한다면
 [SECTION:alternatives] 대안 동네·업종
 [SECTION:funding] 대안 업종 지원사업
 각 마커 바로 아래에 해당 섹션 본문을 쓴다. 같은 마커를 두 번 쓰지 않는다.
+섹션을 쓰기 시작하면 도구를 부르지 않는다.
 
 [verdict 섹션 출력 계약]
-**판정**은 `get_verdict` 결과만으로 쓴다. 자유 서술이 아니다.
+**판정**은 `facts.verdict`만으로 쓴다. 자유 서술이 아니다.
 - 첫 줄은 배지 한 줄: 판정 등급과 켜진 신호 수(`on_count`·`strong_count`)를 한 문장으로.
 - 다음은 켜진 신호(`level`이 on 또는 strong) 목록: 신호마다 `evidence` 문장을 그대로 옮긴다.
 - `advisory: true` 신호는 이 목록에 넣지 말고 "참고:" 한 줄로 따로 덧붙인다.
@@ -99,32 +115,33 @@ SYSTEM_PROMPT = """당신은 서울 상권 분석 리포트를 작성하는 단�
 
 [reasons 섹션 출력 계약]
 **왜 안 되나**는 판정에서 켜진 신호마다 한 단락씩 쓴다. 신호의 `evidence`·`percentile`에
-`get_region_metrics`·`get_neighborhood_profile`의 지표 숫자를 붙여 근거를 세우고,
-`search_shocks`·`search_news`에서 확인된 충격·뉴스 악재를 마지막 단락에 덧붙인다.
+`facts.metrics_history`·`facts.profile`·`facts.commerce_change`·`facts.population`의 지표를 붙여
+근거를 세우고, `facts.shocks`·`facts.news`에서 확인된 충격·뉴스 악재를 마지막 단락에 덧붙인다.
 켜진 신호가 없으면 새 신호를 만들지 말고 그렇게 쓴다.
-지표는 `benchmarks`(서울 평균·같은 유형 중앙값)와 비교해 쓴다. 비교 기준 없는 절대값 서술은
-하지 않는다. `benchmarks`가 null인 항목은 비교하지 않는다.
-도구가 주지 않은 수치는 지어내지 않는다. 값이 없으면 "자료 없음"이라고 쓴다.
-결과의 `caveats` 항목은 해석 금지 사항이다 — 반드시 지킨다.
+지표는 `facts.profile.benchmarks`(서울 평균·같은 유형 중앙값)와 비교해 쓴다. 비교 기준 없는 절대값
+서술은 하지 않는다. `benchmarks`가 null인 항목은 비교하지 않는다.
+facts에 없는 수치는 지어내지 않는다. 값이 없으면 "자료 없음"이라고 쓴다.
+`facts.profile.caveats` 항목은 해석 금지 사항이다 — 반드시 지킨다.
 
 [conditions 섹션 출력 계약]
 **그래도 한다면**은 조건 셋을 이 순서·이 라벨 그대로 쓴다.
-- **시간대 조건**: `get_neighborhood_profile`의 정점·바닥 블록으로 영업 시간대를 좁힌다.
-- **임대료 상한**: `compare_rent_vs_buy` 결과로 감당 가능한 월세 선을 제시한다.
-- **손익분기 매출**: `run_finance_simulation`의 `bep_revenue`를 그대로 인용한다.
+- **시간대 조건**: `facts.hour_gap`의 구간별 어긋남과 `facts.profile`의 정점·바닥 블록으로
+  영업 시간대를 좁힌다.
+- **임대료 상한**: `compare_rent_vs_buy`를 호출했으면 그 결과로 감당 가능한 월세 선을 제시한다.
+- **손익분기 매출**: `run_finance_simulation`을 호출했으면 `bep_revenue`를 그대로 인용한다.
 엔진 수치는 그대로 인용하고 다시 계산하지 않는다. 헤드라인은 `external_funding_need`(자기자본 외
 조달 필요)다 — 희망대출은 아직 빌리지 않은 돈이므로 `funding_gap`(희망대출 반영 후 부족액)이
 0이어도 "충분합니다"라고 쓰지 않는다. 사용자가 13개 입력을 주지 않았으면 추정값으로 계산하지 말고,
 `/plan`에서 계산한 값을 기준으로 상담하라고 안내한다. 금리·한도는 규칙 ③대로 "예상치"임을 고지한다.
 
 [alternatives 섹션 출력 계약]
-**대안 동네·업종**은 `get_verdict_alternatives` 결과의 두 축을 각각 **최대 3개**까지 순서 그대로
-옮긴다 — 같은 동네의 다른 업종(`industries`), 같은 업종의 다른 동네(`regions`).
+**대안 동네·업종**은 `facts.alternatives`의 두 축을 각각 **최대 3개**까지 순서 그대로 옮긴다 —
+같은 동네의 다른 업종(`industries`), 같은 업종의 다른 동네(`regions`).
 각 항목에 판정 등급을 함께 적는다. 축이 비어 있으면 그 축은 "대안 없음"이라고 쓴다.
 순위를 바꾸거나 목록에 없는 동·업종을 보태지 않는다.
 
 [funding 섹션 출력 계약]
-**대안 업종 지원사업**의 공고 후보는 `get_funding_candidates` 결과를 쓰고, **자격 확정이 아니라
+**대안 업종 지원사업**의 공고 후보는 `facts.funding_candidates`를 쓰고, **자격 확정이 아니라
 해당 가능성**이라고 쓴다. alternatives 절의 **대안 업종**에 해당하는 공고를 먼저 배치한다.
 신청 자격·한도는 원문에서 확인해야 한다고 덧붙이고 원문 링크를 함께 남긴다.
 금리·한도는 규칙 ③대로 "예상치"임을 고지한다. `external_funding_need`를 알면 그 금액을 이 절의
@@ -217,10 +234,14 @@ class AnalysisInteractor(AnalysisUseCase):
         self,
         llm: LLMGatewayPort,
         tools: list[AgentTool],
+        facts: ReportFactsCollector,
+        budget: int | None = None,
         now: Callable[[], float] = time.monotonic,
     ) -> None:
         self._llm = llm
         self._tools = tools
+        self._facts = facts
+        self._budget = budget  # facts 수집에 그대로 넘긴다 (finance 도구 기본값과 같은 값)
         self._now = now  # 테스트가 시계를 넣는다 — 벽시계 예산을 실제로 기다리지 않게
         self.last_usage = LLMUsage(input_tokens=0, output_tokens=0)
 
@@ -237,10 +258,6 @@ class AnalysisInteractor(AnalysisUseCase):
         self.last_usage = LLMUsage(input_tokens=0, output_tokens=0)
         tools_by_name = {tool.spec.name: tool for tool in self._tools}
         specs = [tool.spec for tool in self._tools]
-        messages = [
-            {"role": "system", "content": SYSTEM_PROMPT},
-            {"role": "user", "content": _user_message(region, industry, question)},
-        ]
         citations: list[dict] = []
         open_stages: dict[str, None] = {}  # 삽입 순서를 유지하는 열린 스테이지 집합
         final_text = ""
@@ -266,6 +283,17 @@ class AnalysisInteractor(AnalysisUseCase):
                 LOGGER.warning("인용 추출 실패 — %s의 인용을 건너뛴다", tool.spec.name, exc_info=True)
 
         yield AgentEvent("agent_status", {"agent": "orchestrator", "status": "running"})
+
+        # 사실은 코드가 먼저 모은다 — 프론트는 이 프레임만으로 시각 자료를 다 그린다 (설계서 §3-3①)
+        yield AgentEvent("agent_status", {"agent": "facts", "status": "running"})
+        facts = self._facts.collect(region, industry, self._budget)
+        yield AgentEvent("facts", facts)
+        yield AgentEvent("agent_status", {"agent": "facts", "status": "done"})
+
+        messages = [
+            {"role": "system", "content": SYSTEM_PROMPT},
+            {"role": "user", "content": _user_message(region, industry, question, facts)},
+        ]
 
         deadline = self._now() + _TOOL_LOOP_BUDGET_SECONDS
         for _ in range(_MAX_TURNS):
@@ -332,7 +360,7 @@ class AnalysisInteractor(AnalysisUseCase):
 
         sections = split_report_sections(final_text)
         for name, title in _SECTIONS:
-            markdown = sections.get(name) or f"### {title}\n\n분석 데이터가 부족합니다."
+            markdown = sections.get(name) or _fallback_section(name, title, facts)
             yield AgentEvent("report_delta", {"section": name, "markdown": markdown})
 
         yield AgentEvent("agent_status", {"agent": "orchestrator", "status": "done"})
@@ -374,11 +402,20 @@ class AnalysisInteractor(AnalysisUseCase):
         return retried.arguments
 
 
-def _user_message(region: str, industry: str, question: str | None) -> str:
+def _user_message(region: str, industry: str, question: str | None, facts: dict) -> str:
+    """수집한 사실을 첫 메시지에 통째로 넣는다 — 도구를 맴돌며 턴을 쌓지 않게 (설계서 §3-3②)."""
     parts = [f"분석 지역: {region}", f"업종: {industry}"]
     if question:
         parts.append(f"사용자 질문: {question}")
+    parts.append("[FACTS]\n" + json.dumps(facts, ensure_ascii=False))
     return "\n".join(parts)
+
+
+def _fallback_section(name: str, title: str, facts: dict) -> str:
+    """LLM이 빼먹은 섹션 — 판정·대안은 facts로 코드가 쓰고, 나머지는 부족 문구로 끝을 알린다."""
+    formatter = _FACT_FALLBACKS.get(name)
+    markdown = formatter(facts.get(name)) if formatter else None
+    return markdown or f"### {title}\n\n분석 데이터가 부족합니다."
 
 
 def _collect_citations(tool: AgentTool, arguments: dict, result: str, region: str) -> list[dict]:

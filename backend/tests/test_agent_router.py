@@ -1,5 +1,6 @@
 """agent 분석 라우터 검증 — POST·SSE 프레임·404·myself 배선 (Fake AnalysisUseCase)."""
 
+import json
 from collections.abc import Iterator
 from uuid import UUID
 
@@ -10,8 +11,15 @@ from apps.agent.dependencies.analysis_dependencies import get_analysis_use_case
 from apps.agent.domain.entities.agent_event_entity import AgentEvent
 from main import app
 
+from apps.agent.app.use_cases.report_facts import FACTS_KEYS
+
+_FACTS = {key: {"available": False, "reason": "테스트"} for key in FACTS_KEYS}
+_FACTS["region"] = {"code": "1168064000", "name": "역삼1동", "industry_id": "cafe", "industry_name": "카페"}
+_FACTS["budget"] = None
+
 _FIXED_EVENTS = (
     AgentEvent("agent_status", {"agent": "orchestrator", "status": "running"}),
+    AgentEvent("facts", _FACTS),
     AgentEvent("report_delta", {"section": "verdict", "markdown": "### 판정\n\n테스트"}),
     AgentEvent(
         "report_done",
@@ -93,6 +101,23 @@ def test_get_events_streams_sse_frames_in_order():
     pos_delta = body.index("event: report_delta\n")
     pos_done = body.index("event: report_done\n")
     assert pos_status < pos_delta < pos_done
+
+
+def test_facts_프레임이_열두_키를_그대로_싣는다():
+    """프론트는 이 한 프레임으로 시각 자료를 전부 그린다 — 키가 빠지면 그림이 사라진다 (설계서 §5)."""
+    client = TestClient(app)
+    analysis_id = client.post(
+        "/analysis",
+        json={"region": "1168064000", "industry": "cafe"},
+    ).json()["analysis_id"]
+
+    body = client.get(f"/analysis/{analysis_id}/events").text
+
+    frame = [line for line in body.splitlines() if line.startswith("data: ")][1]
+    payload = json.loads(frame[len("data: ") :])
+    assert payload["type"] == "facts"
+    assert set(payload) == {"type", *FACTS_KEYS}
+    assert payload["region"]["name"] == "역삼1동"
 
 
 def test_unknown_analysis_id_returns_404_body():

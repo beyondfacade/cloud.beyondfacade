@@ -20,6 +20,7 @@ from apps.agent.app.ports.input.analysis_use_case import AnalysisUseCase
 from apps.agent.app.ports.output.agent_port import LLMGatewayPort
 from apps.agent.app.use_cases.agent_tools import build_tools
 from apps.agent.app.use_cases.analysis_interactor import AnalysisInteractor
+from apps.agent.app.use_cases.report_facts import ReportFactsCollector
 from apps.rag.dependencies.rag_dependencies import get_rag_search_use_case
 
 # 모델 키 → LLM 어댑터 팩토리 (if/elif 대신 dict 디스패치)
@@ -48,21 +49,23 @@ _LLM_REGISTRY: dict[str, Callable[[], LLMGatewayPort]] = {
 def build_analysis_use_case(model: str = "hybrid", budget: int | None = None) -> AnalysisUseCase:
     """요청 스코프 AnalysisInteractor — last_usage 누적이 요청 간에 섞이지 않게.
 
-    세션 예산(원)은 여기서 도구에 심는다 — finance 도구의 자기자본 기본값이 된다(설계서 §5-2).
+    세션 예산(원)은 여기서 도구와 facts 수집기 둘 다에 심는다 — finance 도구의 자기자본
+    기본값이자 `facts.budget`이다(설계서 §5-2·§3-1).
     """
     try:
         llm_factory = _LLM_REGISTRY[model]
     except KeyError as error:
         raise ValueError(f"지원하지 않는 모델: {model}") from error
-    tools = build_tools(
-        RegionFactsGateway(),
-        get_rag_search_use_case(),
-        FinanceFactsGateway(),
-        FundingFactsGateway(),
-        VerdictFactsGateway(),
-        budget,
+    region_facts = RegionFactsGateway()
+    rag_search = get_rag_search_use_case()
+    tools = build_tools(region_facts, rag_search, FinanceFactsGateway(), budget)
+    facts = ReportFactsCollector(
+        region_facts=region_facts,
+        verdict_facts=VerdictFactsGateway(),
+        funding_facts=FundingFactsGateway(),
+        news_search=rag_search,
     )
-    return AnalysisInteractor(llm=llm_factory(), tools=tools)
+    return AnalysisInteractor(llm=llm_factory(), tools=tools, facts=facts, budget=budget)
 
 
 def get_analysis_use_case() -> AnalysisUseCase:

@@ -14,7 +14,10 @@ from apps.agent.app.use_cases.analysis_interactor import (
     AnalysisInteractor,
     split_report_sections,
 )
+from apps.agent.app.use_cases.report_facts import ReportFactsCollector
 from apps.agent.domain.entities.agent_event_entity import AgentEvent
+
+_FACTS = {"region": {"code": "1168064000", "name": "역삼1동"}, "verdict": {"available": False, "reason": "없다"}}
 
 _FINAL_TEXT = (
     "[SECTION:verdict]\n### 판정\n\n🔴 위험.\n"
@@ -26,6 +29,7 @@ _FINAL_TEXT = (
 
 _SIGNATURE_FIELDS = {
     "agent_status": ("agent", "status"),
+    "facts": (),
     "tool_call": ("agent", "tool"),
     "report_delta": ("section",),
     "report_done": (),
@@ -51,17 +55,33 @@ class FakeLLM(LLMGatewayPort):
         return self._turns.pop(0)
 
 
+class FakeFactsCollector(ReportFactsCollector):
+    """수집 결과를 고정하는 대역 — 호출 인자를 기록한다 (포트 조립 없이)."""
+
+    def __init__(self, facts: dict | None = None) -> None:
+        self.facts = _FACTS if facts is None else facts
+        self.calls: list[tuple] = []
+
+    def collect(self, region: str, industry: str, budget: int | None = None) -> dict:
+        self.calls.append((region, industry, budget))
+        return self.facts
+
+
+def _interactor(llm, tools, facts=None, **kwargs) -> AnalysisInteractor:
+    return AnalysisInteractor(llm, tools, facts or FakeFactsCollector(), **kwargs)
+
+
 def _final_turn(text: str = _FINAL_TEXT) -> LLMTurn:
     return LLMTurn(text=text, tool_calls=[], usage=LLMUsage(input_tokens=30, output_tokens=7))
 
 
-def _metrics_call_turn() -> LLMTurn:
-    """유효한 인자로 get_region_metrics를 1건 호출하는 턴."""
+def _market_call_turn() -> LLMTurn:
+    """유효한 인자로 market 스테이지 도구를 1건 호출하는 턴."""
     return LLMTurn(
         text="",
         tool_calls=[
             LLMToolCall(
-                tool_name="get_region_metrics",
+                tool_name="stub_market_tool",
                 arguments={"region_code": "11680640", "industry": "cafe"},
             )
         ],
@@ -69,10 +89,11 @@ def _metrics_call_turn() -> LLMTurn:
     )
 
 
-def _metrics_tool(run=None, cite=None) -> AgentTool:
+def _market_tool(run=None, cite=None) -> AgentTool:
+    """루프 검증용 대역 도구 — 루프는 도구가 무엇인지 모른다(주입받은 레지스트리로만 돈다)."""
     return AgentTool(
         spec=LLMToolSpec(
-            name="get_region_metrics",
+            name="stub_market_tool",
             description="지표 조회",
             input_schema={
                 "type": "object",
@@ -115,7 +136,7 @@ def test_event_order_contract_for_two_stage_tool_turn():
         "industry": "cafe",
     }
     tools = [
-        _metrics_tool(cite=lambda args, result: [fact_citation, dict(fact_citation)]),
+        _market_tool(cite=lambda args, result: [fact_citation, dict(fact_citation)]),
         _funding_tool(),
     ]
     llm = FakeLLM(
@@ -124,7 +145,7 @@ def test_event_order_contract_for_two_stage_tool_turn():
                 text="도구를 호출한다",
                 tool_calls=[
                     LLMToolCall(
-                        tool_name="get_region_metrics",
+                        tool_name="stub_market_tool",
                         arguments={"region_code": "11680640", "industry": "cafe"},
                     ),
                     LLMToolCall(tool_name="search_funding", arguments={"query": "카페 창업자금"}),
@@ -134,14 +155,17 @@ def test_event_order_contract_for_two_stage_tool_turn():
             _final_turn(),
         ]
     )
-    interactor = AnalysisInteractor(llm, tools)
+    interactor = _interactor(llm, tools)
 
     events = list(interactor.run("역삼동", "cafe", None))
 
     assert [_signature(event) for event in events] == [
         ("agent_status", "orchestrator", "running"),
+        ("agent_status", "facts", "running"),
+        ("facts",),
+        ("agent_status", "facts", "done"),
         ("agent_status", "market", "running"),
-        ("tool_call", "market", "get_region_metrics"),
+        ("tool_call", "market", "stub_market_tool"),
         ("agent_status", "funding", "running"),
         ("tool_call", "funding", "search_funding"),
         ("agent_status", "market", "done"),
@@ -154,10 +178,10 @@ def test_event_order_contract_for_two_stage_tool_turn():
         ("agent_status", "orchestrator", "done"),
         ("report_done",),
     ]
-    assert events[7].payload["markdown"] == "### 판정\n\n🔴 위험."
+    assert events[10].payload["markdown"] == "### 판정\n\n🔴 위험."
     assert events[-1].payload["report_id"]
     assert events[-1].payload["citations"] == [
-        {"title": "get_region_metrics: 역삼동", "url": "", "grade": "fact"},
+        {"title": "stub_market_tool: 역삼동", "url": "", "grade": "fact"},
         {"title": "search_funding: 역삼동", "url": "", "grade": "fact"},
     ]
     assert interactor.last_usage == LLMUsage(input_tokens=130, output_tokens=27)
@@ -187,13 +211,13 @@ def test_callback_citations_are_normalized_to_title_url_grade():
             "org": None,
         },
     ]
-    llm = FakeLLM([_metrics_call_turn(), _final_turn()])
-    interactor = AnalysisInteractor(llm, [_metrics_tool(cite=lambda args, result: callback_output)])
+    llm = FakeLLM([_market_call_turn(), _final_turn()])
+    interactor = _interactor(llm, [_market_tool(cite=lambda args, result: callback_output)])
 
     events = list(interactor.run("역삼동", "cafe", None))
 
     assert events[-1].payload["citations"] == [
-        {"title": "get_region_metrics: 역삼동", "url": "", "grade": "fact"},
+        {"title": "stub_market_tool: 역삼동", "url": "", "grade": "fact"},
         {"title": "한국일보", "url": "https://news.example/1", "grade": "signal"},
         {"title": "F-77", "url": "", "grade": "signal"},
     ]
@@ -205,8 +229,8 @@ def test_cite_failure_drops_citations_but_keeps_the_stream_alive():
     def exploding_cite(_args: dict, _result: str) -> list[dict]:
         raise ValueError("인용 형식이 예상과 다릅니다")
 
-    llm = FakeLLM([_metrics_call_turn(), _final_turn()])
-    interactor = AnalysisInteractor(llm, [_metrics_tool(cite=exploding_cite)])
+    llm = FakeLLM([_market_call_turn(), _final_turn()])
+    interactor = _interactor(llm, [_market_tool(cite=exploding_cite)])
 
     events = list(interactor.run("역삼동", "cafe", None))
 
@@ -235,7 +259,7 @@ def test_split_report_sections_parses_five_markers():
 def test_missing_sections_fall_back_to_shortage_notice():
     """최종 텍스트에 없는 섹션은 폴백 문구로 채워 5건을 모두 방출한다."""
     llm = FakeLLM([_final_turn("[SECTION:verdict]\n### 판정\n\n🔴 위험.")])
-    interactor = AnalysisInteractor(llm, [_metrics_tool()])
+    interactor = _interactor(llm, [_market_tool()])
 
     deltas = [event for event in interactor.run("역삼동", "cafe", None) if event.type == "report_delta"]
 
@@ -262,7 +286,7 @@ def test_split_report_sections_keeps_last_duplicate_marker():
 
 def test_schema_violation_reprompts_once_then_skips_and_continues():
     """필수 인자 누락 → 재프롬프트 1회, 재시도도 위반이면 해당 호출만 스킵하고 루프는 계속된다."""
-    invalid_call = LLMToolCall(tool_name="get_region_metrics", arguments={"region_code": "11680640"})
+    invalid_call = LLMToolCall(tool_name="stub_market_tool", arguments={"region_code": "11680640"})
     llm = FakeLLM(
         [
             LLMTurn(text="", tool_calls=[invalid_call], usage=LLMUsage(input_tokens=10, output_tokens=2)),
@@ -270,13 +294,13 @@ def test_schema_violation_reprompts_once_then_skips_and_continues():
             _final_turn(),
         ]
     )
-    interactor = AnalysisInteractor(llm, [_metrics_tool()])
+    interactor = _interactor(llm, [_market_tool()])
 
     events = list(interactor.run("역삼동", "cafe", None))
 
     assert len(llm.calls) == 3
     assert [message["role"] for message in llm.calls[1]] == ["system", "user", "assistant", "tool"]
-    assert llm.calls[1][-1]["tool_name"] == "get_region_metrics"
+    assert llm.calls[1][-1]["tool_name"] == "stub_market_tool"
     assert "industry" in llm.calls[1][-1]["content"]
     # 재시도도 위반 → 실행하지 않은 호출은 이력에 남기지 않는다 (dangling 방지)
     assert llm.calls[2] == llm.calls[1]
@@ -293,14 +317,14 @@ def test_schema_violation_retry_with_valid_arguments_runs_the_tool():
         [
             LLMTurn(
                 text="",
-                tool_calls=[LLMToolCall(tool_name="get_region_metrics", arguments={})],
+                tool_calls=[LLMToolCall(tool_name="stub_market_tool", arguments={})],
                 usage=LLMUsage(input_tokens=10, output_tokens=2),
             ),
             LLMTurn(
                 text="",
                 tool_calls=[
                     LLMToolCall(
-                        tool_name="get_region_metrics",
+                        tool_name="stub_market_tool",
                         arguments={"region_code": "11680640", "industry": "cafe"},
                     )
                 ],
@@ -309,14 +333,14 @@ def test_schema_violation_retry_with_valid_arguments_runs_the_tool():
             _final_turn(),
         ]
     )
-    tool = _metrics_tool(run=lambda args: executed.append(args) or "{}")
-    interactor = AnalysisInteractor(llm, [tool])
+    tool = _market_tool(run=lambda args: executed.append(args) or "{}")
+    interactor = _interactor(llm, [tool])
 
     events = list(interactor.run("역삼동", "cafe", None))
 
     assert executed == [{"region_code": "11680640", "industry": "cafe"}]
-    assert _signature(events[1]) == ("agent_status", "market", "running")
-    assert _signature(events[2]) == ("tool_call", "market", "get_region_metrics")
+    assert _signature(events[4]) == ("agent_status", "market", "running")
+    assert _signature(events[5]) == ("tool_call", "market", "stub_market_tool")
     # 이력: assistant(위반 호출) → tool(위반 통보) → assistant(재시도 호출 1건) → tool(결과)
     assert [message["role"] for message in llm.calls[2]] == [
         "system",
@@ -329,20 +353,20 @@ def test_schema_violation_retry_with_valid_arguments_runs_the_tool():
     assert llm.calls[2][4]["tool_calls"] == [
         {
             "function": {
-                "name": "get_region_metrics",
+                "name": "stub_market_tool",
                 "arguments": {"region_code": "11680640", "industry": "cafe"},
             }
         }
     ]
-    assert llm.calls[2][5]["tool_name"] == "get_region_metrics"
+    assert llm.calls[2][5]["tool_name"] == "stub_market_tool"
 
 
 def test_valid_calls_are_answered_before_the_invalid_call_reprompt():
     """한 턴에 [위반 A, 유효 B]가 오면 B를 먼저 실행·응답한 뒤 A를 재프롬프트한다."""
-    invalid = LLMToolCall(tool_name="get_region_metrics", arguments={"region_code": "11680640"})
+    invalid = LLMToolCall(tool_name="stub_market_tool", arguments={"region_code": "11680640"})
     valid = LLMToolCall(tool_name="search_funding", arguments={"query": "카페 창업자금"})
     retried = LLMToolCall(
-        tool_name="get_region_metrics",
+        tool_name="stub_market_tool",
         arguments={"region_code": "11680640", "industry": "cafe"},
     )
     llm = FakeLLM(
@@ -360,7 +384,7 @@ def test_valid_calls_are_answered_before_the_invalid_call_reprompt():
             _final_turn(),
         ]
     )
-    interactor = AnalysisInteractor(llm, [_metrics_tool(), _funding_tool()])
+    interactor = _interactor(llm, [_market_tool(), _funding_tool()])
 
     events = list(interactor.run("역삼동", "cafe", None))
 
@@ -373,14 +397,13 @@ def test_valid_calls_are_answered_before_the_invalid_call_reprompt():
         "tool",
     ]
     assert reprompt_messages[3]["tool_name"] == "search_funding"  # 유효 호출 응답이 먼저
-    assert reprompt_messages[4]["tool_name"] == "get_region_metrics"
+    assert reprompt_messages[4]["tool_name"] == "stub_market_tool"
     assert "industry" in reprompt_messages[4]["content"]
-    assert [_signature(event) for event in events[:5]] == [
-        ("agent_status", "orchestrator", "running"),
+    assert [_signature(event) for event in events[4:8]] == [
         ("agent_status", "funding", "running"),
         ("tool_call", "funding", "search_funding"),
         ("agent_status", "market", "running"),
-        ("tool_call", "market", "get_region_metrics"),
+        ("tool_call", "market", "stub_market_tool"),
     ]
 
 
@@ -390,14 +413,14 @@ def test_turn_limit_forces_a_final_report_call_and_finishes_the_contract():
         text="",
         tool_calls=[
             LLMToolCall(
-                tool_name="get_region_metrics",
+                tool_name="stub_market_tool",
                 arguments={"region_code": "11680640", "industry": "cafe"},
             )
         ],
         usage=LLMUsage(input_tokens=10, output_tokens=1),
     )
     llm = FakeLLM([tool_turn] * 12 + [_final_turn()])
-    interactor = AnalysisInteractor(llm, [_metrics_tool()])
+    interactor = _interactor(llm, [_market_tool()])
 
     events = list(interactor.run("역삼동", "cafe", None))
 
@@ -431,7 +454,7 @@ def test_tool_run_exception_is_fed_back_as_error_and_loop_continues():
                 text="",
                 tool_calls=[
                     LLMToolCall(
-                        tool_name="get_region_metrics",
+                        tool_name="stub_market_tool",
                         arguments={"region_code": "99999999", "industry": "cafe"},
                     )
                 ],
@@ -440,17 +463,16 @@ def test_tool_run_exception_is_fed_back_as_error_and_loop_continues():
             _final_turn(),
         ]
     )
-    interactor = AnalysisInteractor(llm, [_metrics_tool(run=boom)])
+    interactor = _interactor(llm, [_market_tool(run=boom)])
 
     events = list(interactor.run("역삼동", "cafe", None))
 
     tool_result = llm.calls[1][-1]
     assert tool_result["role"] == "tool"
     assert json.loads(tool_result["content"]) == {"error": "행정동 코드를 찾을 수 없습니다"}
-    assert [_signature(event) for event in events[:4]] == [
-        ("agent_status", "orchestrator", "running"),
+    assert [_signature(event) for event in events[4:7]] == [
         ("agent_status", "market", "running"),
-        ("tool_call", "market", "get_region_metrics"),
+        ("tool_call", "market", "stub_market_tool"),
         ("agent_status", "market", "done"),
     ]
     assert _signature(events[-1]) == ("report_done",)
@@ -474,57 +496,55 @@ def test_시스템_프롬프트가_다섯_섹션_마커를_순서대로_고정�
     assert positions == sorted(positions), "마커 순서가 계약과 다르다"
 
 
-def test_시스템_프롬프트가_판정을_도구_값_그대로_옮기게_한다():
+def test_시스템_프롬프트가_판정을_facts_값_그대로_옮기게_한다():
     """등급을 LLM이 새로 만들면 지도 배지와 리포트가 어긋난다 (설계서 §5-2)."""
     from apps.agent.app.use_cases.analysis_interactor import SYSTEM_PROMPT
 
-    assert "get_verdict" in SYSTEM_PROMPT
+    assert "`facts.verdict`" in SYSTEM_PROMPT
     assert "그대로 옮긴다" in SYSTEM_PROMPT
     assert "등급을 바꾸거나" in SYSTEM_PROMPT
     assert "🟢 추천을 쓰지 않는다" in SYSTEM_PROMPT
     assert "판정 없음" in SYSTEM_PROMPT
 
 
-def test_시스템_프롬프트가_판정_도구를_가장_먼저_부르게_한다():
-    """프론트 진행 패널은 verdict 스테이지가 먼저 열리길 기대한다 — 레지스트리 순서만으론 약하다."""
+def test_시스템_프롬프트에_도구부터_부르라는_문장이_남아_있지_않다():
+    """사실은 이미 [FACTS]로 들어간다 — 도구를 먼저 부르라는 문장은 왕복만 늘린다 (설계서 §2-4)."""
     from apps.agent.app.use_cases.analysis_interactor import SYSTEM_PROMPT
 
-    assert "가장 먼저 호출한다" in SYSTEM_PROMPT
-    assert SYSTEM_PROMPT.find("가장 먼저 호출한다") < SYSTEM_PROMPT.find("[최종 리포트 형식]")
+    assert "가장 먼저 호출한다" not in SYSTEM_PROMPT
+    assert "반드시 호출한다" not in SYSTEM_PROMPT
+    assert "도구로 사실을 수집한 뒤" not in SYSTEM_PROMPT
+    assert "[FACTS]" in SYSTEM_PROMPT
 
 
-def test_시스템_프롬프트가_금융_지원사업_도구를_반드시_부르게_한다():
-    """conditions 절 임대료 상한·funding 절 지원사업은 도구 값이어야 한다 (설계서 §5-2).
-
-    run_finance_simulation은 13개 입력이 다 있을 때만 호출한다 — 없으면 /plan 값을 안내한다
-    (conditions 절 출력 계약과 모순되지 않도록, 강제 호출 대상이 아니다).
-    """
+def test_시스템_프롬프트가_도구를_facts에_없는_것에만_쓰게_한다():
+    """도구 루프는 남지만 facts가 대신할 수 있는 것을 다시 묻지 않는다 (설계서 §2-1)."""
     from apps.agent.app.use_cases.analysis_interactor import SYSTEM_PROMPT
 
-    assert "반드시 호출한다" in SYSTEM_PROMPT
-    position = SYSTEM_PROMPT.find("반드시 호출한다")
-    assert SYSTEM_PROMPT.find("가장 먼저 호출한다") < position < SYSTEM_PROMPT.find("[최종 리포트 형식]")
-    rule = SYSTEM_PROMPT[SYSTEM_PROMPT.find("⑤") : SYSTEM_PROMPT.find("[최종 리포트 형식]")]
+    rule = SYSTEM_PROMPT[SYSTEM_PROMPT.find("⑤") : SYSTEM_PROMPT.find("[분량]")]
 
-    # get_funding_candidates·compare_rent_vs_buy는 무조건 호출 대상이다.
-    must_call = rule[rule.find("get_funding_candidates") : rule.find("**반드시 호출한다**") + len("**반드시 호출한다**")]
-    assert "get_funding_candidates" in must_call and "compare_rent_vs_buy" in must_call
-
-    # run_finance_simulation은 13개 입력이 다 있을 때만 호출한다 — 무조건 호출 대상이 아니다.
-    assert "run_finance_simulation" in rule
+    assert "`[FACTS]`에 없는 것에만" in rule
+    # run_finance_simulation은 13개 입력이 다 있을 때만 호출한다 (사용자 입력 없이는 못 돈다).
     finance_clause = rule[rule.find("run_finance_simulation") :]
     assert "13개 입력" in finance_clause and "주었을 때만" in finance_clause
-    assert "run_finance_simulation" not in must_call
-
     assert "지어내지 않는다" in rule
 
 
-def test_시스템_프롬프트가_판정_도구_오류에_대처하게_한다():
-    """게이트웨이가 삼키지 않은 예외는 error 문자열로 온다 — 그때 등급을 지어내지 않게 한다."""
+def test_시스템_프롬프트가_표_대신_해석_문장을_쓰게_한다():
+    """숫자는 시각 자료가 보여준다 — 글이 짧아져야 리포트가 빨라진다 (설계서 §3-5)."""
     from apps.agent.app.use_cases.analysis_interactor import SYSTEM_PROMPT
 
-    assert "오류를 돌려주면" in SYSTEM_PROMPT
-    assert "조회 실패" in SYSTEM_PROMPT
+    assert "[분량]" in SYSTEM_PROMPT
+    assert "해석 2~4문장" in SYSTEM_PROMPT
+    assert "시각 자료" in SYSTEM_PROMPT
+
+
+def test_시스템_프롬프트가_수집_실패한_사실에_대처하게_한다():
+    """수집이 실패한 항목은 available: false + reason으로 온다 — 그때 등급을 지어내지 않게 한다."""
+    from apps.agent.app.use_cases.analysis_interactor import SYSTEM_PROMPT
+
+    assert "available: false" in SYSTEM_PROMPT
+    assert "reason" in SYSTEM_PROMPT
 
 
 def test_시스템_프롬프트가_참고_신호를_경고로_쓰지_못하게_한다():
@@ -539,7 +559,7 @@ def test_시스템_프롬프트가_대안을_두_축_각_최대_3개로_묶는�
     from apps.agent.app.use_cases.analysis_interactor import SYSTEM_PROMPT
 
     assert "[alternatives 섹션 출력 계약]" in SYSTEM_PROMPT
-    assert "get_verdict_alternatives" in SYSTEM_PROMPT
+    assert "`facts.alternatives`" in SYSTEM_PROMPT
     assert "최대 3개" in SYSTEM_PROMPT
     assert "대안 없음" in SYSTEM_PROMPT
 
@@ -564,6 +584,7 @@ def test_시스템_프롬프트가_conditions_절에_조건_셋을_세운다():
     from apps.agent.app.use_cases.analysis_interactor import SYSTEM_PROMPT
 
     assert "[conditions 섹션 출력 계약]" in SYSTEM_PROMPT
+    assert "`facts.hour_gap`" in SYSTEM_PROMPT
     assert "시간대 조건" in SYSTEM_PROMPT
     assert "임대료 상한" in SYSTEM_PROMPT
     assert "손익분기 매출" in SYSTEM_PROMPT
@@ -583,10 +604,8 @@ def test_도구_수집이_벽시계_예산을_넘기면_멈추고_리포트를_�
 
     # ① deadline 계산 ② 1회차 검사(통과) ③ 2회차 검사(초과)
     clock = iter([0.0, 0.0, _TOOL_LOOP_BUDGET_SECONDS + 1.0])
-    llm = FakeLLM([_metrics_call_turn(), _final_turn()])
-    interactor = AnalysisInteractor(
-        llm=llm, tools=[_metrics_tool()], now=lambda: next(clock)
-    )
+    llm = FakeLLM([_market_call_turn(), _final_turn()])
+    interactor = _interactor(llm, [_market_tool()], now=lambda: next(clock))
 
     events = list(interactor.run("11680640", "cafe", None))
 
@@ -604,8 +623,8 @@ def test_도구_수집이_벽시계_예산을_넘기면_멈추고_리포트를_�
 
 def test_예산_안에서는_턴_한도까지_정상_수집한다():
     """빠른 응답(시계가 안 흐름)에서는 기존 동작 그대로 — 예산이 조기 종료를 만들지 않는다."""
-    llm = FakeLLM([_metrics_call_turn(), _final_turn()])
-    interactor = AnalysisInteractor(llm=llm, tools=[_metrics_tool()], now=lambda: 0.0)
+    llm = FakeLLM([_market_call_turn(), _final_turn()])
+    interactor = _interactor(llm, [_market_tool()], now=lambda: 0.0)
 
     events = list(interactor.run("11680640", "cafe", None))
 
@@ -633,8 +652,8 @@ class _BoomLLM(LLMGatewayPort):
 
 def test_수집_턴이_터져도_리포트는_나간다():
     """LLM 타임아웃이 스트림을 끊으면 화면에 리포트가 아예 안 뜬다(NO_ARTICLE). 마무리로 넘어간다."""
-    llm = _BoomLLM([_metrics_call_turn(), _final_turn()], fail_from=2)
-    interactor = AnalysisInteractor(llm=llm, tools=[_metrics_tool()], now=lambda: 0.0)
+    llm = _BoomLLM([_market_call_turn(), _final_turn()], fail_from=2)
+    interactor = _interactor(llm, [_market_tool()], now=lambda: 0.0)
 
     events = list(interactor.run("11680640", "cafe", None))
 
@@ -649,15 +668,21 @@ def test_수집_턴이_터져도_리포트는_나간다():
 
 
 def test_마무리_턴까지_터지면_폴백_섹션으로_낸다():
-    """빈 스트림보다 '분석 데이터가 부족합니다'가 낫다 — 화면이 끝을 알 수 있어야 한다."""
+    """빈 스트림보다 '분석 데이터가 부족합니다'가 낫다 — 화면이 끝을 알 수 있어야 한다.
+
+    판정·대안은 facts가 있으므로 코드가 쓴다 — LLM이 전부 죽어도 판정은 화면에 나간다.
+    """
     llm = _BoomLLM([], fail_from=1)
-    interactor = AnalysisInteractor(llm=llm, tools=[_metrics_tool()], now=lambda: 0.0)
+    interactor = _interactor(llm, [_market_tool()], now=lambda: 0.0)
 
     events = list(interactor.run("11680640", "cafe", None))
 
-    deltas = [e for e in events if e.type == "report_delta"]
+    deltas = {e.payload["section"]: e.payload["markdown"] for e in events if e.type == "report_delta"}
     assert len(deltas) == 5
-    assert all("분석 데이터가 부족합니다" in e.payload["markdown"] for e in deltas)
+    assert "판정 없음" in deltas["verdict"]
+    assert all(
+        "분석 데이터가 부족합니다" in deltas[name] for name in ("reasons", "conditions", "funding")
+    )
     assert events[-1].type == "report_done"
 
 
@@ -666,6 +691,91 @@ def test_시스템_프롬프트가_공고_후보를_자격_확정으로_쓰지_�
     from apps.agent.app.use_cases.analysis_interactor import SYSTEM_PROMPT
 
     assert "[funding 섹션 출력 계약]" in SYSTEM_PROMPT
-    assert "get_funding_candidates" in SYSTEM_PROMPT
+    assert "`facts.funding_candidates`" in SYSTEM_PROMPT
     assert "자격 확정이 아니라" in SYSTEM_PROMPT
     assert "대안 업종" in SYSTEM_PROMPT
+
+
+# --- facts 선수집 (설계서 §3-3) ---
+
+
+def test_facts는_LLM을_부르기_전에_먼저_나간다():
+    """프론트는 이 프레임만으로 시각 자료를 다 그린다 — 글보다 먼저 화면이 차야 한다."""
+    collector = FakeFactsCollector()
+    llm = FakeLLM([_final_turn()])
+    interactor = _interactor(llm, [_market_tool()], facts=collector, budget=50_000_000)
+
+    events = list(interactor.run("1168064000", "korean_food", None))
+
+    assert [_signature(event) for event in events[:4]] == [
+        ("agent_status", "orchestrator", "running"),
+        ("agent_status", "facts", "running"),
+        ("facts",),
+        ("agent_status", "facts", "done"),
+    ]
+    assert events[2].payload == collector.facts
+    assert collector.calls == [("1168064000", "korean_food", 50_000_000)]
+
+
+def test_수집한_사실이_LLM_첫_메시지에_통째로_실린다():
+    """도구를 맴돌며 턴을 쌓지 않게 — 사실은 한 번에 들어간다 (설계서 §3-3②)."""
+    llm = FakeLLM([_final_turn()])
+    interactor = _interactor(llm, [_market_tool()])
+
+    list(interactor.run("1168064000", "korean_food", "괜찮을까요?"))
+
+    user_message = llm.calls[0][1]["content"]
+    assert user_message.startswith("분석 지역: 1168064000")
+    assert "사용자 질문: 괜찮을까요?" in user_message
+    assert json.loads(user_message.split("[FACTS]\n")[1]) == _FACTS
+
+
+def test_LLM이_판정_대안을_빼먹으면_코드가_facts로_채운다():
+    """판정은 규칙이 내린다 — LLM이 안 써도 판정·대안은 화면에 나간다 (설계서 §2-4)."""
+    facts = FakeFactsCollector(
+        {
+            "verdict": {
+                "available": True,
+                "verdict_code": "red",
+                "on_count": 1,
+                "strong_count": 1,
+                "signals": [
+                    {"key": "survival_cliff", "level": "strong", "evidence": "3년 생존율 41%입니다.", "advisory": False}
+                ],
+                "computed_at": "2026-09-29T03:00:00",
+            },
+            "alternatives": {
+                "available": True,
+                "industries": [{"industry_name": "제과점", "verdict_code": "clear"}],
+                "regions": [],
+            },
+        }
+    )
+    llm = FakeLLM([_final_turn("[SECTION:reasons]\n### 왜 안 되나\n\n생존 절벽이 켜졌다.")])
+    interactor = _interactor(llm, [_market_tool()], facts=facts)
+
+    deltas = {
+        event.payload["section"]: event.payload["markdown"]
+        for event in interactor.run("1168064000", "korean_food", None)
+        if event.type == "report_delta"
+    }
+
+    assert "비추천" in deltas["verdict"]
+    assert "3년 생존율 41%입니다." in deltas["verdict"]
+    assert "제과점" in deltas["alternatives"]
+    assert "대안 없음" in deltas["alternatives"]  # 빈 축
+    assert deltas["conditions"] == "### 그래도 한다면\n\n분석 데이터가 부족합니다."
+
+
+def test_LLM이_쓴_판정_섹션은_폴백이_덮어쓰지_않는다():
+    """글은 LLM이 쓴다 — 코드는 빈자리만 메운다."""
+    llm = FakeLLM([_final_turn()])
+    interactor = _interactor(llm, [_market_tool()])
+
+    deltas = {
+        event.payload["section"]: event.payload["markdown"]
+        for event in interactor.run("1168064000", "korean_food", None)
+        if event.type == "report_delta"
+    }
+
+    assert deltas["verdict"] == "### 판정\n\n🔴 위험."

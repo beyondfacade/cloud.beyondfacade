@@ -1,5 +1,25 @@
 # Backend Version Log
 
+## [v0.45.0] - 2026-09-29
+
+### Added
+- **facts 선수집** (리포트 v2 설계서 §3-1·§3-3) — `app/use_cases/report_facts.py`의 `ReportFactsCollector(region_facts, verdict_facts, funding_facts, news_search)`. `collect(region, industry, budget)`이 §5 계약 표의 **12키**(`region·verdict·alternatives·profile·hour_gap·commerce_change·metrics_history·population·shocks·news·funding_candidates·budget`)를 LLM 호출 **전에** 모은다. 항목마다 try/except 격리 — 하나가 실패해도 나머지는 나가고 실패 자리는 `{"available": false, "reason": "<예외형: 메시지>"}`. 역삼1동×한식 실측 **12,678자(18.5KB)·1.44초**.
+- **`facts` SSE 이벤트** — `orchestrator running` 직후 `agent_status facts running` → `facts`(12키 전체) → `agent_status facts done`. 프론트는 이 한 프레임으로 시각 자료를 다 그린다(글은 뒤에 붙는다). 라우터·`_sse_frame`은 변경 없이 그대로 직렬화한다.
+- **`RegionFactsPort` 조회 3종** — `metrics_history(region, industry)`(연도별 지표 전량, 추세선 재료), `hour_gap(region, industry)`(metric BC `list_latest_bands` 재사용 — 최신 분기 6구간), `commerce_change_detail(region)`(neighborhood BC `find_with_baseline` 재사용 — 최신 분기 + 같은 분기 서울 평균). 자료가 없으면 예외가 아니라 `{"available": false, "reason": …}`.
+- **판정·대안 섹션의 코드 폴백** — `domain/services/report_fallback.py`(순수) `verdict_markdown`·`alternatives_markdown`. LLM이 두 절을 빼먹어도 facts로 코드가 쓴다(배지 한 줄·켜진 신호 `evidence`·참고 신호 한 줄·산출일 / 두 축 각 최대 3개, 빈 축은 "대안 없음"). 나머지 3절은 기존 "분석 데이터가 부족합니다" 그대로.
+
+### Changed
+- **도구 12종 → 4종** — `search_news`·`search_funding`·`run_finance_simulation`·`compare_rent_vs_buy`만 남겼다. 판정·대안·지표·요약·프로필·인구·충격·공고 후보 8종은 facts가 대신하므로 스펙에서 제거(같은 데이터를 매 실행 LLM 재량으로 다시 묻던 왕복이 사라진다). `build_tools(facts, rag_search, finance, budget)` — `FundingFactsPort`·`VerdictFactsPort`는 이제 수집기가 받는다. 스테이지 어휘는 그대로(`search_news`→shock, 나머지 3종→funding).
+- **`SYSTEM_PROMPT` 축약** — 규칙 ⑤를 "판정·대안·지표는 `[FACTS]` 값을 그대로 옮긴다. 도구는 `[FACTS]`에 없는 것에만 쓴다(`run_finance_simulation`은 13개 입력이 있을 때만)"로 교체하고 **"가장 먼저 호출한다"·"반드시 호출한다" 문장을 삭제**했다(사실이 이미 들어가므로 호출을 강제할 대상이 없다). 섹션 계약 5개는 유지하되 도구 이름을 facts 키로 바꿨다(`get_verdict` → `facts.verdict` 등). `[분량]` 절 신설 — "표·숫자 나열 대신 해석 2~4문장, 숫자는 시각 자료가 보여준다, 전체 2,000자 이내"(출력 토큰 목표 1.5k 이하).
+- `AnalysisInteractor.__init__(llm, tools, facts, budget=None, now=…)` — 수집기와 세션 예산을 주입받는다. user 메시지에 `[FACTS]\n<json>`이 붙는다. 도구 루프·재프롬프트·벽시계 예산·마무리 턴은 현행 그대로(스트리밍은 Task 2).
+- `RegionFactsPort.metrics` → `metrics_history`로 이름 정리(같은 조회를 두 벌 두지 않는다 — 유일한 소비자였던 `get_region_metrics` 도구가 사라졌다). `RegionFactsGateway.summary`는 업종명(`industry_name`)을 함께 싣는다 — `facts.region`의 이름 두 개와 뉴스 검색 질의가 여기서 나온다.
+- `AgentEvent` 독스트링에 `facts` 이벤트와 스테이지 `facts` 추가. `agent_eval_scoring` 기대 섹션 5개는 불변.
+
+### Validation
+- 신규 테스트 RED→GREEN: `test_agent_report_fallback.py` 9(폴백 포매터 — 켜진 신호만·참고 분리·산출일·판정 없음·빈 축), `test_agent_report_facts.py` 13(12키 완전성·항목별 실패 격리 6종·뉴스 질의·JSON 직렬화), `test_agent_region_facts.py` 순증 8(실 DB — 연도 정렬·빈 목록·업종명, 대역 — hour_gap 6구간·자료 없음·상권 변화 서울 평균·자료 없음), `test_agent_loop.py` 순증 6(facts 이벤트 순서·`[FACTS]` 적재·판정 대안 코드 폴백·LLM 문장 우선·프롬프트 가드 2), `test_agent_router.py` 순증 1(`facts` 프레임 12키). 실 LLM 호출 없음(Fake LLM).
+- 전체 pytest **645 passed**(622 → 645).
+- 실 DB 실측(역삼1동 1168064000×한식): 수집 1.44초·12,678자. `hour_gap`은 원천에 한식이 없어 `available: false`(시간대 원천 업종 9종 — academy·billiard·cafe·convenience_store·gym·hair_salon·karaoke·pc_bang·real_estate). 카페로는 20254 분기 6구간 정상. `shocks`는 업종 필터라 한식 0건(충격 원천에 한식 영향 행 없음).
+
 ## [v0.44.0] - 2026-09-29
 
 ### Added

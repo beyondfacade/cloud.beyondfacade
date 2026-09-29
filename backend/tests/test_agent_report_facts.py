@@ -1,0 +1,216 @@
+"""ReportFactsCollector — LLM 호출 전 사실 선수집의 키 완전성·실패 격리 (Fake 포트, DB 없음)."""
+
+import json
+from datetime import datetime
+
+import pytest
+
+from apps.agent.app.ports.output.agent_port import (
+    FundingFactsPort,
+    RegionFactsPort,
+    VerdictFactsPort,
+)
+from apps.agent.app.use_cases.report_facts import FACTS_KEYS, ReportFactsCollector
+from apps.rag.app.ports.input.rag_use_case import RagSearchUseCase
+from apps.rag.domain.entities.rag_chunk_entity import RagHit
+
+
+class FakeRegionFacts(RegionFactsPort):
+    def __init__(self, failing: set[str] = frozenset()) -> None:
+        self._failing = failing
+
+    def _guard(self, name: str) -> None:
+        if name in self._failing:
+            raise RuntimeError(f"{name} 조회 실패")
+
+    def metrics_history(self, region_code: str, industry_id: str) -> list[dict]:
+        self._guard("metrics_history")
+        return [{"year": 2024, "store_count": 120, "closure_rate": 0.12, "growth_rate": -0.01}]
+
+    def summary(self, region_code: str, industry_id: str) -> dict:
+        self._guard("summary")
+        return {
+            "region_code": region_code,
+            "name": "역삼1동",
+            "industry_id": industry_id,
+            "industry_name": "한식",
+            "cards": [],
+        }
+
+    def population(self, region_code: str) -> dict:
+        self._guard("population")
+        return {"region_code": region_code, "period": "202608", "school_age_population": 3}
+
+    def shocks(self, industry_id: str | None, limit: int) -> list[dict]:
+        self._guard("shocks")
+        return [{"event_id": "E1", "name": "재난지원금", "limit_seen": limit}]
+
+    def latest_rates(self) -> dict:
+        return {"loan_facility": 4.05}
+
+    def neighborhood_profile(self, region_code: str) -> dict:
+        self._guard("neighborhood_profile")
+        return {"region_code": region_code, "type_code": "office"}
+
+    def hour_gap(self, region_code: str, industry_id: str) -> dict:
+        self._guard("hour_gap")
+        return {"available": True, "year_quarter": "20252", "bands": []}
+
+    def commerce_change_detail(self, region_code: str) -> dict:
+        self._guard("commerce_change_detail")
+        return {"available": True, "change_name": "다이나믹"}
+
+
+class FakeVerdictFacts(VerdictFactsPort):
+    def __init__(self, failing: set[str] = frozenset()) -> None:
+        self._failing = failing
+
+    def verdict(self, region_code: str, industry_id: str) -> dict:
+        if "verdict" in self._failing:
+            raise ValueError("판정 조회 실패")
+        return {"available": True, "verdict_code": "red"}
+
+    def alternatives(self, region_code: str, industry_id: str) -> dict:
+        return {"available": True, "industries": [], "regions": []}
+
+
+class FakeFundingFacts(FundingFactsPort):
+    def __init__(self) -> None:
+        self.calls: list[tuple] = []
+
+    def candidates(
+        self, industry_id: str | None, external_funding_need: int | None, stage: str | None
+    ) -> dict:
+        self.calls.append((industry_id, external_funding_need, stage))
+        return {"candidates": [{"title": "청년창업자금"}]}
+
+
+class FakeNewsSearch(RagSearchUseCase):
+    def __init__(self) -> None:
+        self.queries: list[tuple[str, str | None]] = []
+
+    def search(self, query: str, top_k: int = 5, source_type: str | None = None) -> list[RagHit]:
+        self.queries.append((query, source_type))
+        return [
+            RagHit(
+                chunk_id="news:1",
+                source_type="news",
+                source_id="1",
+                content="역삼동 한식 상권 기사",
+                score=0.8,
+                url="https://news.example/1",
+                org="한국일보",
+                published_at=datetime(2026, 9, 1, 12, 0),
+            )
+        ]
+
+
+def _collector(region=None, verdict=None, funding=None, news=None) -> ReportFactsCollector:
+    return ReportFactsCollector(
+        region_facts=region or FakeRegionFacts(),
+        verdict_facts=verdict or FakeVerdictFacts(),
+        funding_facts=funding or FakeFundingFacts(),
+        news_search=news or FakeNewsSearch(),
+    )
+
+
+def test_열두_키를_빠짐없이_모은다():
+    """프론트 시각 자료가 키 하나에 하나씩 달린다 — 키가 빠지면 그림이 사라진다 (설계서 §5)."""
+    facts = _collector().collect("1168064000", "korean_food", 50_000_000)
+
+    assert list(facts) == list(FACTS_KEYS)
+    assert len(FACTS_KEYS) == 12
+
+
+def test_지역_키는_코드와_이름_업종명을_함께_싣는다():
+    facts = _collector().collect("1168064000", "korean_food", None)
+
+    assert facts["region"] == {
+        "code": "1168064000",
+        "name": "역삼1동",
+        "industry_id": "korean_food",
+        "industry_name": "한식",
+    }
+
+
+def test_예산은_받은_값을_그대로_싣는다():
+    assert _collector().collect("1168064000", "korean_food", 50_000_000)["budget"] == 50_000_000
+    assert _collector().collect("1168064000", "korean_food", None)["budget"] is None
+
+
+def test_뉴스는_동_이름과_업종명으로_검색한다():
+    news = FakeNewsSearch()
+
+    facts = _collector(news=news).collect("1168064000", "korean_food", None)
+
+    assert news.queries == [("역삼1동 한식", "news")]
+    assert facts["news"][0]["org"] == "한국일보"
+    assert facts["news"][0]["published_at"] == "2026-09-01T12:00:00"
+
+
+def test_지원사업_후보는_업종만_걸러_받는다():
+    """get_funding_candidates의 기본값과 같다 — 조달 필요액·단계는 아직 모른다."""
+    funding = FakeFundingFacts()
+
+    facts = _collector(funding=funding).collect("1168064000", "korean_food", None)
+
+    assert funding.calls == [("korean_food", None, None)]
+    assert facts["funding_candidates"]["candidates"][0]["title"] == "청년창업자금"
+
+
+def test_한_항목이_실패해도_나머지_사실은_나간다():
+    """수집은 전부 아니면 무가 아니다 — 실패한 그림 자리만 '자료 없음'이 된다 (설계서 §3-1)."""
+    collector = _collector(region=FakeRegionFacts(failing={"hour_gap"}))
+
+    facts = collector.collect("1168064000", "korean_food", None)
+
+    assert facts["hour_gap"] == {
+        "available": False,
+        "reason": "RuntimeError: hour_gap 조회 실패",
+    }
+    assert facts["metrics_history"][0]["year"] == 2024
+    assert facts["verdict"]["verdict_code"] == "red"
+
+
+def test_요약이_실패해도_지역_키와_뉴스_검색은_코드로_돈다():
+    """이름을 못 얻어도 나머지 수집을 멈추지 않는다."""
+    news = FakeNewsSearch()
+    collector = _collector(region=FakeRegionFacts(failing={"summary"}), news=news)
+
+    facts = collector.collect("1168064000", "korean_food", None)
+
+    assert facts["region"]["name"] is None
+    assert facts["region"]["code"] == "1168064000"
+    assert news.queries == [("1168064000 korean_food", "news")]
+
+
+def test_판정이_실패하면_그_자리만_이유와_함께_비운다():
+    collector = _collector(verdict=FakeVerdictFacts(failing={"verdict"}))
+
+    facts = collector.collect("1168064000", "korean_food", None)
+
+    assert facts["verdict"] == {"available": False, "reason": "ValueError: 판정 조회 실패"}
+    assert facts["alternatives"]["available"] is True
+
+
+def test_수집_결과는_그대로_JSON으로_실린다():
+    """facts는 SSE 프레임과 LLM 첫 메시지에 JSON으로 들어간다 — 직렬화 불가 값이 섞이면 안 된다."""
+    facts = _collector().collect("1168064000", "korean_food", 50_000_000)
+
+    assert json.loads(json.dumps(facts, ensure_ascii=False))["region"]["name"] == "역삼1동"
+
+
+@pytest.mark.parametrize("key", ["profile", "commerce_change", "population", "shocks"])
+def test_타_BC_사실도_각자_격리된다(key: str):
+    failing = {
+        "profile": "neighborhood_profile",
+        "commerce_change": "commerce_change_detail",
+        "population": "population",
+        "shocks": "shocks",
+    }[key]
+    collector = _collector(region=FakeRegionFacts(failing={failing}))
+
+    facts = collector.collect("1168064000", "korean_food", None)
+
+    assert facts[key]["available"] is False
+    assert facts["metrics_history"]  # 나머지는 그대로

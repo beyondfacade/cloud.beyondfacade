@@ -52,12 +52,12 @@ class RegionFactsPort(ABC):
     """Driven Port — Agent 도구가 필요로 하는 타 BC 사실 조회 (cross-BC 접근은 구현체 안에서만)."""
 
     @abstractmethod
-    def metrics(self, region_code: str, industry: str) -> list[dict]:
-        """행정동×업종의 연도별 지표(점포수·폐업률·성장률)."""
+    def metrics_history(self, region_code: str, industry_id: str) -> list[dict]:
+        """행정동×업종의 연도별 지표 전량 — 추세선의 재료다(점포수·개폐업 수·폐업률·성장률)."""
 
     @abstractmethod
     def summary(self, region_code: str, industry_id: str) -> dict:
-        """사이드패널 카드와 동일한 마스터 요약(fact 카드 목록)."""
+        """사이드패널 카드와 동일한 마스터 요약(fact 카드 목록) + 동 이름·업종명."""
 
     @abstractmethod
     def population(self, region_code: str) -> dict:
@@ -74,6 +74,14 @@ class RegionFactsPort(ABC):
     @abstractmethod
     def neighborhood_profile(self, region_code: str) -> dict:
         """최신 분기 동네 프로필 + reasons·conditions 절이 쓰는 지표·시간대 재료 (없으면 빈 dict)."""
+
+    @abstractmethod
+    def hour_gap(self, region_code: str, industry_id: str) -> dict:
+        """최신 분기 시간대 어긋남 6구간 — 자료가 없으면 {"available": False, "reason": ...}."""
+
+    @abstractmethod
+    def commerce_change_detail(self, region_code: str) -> dict:
+        """최신 분기 상권 변화 지표 + 같은 분기 서울 평균 — 없으면 {"available": False, "reason": ...}."""
 
 
 class FundingFactsPort(ABC):

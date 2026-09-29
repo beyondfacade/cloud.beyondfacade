@@ -1,11 +1,44 @@
-"""region_facts_gateway의 해석 주의 생성 검증 — 해당하는 주의만 붙는다 (DB 없음)."""
+"""region_facts_gateway — 해석 주의 생성(DB 없음) + facts 선수집이 쓰는 조회 3종(실 DB)."""
 
 from dataclasses import dataclass
 
+from sqlalchemy import delete, select
+
+from apps.agent.adapter.outbound.gateways import region_facts_gateway
 from apps.agent.adapter.outbound.gateways.region_facts_gateway import (
+    RegionFactsGateway,
     _profile_caveats,
     _type_median,
 )
+from apps.metric.adapter.outbound.orms.region_industry_metric_orm import (
+    RegionIndustryMetricOrm,
+)
+from apps.metric.app.dtos.region_industry_hour_gap_dto import RegionIndustryHourGapDto
+from apps.neighborhood.app.dtos.region_commerce_change_query_dto import (
+    RegionCommerceChangeDto,
+    SeoulBaselineDto,
+)
+from core.matrix.grid_oracle_database_manager import session_scope
+
+_INDUSTRY = "korean_food"
+
+
+class _FakeHourGapUseCase:
+    """list_latest_bands만 흉내 내는 대역 — 게이트웨이가 쓰는 메서드는 그것뿐이다."""
+
+    def __init__(self, bands: list) -> None:
+        self._bands = bands
+
+    def list_latest_bands(self, region_code: str, industry_id: str) -> list:
+        return self._bands
+
+
+class _FakeCommerceChangeUseCase:
+    def __init__(self, dto) -> None:
+        self._dto = dto
+
+    def find_with_baseline(self, region_code: str, year_quarter: str | None):
+        return self._dto
 
 
 @dataclass
@@ -97,3 +130,153 @@ def test_유형_중앙값이_있을_때만_비교_기준_주의가_붙는다():
 
     assert "36개 동 중앙값" in 있음
     assert "중앙값" not in 없음
+
+
+# --- facts 선수집이 쓰는 신규 조회 3종 (실 DB, beyondfacade_test) ---
+
+
+def _first_region_code() -> str:
+    from apps.master.adapter.outbound.orms.region_orm import RegionOrm
+    from core.matrix.grid_oracle_database_manager import session_scope
+
+    with session_scope() as session:
+        return session.execute(
+            select(RegionOrm.region_code).order_by(RegionOrm.region_code).limit(1)
+        ).scalar_one()
+
+
+def test_연도별_지표를_연도_순서대로_돌려준다():
+    """추세선은 연도 순서가 곧 x축이다 — 정렬이 깨지면 꺾은선이 뒤엉킨다."""
+    region_code = _first_region_code()
+    with session_scope() as session:
+        session.execute(
+            delete(RegionIndustryMetricOrm).where(
+                RegionIndustryMetricOrm.region_code == region_code,
+                RegionIndustryMetricOrm.industry_id == _INDUSTRY,
+            )
+        )
+        for year, store_count in ((2025, 120), (2023, 100), (2024, 110)):
+            session.add(
+                RegionIndustryMetricOrm(
+                    region_code=region_code,
+                    industry_id=_INDUSTRY,
+                    year=year,
+                    store_count=store_count,
+                    open_count=5,
+                    close_count=3,
+                    closure_rate=0.03,
+                    growth_rate=0.02,
+                )
+            )
+    try:
+        rows = RegionFactsGateway().metrics_history(region_code, _INDUSTRY)
+
+        assert [row["year"] for row in rows] == [2023, 2024, 2025]
+        assert rows[0] == {
+            "year": 2023,
+            "store_count": 100,
+            "open_count": 5,
+            "close_count": 3,
+            "closure_rate": 0.03,
+            "growth_rate": 0.02,
+        }
+    finally:
+        with session_scope() as session:
+            session.execute(
+                delete(RegionIndustryMetricOrm).where(
+                    RegionIndustryMetricOrm.region_code == region_code,
+                    RegionIndustryMetricOrm.industry_id == _INDUSTRY,
+                )
+            )
+
+
+def test_지표가_없는_동_업종은_빈_목록이다():
+    assert RegionFactsGateway().metrics_history(_first_region_code(), "nonexistent") == []
+
+
+def test_요약은_업종명을_함께_싣는다():
+    """facts.region의 업종명이 뉴스 검색 질의와 시각 자료 제목에 쓰인다."""
+    summary = RegionFactsGateway().summary(_first_region_code(), _INDUSTRY)
+
+    assert summary["industry_name"] == "한식"
+    assert summary["name"]
+
+
+def test_모르는_업종이면_업종명은_None이다():
+    assert RegionFactsGateway().summary(_first_region_code(), "nonexistent")["industry_name"] is None
+
+
+def test_시간대_어긋남은_최신_분기_6구간을_시간_순으로_돌려준다(monkeypatch):
+    bands = [
+        RegionIndustryHourGapDto(
+            region_code="1168064000",
+            industry_id=_INDUSTRY,
+            year_quarter="20252",
+            hour_band=band,
+            footfall_intensity=1.0,
+            sales_intensity=1.2,
+            gap=0.2,
+        )
+        for band in ("00_06", "06_11")
+    ]
+    monkeypatch.setattr(
+        region_facts_gateway,
+        "get_region_industry_hour_gap_use_case",
+        lambda: _FakeHourGapUseCase(bands),
+    )
+
+    result = RegionFactsGateway().hour_gap("1168064000", _INDUSTRY)
+
+    assert result["available"] is True
+    assert result["year_quarter"] == "20252"
+    assert [band["hour_band"] for band in result["bands"]] == ["00_06", "06_11"]
+    assert result["bands"][0]["gap"] == 0.2
+
+
+def test_시간대_어긋남_자료가_없으면_이유와_함께_비운다(monkeypatch):
+    monkeypatch.setattr(
+        region_facts_gateway,
+        "get_region_industry_hour_gap_use_case",
+        lambda: _FakeHourGapUseCase([]),
+    )
+
+    result = RegionFactsGateway().hour_gap("1168064000", _INDUSTRY)
+
+    assert result["available"] is False
+    assert result["reason"]
+
+
+def test_상권_변화는_서울_평균을_함께_돌려준다(monkeypatch):
+    dto = RegionCommerceChangeDto(
+        region_code="1168064000",
+        year_quarter="20252",
+        change_code="LL",
+        change_name="다이나믹",
+        operating_months=110.0,
+        closed_months=50.0,
+        seoul=SeoulBaselineDto(operating_months=118.0, closed_months=54.0),
+    )
+    monkeypatch.setattr(
+        region_facts_gateway,
+        "get_region_commerce_change_query_use_case",
+        lambda: _FakeCommerceChangeUseCase(dto),
+    )
+
+    result = RegionFactsGateway().commerce_change_detail("1168064000")
+
+    assert result["available"] is True
+    assert result["change_name"] == "다이나믹"
+    assert result["seoul"] == {"operating_months": 118.0, "closed_months": 54.0}
+
+
+def test_상권_변화_자료가_없으면_이유와_함께_비운다(monkeypatch):
+    monkeypatch.setattr(
+        region_facts_gateway,
+        "get_region_commerce_change_query_use_case",
+        lambda: _FakeCommerceChangeUseCase(None),
+    )
+
+    result = RegionFactsGateway().commerce_change_detail("1168064000")
+
+    assert result["available"] is False
+    assert result["reason"]

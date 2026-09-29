@@ -12,6 +12,7 @@ from apps.agent.domain.value_objects.neighborhood_vocabulary import (
     label_name,
     type_name,
 )
+from apps.master.adapter.outbound.orms.industry_orm import IndustryOrm
 from apps.master.adapter.outbound.orms.population_stat_orm import PopulationStatOrm
 from apps.master.dependencies.region_dependencies import get_region_use_case
 from apps.metric.adapter.outbound.orms.region_industry_metric_orm import (
@@ -19,6 +20,9 @@ from apps.metric.adapter.outbound.orms.region_industry_metric_orm import (
 )
 from apps.metric.adapter.outbound.orms.region_profile_quarter_orm import (
     RegionProfileQuarterOrm,
+)
+from apps.metric.dependencies.region_profile_dependencies import (
+    get_region_industry_hour_gap_use_case,
 )
 from apps.neighborhood.adapter.outbound.orms.region_commerce_change_orm import (
     RegionCommerceChangeOrm,
@@ -35,6 +39,9 @@ from apps.neighborhood.adapter.outbound.orms.region_housing_average_quarter_orm 
 from apps.neighborhood.adapter.outbound.orms.seoul_commerce_change_baseline_orm import (
     SeoulCommerceChangeBaselineOrm,
 )
+from apps.neighborhood.dependencies.region_commerce_change_dependencies import (
+    get_region_commerce_change_query_use_case,
+)
 from apps.shock.adapter.outbound.orms.interest_rate_orm import InterestRateOrm
 from apps.shock.app.dtos.shock_event_dto import ShockEventDto
 from apps.shock.dependencies.shock_event_dependencies import get_shock_event_use_case
@@ -47,6 +54,11 @@ _TOP_FACILITY_COUNT = 5
 _BENCHMARK_FIELDS = ("weekend_index", "night_index", "fnb_share", "worker_resident_ratio")
 # 집객시설 `total`은 19종 합보다 큰 더 넓은 정의다 — 구성 목록과 나란히 놓지 않는다
 _EXCLUDED_FACILITY_TYPES = ("total",)
+
+
+def _unavailable(reason: str) -> dict:
+    """없는 사실은 예외가 아니라 값이다 — 프론트가 그 그림 자리에 "자료 없음"을 그린다."""
+    return {"available": False, "reason": reason}
 
 
 def _shock_event_to_dict(dto: ShockEventDto) -> dict:
@@ -70,13 +82,13 @@ def _shock_event_to_dict(dto: ShockEventDto) -> dict:
 class RegionFactsGateway(RegionFactsPort):
     """metric·master·shock BC를 조회해 Agent 도구에 dict로 전달 (ACL)."""
 
-    def metrics(self, region_code: str, industry: str) -> list[dict]:
+    def metrics_history(self, region_code: str, industry_id: str) -> list[dict]:
         with session_scope() as session:
             rows = session.execute(
                 select(RegionIndustryMetricOrm)
                 .where(
                     RegionIndustryMetricOrm.region_code == region_code,
-                    RegionIndustryMetricOrm.industry_id == industry,
+                    RegionIndustryMetricOrm.industry_id == industry_id,
                 )
                 .order_by(RegionIndustryMetricOrm.year)
             ).scalars()
@@ -93,8 +105,42 @@ class RegionFactsGateway(RegionFactsPort):
             ]
 
     def summary(self, region_code: str, industry_id: str) -> dict:
+        """마스터 요약 + 업종명 — facts.region의 이름 두 개가 여기서 나온다 (설계서 §3-1)."""
         dto = get_region_use_case().summary(region_code, industry_id)
-        return asdict(dto)
+        with session_scope() as session:
+            industry_name = session.execute(
+                select(IndustryOrm.name).where(IndustryOrm.industry_id == industry_id)
+            ).scalar_one_or_none()
+        return {**asdict(dto), "industry_name": industry_name}
+
+    def hour_gap(self, region_code: str, industry_id: str) -> dict:
+        bands = get_region_industry_hour_gap_use_case().list_latest_bands(
+            region_code, industry_id
+        )
+        if not bands:
+            return _unavailable(f"시간대 어긋남 자료가 없다: {region_code} × {industry_id}")
+        return {
+            "available": True,
+            "region_code": region_code,
+            "industry_id": industry_id,
+            "year_quarter": bands[0].year_quarter,
+            "bands": [
+                {
+                    "hour_band": band.hour_band,
+                    "footfall_intensity": band.footfall_intensity,
+                    "sales_intensity": band.sales_intensity,
+                    "gap": band.gap,
+                }
+                for band in bands
+            ],
+        }
+
+    def commerce_change_detail(self, region_code: str) -> dict:
+        """최신 분기 상권 변화 + 같은 분기 서울 평균 — "110개월"은 "서울 117"이 옆에 있어야 읽힌다."""
+        dto = get_region_commerce_change_query_use_case().find_with_baseline(region_code, None)
+        if dto is None:
+            return _unavailable(f"상권 변화 지표가 없다: {region_code}")
+        return {**asdict(dto), "available": True}
 
     def population(self, region_code: str) -> dict:
         with session_scope() as session:
