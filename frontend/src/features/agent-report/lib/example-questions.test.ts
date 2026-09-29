@@ -2,7 +2,7 @@ import { expect, it } from "vitest";
 import { INDUSTRIES } from "@/shared/industries";
 import { EXAMPLE_QUESTIONS, FALLBACK_QUESTION, exampleQuestions } from "./example-questions";
 
-it("판정 대상 업종 14종 전부에 예시 질문이 3개씩 있다", () => {
+it("업종 select 14종 전부에 예시 질문이 3개씩 있다", () => {
   expect(INDUSTRIES).toHaveLength(14);
   for (const id of INDUSTRIES) {
     expect(EXAMPLE_QUESTIONS[id], id).toHaveLength(3);

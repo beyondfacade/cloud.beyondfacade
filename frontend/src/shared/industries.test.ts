@@ -1,7 +1,7 @@
 import { expect, it } from "vitest";
 import { INDUSTRIES, INDUSTRY_GROUPS, INDUSTRY_LABELS, industryLabel, isKnownIndustry } from "./industries";
 
-it("판정 대상 업종은 14종이고 음식 6종이 들어 있다 (HANDOFF §0-9)", () => {
+it("업종 select는 14종이고 음식 6종이 들어 있다 (HANDOFF §0-9)", () => {
   expect(INDUSTRIES).toHaveLength(14);
   for (const id of ["korean_food", "chinese_food", "japanese_food", "western_food", "snack", "pub"]) {
     expect(INDUSTRIES, id).toContain(id);

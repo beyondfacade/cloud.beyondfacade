@@ -17,7 +17,7 @@
 ### Fixed
 - **지워진 섹션을 가리키던 LLM 지시문** — `get_neighborhood_profile` 도구 설명이 "market 섹션 여섯 슬롯의 재료다"라고 남아 있었다(쓰지 말라고 한 섹션의 재료를 모으라는 모순). "reasons 절의 지표 근거와 conditions 절의 시간대 조건을 쓰는 재료"로 교체. 같은 문구가 남아 있던 `RegionFactsPort.neighborhood_profile`·`RegionFactsGateway.neighborhood_profile` 독스트링도 함께 갱신.
 - 응답 규칙 ⑤에 **호출 순서**("이 두 도구를 다른 어떤 도구보다 가장 먼저 호출한다") 추가 — 레지스트리 앞자리만으로는 약하고, 프론트 진행 패널이 `verdict` 스테이지가 먼저 열리기를 기대한다.
-- 응답 규칙 ⑤에 **자금 도구 호출 강제**("판정 도구 다음에는 `run_finance_simulation`(예산이 있으면 그 값을 자기자본 기본값으로)과 `get_funding_candidates`를 반드시 호출한다") 추가 — 실 실행에서 LLM이 두 도구를 건너뛰어 conditions 절의 임대료 상한·손익분기 매출과 funding 절의 지원사업 금액이 도구 값 없이 나올 수 있었다(HANDOFF §0-12 A).
+- 응답 규칙 ⑤에 **자금 도구 호출 강제**("판정 도구 다음에는 `get_funding_candidates`와 `compare_rent_vs_buy`를 반드시 호출한다. `run_finance_simulation`은 13개 입력을 모두 주었을 때만 호출한다") 추가 — 실 실행에서 LLM이 두 도구를 건너뛰어 conditions 절의 임대료 상한과 funding 절의 지원사업 금액이 도구 값 없이 나올 수 있었다(HANDOFF §0-12 A). 손익분기 매출은 conditions 절 계약대로 13개 입력이 없으면 `/plan` 값을 안내한다(무조건 호출 시 미입력값을 지어낼 위험 방지, 9/29 재수정).
 - `AnalysisCreateRequest.budget`에 하한 `Field(default=None, ge=0)` — 음수 자기자본은 finance 도구 기본값이 될 수 없다. 음수 요청은 422.
 - 응답 규칙 ⑤에 **판정 도구 오류 대처**("도구가 오류를 돌려주면(`error` 키) 판정을 쓰지 말고 '판정 조회 실패'라고 적는다") 추가 — 게이트웨이는 `IndustryNotFoundError`만 삼키므로 그 밖의 예외는 error 문자열로 LLM에 되먹여진다. `except` 범위는 넓히지 않았다.
 

@@ -494,14 +494,28 @@ def test_시스템_프롬프트가_판정_도구를_가장_먼저_부르게_한�
 
 
 def test_시스템_프롬프트가_금융_지원사업_도구를_반드시_부르게_한다():
-    """conditions·funding 절의 임대료 상한·손익분기 매출·지원사업은 도구 값이어야 한다 (설계서 §5-2)."""
+    """conditions 절 임대료 상한·funding 절 지원사업은 도구 값이어야 한다 (설계서 §5-2).
+
+    run_finance_simulation은 13개 입력이 다 있을 때만 호출한다 — 없으면 /plan 값을 안내한다
+    (conditions 절 출력 계약과 모순되지 않도록, 강제 호출 대상이 아니다).
+    """
     from apps.agent.app.use_cases.analysis_interactor import SYSTEM_PROMPT
 
     assert "반드시 호출한다" in SYSTEM_PROMPT
     position = SYSTEM_PROMPT.find("반드시 호출한다")
     assert SYSTEM_PROMPT.find("가장 먼저 호출한다") < position < SYSTEM_PROMPT.find("[최종 리포트 형식]")
     rule = SYSTEM_PROMPT[SYSTEM_PROMPT.find("⑤") : SYSTEM_PROMPT.find("[최종 리포트 형식]")]
-    assert "run_finance_simulation" in rule and "get_funding_candidates" in rule
+
+    # get_funding_candidates·compare_rent_vs_buy는 무조건 호출 대상이다.
+    must_call = rule[rule.find("get_funding_candidates") : rule.find("**반드시 호출한다**") + len("**반드시 호출한다**")]
+    assert "get_funding_candidates" in must_call and "compare_rent_vs_buy" in must_call
+
+    # run_finance_simulation은 13개 입력이 다 있을 때만 호출한다 — 무조건 호출 대상이 아니다.
+    assert "run_finance_simulation" in rule
+    finance_clause = rule[rule.find("run_finance_simulation") :]
+    assert "13개 입력" in finance_clause and "주었을 때만" in finance_clause
+    assert "run_finance_simulation" not in must_call
+
     assert "지어내지 않는다" in rule
 
 
