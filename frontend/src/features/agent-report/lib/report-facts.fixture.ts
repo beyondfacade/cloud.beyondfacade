@@ -37,7 +37,7 @@ export function reportFacts(): ReportFacts {
     ],
     population: { available: false, reason: "인구 자료가 없습니다." },
     shocks: [{ event_id: "s1", name: "원두 가격 상승", start_date: "2026-09-01", industry_specific: true }], news: [],
-    funding_candidates: [{ program_id: "p1", title: "창업 지원", org: "서울시", why: "창업에 맞는 지원사업", summary: "사업비 지원", field_category: "창업", apply_period: "상시", target: "창업", url: "https://example.com/funding" }],
+    funding_candidates: [{ program_id: "p1", title: "창업 지원", org: "서울시", why: "창업에 맞는 지원사업", summary: "사업비 지원", field_category: "창업", apply_period: "상시", url: "https://example.com/funding" }],
     budget: null,
   };
 }

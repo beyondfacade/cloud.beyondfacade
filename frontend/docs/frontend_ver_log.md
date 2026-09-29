@@ -36,6 +36,7 @@
 - **Task 3 훅 구독 보완** — `EVENT_TYPES`에 `facts` 추가, EventSource 수신→훅 상태 저장 회귀 테스트 Red→Green 확인; 전체 Vitest 83파일·439테스트 통과, `npx tsc --noEmit` 통과.
 
 ### Fixed
+- **지원사업 facts 정합성 보정**: mock·리포트 픽스처의 가공된 `target` 제거, mock에 기존 시드의 `deadline` 전달 및 target 키·대상 줄 부재 회귀 검증.
 - **Task 4 수정 라운드 1 — 지원사업 설명**: `summary`가 없으면 `why`, 둘 다 없으면 "요약 없음"을
   한 줄 설명과 툴팁에 동일하게 표시. `ReportFundingCandidate`에 선택적 `why` 타입 추가.
 - **Task 4 수정 라운드 1 — 섹션 제목 중복**: 마크다운 접두사 없는 제목과 줄바꿈 없이 제목만 도착한

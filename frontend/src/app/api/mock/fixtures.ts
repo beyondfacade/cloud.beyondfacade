@@ -288,7 +288,7 @@ export function agentEventScript(): AgentEvent[] {
       program_id: candidate.program_id, title: candidate.title, org: candidate.org,
       why: candidate.why, summary: candidate.summary, url: candidate.url,
       field_category: candidate.field_category, apply_period: candidate.apply_period,
-      target: candidate.field_category,
+      deadline: candidate.deadline,
     })),
     budget: null,
   };

@@ -60,11 +60,15 @@ it("SSE 사실은 계약의 12개 키와 기존 결정적 픽스처를 담는다
   expect(facts.profile).toEqual(regionProfileOf(code, LATEST_PROFILE_QUARTER));
   expect(facts.hour_gap).toEqual(hourGapOf(code, industry_id, "20254"));
   expect(facts.commerce_change).toEqual(commerceChangeDetailOf(code, LATEST_PROFILE_QUARTER));
+  if (!Array.isArray(facts.funding_candidates)) throw new Error("지원사업 후보 없음");
+  for (const candidate of facts.funding_candidates) {
+    expect(candidate).not.toHaveProperty("target");
+  }
   expect(facts.funding_candidates).toEqual(fundingCandidatesOf(null).map((candidate) => ({
     program_id: candidate.program_id, title: candidate.title, org: candidate.org,
     why: candidate.why, summary: candidate.summary, url: candidate.url,
     field_category: candidate.field_category, apply_period: candidate.apply_period,
-    target: candidate.field_category,
+    deadline: candidate.deadline,
   })));
   expect(facts.population).toEqual(expect.any(Object));
   expect(facts.shocks).toEqual(expect.any(Array));

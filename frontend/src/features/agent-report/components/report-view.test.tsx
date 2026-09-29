@@ -52,6 +52,7 @@ it("사실만 와도 다섯 섹션의 그림과 본문 스켈레톤을 즉시 �
   expect(screen.getByText("원두 가격 상승")).toBeInTheDocument();
   expect(screen.getByRole("img", { name: "하루 4블록 유동 강도" })).toBeInTheDocument();
   expect(screen.getByText("창업 지원")).toBeInTheDocument();
+  expect(screen.queryByText(/^대상:/)).toBeNull();
 });
 it("본문 조각이 그림 아래에 붙고 해당 스켈레톤만 사라지며 인용은 유지된다", () => {
   const initial = { ...initialAgentState(), facts: reportFacts() };
