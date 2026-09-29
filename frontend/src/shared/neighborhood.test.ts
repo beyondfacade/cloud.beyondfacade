@@ -2,7 +2,6 @@ import { describe, expect, it } from "vitest";
 import {
   NEIGHBORHOOD_TYPES,
   neighborhoodTypeLabel,
-  phasesNarrative,
   timeLabelSentence,
 } from "./neighborhood";
 
@@ -36,26 +35,5 @@ describe("시간대 서사", () => {
 
   it("라벨이 없으면 문장도 없다", () => {
     expect(timeLabelSentence(null)).toBeNull();
-  });
-
-  it("관측이 많은 정점→바닥 쌍 5종만 서사를 만든다", () => {
-    expect(phasesNarrative("night", "day")).toContain("밤이 되어서야");
-    expect(phasesNarrative("day", "night")).toContain("텅 빕니다");
-    expect(phasesNarrative("evening", "morning")).toContain("아침은 늦게");
-    expect(phasesNarrative("evening", "night")).toContain("빠져나갑니다");
-    expect(phasesNarrative("night", "evening")).toContain("다시 채워집니다");
-  });
-
-  it("관측이 7개 동뿐인 하위 4종은 서사를 만들지 않는다", () => {
-    // 억지 문장을 만들면 한두 동의 잡음이 단정으로 굳는다 (분류 문서 §6-4)
-    expect(phasesNarrative("morning", "evening")).toBeNull();
-    expect(phasesNarrative("day", "evening")).toBeNull();
-    expect(phasesNarrative("morning", "night")).toBeNull();
-    expect(phasesNarrative("evening", "day")).toBeNull();
-  });
-
-  it("정점이나 바닥이 없으면 서사를 만들지 않는다", () => {
-    expect(phasesNarrative(null, "day")).toBeNull();
-    expect(phasesNarrative("night", null)).toBeNull();
   });
 });

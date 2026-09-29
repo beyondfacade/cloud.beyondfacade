@@ -1,32 +1,19 @@
 "use client";
 
-import type { ComponentType } from "react";
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
-import { GradeBadge } from "@/shared/ui/grade-badge";
 import { industryLabel, type IndustryId } from "@/shared/industries";
 import { fetchRegionSummary } from "../api";
 import { NO_CLOSURE_HISTORY_INDUSTRIES } from "../lib/map-state";
-import { ChildcareSummarySection } from "./childcare-summary";
 import { ConvenienceSummarySection } from "./convenience-summary";
-import { HourGapSection } from "./hour-gap-chart";
 import { CLOSED_STORE_STRATEGY } from "./marker-strategies";
-import { NeighborhoodProfileSection } from "./neighborhood-profile";
-import { StayingPowerSection } from "./staying-power";
-import { TimeBlockSection } from "./time-block-bars";
+import { NeighborhoodLine } from "./neighborhood-line";
 import { VerdictSection } from "./verdict-section";
 import styles from "./map-workspace.module.css";
 
-/** 전용 원천이 있는 업종의 추가 섹션 — 업종이 스스로 무엇을 보여줄지 등록한다 (조건 분기 대신 레지스트리). */
-const INDUSTRY_SECTIONS: Partial<Record<IndustryId, ComponentType<{ regionCode: string }>>> = {
-  childcare: ChildcareSummarySection,
-  convenience_store: ConvenienceSummarySection,
-};
-
 interface SidePanelProps {
   regionCode: string | null;
-  yearQuarter?: string | null;
-  /** 관문에서 온 예산(원) — 자금 계획 링크에 실어 보낸다. */
+  /** 관문에서 온 예산(원) — 리포트와 자금 계획 링크에 실어 보낸다. */
   budget?: number | null;
   industry: string;
   showClosed?: boolean;
@@ -46,7 +33,7 @@ function SkeletonRows() {
   );
 }
 
-export function SidePanel({ regionCode, industry, yearQuarter = null, budget = null, showClosed, onToggleClosed }: SidePanelProps) {
+export function SidePanel({ regionCode, industry, budget = null, showClosed, onToggleClosed }: SidePanelProps) {
   const summary = useQuery({
     queryKey: ["region-summary", regionCode, industry],
     queryFn: () => fetchRegionSummary(regionCode!, industry),
@@ -54,8 +41,8 @@ export function SidePanel({ regionCode, industry, yearQuarter = null, budget = n
   });
 
   const label = industryLabel(industry);
-  const IndustrySection = INDUSTRY_SECTIONS[industry as IndustryId];
-  const noClosureHistory = NO_CLOSURE_HISTORY_INDUSTRIES.has(industry as IndustryId);
+  const params = new URLSearchParams({ region: regionCode ?? "", industry });
+  if (budget !== null) params.set("budget", String(budget));
 
   return (
     <aside className={styles.brief} aria-label="선택한 동네의 상권 정보">
@@ -95,78 +82,46 @@ export function SidePanel({ regionCode, industry, yearQuarter = null, budget = n
       )}
 
       {regionCode && summary.data && (
-        <>
-          <header className={styles.briefHeading}>
-            <h2>
-              {summary.data.name}
-            </h2>
-            <p className="text-xs text-[var(--text-secondary)]">
-              <span className="tabular-nums">{summary.data.region_code}</span> · {label}
-            </p>
-            <p className="text-xs text-[var(--text-secondary)]">업종 요약은 최신 연간 자료 · 선택 분기와 무관</p>
-          </header>
-        </>
+        <header className={styles.briefHeading}>
+          <h2>{summary.data.name}</h2>
+          <p className="text-xs text-[var(--text-secondary)]">
+            <span className="tabular-nums">{summary.data.region_code}</span> · {label}
+          </p>
+        </header>
       )}
 
       {regionCode && (
         <>
-          <VerdictSection regionCode={regionCode} industry={industry} />
+          {industry === "convenience_store" ? (
+            <>
+              <ConvenienceSummarySection regionCode={regionCode} />
+              <p className="mt-2 text-xs text-[var(--text-secondary)]">판정은 담배권 특화 신호 단계에서 제공</p>
+            </>
+          ) : (
+            <>
+              <VerdictSection regionCode={regionCode} industry={industry} />
+              <NeighborhoodLine regionCode={regionCode} />
+            </>
+          )}
           <ClosedStoresToggle regionCode={regionCode} industry={industry} checked={showClosed ?? false} onChange={onToggleClosed ?? (() => {})} />
-          <NeighborhoodProfileSection regionCode={regionCode} yearQuarter={yearQuarter} />
-          <TimeBlockSection regionCode={regionCode} yearQuarter={yearQuarter} />
-          <HourGapSection regionCode={regionCode} industry={industry} yearQuarter={yearQuarter} />
-          <StayingPowerSection regionCode={regionCode} yearQuarter={yearQuarter} />
         </>
       )}
 
-      {regionCode && summary.data && (
-        <>
-          <section className="mt-7 flex flex-col gap-3" aria-label="업종 실적">
-            <h3 className="text-sm font-semibold tracking-tight text-[var(--text-primary)]">{label} 실적 · 최신 연간 요약</h3>
-            <ul className={`${styles.briefMetrics} ${styles.briefMetricsInSection}`}>
-              {summary.data.cards.map((card) => (
-                <li key={card.label}>
-                  <div className="flex min-w-0 flex-col gap-2">
-                    <span className="text-xs text-[var(--text-secondary)]">{card.label}</span>
-                    <span className={styles.metricValue}>
-                      {card.value}
-                    </span>
-                  </div>
-                  <GradeBadge grade={card.grade} />
-                </li>
-              ))}
-            </ul>
-            {noClosureHistory && (
-              <p className="text-xs leading-relaxed text-[var(--text-secondary)]">
-                이 업종의 원천에는 개폐업 이력이 없어 폐업률·성장률 값이 없습니다. 점포수와 아래 현황을
-                함께 참고하세요.
-              </p>
-            )}
-          </section>
-
-          {IndustrySection && (
-            <>
-              <p className="mt-7 text-xs text-[var(--text-secondary)]">다음 현황은 최신 자료 · 선택 분기와 무관</p>
-              <IndustrySection regionCode={regionCode} />
-            </>
-          )}
-
-          {/* 패널이 길어져 CTA가 접힌다 — 스크롤 영역 하단에 붙인다 (E2E [5/8] 재현 근거) */}
-          <div className={`${styles.briefCta} flex gap-2`}>
-            <Link
-              href={`/plan?region=${regionCode}&industry=${industry}${budget ? `&budget=${budget}` : ""}`}
-              className="block flex-1 rounded-lg border border-[var(--accent)] px-4 py-3.5 text-center text-sm font-semibold text-[var(--accent)] transition-opacity hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)] active:translate-y-px"
-            >
-              자금 계획 →
-            </Link>
-            <Link
-              href={`/analysis?region=${regionCode}&industry=${industry}`}
-              className="block flex-1 rounded-lg bg-[var(--accent)] px-4 py-3.5 text-center text-sm font-semibold text-[var(--accent-fg)] transition-opacity hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)] active:translate-y-px"
-            >
-              AI 분석 →
-            </Link>
-          </div>
-        </>
+      {regionCode && (
+        <div className={`${styles.briefCta} flex flex-col gap-2`}>
+          <Link
+            href={`/analysis?${params}`}
+            className="block rounded-lg bg-[var(--accent)] px-4 py-3 text-center text-sm font-semibold text-[var(--accent-fg)] transition-opacity hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)] active:translate-y-px"
+          >
+            AI 분석 리포트 보기
+          </Link>
+          <Link
+            href={`/plan?${params}`}
+            className="self-center text-xs text-[var(--accent)] underline-offset-2 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
+          >
+            자금 계획 →
+          </Link>
+        </div>
       )}
     </aside>
   );

@@ -3,11 +3,8 @@ import { apiGet } from "@/shared/api/client";
 import type {
   CategoryRow,
   ChildcareCenter,
-  ChildcareRegionSummary,
   ConvenienceRegionSummary,
   ConvenienceStore,
-  RegionCommerceChangeDetail,
-  RegionIndustryHourGap,
   RegionIndustryVerdict,
   VerdictAlternatives,
   RegionProfile,
@@ -41,11 +38,6 @@ export function fetchChildcareCenters(regionCode: string): Promise<ChildcareCent
   return apiGet<ChildcareCenter[]>(`/childcare-centers?${params.toString()}`);
 }
 
-export function fetchChildcareSummary(regionCode: string): Promise<ChildcareRegionSummary> {
-  const params = new URLSearchParams({ region: regionCode });
-  return apiGet<ChildcareRegionSummary>(`/childcare-center-stats/summary?${params.toString()}`);
-}
-
 export function fetchConvenienceStores(regionCode: string): Promise<ConvenienceStore[]> {
   const params = new URLSearchParams({ region: regionCode });
   return apiGet<ConvenienceStore[]>(`/convenience-stores?${params.toString()}`);
@@ -60,19 +52,6 @@ export function fetchConvenienceSummary(regionCode: string): Promise<Convenience
 export function fetchRegionProfile(regionCode: string, yearQuarter?: string): Promise<RegionProfile> {
   const query = yearQuarter ? `?${new URLSearchParams({ year_quarter: yearQuarter })}` : "";
   return apiGet<RegionProfile>(`/profiles/${regionCode}${query}`);
-}
-
-/** 동별 상권 변화 상세 — 분기를 생략하면 그 동의 최신 분기, 서울 평균 동봉. */
-export function fetchCommerceChangeDetail(regionCode: string, yearQuarter?: string): Promise<RegionCommerceChangeDetail> {
-  const query = yearQuarter ? `?${new URLSearchParams({ year_quarter: yearQuarter })}` : "";
-  return apiGet<RegionCommerceChangeDetail>(`/commerce-changes/${regionCode}${query}`);
-}
-
-/** 시간대 어긋남 — 분기를 생략하면 그 동×업종의 최신 분기(20254까지). 매출 자료가 없는 조합은 404. */
-export function fetchHourGaps(regionCode: string, industry: string, yearQuarter?: string): Promise<RegionIndustryHourGap> {
-  const params = new URLSearchParams({ region: regionCode, industry });
-  if (yearQuarter) params.set("year_quarter", yearQuarter);
-  return apiGet<RegionIndustryHourGap>(`/hour-gaps?${params.toString()}`);
 }
 
 /** 위험도 단계구분도 — 실 API는 {region_code, value}로 주지만 범주 파이프라인(type_code)으로 옮긴다 (작은 ACL). 시점 파라미터 없음(배치 최신). */

@@ -3,7 +3,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { fetchRegionProfile } from "../api";
 
-/** 동네 프로필 조회 — 유형 섹션과 하루 흐름 섹션이 같은 키를 쓰므로 요청은 한 번이다(TanStack Query 중복 제거). */
+/** 동네 프로필 조회 — null이면 API가 해당 동의 최신 분기를 선택한다. */
 export function useRegionProfile(regionCode: string, yearQuarter: string | null) {
   return useQuery({
     queryKey: ["region-profile", regionCode, yearQuarter],

@@ -34,9 +34,9 @@ export function signalLabel(key: string): string {
   return SIGNAL_LABELS[key as VerdictSignalKey] ?? key;
 }
 
-/** 판정 대상에서 빠진 select 업종 — 편의점은 스냅샷 전용 원천이라 백엔드 verdict가 없다(1단계 Ruling A, 특화 신호 단계까지).
+/** 판정 제외 select 업종 — 편의점은 담배권 특화 신호 단계까지 보류, 부동산은 원천에 폐업 이력이 없어 제외한다.
  *  백엔드 `EXCLUDED_INDUSTRIES` 중 프론트 `INDUSTRIES`(14)에 남아 있는 것만 여기 둔다. */
-export const VERDICT_EXCLUDED_INDUSTRIES: ReadonlySet<string> = new Set(["convenience_store"]);
+export const VERDICT_EXCLUDED_INDUSTRIES: ReadonlySet<string> = new Set(["convenience_store", "real_estate"]);
 
 export function isVerdictIndustry(industryId: string): boolean {
   return (INDUSTRIES as readonly string[]).includes(industryId) && !VERDICT_EXCLUDED_INDUSTRIES.has(industryId);

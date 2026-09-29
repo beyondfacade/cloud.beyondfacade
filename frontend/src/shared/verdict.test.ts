@@ -28,3 +28,7 @@ it("판정 대상 업종 판별", () => {
   expect(isVerdictIndustry("convenience_store")).toBe(false);
   expect(isVerdictIndustry("academy")).toBe(false);
 });
+
+it("폐업 이력이 없는 부동산은 판정 대상에서 제외한다", () => {
+  expect(isVerdictIndustry("real_estate")).toBe(false);
+});

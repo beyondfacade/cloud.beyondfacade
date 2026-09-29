@@ -5,10 +5,21 @@
 ## [v0.31.0] - 2026-09-29
 
 ### Added
+- **Task 4 동네 한 줄** — `NeighborhoodLine`이 `useRegionProfile(region, null)`로 최신 프로필을 조회하고
+  유형 이름·시간대 문장, `type_reason` 툴팁을 표시. 프로필이 없으면 줄을 생략.
+- **Task 4 brief 회귀 검증** — 헤더→판정/대안→동네 한 줄→폐업 토글→CTA 순서, 예산(null·0·양수) 전달,
+  신호 최대 3개·참고 줄·부동산 제외·편의점 예외·헤더 조회 실패 시 CTA 유지 검증.
 - **Task 3 지도 회귀 검증** — 3필드 URL 왕복·옛 파라미터 무시·자동 리다이렉트 없음·업종 변경 시 동/예산 보존,
   실제 조회 훅을 통한 최신 판정 요청·지도/범례 색 일치·판정 제외 업종 조회 생략을 검증.
 
 ### Changed
+- **Task 4 brief 한 화면 요약** — 켜진 판정 신호를 strong 우선 최대 3행으로 압축하고 긴 근거는 말줄임/원문 툴팁으로 제공.
+  `shrinking`은 신호 목록 밖 회색 `참고: {evidence}`로 표시. 기존 대안 두 축과 폐업 토글 유지.
+- 주 버튼을 **AI 분석 리포트 보기**로 변경하고 `/analysis?region&industry&budget` 전달, 보조 `자금 계획 →` 링크도 예산 유지.
+  헤더 요약 조회가 실패해도 CTA는 제공. `fetchRegionSummary`의 cards는 표시하지 않으며 API 계약은 유지.
+- 편의점은 점포 수·기준월 한 줄과 "판정은 담배권 특화 신호 단계에서 제공" 안내를 표시.
+  `VERDICT_EXCLUDED_INDUSTRIES`에 `real_estate`를 추가하여 지도와 brief의 제외 집합 통일.
+- brief 간격·CTA 배치를 압축하고 E2E 스크립트의 옛 CTA 텍스트 선택자 두 곳을 갱신.
 - **지도는 최신 판정 단계구분도만 표시** — `MapState = { industry, region, budget }`, `ControlBar`는 업종 select 하나.
   `MapView`·`useMapData`·`METRIC_SOURCES`·범례를 `verdict`/`industry_latest`로 고정. 판정 제외 업종은 무색 지도와
   "판정 준비 중인 업종" 안내. 폐업 마커 토글·지도 오류/재시도·테마 전환은 유지.
@@ -18,11 +29,19 @@
   mock 라우트와 응답 계약은 유지. 부동산 제외 집합 변경은 명세 §8의 Task 4 담당으로 남김.
 
 ### Removed
+- **Task 4** 상세 프로필·시간대 막대·시간대 불일치·영업 지속·어린이집 요약 컴포넌트와 테스트,
+  분기별 사이드패널 테스트, `hour-gap-sentence`와 테스트, 업종 실적 카드·brief의 `GradeBadge` 소비처·근거 보기 토글.
+- 소비자 없는 `fetchChildcareSummary`·`fetchCommerceChangeDetail`·`fetchHourGaps`, 차트 전용 공통 시간대 어휘/서사와 테스트,
+  실적 카드 CSS 제거. mock 라우트·응답 타입 및 리포트가 사용하는 `GradeBadge` 파일/테스트는 유지.
 - 지표 무리 버튼·연도/분기 select·numeric 범례/색상 스케일·비판정 원천 7개·미사용 지도 fetcher 4개와 관련 테스트/CSS/타입.
 - `metric-coverage`·`neighborhood-palette`·`quarters` 모듈과 각각의 테스트. 분기는 API 생략 시 최신값을 받는 기존 계약을 사용.
   판정 테스트만 쓰는 명도 계산은 `verdict-palette.test.ts`로 이동.
 
 ### Validation
+- Task 4 최종 `npx vitest run`: **311/311 passed (68 files)**. `npx tsc --noEmit` clean,
+  `git diff --check` clean, `bash -n scripts/e2e-journey.sh` 통과. 요구 동작별 Red→Green 기록은 `task-4-report.md` 참조.
+- Task 4의 3200 서버 접속 역시 소켓 제한(`Operation not permitted`)으로 실패하여 브라우저의 무스크롤 배치·실 API 왕복은 미검증.
+  기존 Vite native loader 예고 경고는 유지. 커밋·서브에이전트·dev 서버 조작 없음.
 - Task 3 최종 `npx vitest run`: **324/324 passed (74 files)**. `npx tsc --noEmit` clean, `git diff --check` clean.
 - 관문 `intent-url`·`intent-gate` 테스트는 이미 metric 없는 URL을 검증하여 변경 없이 통과.
 - 실제 3200 서버 확인은 샌드박스가 소켓 생성을 금지해 미실시(`curl: failed to open socket: Operation not permitted`).
