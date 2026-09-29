@@ -5,6 +5,7 @@ from collections.abc import Iterable
 from datetime import date
 
 from apps.verdict.app.dtos.region_industry_verdict_dto import (
+    EntrantOutcome,
     JudgedIndustry,
     LatestStoreCount,
     RegionContext,
@@ -44,12 +45,12 @@ class StoreSignalStatsPort(ABC):
 
 class RegionContextPort(ABC):
     @abstractmethod
-    def latest_contexts(self) -> list[RegionContext]:
-        """전 행정동 1행씩 — 최신 분기 상주인구·상권변화지표·서울 베이스라인."""
+    def latest_contexts(self, quarter_max: str | None = None) -> list[RegionContext]:
+        """전 행정동 1행씩 — 최신 분기 상주인구·상권변화지표·서울 베이스라인. quarter_max('20221')를 주면 그 분기까지의 최신 (백테스트)."""
 
     @abstractmethod
-    def latest_store_counts(self) -> list[LatestStoreCount]:
-        """region_industry_metric 최신 연도의 동×업종 점포수."""
+    def latest_store_counts(self, year_max: int | None = None) -> list[LatestStoreCount]:
+        """region_industry_metric 최신 연도의 동×업종 점포수. year_max를 주면 그 연도까지의 최신 (백테스트)."""
 
 
 class IndustryCatalogPort(ABC):
@@ -62,3 +63,9 @@ class RegionCatalogPort(ABC):
     @abstractmethod
     def regions(self) -> list[RegionInfo]:
         """전 행정동 이름 + 최신 분기 동네 유형 (대안 업종 고정 축)."""
+
+
+class EntrantOutcomePort(ABC):
+    @abstractmethod
+    def entrant_outcomes(self, as_of: date, entry_days: int, horizon_days: int) -> list[EntrantOutcome]:
+        """백테스트 라벨 — [as_of, as_of+entry_days) 개업 점포 중 개업 후 horizon_days 안에 폐업한 수 (동×업종)."""

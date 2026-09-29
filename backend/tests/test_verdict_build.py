@@ -12,6 +12,7 @@ from apps.verdict.app.dtos.region_industry_verdict_dto import (
 )
 from apps.verdict.app.ports.output.region_industry_verdict_port import (
     IndustryCatalogPort,
+    EntrantOutcomePort,
     RegionCatalogPort,
     RegionContextPort,
     RegionIndustryVerdictRepositoryPort,
@@ -66,16 +67,21 @@ class FakeContext(RegionContextPort):
     def __init__(self, contexts, counts):
         self.contexts, self.counts = contexts, counts
 
-    def latest_contexts(self):
+    def latest_contexts(self, quarter_max=None):
         return self.contexts
 
-    def latest_store_counts(self):
+    def latest_store_counts(self, year_max=None):
         return self.counts
 
 
 class FakeCatalog(IndustryCatalogPort):
     def judged_industries(self):
         return [JudgedIndustry("korean_food", "한식")]
+
+
+class FakeOutcomes(EntrantOutcomePort):
+    def entrant_outcomes(self, as_of, entry_days, horizon_days):
+        return []
 
 
 class FakeRegions(RegionCatalogPort):
@@ -102,7 +108,7 @@ def _interactor(stats, contexts, counts):
     repo = FakeRepository()
     return repo, RegionIndustryVerdictInteractor(
         repository=repo, store_stats=FakeStoreStats(stats),
-        region_context=FakeContext(contexts, counts), industry_catalog=FakeCatalog(), region_catalog=FakeRegions(),
+        region_context=FakeContext(contexts, counts), industry_catalog=FakeCatalog(), region_catalog=FakeRegions(), entrant_outcomes=FakeOutcomes(),
     )
 
 

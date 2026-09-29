@@ -7,6 +7,9 @@ from sqlalchemy import delete, select
 
 from apps.master.adapter.outbound.orms.region_orm import RegionOrm
 from apps.store.adapter.outbound.orms.store_orm import StoreOrm
+from apps.metric.adapter.outbound.orms.region_industry_metric_orm import RegionIndustryMetricOrm
+from apps.metric.adapter.outbound.orms.region_profile_quarter_orm import RegionProfileQuarterOrm
+from apps.verdict.adapter.outbound.gateways.entrant_outcome_gateway import EntrantOutcomeGateway
 from apps.verdict.adapter.outbound.gateways.industry_catalog_gateway import IndustryCatalogGateway
 from apps.verdict.adapter.outbound.gateways.region_catalog_gateway import RegionCatalogGateway
 from apps.verdict.adapter.outbound.gateways.region_context_gateway import RegionContextGateway
@@ -88,3 +91,56 @@ def test_동_카탈로그는_전_행정동_이름과_최신_유형을_준다():
         expected = session.execute(select(RegionOrm.region_code, RegionOrm.name).order_by(RegionOrm.region_code)).all()
     assert [(r.region_code, r.name) for r in regions] == [tuple(e) for e in expected]
     assert all(r.neighborhood_type is None or isinstance(r.neighborhood_type, str) for r in regions)
+
+
+def test_동_맥락_상한은_그_분기_연도까지의_최신_행만_본다():
+    region = _region_code()
+    P, M = RegionProfileQuarterOrm, RegionIndustryMetricOrm
+    with session_scope() as session:
+        session.execute(delete(P).where(P.region_code == region, P.year_quarter.in_(["20971", "20983"])))
+        session.execute(delete(M).where(M.region_code == region, M.industry_id == _INDUSTRY, M.year.in_([2097, 2098])))
+    try:
+        with session_scope() as session:
+            session.add_all([
+                P(region_code=region, year_quarter="20971", neighborhood_type="office", type_reason="시험", resident_total=1111),
+                P(region_code=region, year_quarter="20983", neighborhood_type="office", type_reason="시험", resident_total=2222),
+                M(region_code=region, industry_id=_INDUSTRY, year=2097, store_count=17),
+                M(region_code=region, industry_id=_INDUSTRY, year=2098, store_count=18),
+            ])
+        gateway = RegionContextGateway()
+        resident = lambda quarter_max: next(c.resident_total for c in gateway.latest_contexts(quarter_max) if c.region_code == region)  # noqa: E731
+        assert resident("20982") == 1111   # 20983은 상한 밖
+        assert resident("20983") == 2222
+        assert resident(None) == 2222       # 상한 없음 = 최신
+        count = lambda year_max: next(c.store_count for c in gateway.latest_store_counts(year_max) if c.region_code == region and c.industry_id == _INDUSTRY)  # noqa: E731
+        assert count(2097) == 17
+        assert count(None) == 18
+    finally:
+        with session_scope() as session:
+            session.execute(delete(P).where(P.region_code == region, P.year_quarter.in_(["20971", "20983"])))
+            session.execute(delete(M).where(M.region_code == region, M.industry_id == _INDUSTRY, M.year.in_([2097, 2098])))
+
+
+def test_진입_코호트_결과는_T_이후_1년_개업_중_3년_내_폐업을_센다():
+    region = _region_code()
+    T = date(2090, 1, 1)
+    d = lambda days: T + timedelta(days=days)  # noqa: E731
+    rows = [
+        _store(11, region, d(-1), d(100)),      # T 전 개업 → 코호트 아님
+        _store(12, region, d(0), None),         # 코호트 · 생존
+        _store(13, region, d(100), d(100 + 1095)),  # 코호트 · 정확히 1095일 → 폐업으로 센다
+        _store(14, region, d(200), d(200 + 1096)),  # 코호트 · 1096일 → 생존
+        _store(15, region, d(364), d(400)),     # 코호트 · 폐업
+        _store(16, region, d(365), d(400)),     # 창 밖(T+365 제외)
+        _store(17, region, d(50), d(10)),       # 오염(폐업<개업) → 코호트에 들되 폐업으로 안 센다
+    ]
+    try:
+        with session_scope() as session:
+            session.add_all(rows)
+        outcome = next(o for o in EntrantOutcomeGateway().entrant_outcomes(T, 365, 1095)
+                       if o.region_code == region and o.industry_id == _INDUSTRY)
+        assert outcome.opened == 5  # 12, 13, 14, 15, 17
+        assert outcome.closed_within == 2  # 13, 15
+    finally:
+        with session_scope() as session:
+            session.execute(delete(StoreOrm).where(StoreOrm.store_id.like(f"{_PREFIX}%")))

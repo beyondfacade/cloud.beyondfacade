@@ -7,6 +7,8 @@ from datetime import date, datetime, timezone
 from apps.verdict.app.dtos.region_industry_verdict_dto import (
     AlternativeIndustryDto,
     AlternativeRegionDto,
+    BacktestBucketDto,
+    BacktestReportDto,
     JudgedIndustry,
     LatestStoreCount,
     RegionContext,
@@ -20,6 +22,7 @@ from apps.verdict.app.ports.input.region_industry_verdict_use_case import (
     RegionIndustryVerdictUseCase,
 )
 from apps.verdict.app.ports.output.region_industry_verdict_port import (
+    EntrantOutcomePort,
     IndustryCatalogPort,
     RegionCatalogPort,
     RegionContextPort,
@@ -35,6 +38,7 @@ from apps.verdict.domain.entities.region_industry_verdict_entity import (
 )
 from apps.verdict.domain.errors import IndustryNotFoundError
 from apps.verdict.domain.services.alternatives import rank_alternatives
+from apps.verdict.domain.services.backtest import quarter_before, summarize
 from apps.verdict.domain.services.rules import judge, on_count, strong_count
 from apps.verdict.domain.services.signals import SIGNALS, Signal, SignalInput
 from apps.verdict.domain.services.thresholds import DEFAULT_THRESHOLDS, VerdictThresholds
@@ -53,6 +57,7 @@ class RegionIndustryVerdictInteractor(RegionIndustryVerdictUseCase):
         region_context: RegionContextPort,
         industry_catalog: IndustryCatalogPort,
         region_catalog: RegionCatalogPort,
+        entrant_outcomes: EntrantOutcomePort,
         thresholds: VerdictThresholds = DEFAULT_THRESHOLDS,
         signals: Sequence[Signal] = SIGNALS,
     ) -> None:
@@ -61,6 +66,7 @@ class RegionIndustryVerdictInteractor(RegionIndustryVerdictUseCase):
         self._region_context = region_context
         self._industry_catalog = industry_catalog
         self._region_catalog = region_catalog
+        self._entrant_outcomes = entrant_outcomes
         self._thresholds = thresholds
         self._signals = tuple(signals)
 
@@ -76,18 +82,38 @@ class RegionIndustryVerdictInteractor(RegionIndustryVerdictUseCase):
         )
 
     def build(self, today: date) -> int:
+        verdicts = self.compute(today)
+        processed = self._repository.upsert(verdicts)
+        self._repository.delete_other_industries({v.industry_id for v in verdicts})  # 제외된 업종의 옛 행 prune
+        return processed
+
+    def compute(
+        self, today: date, quarter_max: str | None = None, year_max: int | None = None
+    ) -> list[RegionIndustryVerdict]:
+        """판정 대상 업종 × 전 행정동 판정 (저장 없음). 상한은 백테스트가 T 시점 이후 값을 못 보게 막는다 (설계서 §13)."""
         industries = self._industry_catalog.judged_industries()
         stats = {(s.region_code, s.industry_id): s for s in self._store_stats.signal_stats(today)}
-        counts = {(c.region_code, c.industry_id): c.store_count for c in self._region_context.latest_store_counts()}
-        contexts = self._region_context.latest_contexts()
+        contexts = self._region_context.latest_contexts(quarter_max)
+        counts = {(c.region_code, c.industry_id): c.store_count for c in self._region_context.latest_store_counts(year_max)}
         computed_at = datetime.now(timezone.utc)
         verdicts: list[RegionIndustryVerdict] = []
         for industry in industries:
             inputs = [self._input(ctx, industry, stats, counts) for ctx in contexts]
             verdicts.extend(self._judge_industry(inputs, computed_at))
-        processed = self._repository.upsert(verdicts)
-        self._repository.delete_other_industries(i.industry_id for i in industries)  # 제외된 업종의 옛 행 prune
-        return processed
+        return verdicts
+
+    def backtest(self, as_of: date, entry_days: int = 365, horizon_days: int = 1095) -> BacktestReportDto:
+        quarter_max, year_max = quarter_before(as_of), as_of.year - 1
+        verdicts = self.compute(as_of, quarter_max=quarter_max, year_max=year_max)
+        outcomes = self._entrant_outcomes.entrant_outcomes(as_of, entry_days, horizon_days)
+        names = {i.industry_id: i.name for i in self._industry_catalog.judged_industries()}
+        return BacktestReportDto(
+            as_of=as_of, quarter_max=quarter_max, year_max=year_max, entry_days=entry_days, horizon_days=horizon_days,
+            buckets=tuple(
+                BacktestBucketDto(b.industry_id, names.get(b.industry_id), b.verdict_code, b.pairs, b.opened, b.closed)
+                for b in summarize(verdicts, outcomes)
+            ),
+        )
 
     def list_verdict_values(self, industry_id: str) -> list[VerdictValueDto]:
         self._require_judged(industry_id)

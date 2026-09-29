@@ -1,7 +1,8 @@
 """Driven Adapter — 동 맥락: 최신 분기 상주인구(region_profile_quarter), 최신 분기 상권변화지표(+서울 베이스라인),
-최신 연도 점포수(region_industry_metric). 전 행정동(region 마스터) 1행씩 돌려주고 없는 값은 None."""
+최신 연도 점포수(region_industry_metric). 전 행정동(region 마스터) 1행씩 돌려주고 없는 값은 None.
+quarter_max·year_max 상한은 백테스트용 — 그 시점까지의 '최신'을 본다(설계서 §13). None이면 현행 최신."""
 
-from sqlalchemy import and_, func, select
+from sqlalchemy import and_, func, select, true
 
 from apps.master.adapter.outbound.orms.region_orm import RegionOrm
 from apps.metric.adapter.outbound.orms.region_industry_metric_orm import RegionIndustryMetricOrm
@@ -16,11 +17,14 @@ from core.matrix.grid_oracle_database_manager import session_scope
 
 
 class RegionContextGateway(RegionContextPort):
-    def latest_contexts(self) -> list[RegionContext]:
+    def latest_contexts(self, quarter_max: str | None = None) -> list[RegionContext]:
         P, C, B = RegionProfileQuarterOrm, RegionCommerceChangeOrm, SeoulCommerceChangeBaselineOrm
         with session_scope() as session:
             latest_profile = (
-                select(P.region_code, func.max(P.year_quarter).label("yq")).group_by(P.region_code).subquery()
+                select(P.region_code, func.max(P.year_quarter).label("yq"))
+                .where(true() if quarter_max is None else P.year_quarter <= quarter_max)
+                .group_by(P.region_code)
+                .subquery()
             )
             residents = dict(
                 session.execute(
@@ -31,7 +35,7 @@ class RegionContextGateway(RegionContextPort):
             )
             latest_change = (
                 select(C.region_code, func.max(C.year_quarter).label("yq"))
-                .where(C.region_code.is_not(None))
+                .where(C.region_code.is_not(None), true() if quarter_max is None else C.year_quarter <= quarter_max)
                 .group_by(C.region_code)
                 .subquery()
             )
@@ -59,10 +63,12 @@ class RegionContextGateway(RegionContextPort):
             ))
         return contexts
 
-    def latest_store_counts(self) -> list[LatestStoreCount]:
+    def latest_store_counts(self, year_max: int | None = None) -> list[LatestStoreCount]:
         M = RegionIndustryMetricOrm
         with session_scope() as session:
-            latest_year = session.execute(select(func.max(M.year))).scalar_one()
+            latest_year = session.execute(
+                select(func.max(M.year)).where(true() if year_max is None else M.year <= year_max)
+            ).scalar_one()
             rows = session.execute(
                 select(M.region_code, M.industry_id, M.store_count).where(M.year == latest_year)
             ).all()

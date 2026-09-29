@@ -1,5 +1,19 @@
 # Backend Version Log
 
+## [v0.42.0] - 2026-09-29
+
+### Added
+- **판정 백테스트 CLI** `apps.verdict.adapter.inbound.cli.backtest_verdicts --as-of 2022-06-30 [--out …]` (설계서 §13, HANDOFF §0-7 3번) —
+  T 시점 데이터만으로 판정을 다시 내고(저장 없음), T 직후 365일 진입 코호트의 1,095일 내 폐업률을 판정 코드별·업종별로 대조한 마크다운 한 장.
+  결과 [`docs/verdict-backtest.md`](../../docs/verdict-backtest.md).
+- 누수 차단: `RegionContextPort.latest_contexts(quarter_max)`·`latest_store_counts(year_max)` 상한(None이면 현행 최신), 백테스트는 직전 분기·전년 말을 넘긴다.
+  신규 `EntrantOutcomePort`/`EntrantOutcomeGateway`(진입 코호트 결과), `domain/services/backtest.py`(`quarter_before`·`summarize`).
+- 인터랙터 `compute(today, quarter_max, year_max)` 분리 — `build()`는 compute → upsert → prune, `backtest()`는 compute → 결과 조인.
+
+### Validation
+- 신규 테스트 5(직전 분기 라벨·집계·인터랙터 상한 전달/조인 — `test_verdict_backtest.py`; 게이트웨이 상한 필터·진입 코호트 경계(1,095일 포함·366일째 제외·오염 행) — `test_verdict_gateways.py`), 전체 592 passed.
+- 실DB T=2022-06-30 (1초): 전체 🔴 58.3%(2,326곳) vs ⚪ 32.2%(4,188곳), lift 1.81×. 업종별은 카페 1.90×(74.3% vs 39.2%)·미용실 1.40×·한식 1.15×, 음식 업종 대부분 1.0~1.07×, 부동산은 원천에 폐업일 없음(0%).
+
 ## [v0.41.0] - 2026-09-29
 
 ### Added

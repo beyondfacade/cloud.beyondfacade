@@ -4,6 +4,7 @@ from abc import ABC, abstractmethod
 from datetime import date
 
 from apps.verdict.app.dtos.region_industry_verdict_dto import (
+    BacktestReportDto,
     RegionIndustryVerdictDto,
     VerdictAlternativesDto,
     VerdictValueDto,
@@ -30,3 +31,7 @@ class RegionIndustryVerdictUseCase(ABC):
     @abstractmethod
     def alternatives(self, region_code: str, industry_id: str) -> VerdictAlternativesDto | None:
         """대안 두 축 — 기준 판정이 없으면 None. 판정 대상이 아니면 IndustryNotFoundError."""
+
+    @abstractmethod
+    def backtest(self, as_of: date, entry_days: int = 365, horizon_days: int = 1095) -> BacktestReportDto:
+        """as_of 시점 데이터만으로 판정을 다시 내고 진입 코호트의 실제 폐업과 대조한다 (저장하지 않음, 설계서 §13)."""

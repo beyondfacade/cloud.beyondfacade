@@ -7,6 +7,7 @@ import pytest
 from apps.verdict.app.dtos.region_industry_verdict_dto import JudgedIndustry, RegionInfo
 from apps.verdict.app.ports.output.region_industry_verdict_port import (
     IndustryCatalogPort,
+    EntrantOutcomePort,
     RegionCatalogPort,
     RegionContextPort,
     RegionIndustryVerdictRepositoryPort,
@@ -82,6 +83,11 @@ class FakeCatalog(IndustryCatalogPort):
         return [JudgedIndustry("cafe", "카페"), JudgedIndustry("pub", "호프주점"), JudgedIndustry("snack", "분식")]
 
 
+class FakeOutcomes(EntrantOutcomePort):
+    def entrant_outcomes(self, as_of, entry_days, horizon_days):
+        return []
+
+
 class FakeRegions(RegionCatalogPort):
     def regions(self):
         return [
@@ -97,17 +103,17 @@ class _Unused(StoreSignalStatsPort, RegionContextPort):
     def signal_stats(self, today):
         raise AssertionError
 
-    def latest_contexts(self):
+    def latest_contexts(self, quarter_max=None):
         raise AssertionError
 
-    def latest_store_counts(self):
+    def latest_store_counts(self, year_max=None):
         raise AssertionError
 
 
 def _interactor(rows):
     return RegionIndustryVerdictInteractor(
         repository=FakeRepository(rows), store_stats=_Unused(), region_context=_Unused(),
-        industry_catalog=FakeCatalog(), region_catalog=FakeRegions(),
+        industry_catalog=FakeCatalog(), region_catalog=FakeRegions(), entrant_outcomes=FakeOutcomes(),
     )
 
 

@@ -1,7 +1,7 @@
 """verdict BC DTO — 응답용(판정·범주값·대안) + 게이트웨이 출력(집계·맥락·점포수·업종·동). 프레임워크 타입 없음."""
 
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import date, datetime
 
 
 @dataclass(frozen=True)
@@ -110,3 +110,37 @@ class VerdictAlternativesDto:
     neighborhood_type: str | None
     industries: tuple[AlternativeIndustryDto, ...]
     regions: tuple[AlternativeRegionDto, ...]
+
+
+@dataclass(frozen=True)
+class EntrantOutcome:
+    """진입 코호트 결과 (동×업종) — as_of 이후 entry_days 안에 개업한 수와 그중 horizon_days 안에 폐업한 수."""
+
+    region_code: str
+    industry_id: str
+    opened: int
+    closed_within: int
+
+
+@dataclass(frozen=True)
+class BacktestBucketDto:
+    industry_id: str | None  # None = 전체
+    industry_name: str | None
+    verdict_code: str
+    pairs: int
+    opened: int
+    closed: int
+
+    @property
+    def rate(self) -> float | None:
+        return None if self.opened == 0 else self.closed / self.opened
+
+
+@dataclass(frozen=True)
+class BacktestReportDto:
+    as_of: date
+    quarter_max: str
+    year_max: int
+    entry_days: int
+    horizon_days: int
+    buckets: tuple[BacktestBucketDto, ...]

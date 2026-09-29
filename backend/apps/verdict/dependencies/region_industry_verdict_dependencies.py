@@ -1,5 +1,6 @@
 """Composition Root (DIP) — Port에 Adapter를 주입한다 (FastAPI Depends)."""
 
+from apps.verdict.adapter.outbound.gateways.entrant_outcome_gateway import EntrantOutcomeGateway
 from apps.verdict.adapter.outbound.gateways.industry_catalog_gateway import IndustryCatalogGateway
 from apps.verdict.adapter.outbound.gateways.region_catalog_gateway import RegionCatalogGateway
 from apps.verdict.adapter.outbound.gateways.region_context_gateway import RegionContextGateway
@@ -18,4 +19,5 @@ def get_region_industry_verdict_use_case() -> RegionIndustryVerdictUseCase:
         region_context=RegionContextGateway(),
         industry_catalog=IndustryCatalogGateway(),
         region_catalog=RegionCatalogGateway(),
+        entrant_outcomes=EntrantOutcomeGateway(),
     )

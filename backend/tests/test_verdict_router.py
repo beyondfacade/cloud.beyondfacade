@@ -44,6 +44,9 @@ class FakeUseCase(RegionIndustryVerdictUseCase):
             raise IndustryNotFoundError(industry_id)
         return _DTO if region_code == "1168064000" else None
 
+    def backtest(self, as_of, entry_days=365, horizon_days=1095):
+        raise AssertionError
+
     def alternatives(self, region_code, industry_id):
         if industry_id != "korean_food":
             raise IndustryNotFoundError(industry_id)
