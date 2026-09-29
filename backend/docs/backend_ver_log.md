@@ -14,11 +14,16 @@
 - **SYSTEM_PROMPT** — 응답 규칙 ⑤ 추가(판정 등급·신호·대안은 도구 값 그대로, 등급 변경·신호 신설·🟢 추천 금지, `available: false`면 "판정 없음"+이유, `advisory`는 참고로만). 섹션별 출력 계약을 verdict(배지·켜진 신호·산출일)·reasons(신호별 근거+지표 숫자+충격·뉴스)·conditions(시간대 조건·임대료 상한·손익분기 매출)·alternatives(두 축 각 최대 3개, 없으면 "대안 없음")·funding(대안 업종 우선)으로 교체. 옛 market 여섯 슬롯·calculator 계약은 소비자가 없어져 제거(벤치마크 비교·`caveats` 준수 규칙은 reasons 절로 이관).
 - `run_finance_simulation` 입력 스키마를 `_FINANCE_PROPERTIES` + `_finance_input_schema(budget)`로 정리(13필드 선언 중복 제거).
 
+### Fixed
+- **지워진 섹션을 가리키던 LLM 지시문** — `get_neighborhood_profile` 도구 설명이 "market 섹션 여섯 슬롯의 재료다"라고 남아 있었다(쓰지 말라고 한 섹션의 재료를 모으라는 모순). "reasons 절의 지표 근거와 conditions 절의 시간대 조건을 쓰는 재료"로 교체. 같은 문구가 남아 있던 `RegionFactsPort.neighborhood_profile`·`RegionFactsGateway.neighborhood_profile` 독스트링도 함께 갱신.
+- 응답 규칙 ⑤에 **호출 순서**("이 두 도구를 다른 어떤 도구보다 가장 먼저 호출한다") 추가 — 레지스트리 앞자리만으로는 약하고, 프론트 진행 패널이 `verdict` 스테이지가 먼저 열리기를 기대한다.
+- 응답 규칙 ⑤에 **판정 도구 오류 대처**("도구가 오류를 돌려주면(`error` 키) 판정을 쓰지 말고 '판정 조회 실패'라고 적는다") 추가 — 게이트웨이는 `IndustryNotFoundError`만 삼키므로 그 밖의 예외는 error 문자열로 LLM에 되먹여진다. `except` 범위는 넓히지 않았다.
+
 ### Validation
 - 신규 테스트 4(`test_verdict_rules.py` — 상권 축소 strong/on/evaluable 미포함, 단독 strong이어도 clear 유지) RED 먼저 확인 후 GREEN. 기존 카운트 고정 테스트 갱신(`test_verdict_thresholds.py` 제외 6종, `test_verdict_gateways.py` 판정 대상 12종). 전체 pytest 597 passed.
 - 실DB 배치 재실행 `build_verdicts`: 5,124건 업서트(12×427), prune이 부동산 427행 삭제(5,551 → 5,124 확인).
 - 백테스트 재실행(`--as-of 2022-06-30`): 전체 🔴 62.0% vs ⚪ 36.9%, lift 1.68×(부동산의 0% 폐업 제거로 ⚪ 폐업률이 올라 lift는 소폭 낮아짐 — 원천 왜곡 제거가 원인). 업종별 카페 1.97×·미용실 1.30×·한식 1.18×. 상권 축소 신호별 lift는 여전히 0.96×(전체) — 참고 신호 판단 재확인.
-- agent BC 신규 테스트 18(`test_agent_verdict_facts.py` 5 — 게이트웨이 카드 전 필드·advisory 표시·산출일 문자열·판정 없음/대상 아님 2종, `test_agent_tools.py` 8 — 도구 2종 앞자리·스테이지·두 축·available false·인용·예산 기본값 3종, `test_agent_loop.py` 순증 3 — 섹션 마커 5개 순서·판정 인용 규칙·참고 신호·대안 계약, `test_agent_router.py` 2 — budget `_PENDING` 적재·예산 없는 기존 요청) RED 먼저 확인 후 GREEN. 실 LLM 호출 없음(Fake LLM). 전체 pytest **615 passed**.
+- agent BC 신규 테스트 18(`test_agent_verdict_facts.py` 5 — 게이트웨이 카드 전 필드·advisory 표시·산출일 문자열·판정 없음/대상 아님 2종, `test_agent_tools.py` 8 — 도구 2종 앞자리·스테이지·두 축·available false·인용·예산 기본값 3종, `test_agent_loop.py` 순증 3 — 섹션 마커 5개 순서·판정 인용 규칙·참고 신호·대안 계약, `test_agent_router.py` 2 — budget `_PENDING` 적재·예산 없는 기존 요청) RED 먼저 확인 후 GREEN. 실 LLM 호출 없음(Fake LLM). 전체 pytest **618 passed**(수정 라운드 1의 프롬프트·도구 설명 테스트 3 포함).
 
 ## [v0.43.0] - 2026-09-29
 

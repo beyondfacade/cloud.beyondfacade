@@ -147,7 +147,7 @@ class RegionFactsGateway(RegionFactsPort):
             return {rate_type: rate for rate_type, (_, rate) in latest.items()}
 
     def neighborhood_profile(self, region_code: str) -> dict:
-        """market 섹션 슬롯 6종의 재료를 한 번에 모은다 (파생 지표 + 동네 맥락).
+        """reasons·conditions 절이 쓰는 재료를 한 번에 모은다 (파생 지표 + 동네 맥락).
 
         수치를 그대로 넘기는 대신 `caveats`에 해석 주의를 함께 넘긴다. LLM은 결측을 0으로,
         이상치를 대표값으로 읽는 실수를 잘 한다 — 원천이 아는 것을 알려주는 편이 싸다.

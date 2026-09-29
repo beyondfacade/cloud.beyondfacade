@@ -485,6 +485,22 @@ def test_시스템_프롬프트가_판정을_도구_값_그대로_옮기게_한�
     assert "판정 없음" in SYSTEM_PROMPT
 
 
+def test_시스템_프롬프트가_판정_도구를_가장_먼저_부르게_한다():
+    """프론트 진행 패널은 verdict 스테이지가 먼저 열리길 기대한다 — 레지스트리 순서만으론 약하다."""
+    from apps.agent.app.use_cases.analysis_interactor import SYSTEM_PROMPT
+
+    assert "가장 먼저 호출한다" in SYSTEM_PROMPT
+    assert SYSTEM_PROMPT.find("가장 먼저 호출한다") < SYSTEM_PROMPT.find("[최종 리포트 형식]")
+
+
+def test_시스템_프롬프트가_판정_도구_오류에_대처하게_한다():
+    """게이트웨이가 삼키지 않은 예외는 error 문자열로 온다 — 그때 등급을 지어내지 않게 한다."""
+    from apps.agent.app.use_cases.analysis_interactor import SYSTEM_PROMPT
+
+    assert "오류를 돌려주면" in SYSTEM_PROMPT
+    assert "조회 실패" in SYSTEM_PROMPT
+
+
 def test_시스템_프롬프트가_참고_신호를_경고로_쓰지_못하게_한다():
     """상권 축소는 등급에서 빠진 참고 신호다 (설계서 §7)."""
     from apps.agent.app.use_cases.analysis_interactor import SYSTEM_PROMPT

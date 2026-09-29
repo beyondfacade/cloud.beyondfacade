@@ -73,7 +73,7 @@ class RegionFactsPort(ABC):
 
     @abstractmethod
     def neighborhood_profile(self, region_code: str) -> dict:
-        """최신 분기 동네 프로필 + market 섹션 슬롯 6종의 재료 (없으면 빈 dict)."""
+        """최신 분기 동네 프로필 + reasons·conditions 절이 쓰는 지표·시간대 재료 (없으면 빈 dict)."""
 
 
 class FundingFactsPort(ABC):

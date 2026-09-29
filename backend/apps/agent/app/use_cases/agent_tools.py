@@ -333,7 +333,8 @@ def build_tools(
                 name="get_neighborhood_profile",
                 description=(
                     "행정동의 동네 유형·시간대 특성과 판정 근거, 유동인구 연령 구성, 상권 변화 지표, "
-                    "집객시설 구성, 아파트 평균 시가를 조회한다. market 섹션 여섯 슬롯의 재료다."
+                    "집객시설 구성, 아파트 평균 시가를 조회한다. reasons 절의 지표 근거와 "
+                    "conditions 절의 시간대 조건을 쓰는 재료다."
                 ),
                 input_schema={
                     "type": "object",

@@ -264,7 +264,7 @@ def test_compare_rent_vs_buy_monthly_interest_exceeds_rent_gives_none_breakeven(
     assert result["breakeven_years"] is None
 
 
-def test_build_tools_returns_9_tools_with_correct_name_and_stage():
+def test_build_tools_returns_12_tools_with_correct_name_and_stage():
     """12종 도구 name/stage 정확 매핑."""
     tools = _build_tools()
 
@@ -534,6 +534,16 @@ def test_판정이_없으면_도구가_available_false와_이유를_돌려준다
         tool = next(t for t in tools if t.spec.name == name)
         payload = json.loads(tool.run({"region_code": "1168064000", "industry_id": "real_estate"}))
         assert payload == {"available": False, "reason": "판정 대상 업종이 아닙니다"}
+
+
+def test_동네_프로필_도구_설명이_지워진_섹션을_가리키지_않는다():
+    """도구 설명은 LLM이 읽는 지시문이다 — 쓰지 말라고 한 섹션의 재료를 모으라고 할 수 없다."""
+    tool = next(t for t in _build_tools() if t.spec.name == "get_neighborhood_profile")
+
+    assert "market 섹션" not in tool.spec.description
+    assert "여섯 슬롯" not in tool.spec.description
+    assert "reasons" in tool.spec.description
+    assert "conditions" in tool.spec.description
 
 
 def test_판정_도구는_판정_테이블을_인용한다():
