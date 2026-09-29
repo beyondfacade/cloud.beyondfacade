@@ -237,8 +237,8 @@ main이 전진하면 다시 낡는다 — 배포 전 재빌드가 규칙.
 `/funding`(목록·candidates) · `/news` · `/shocks` · `/childcare-centers` · `/childcare-center-stats` · `/convenience-stores`
 
 ### 5-2. 프론트 4 라우트 · feature 5개
-`/`(랜딩+관문 `intent-gate`) · `/map`(`map-explorer`: 유형 단계구분도·두 무리 컨트롤바·패널 서사) ·
-`/plan`(`plan`: 프리필→계산→비교→조달·준비) · `/analysis`(`agent-report` SSE). `landing`.
+`/`(랜딩+관문 `intent-gate`) · `/map`(`map-explorer`: **판정 단계구분도만** + brief 한 화면 — 9/29 화면 재편 FE v0.31.0, 지표 8개 선택기는 제거) ·
+`/plan`(`plan`: 프리필→계산→비교→조달·준비) · `/analysis`(`agent-report` SSE — URL에 동·업종이 있으면 자동 시작, 섹션 5개). `landing`.
 
 ### 5-3. 로드맵 산출물 (전부 main)
 | 단계 | 백엔드 | 프론트 | 핵심 |
