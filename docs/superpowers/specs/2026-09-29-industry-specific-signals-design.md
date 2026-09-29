@@ -283,3 +283,4 @@ RegionIndustryVerdictInteractor.compute(today, quarter_max, year_max, industries
 
 | 일시 | 단계 | 결과 |
 |---|---|---|
+| 2026-09-29 | Task 1 LOCALDATA 재확인 | 없음 — 행안부 1741000 목록·data.go.kr API/파일 검색·LOCALDATA(서비스 종료)·서울 열린데이터 모두 폐업일 있는 부동산중개업 원천 없음. brainstorming.md:196 정정 |
