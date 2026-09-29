@@ -284,3 +284,4 @@ RegionIndustryVerdictInteractor.compute(today, quarter_max, year_max, industries
 | 일시 | 단계 | 결과 |
 |---|---|---|
 | 2026-09-29 | Task 1 LOCALDATA 재확인 | 없음 — 행안부 1741000 목록·data.go.kr API/파일 검색·LOCALDATA(서비스 종료)·서울 열린데이터 모두 폐업일 있는 부동산중개업 원천 없음. brainstorming.md:196 정정 |
+| 2026-09-29 | Task 2 실거래가 파일럿 | PASS — 아파트 매매 200/000/501건(강남구 2024-06) · 아파트 전월세 403 SERVICE_KEY_IS_NOT_REGISTERED_ERROR(미등록) · 상업업무용 매매 200/000/146건 |
