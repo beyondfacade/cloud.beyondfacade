@@ -34,6 +34,13 @@ class FakeAnalysisUseCase(AnalysisUseCase):
         yield from _FIXED_EVENTS
 
 
+class _NullRepository:
+    """SSE 종료 시 영속화 경로가 실제 DB를 건드리지 않게 하는 Fake."""
+
+    def save_report(self, **kwargs) -> None:
+        return None
+
+
 def setup_function() -> None:
     app.dependency_overrides[get_analysis_use_case] = lambda: FakeAnalysisUseCase()
 
@@ -119,3 +126,38 @@ def test_예산_없는_기존_요청도_그대로_받는다():
 
     assert response.status_code == 200
     assert analysis_router._PENDING[response.json()["analysis_id"]]["budget"] is None
+
+
+def test_음수_예산은_422로_거절된다():
+    """예산은 0원 이상만 받는다 — 음수는 finance 도구 기본값이 될 수 없다."""
+    response = TestClient(app).post(
+        "/analysis",
+        json={"region": "1168064000", "industry": "cafe", "budget": -1},
+    )
+
+    assert response.status_code == 422
+
+
+def test_SSE_배선은_pending_예산을_UseCase_생성에_넘긴다(monkeypatch):
+    """budget이 build_analysis_use_case까지 실제로 흘러야 finance 도구 기본값이 된다 (설계서 §5-2)."""
+    from apps.agent.adapter.inbound.api.v1 import analysis_router
+    from apps.agent.dependencies.analysis_dependencies import get_analysis_repository
+
+    app.dependency_overrides.clear()  # 오버라이드가 있으면 배선이 build_analysis_use_case를 건너뛴다
+    app.dependency_overrides[get_analysis_repository] = lambda: _NullRepository()
+    captured: dict = {}
+
+    def fake_build(model: str = "hybrid", budget: int | None = None) -> AnalysisUseCase:
+        captured["model"], captured["budget"] = model, budget
+        return FakeAnalysisUseCase()
+
+    monkeypatch.setattr(analysis_router, "build_analysis_use_case", fake_build)
+
+    client = TestClient(app)
+    analysis_id = client.post(
+        "/analysis",
+        json={"region": "1168064000", "industry": "cafe", "budget": 50_000_000},
+    ).json()["analysis_id"]
+    client.get(f"/analysis/{analysis_id}/events")
+
+    assert captured == {"model": "hybrid", "budget": 50_000_000}

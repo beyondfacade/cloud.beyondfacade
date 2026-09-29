@@ -41,7 +41,7 @@ def test_레벨_경계_75_90():
 
 def test_기본_임계값_상수():
     assert DEFAULT_THRESHOLDS == VerdictThresholds(
-        on_percentile=75.0, strong_percentile=90.0, min_sample=10, min_population=1000, min_evaluable=3
+        on_percentile=75.0, strong_percentile=90.0, min_sample=10, min_population=1000, min_evaluable=2
     )
 
 

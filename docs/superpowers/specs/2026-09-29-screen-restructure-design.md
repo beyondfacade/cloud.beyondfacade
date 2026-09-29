@@ -69,7 +69,7 @@
 ## 7. verdict BC 정리 두 건 (착수 전 반나절)
 
 - **부동산 판정 제외**: `EXCLUDED_INDUSTRIES`에 `real_estate` 추가(원천에 폐업 이력 없음 — 브이월드 API·공공데이터 파일·서울 열린데이터 모두 현재 사무소만. 조사 9/29). 프론트 `VERDICT_EXCLUDED_INDUSTRIES`에도 추가. 배치 재실행(prune이 옛 행 삭제). 판정 대상 12종.
-- **상권 축소 = 참고 신호**: 백테스트 lift 0.96×(무신호). 신호는 그대로 평가·저장하되 **등급 계산에서 뺀다** — `ADVISORY_SIGNAL_KEYS = {"shrinking"}`(entity), `rules.strong_count/on_count/evaluable_count`가 이 키를 건너뛴다. `min_evaluable=3` 가드는 판정 신호 4개 기준으로 그대로(3/4). 카드·리포트는 "참고" 표기. 백테스트 CLI 재실행해 결과 문서 갱신.
+- **상권 축소 = 참고 신호**: 백테스트 lift 0.96×(무신호). 신호는 그대로 평가·저장하되 **등급 계산에서 뺀다** — `ADVISORY_SIGNAL_KEYS = {"shrinking"}`(entity), `rules.strong_count/on_count/evaluable_count`가 이 키를 건너뛴다. `min_evaluable` 가드는 **3 → 2로 내린다**(판정 신호 4개 중 2개) — 3/4로 두면 판정 대상의 70.6%가 보류가 되는데, 상권 축소는 예측력이 없었으므로 옛 3/5도 사실상 2신호 판정이었다(9/29 결정, 보류 70.6% → 39.3%). 카드·리포트는 "참고" 표기. 백테스트 CLI 재실행해 결과 문서 갱신.
 - 두 건 다 테스트 갱신 + 버전 로그(BE) + HANDOFF §0-12 체크.
 
 ## 8. 구현 순서·분담

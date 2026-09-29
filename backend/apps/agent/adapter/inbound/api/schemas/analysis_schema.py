@@ -8,7 +8,8 @@ class AnalysisCreateRequest(BaseModel):
     industry: str
     question: str | None = None
     model: str = Field(default="hybrid", pattern="^(hybrid|gemma3|gemini)$")
-    budget: int | None = None  # 관문에서 넘어온 예산(원) — finance 도구 기본값이 된다
+    # 관문에서 넘어온 예산(원) — finance 도구 기본값이 된다. 음수 자기자본은 있을 수 없다
+    budget: int | None = Field(default=None, ge=0)
 
 
 class AnalysisCreateResponse(BaseModel):

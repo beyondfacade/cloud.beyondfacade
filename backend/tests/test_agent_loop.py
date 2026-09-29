@@ -493,6 +493,18 @@ def test_시스템_프롬프트가_판정_도구를_가장_먼저_부르게_한�
     assert SYSTEM_PROMPT.find("가장 먼저 호출한다") < SYSTEM_PROMPT.find("[최종 리포트 형식]")
 
 
+def test_시스템_프롬프트가_금융_지원사업_도구를_반드시_부르게_한다():
+    """conditions·funding 절의 임대료 상한·손익분기 매출·지원사업은 도구 값이어야 한다 (설계서 §5-2)."""
+    from apps.agent.app.use_cases.analysis_interactor import SYSTEM_PROMPT
+
+    assert "반드시 호출한다" in SYSTEM_PROMPT
+    position = SYSTEM_PROMPT.find("반드시 호출한다")
+    assert SYSTEM_PROMPT.find("가장 먼저 호출한다") < position < SYSTEM_PROMPT.find("[최종 리포트 형식]")
+    rule = SYSTEM_PROMPT[SYSTEM_PROMPT.find("⑤") : SYSTEM_PROMPT.find("[최종 리포트 형식]")]
+    assert "run_finance_simulation" in rule and "get_funding_candidates" in rule
+    assert "지어내지 않는다" in rule
+
+
 def test_시스템_프롬프트가_판정_도구_오류에_대처하게_한다():
     """게이트웨이가 삼키지 않은 예외는 error 문자열로 온다 — 그때 등급을 지어내지 않게 한다."""
     from apps.agent.app.use_cases.analysis_interactor import SYSTEM_PROMPT

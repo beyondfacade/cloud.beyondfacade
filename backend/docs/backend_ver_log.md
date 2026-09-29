@@ -8,7 +8,7 @@
 
 ### Changed
 - **부동산 판정 제외** (설계서 §7, HANDOFF §0-12 A) — `EXCLUDED_INDUSTRIES`에 `real_estate` 추가(원천에 폐업 이력 없음 — 브이월드 API·공공데이터 파일·서울 열린데이터 모두 현재 사무소만). 판정 대상 13종 → **12종**. 헬스장은 원천 정상 확인(연 3% 폐업이 실제)으로 유지.
-- **상권 축소를 참고 신호로** — 신규 `ADVISORY_SIGNAL_KEYS = {"shrinking"}`(entity). `rules.strong_count`/`on_count`/`evaluable_count`가 이 키를 건너뛴다 — 신호는 그대로 평가·저장(카드·리포트 "참고" 표기)하되 등급 계산에서만 뺀다. `min_evaluable=3`은 판정 신호 4개 기준으로 그대로.
+- **상권 축소를 참고 신호로** — 신규 `ADVISORY_SIGNAL_KEYS = {"shrinking"}`(entity). `rules.strong_count`/`on_count`/`evaluable_count`가 이 키를 건너뛴다 — 신호는 그대로 평가·저장(카드·리포트 "참고" 표기)하되 등급 계산에서만 뺀다. `min_evaluable`은 **3 → 2**로 내렸다(판정 신호 4개 중 2개) — 3으로 두면 4개 중 3개를 요구하게 돼 운영 보류가 70.6%(5,124 중 3,618)까지 올랐다. 상권 축소는 애초에 예측력이 없어 옛 3/5도 사실상 2신호 판정이었고, 화면 재편으로 판정 지도가 유일한 지도가 됐다. 적용 후 보류 **39.3%(2,014)**.
 - CLI·크론 문구 "13업종" → "12업종" (`build_verdicts.py`, `scripts/store-collector.sh`, `RegionIndustryVerdictUseCase.build` 독스트링), 백테스트 CLI "읽는 법" 노트를 부동산 제외 반영으로 갱신.
 - **리포트 섹션 5개 재편** (설계서 §6 계약 표) — `_SECTIONS`가 `verdict "판정" · reasons "왜 안 되나" · conditions "그래도 한다면" · alternatives "대안 동네·업종" · funding "대안 업종 지원사업"`. 옛 `market`·`shock`·`calculator` 섹션 키는 사라졌다(도구 스테이지 이름 market/shock/funding은 그대로). `agent_eval_scoring.section_completion`의 기대 섹션 튜플·`AgentEvent` 독스트링(스테이지 `verdict` 추가)도 같은 계약으로 갱신.
 - **SYSTEM_PROMPT** — 응답 규칙 ⑤ 추가(판정 등급·신호·대안은 도구 값 그대로, 등급 변경·신호 신설·🟢 추천 금지, `available: false`면 "판정 없음"+이유, `advisory`는 참고로만). 섹션별 출력 계약을 verdict(배지·켜진 신호·산출일)·reasons(신호별 근거+지표 숫자+충격·뉴스)·conditions(시간대 조건·임대료 상한·손익분기 매출)·alternatives(두 축 각 최대 3개, 없으면 "대안 없음")·funding(대안 업종 우선)으로 교체. 옛 market 여섯 슬롯·calculator 계약은 소비자가 없어져 제거(벤치마크 비교·`caveats` 준수 규칙은 reasons 절로 이관).
@@ -17,11 +17,15 @@
 ### Fixed
 - **지워진 섹션을 가리키던 LLM 지시문** — `get_neighborhood_profile` 도구 설명이 "market 섹션 여섯 슬롯의 재료다"라고 남아 있었다(쓰지 말라고 한 섹션의 재료를 모으라는 모순). "reasons 절의 지표 근거와 conditions 절의 시간대 조건을 쓰는 재료"로 교체. 같은 문구가 남아 있던 `RegionFactsPort.neighborhood_profile`·`RegionFactsGateway.neighborhood_profile` 독스트링도 함께 갱신.
 - 응답 규칙 ⑤에 **호출 순서**("이 두 도구를 다른 어떤 도구보다 가장 먼저 호출한다") 추가 — 레지스트리 앞자리만으로는 약하고, 프론트 진행 패널이 `verdict` 스테이지가 먼저 열리기를 기대한다.
+- 응답 규칙 ⑤에 **자금 도구 호출 강제**("판정 도구 다음에는 `run_finance_simulation`(예산이 있으면 그 값을 자기자본 기본값으로)과 `get_funding_candidates`를 반드시 호출한다") 추가 — 실 실행에서 LLM이 두 도구를 건너뛰어 conditions 절의 임대료 상한·손익분기 매출과 funding 절의 지원사업 금액이 도구 값 없이 나올 수 있었다(HANDOFF §0-12 A).
+- `AnalysisCreateRequest.budget`에 하한 `Field(default=None, ge=0)` — 음수 자기자본은 finance 도구 기본값이 될 수 없다. 음수 요청은 422.
 - 응답 규칙 ⑤에 **판정 도구 오류 대처**("도구가 오류를 돌려주면(`error` 키) 판정을 쓰지 말고 '판정 조회 실패'라고 적는다") 추가 — 게이트웨이는 `IndustryNotFoundError`만 삼키므로 그 밖의 예외는 error 문자열로 LLM에 되먹여진다. `except` 범위는 넓히지 않았다.
 
 ### Validation
 - 신규 테스트 4(`test_verdict_rules.py` — 상권 축소 strong/on/evaluable 미포함, 단독 strong이어도 clear 유지) RED 먼저 확인 후 GREEN. 기존 카운트 고정 테스트 갱신(`test_verdict_thresholds.py` 제외 6종, `test_verdict_gateways.py` 판정 대상 12종). 전체 pytest 597 passed.
 - 실DB 배치 재실행 `build_verdicts`: 5,124건 업서트(12×427), prune이 부동산 427행 삭제(5,551 → 5,124 확인).
+- **min_evaluable 3 → 2 적용 후 재실행(9/29)**: 배치 `build_verdicts` 5,124건 업서트(멱등). 운영 분포 보류 **70.6% → 39.3%**(🔴 80 · 🟠 1,849 · ⚪ 1,181 · 보류 2,014). 백테스트(`--as-of 2022-06-30`) 전체 lift **1.68× → 1.70×**(🔴 61.7%(1,960곳) · 🟠 37.7%(12,460) · ⚪ 36.2%(4,755), 보류 3,640 → 1,920) — 가드를 풀어도 판별력은 떨어지지 않았다. 업종별 카페 2.01×·미용실 1.41×·한식 1.16×·양식 1.10×. 업종별 보류는 당구장 342·중식 275·PC방 275·헬스장 272가 여전히 높고, 카페 5·한식 11·미용실 11은 사실상 해소.
+- 신규 테스트 4 RED→GREEN: 판정 가능 신호 2개면 판정(rules), 자금 도구 호출 강제 프롬프트(agent_loop), 음수 예산 422·SSE 배선이 pending 예산을 `build_analysis_use_case`에 넘김(agent_router). 실 LLM 호출 없음. 전체 pytest **622 passed**.
 - 백테스트 재실행(`--as-of 2022-06-30`): 전체 🔴 62.0% vs ⚪ 36.9%, lift 1.68×(부동산의 0% 폐업 제거로 ⚪ 폐업률이 올라 lift는 소폭 낮아짐 — 원천 왜곡 제거가 원인). 업종별 카페 1.97×·미용실 1.30×·한식 1.18×. 상권 축소 신호별 lift는 여전히 0.96×(전체) — 참고 신호 판단 재확인.
 - agent BC 신규 테스트 18(`test_agent_verdict_facts.py` 5 — 게이트웨이 카드 전 필드·advisory 표시·산출일 문자열·판정 없음/대상 아님 2종, `test_agent_tools.py` 8 — 도구 2종 앞자리·스테이지·두 축·available false·인용·예산 기본값 3종, `test_agent_loop.py` 순증 3 — 섹션 마커 5개 순서·판정 인용 규칙·참고 신호·대안 계약, `test_agent_router.py` 2 — budget `_PENDING` 적재·예산 없는 기존 요청) RED 먼저 확인 후 GREEN. 실 LLM 호출 없음(Fake LLM). 전체 pytest **618 passed**(수정 라운드 1의 프롬프트·도구 설명 테스트 3 포함).
 

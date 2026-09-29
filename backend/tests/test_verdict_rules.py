@@ -35,9 +35,15 @@ def test_켜진_신호_없으면_clear():
     assert judge(_results(LEVEL_OFF, LEVEL_OFF, LEVEL_OFF, LEVEL_OFF, LEVEL_UNAVAILABLE), T) == VERDICT_CLEAR
 
 
-def test_판정_가능_신호_3개_미만이면_강한_신호가_2개여도_보류():
-    levels = (LEVEL_STRONG, LEVEL_STRONG, LEVEL_UNAVAILABLE, LEVEL_UNAVAILABLE, LEVEL_UNAVAILABLE)
+def test_판정_가능_신호_2개_미만이면_강한_신호가_있어도_보류():
+    levels = (LEVEL_STRONG, LEVEL_UNAVAILABLE, LEVEL_UNAVAILABLE, LEVEL_UNAVAILABLE, LEVEL_UNAVAILABLE)
     assert judge(_results(*levels), T) == VERDICT_INSUFFICIENT
+
+
+def test_판정_가능_신호가_2개면_판정한다():
+    # shrinking을 참고 신호로 뺀 뒤 판정 신호는 4개 — 그중 2개면 판정한다 (설계서 §7)
+    levels = (LEVEL_STRONG, LEVEL_STRONG, LEVEL_UNAVAILABLE, LEVEL_UNAVAILABLE, LEVEL_UNAVAILABLE)
+    assert judge(_results(*levels), T) == VERDICT_RED
 
 
 def test_카운트():
@@ -72,7 +78,7 @@ def test_참고_신호_shrinking은_evaluable_count에서_빠진다():
 
 
 def test_참고_신호_shrinking_strong은_혼자서는_판정을_뒤집지_않는다():
-    # 판정 신호 4개 중 3개만 판정 가능(min_evaluable=3 충족) + off, shrinking만 strong → clear (red/orange 아님)
+    # 판정 신호 4개 전부 판정 가능(min_evaluable=2 충족) + off, shrinking만 strong → clear (red/orange 아님)
     r = _results_with_keys(net_outflow=LEVEL_OFF, survival_cliff=LEVEL_OFF, early_closure=LEVEL_OFF,
                             saturation=LEVEL_OFF, shrinking=LEVEL_STRONG)
     assert judge(r, T) == VERDICT_CLEAR

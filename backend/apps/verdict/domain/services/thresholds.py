@@ -17,7 +17,7 @@ class VerdictThresholds:
     strong_percentile: float = 90.0
     min_sample: int = 10  # 순유출 시작 점포·코호트·폐업 건수 가드
     min_population: int = 1000  # 포화 분모(상주인구) 가드
-    min_evaluable: int = 3  # 판정 가능한 신호가 이보다 적으면 보류
+    min_evaluable: int = 2  # 판정 신호 4개 중 2개 — 이보다 적게 판정 가능하면 보류
 
 
 DEFAULT_THRESHOLDS = VerdictThresholds()
