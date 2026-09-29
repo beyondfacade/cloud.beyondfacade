@@ -4,17 +4,14 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Map as MapLibreGLMap, setWorkerUrl, type ErrorEvent as MapErrorEvent, type GeoJSONSource, type MapSourceDataEvent, type RasterTileSource } from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { config } from "@/shared/config";
-import type { CategoryRow, MapMetricKey, MetricRow } from "@/shared/api/types";
 import { useMapData } from "../hooks/use-map-data";
-import { makeCategoryColorScale, makeMetricColorScale, NO_DATA_COLOR } from "../lib/metric-color";
-import type { MapTheme } from "../lib/neighborhood-palette";
+import { makeCategoryColorScale, NO_DATA_COLOR } from "../lib/metric-color";
+import type { MapTheme } from "../lib/verdict-palette";
 import { bboxOfRegion } from "../lib/region-bbox";
-import { NO_CLOSURE_HISTORY_INDUSTRIES } from "../lib/map-state";
-import { isVerdictMissingForIndustry } from "../lib/metric-coverage";
+import { isVerdictMissingForIndustry } from "../lib/metric-sources";
 import { MapLegend } from "./map-legend";
 import { CLOSED_STORE_STRATEGY } from "./marker-strategies";
 import { RegionMarkers } from "./region-markers";
-import { industryLabel, type IndustryId } from "@/shared/industries";
 import { readAccentColor } from "@/shared/lib/accent-color";
 
 // maplibre-gl은 GeoJSON 타일링을 Web Worker에서 수행하며, 워커 스크립트 URL을 import.meta.url 기반으로
@@ -46,17 +43,13 @@ function vworldTileUrl(theme: "light" | "dark"): string {
 
 interface MapViewProps {
   regionCode?: string | null;
-  metric: MapMetricKey;
   industry: string;
-  year: number;
-  /** 동×분기 지표의 시점. null = 최신. */
-  yearQuarter: string | null;
   onSelectRegion: (code: string) => void;
   /** 최근 2년 폐업 점포 레이어 토글. 기본 꺼짐 — 켜지면 영업 마커 위에 추가로 얹는다. */
   showClosed: boolean;
 }
 
-export function MapView({ regionCode, metric, industry, year, yearQuarter, onSelectRegion, showClosed }: MapViewProps) {
+export function MapView({ regionCode, industry, onSelectRegion, showClosed }: MapViewProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<MapLibreGLMap | null>(null);
   const onSelectRegionRef = useRef(onSelectRegion);
@@ -67,33 +60,21 @@ export function MapView({ regionCode, metric, industry, year, yearQuarter, onSel
   const failedSourceRef = useRef<string | null>(null);
   const failedTilesRef = useRef(new Set<string>());
 
-  // 편의점×판정은 백엔드가 404를 주는 조합이라 조회 자체를 끈다 — 안내 문구가 이유를 말한다.
-  const verdictMissing = isVerdictMissingForIndustry(metric, industry);
-  const { geojson, rows, source } = useMapData(metric, { industry, year, yearQuarter }, !verdictMissing);
+  // 판정 제외 업종은 백엔드가 404를 주는 조합이라 조회 자체를 끈다 — 안내 문구가 이유를 말한다.
+  const verdictMissing = isVerdictMissingForIndustry(industry);
+  const { geojson, rows, source } = useMapData({ industry }, !verdictMissing);
   // 경계/지표 fetch 실패는 무음 빈 지도가 아니라 배너로 알린다 (side-panel의 role="alert" 관행과 일관).
   const loadError = geojson.isError || rows.isError;
-  // 실 API는 데이터 미보유 업종·연도에 200 + 빈 배열을 반환한다 — 빈 지도임을 명시.
+  // 실 API는 판정 배치 전 업종에 200 + 빈 배열을 반환한다 — 빈 지도임을 명시.
   const noData = rows.isSuccess && rows.data.length === 0;
-  // 개폐업 이력이 없는 업종(스냅샷 2종·학원)의 폐업률·성장률 — 연도를 바꿔도 없다는 걸 말해 준다.
-  const noClosureHistory =
-    noData &&
-    NO_CLOSURE_HISTORY_INDUSTRIES.has(industry as IndustryId) &&
-    (metric === "closure_rate" || metric === "growth_rate");
-
   // 범주 팔레트는 테마마다 다르다 — 테마가 바뀌면 fill-color를 다시 칠해야 하므로 상태로 든다.
   const [theme, setTheme] = useState<MapTheme>("light");
   useEffect(() => setTheme(currentTheme()), []);
 
   // 색상 스케일 — fill-color 페인트와 범례가 같은 경계(classes)를 공유하는 단일 원천.
-  // 원천의 kind가 숫자면 분위수/발산 스케일, 범주면 범주 팔레트 — 두 함수는 섞이지 않는다.
   const scale = useMemo(() => {
-    const data = rows.data ?? [];
-    if (source.kind === "categorical") {
-      const codes = (data as CategoryRow[]).map((row) => row.type_code);
-      return { kind: "categorical" as const, ...makeCategoryColorScale(codes, source.palette(theme), source.order) };
-    }
-    const values = (data as MetricRow[]).map((row) => row.value);
-    return { kind: "numeric" as const, ...makeMetricColorScale(values, source.scheme) };
+    const codes = (rows.data ?? []).map((row) => row.type_code);
+    return makeCategoryColorScale(codes, source.palette(theme), source.order);
   }, [rows.data, source, theme]);
 
   // 맵 최초 생성 — unmount 시 정리.
@@ -281,14 +262,11 @@ export function MapView({ regionCode, metric, industry, year, yearQuarter, onSel
     );
   }, [ready, geojson.data, regionCode]);
 
-  // 단계구분도 색칠 — rows/metric 변경 시 fill-color 갱신.
+  // 판정 단계구분도 색칠 — 판정·테마 변경 시 fill-color 갱신.
   useEffect(() => {
     const map = mapRef.current;
     if (!map || !ready) return;
-    const pairs =
-      scale.kind === "categorical"
-        ? ((rows.data ?? []) as CategoryRow[]).flatMap((row) => [row.region_code, scale.colorOf(row.type_code)])
-        : ((rows.data ?? []) as MetricRow[]).flatMap((row) => [row.region_code, scale.colorOf(row.value)]);
+    const pairs = (rows.data ?? []).flatMap((row) => [row.region_code, scale.colorOf(row.type_code)]);
     const expression = pairs.length > 0 ? ["match", ["get", "region_code"], ...pairs, NO_DATA_COLOR] : NO_DATA_COLOR;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any -- 동적 match 표현식은 스타일 스펙 제네릭과 정확히 맞추기 어려움
     map.setPaintProperty(REGIONS_FILL_LAYER_ID, "fill-color", expression as any);
@@ -355,19 +333,11 @@ export function MapView({ regionCode, metric, industry, year, yearQuarter, onSel
           className="absolute top-3 left-1/2 z-10 -translate-x-1/2 rounded-md border border-[var(--border)] bg-[var(--bg-surface)] px-3 py-2 text-sm text-[var(--text-secondary)] shadow-md"
         >
           {verdictMissing
-            ? `${industryLabel(industry)}은(는) 아직 판정 대상이 아닙니다 — 특화 신호가 붙으면 열립니다.`
-            : noClosureHistory
-              ? "이 업종의 원천에는 개폐업 이력이 없어 폐업률·성장률이 없습니다. 점포수를 선택해 보세요."
-              : source.axis === "industry_latest"
-                ? "이 업종의 판정이 아직 없습니다. 새벽 배치 후 다시 확인해 주세요."
-              : source.axis === "region_quarter"
-                ? yearQuarter ? "해당 분기의 지표 데이터가 없습니다." : "동네 지표 데이터가 없습니다."
-              : metric === "store_count"
-                ? "해당 업종·연도의 점포수 지표가 없습니다."
-                : "해당 업종·연도의 지표 데이터가 없습니다."}
+            ? "판정 준비 중인 업종"
+            : "이 업종의 판정이 아직 없습니다. 새벽 배치 후 다시 확인해 주세요."}
         </div>
       )}
-      <MapLegend metric={metric} scale={scale} />
+      <MapLegend scale={scale} />
       <RegionMarkers mapRef={mapRef} ready={ready} regionCode={regionCode} industry={industry} />
       <RegionMarkers
         mapRef={mapRef}

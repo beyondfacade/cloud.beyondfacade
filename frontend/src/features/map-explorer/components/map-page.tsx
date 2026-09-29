@@ -1,12 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { MapView } from "./map-view";
 import { ControlBar } from "./control-bar";
 import { SidePanel } from "./side-panel";
 import { parseMapState, serializeMapState } from "../lib/map-state";
-import { clampToCoverage } from "../lib/metric-coverage";
 import type { MapState } from "../lib/map-state";
 import styles from "./map-workspace.module.css";
 
@@ -14,19 +13,12 @@ import styles from "./map-workspace.module.css";
 export function MapPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  // URL로 직접 들어온 조합도 보정한다 — 예: ?industry=childcare&metric=store_count&year=2020
-  const state = clampToCoverage(parseMapState(searchParams));
-  const canonical = serializeMapState(state);
+  const state = parseMapState(searchParams);
   // 폐업 마커 토글 — URL·localStorage에 넣지 않는다 (설계서 §6-2), 기본 꺼짐.
   const [showClosed, setShowClosed] = useState(false);
 
-  // 보정이 실제로 값을 바꿨으면 URL도 맞춘다. clamp가 멱등이라 한 번 바꾸면 다시 걸리지 않는다.
-  useEffect(() => {
-    if (searchParams.toString() !== canonical) router.replace(`?${canonical}`, { scroll: false });
-  }, [searchParams, canonical, router]);
-
   const handleStateChange = (nextState: MapState) => {
-    router.replace(`?${serializeMapState(clampToCoverage(nextState))}`, { scroll: false });
+    router.replace(`?${serializeMapState(nextState)}`, { scroll: false });
   };
 
   const handleSelectRegion = (code: string) => {
@@ -49,10 +41,7 @@ export function MapPage() {
           <div className={styles.mapCanvas}>
             <MapView
               regionCode={state.region}
-              metric={state.metric}
               industry={state.industry}
-              year={state.year}
-              yearQuarter={state.year_quarter}
               onSelectRegion={handleSelectRegion}
               showClosed={showClosed}
             />
@@ -62,7 +51,6 @@ export function MapPage() {
           regionCode={state.region}
           industry={state.industry}
           budget={state.budget}
-          yearQuarter={state.year_quarter}
           showClosed={showClosed}
           onToggleClosed={setShowClosed}
         />

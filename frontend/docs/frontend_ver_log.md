@@ -2,6 +2,32 @@
 
 > 2026-09-23 T0-2 병합에서 v0.14.x 충돌로 우리 쪽 4항목(랜딩·E2E·동네 프로필·영업 지속 개월)을 v0.15.0·v0.15.1·v0.16.0·v0.17.0으로 재번호했다. 해당 커밋 메시지의 번호는 병합 전 번호다.
 
+## [v0.31.0] - 2026-09-29
+
+### Added
+- **Task 3 지도 회귀 검증** — 3필드 URL 왕복·옛 파라미터 무시·자동 리다이렉트 없음·업종 변경 시 동/예산 보존,
+  실제 조회 훅을 통한 최신 판정 요청·지도/범례 색 일치·판정 제외 업종 조회 생략을 검증.
+
+### Changed
+- **지도는 최신 판정 단계구분도만 표시** — `MapState = { industry, region, budget }`, `ControlBar`는 업종 select 하나.
+  `MapView`·`useMapData`·`METRIC_SOURCES`·범례를 `verdict`/`industry_latest`로 고정. 판정 제외 업종은 무색 지도와
+  "판정 준비 중인 업종" 안내. 폐업 마커 토글·지도 오류/재시도·테마 전환은 유지.
+- 옛 `metric`·`year`·`year_quarter` URL은 읽지 않고 그대로 진입. 이후 사용자 조작 때 새 3필드 URL로 직렬화.
+  사이드패널은 기존 최신 분기 기본값을 사용하며 상세 UI 재편은 Task 4에서 이어서 수행.
+- mock 지표 픽스처의 데이터 보유 범위 규칙을 픽스처 내부로 이동해 삭제된 지도 커버리지 모듈 의존을 제거.
+  mock 라우트와 응답 계약은 유지. 부동산 제외 집합 변경은 명세 §8의 Task 4 담당으로 남김.
+
+### Removed
+- 지표 무리 버튼·연도/분기 select·numeric 범례/색상 스케일·비판정 원천 7개·미사용 지도 fetcher 4개와 관련 테스트/CSS/타입.
+- `metric-coverage`·`neighborhood-palette`·`quarters` 모듈과 각각의 테스트. 분기는 API 생략 시 최신값을 받는 기존 계약을 사용.
+  판정 테스트만 쓰는 명도 계산은 `verdict-palette.test.ts`로 이동.
+
+### Validation
+- Task 3 최종 `npx vitest run`: **324/324 passed (74 files)**. `npx tsc --noEmit` clean, `git diff --check` clean.
+- 관문 `intent-url`·`intent-gate` 테스트는 이미 metric 없는 URL을 검증하여 변경 없이 통과.
+- 실제 3200 서버 확인은 샌드박스가 소켓 생성을 금지해 미실시(`curl: failed to open socket: Operation not permitted`).
+  브라우저 렌더링은 미확인. 기존 Vite 설정의 native loader 예고 경고 1건은 범위 밖으로 유지.
+
 ## [v0.30.0] - 2026-09-29
 
 ### Added

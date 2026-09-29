@@ -1,17 +1,15 @@
-import { act, fireEvent, render, screen } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { MapView } from "./map-view";
 
 const mapConstructor = vi.hoisted(() => vi.fn());
-const mapData = vi.hoisted(() => ({ rowsError: false, geojsonData: undefined as unknown, refetchRows: vi.fn(), refetchGeojson: vi.fn() }));
+const fetchMock = vi.fn();
+let rowsError = false;
+let geojsonData: unknown;
+let verdictRows: { region_code: string; value: string }[] = [];
 const probeLoseContext = vi.fn();
 vi.mock("maplibre-gl", () => ({ Map: function MockMap(options: unknown) { return mapConstructor(options); }, setWorkerUrl: vi.fn() }));
-vi.mock("../hooks/use-map-data", () => ({
-  useMapData: () => ({
-    geojson: { isError: false, data: mapData.geojsonData, refetch: mapData.refetchGeojson }, rows: { isError: mapData.rowsError, isSuccess: !mapData.rowsError, data: [], refetch: mapData.refetchRows }, source: { kind: "categorical", axis: "region_quarter", palette: () => ({}), order: [] },
-  }),
-}));
-vi.mock("./map-legend", () => ({ MapLegend: () => null }));
 vi.mock("./region-markers", () => ({ RegionMarkers: () => null }));
 
 function fakeMap() {
@@ -30,22 +28,30 @@ function fakeMap() {
   };
 }
 
-function renderMap() {
-  return render(<MapView metric="neighborhood_type" industry="cafe" year={2026} yearQuarter="20211" regionCode="1168064000" onSelectRegion={vi.fn()} showClosed={false} />);
+function renderMap(industry = "cafe") {
+  const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+  return render(<QueryClientProvider client={client}><MapView industry={industry} regionCode="1168064000" onSelectRegion={vi.fn()} showClosed={false} /></QueryClientProvider>);
 }
 
 beforeEach(() => {
   mapConstructor.mockReset();
-  mapData.rowsError = false;
-  mapData.geojsonData = undefined;
-  mapData.refetchRows.mockReset();
-  mapData.refetchGeojson.mockReset();
+  rowsError = false;
+  geojsonData = { type: "FeatureCollection", features: [] };
+  verdictRows = [];
+  fetchMock.mockReset().mockImplementation(async (url: string) => {
+    if (url.includes("/regions/geojson")) return new Response(JSON.stringify(geojsonData));
+    if (url.includes("/verdicts?")) return rowsError
+      ? new Response(JSON.stringify({ error: { code: "SERVER_ERROR", message: "조회 실패" } }), { status: 500 })
+      : new Response(JSON.stringify(verdictRows));
+    throw new Error(`예상하지 않은 요청: ${url}`);
+  });
+  vi.stubGlobal("fetch", fetchMock);
   probeLoseContext.mockReset();
   vi.spyOn(HTMLCanvasElement.prototype, "getContext").mockImplementation(() => ({
     getExtension: () => ({ loseContext: probeLoseContext }),
   }) as never);
 });
-afterEach(() => vi.restoreAllMocks());
+afterEach(() => { vi.restoreAllMocks(); vi.unstubAllGlobals(); });
 
 describe("지도 실패 상태", () => {
   it("WebGL 초기화가 실패하면 이유와 재시도를 보여준다", () => {
@@ -135,13 +141,14 @@ describe("지도 실패 상태", () => {
     expect(screen.queryByRole("alert")).toBeNull();
   });
 
-  it("경계 소스 실패를 타일과 구별하고 재시도한다", () => {
+  it("경계 소스 실패를 타일과 구별하고 재시도한다", async () => {
     const map = fakeMap();
     mapConstructor.mockImplementation(() => map);
     const geojson = { type: "FeatureCollection", features: [] };
-    mapData.geojsonData = geojson;
+    geojsonData = geojson;
     renderMap();
     map.emit("load", {});
+    await waitFor(() => expect(map.regionsSource.setData).toHaveBeenCalledWith(geojson));
     map.regionsSource.setData.mockClear();
     map.emit("error", { sourceId: "regions", error: new Error("worker failed") });
     expect(screen.getByRole("alert")).toHaveTextContent("지도 소스");
@@ -153,19 +160,48 @@ describe("지도 실패 상태", () => {
     expect(screen.queryByRole("alert")).toBeNull();
   });
 
-  it("API 실패는 지도 오류와 구분해 표시하고 다시 조회할 수 있다", () => {
+  it("API 실패는 지도 오류와 구분해 표시하고 다시 조회할 수 있다", async () => {
     const map = fakeMap();
     mapConstructor.mockImplementation(() => map);
-    mapData.rowsError = true;
+    rowsError = true;
     renderMap();
-    expect(screen.getByRole("alert")).toHaveTextContent("지도 데이터를 불러오지 못했습니다");
+    expect(await screen.findByRole("alert")).toHaveTextContent("지도 데이터를 불러오지 못했습니다");
     fireEvent.click(screen.getByRole("button", { name: "데이터 다시 시도" }));
-    expect(mapData.refetchRows).toHaveBeenCalledTimes(1);
+    await waitFor(() => expect(fetchMock.mock.calls.filter(([url]) => url.includes("/verdicts?"))).toHaveLength(2));
   });
 
-  it("선택 분기 지도에 자료가 없으면 연도 대신 분기를 말한다", () => {
+  it("판정이 비어 있으면 최신 배치 안내를 표시한다", async () => {
     mapConstructor.mockImplementation(() => fakeMap());
     renderMap();
-    expect(screen.getByRole("status")).toHaveTextContent("해당 분기의 지표 데이터가 없습니다");
+    expect(await screen.findByRole("status")).toHaveTextContent("이 업종의 판정이 아직 없습니다");
   });
+});
+
+it("업종만으로 최신 판정을 조회하고 지도와 범례에 같은 판정 색을 쓴다", async () => {
+  const map = fakeMap();
+  mapConstructor.mockImplementation(() => map);
+  verdictRows = [{ region_code: "1168064000", value: "red" }];
+  renderMap("korean_food");
+  map.emit("load", {});
+  expect(await screen.findByText("비추천")).toBeInTheDocument();
+  expect(fetchMock.mock.calls.map(([url]) => url)).toEqual(expect.arrayContaining([
+    "/api/mock/regions/geojson", "/api/mock/verdicts?industry=korean_food",
+  ]));
+  const swatch = screen.getByText("비추천").closest("li")!.querySelector("span")!;
+  const paint = map.setPaintProperty.mock.calls.filter(([, property]) => property === "fill-color").at(-1)![2];
+  const color = document.createElement("span");
+  color.style.backgroundColor = paint[3];
+  expect(color.style.backgroundColor).toBe(swatch.style.backgroundColor);
+  expect(paint[2]).toBe("1168064000");
+});
+
+it("판정 제외 업종은 조회를 생략하고 준비 중 안내와 무색 지도를 표시한다", async () => {
+  const map = fakeMap();
+  mapConstructor.mockImplementation(() => map);
+  renderMap("convenience_store");
+  map.emit("load", {});
+  expect(await screen.findByRole("status")).toHaveTextContent("판정 준비 중인 업종");
+  expect(fetchMock.mock.calls.map(([url]) => url)).toEqual(["/api/mock/regions/geojson"]);
+  expect(screen.queryByText("창업 경고")).toBeNull();
+  expect(map.setPaintProperty).toHaveBeenCalledWith("regions-fill", "fill-color", "#cccccc");
 });

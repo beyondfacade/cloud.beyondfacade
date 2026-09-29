@@ -1,6 +1,14 @@
 import { expect, it } from "vitest";
-import { relativeLuminance } from "./neighborhood-palette";
 import { verdictPalette } from "./verdict-palette";
+
+/** WCAG 상대 명도 — 판정 팔레트 대비를 검증하는 테스트 도우미. */
+function relativeLuminance(hex: string): number {
+  const channel = (index: number) => {
+    const c = parseInt(hex.slice(1 + index * 2, 3 + index * 2), 16) / 255;
+    return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
+  };
+  return 0.2126 * channel(0) + 0.7152 * channel(1) + 0.0722 * channel(2);
+}
 
 it("라이트·다크 둘 다 4범주 색을 갖는다", () => {
   for (const theme of ["light", "dark"] as const) {

@@ -32,7 +32,6 @@ import type {
   VerdictSignal,
   VerdictSignalKey,
 } from "@/shared/api/types";
-import { availableYears, isMetricMissingForIndustry } from "@/features/map-explorer/lib/metric-coverage";
 import { STORE_SAMPLES, type StoreSample } from "./store-samples";
 import { INDUSTRIES, INDUSTRY_LABELS, type IndustryId } from "@/shared/industries";
 import { isVerdictIndustry } from "@/shared/verdict";
@@ -74,8 +73,9 @@ export function metricRows(metric: MetricKey, year: number, industry: string): M
   // 실 API는 스냅샷 업종(어린이집·편의점)에 관측 연도의 점포수만 준다 — 나머지 조합은 빈 배열이다.
   // mock이 늘 427행을 주면 mock으로 개발하는 동안 "빈 지도" 경로를 한 번도 못 본다 (§15 미러 규칙).
   // 지표 자체가 없는 경우(폐업률·성장률)와 연도가 없는 경우를 둘 다 막는다.
-  if (isMetricMissingForIndustry(metric, industry)) return [];
-  if (!availableYears(metric, industry).includes(year)) return [];
+  const snapshot = industry === "childcare" || industry === "convenience_store";
+  if ((snapshot || industry === "academy") && metric !== "store_count") return [];
+  if (snapshot ? year !== 2026 : year < 2019 || year > 2026 || !Number.isInteger(year)) return [];
   const [min, max] = METRIC_RANGES[metric];
   return REGIONS.map(({ region_code }) => {
     const u = unitFrom(hashSeed(metric, year, industry, region_code));

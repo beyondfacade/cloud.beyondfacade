@@ -1,16 +1,33 @@
-import { render, screen } from "@testing-library/react";
-import { expect, it, vi } from "vitest";
+import { fireEvent, render, screen } from "@testing-library/react";
+import { beforeEach, expect, it, vi } from "vitest";
 import { MapPage } from "./map-page";
 
+const navigation = vi.hoisted(() => ({ replace: vi.fn(), query: "" }));
 vi.mock("next/navigation", () => ({
-  useRouter: () => ({ replace: vi.fn() }),
-  useSearchParams: () => new URLSearchParams("industry=cafe&metric=neighborhood_type&year=2026&year_quarter=20211&region=1168064000"),
+  useRouter: () => ({ replace: navigation.replace }),
+  useSearchParams: () => new URLSearchParams(navigation.query),
 }));
 vi.mock("./map-view", () => ({ MapView: () => null }));
-vi.mock("./control-bar", () => ({ ControlBar: () => null }));
 vi.mock("./side-panel", () => ({ SidePanel: () => null }));
+
+beforeEach(() => {
+  navigation.replace.mockReset();
+  navigation.query = "region=1168064000&industry=cafe&budget=50000000";
+});
 
 it("동을 선택하면 지도 머리말에 상점 위치가 현재 자료임을 밝힌다", () => {
   render(<MapPage />);
   expect(screen.getByText("상점 위치 · 현재 자료")).toBeInTheDocument();
 });
+
+it.each(["", "&metric=closure_rate&year=2021&year_quarter=20211", "&metric=unknown&year=bad&year_quarter=bad"])(
+  "관문 URL에 옛 파라미터 %s가 있어도 리다이렉트 없이 업종을 선택한다",
+  (legacy) => {
+    navigation.query += legacy;
+    render(<MapPage />);
+    expect(screen.getByRole("combobox", { name: "업종" })).toHaveValue("cafe");
+    expect(navigation.replace).not.toHaveBeenCalled();
+    fireEvent.change(screen.getByRole("combobox", { name: "업종" }), { target: { value: "karaoke" } });
+    expect(navigation.replace).toHaveBeenCalledWith("?industry=karaoke&region=1168064000&budget=50000000", { scroll: false });
+  },
+);

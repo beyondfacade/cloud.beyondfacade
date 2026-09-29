@@ -14,22 +14,9 @@ export type ProfileMetricKey = "night_index" | "fnb_share";
 /** GET /commerce-changes 가 지원하는 지표 (동×분기 숫자). */
 export type CommerceChangeMetricKey = "operating_months";
 
-/** 업종 축이 없는 동 단위 분기 지표. 업종을 바꿔도 값이 같다.
- *  operating_months → /commerce-changes, night_index·fnb_share → /profiles?metric= (숫자), neighborhood_type → /profiles/types (범주). */
-export type RegionMetricKey = CommerceChangeMetricKey | ProfileMetricKey | "neighborhood_type";
-
-/** 숫자 계약({region_code, value})으로 오는 지표. 범례 값 표기·분위수 스케일의 대상. */
-export type NumericMetricKey = MetricKey | CommerceChangeMetricKey | ProfileMetricKey;
-
 /** 범주 계약({region_code, type_code})으로 오는 지표. 숫자 계약과 경로가 다르다 (map-metric-contract §5).
  *  verdict는 API가 {region_code, value}로 주지만 api.ts가 type_code로 옮겨 같은 범주 파이프라인을 탄다. */
 export type CategoricalMetricKey = "neighborhood_type" | "verdict";
-
-/** 지도 단계구분도가 그릴 수 있는 전체 지표. 원천은 넷으로 갈리지만 호출하는 쪽은 METRIC_SOURCES 한 곳만 안다. */
-export type MapMetricKey = MetricKey | RegionMetricKey | "verdict";
-
-/** 지표의 축 — 셀렉터가 이 값을 정직하게 따라간다. industry_latest는 업종만 묻고 시점은 "배치 최신"이라 연도·분기 select를 숨긴다. */
-export type MetricAxis = "industry_year" | "region_quarter" | "industry_latest";
 
 export interface MetricRow {
   region_code: string;

@@ -1,6 +1,5 @@
 import { expect, it } from "vitest";
 import { GET } from "./route";
-import { SNAPSHOT_YEAR } from "@/features/map-explorer/lib/metric-coverage";
 
 it("지원하는 metric·industry는 200과 행 배열을 반환한다", async () => {
   const res = await GET(new Request("http://test/api/mock/metrics?metric=growth_rate&year=2026&industry=cafe"));
@@ -55,10 +54,10 @@ it("스냅샷 업종은 관측 연도의 점포수만 준다 — 실 API의 빈 
   const rows = async (query: string) =>
     (await (await GET(new Request(`http://test/api/mock/metrics?${query}`))).json()).length;
 
-  expect(await rows(`industry=childcare&metric=store_count&year=${SNAPSHOT_YEAR}`)).toBeGreaterThan(0);
+  expect(await rows("industry=childcare&metric=store_count&year=2026")).toBeGreaterThan(0);
   expect(await rows("industry=childcare&metric=store_count&year=2024")).toBe(0);
-  expect(await rows(`industry=childcare&metric=closure_rate&year=${SNAPSHOT_YEAR}`)).toBe(0);
-  expect(await rows(`industry=convenience_store&metric=growth_rate&year=${SNAPSHOT_YEAR}`)).toBe(0);
+  expect(await rows("industry=childcare&metric=closure_rate&year=2026")).toBe(0);
+  expect(await rows("industry=convenience_store&metric=growth_rate&year=2026")).toBe(0);
 });
 
 it("학원은 점포수는 전 연도에 주고 폐업률·성장률은 빈 배열이다", async () => {

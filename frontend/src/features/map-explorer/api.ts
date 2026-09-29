@@ -6,10 +6,6 @@ import type {
   ChildcareRegionSummary,
   ConvenienceRegionSummary,
   ConvenienceStore,
-  MetricKey,
-  MetricRow,
-  ProfileMetricKey,
-  CommerceChangeMetricKey,
   RegionCommerceChangeDetail,
   RegionIndustryHourGap,
   RegionIndustryVerdict,
@@ -25,11 +21,6 @@ export type RegionGeoJSON = FeatureCollection<Polygon | MultiPolygon, RegionProp
 
 export function fetchRegionsGeoJson(): Promise<RegionGeoJSON> {
   return apiGet<RegionGeoJSON>("/regions/geojson");
-}
-
-export function fetchMetrics(industry: string, metric: MetricKey, year: number): Promise<MetricRow[]> {
-  const params = new URLSearchParams({ industry, metric, year: String(year) });
-  return apiGet<MetricRow[]>(`/metrics?${params.toString()}`);
 }
 
 export function fetchRegionSummary(regionCode: string, industry: string): Promise<RegionSummary> {
@@ -69,29 +60,6 @@ export function fetchConvenienceSummary(regionCode: string): Promise<Convenience
 export function fetchRegionProfile(regionCode: string, yearQuarter?: string): Promise<RegionProfile> {
   const query = yearQuarter ? `?${new URLSearchParams({ year_quarter: yearQuarter })}` : "";
   return apiGet<RegionProfile>(`/profiles/${regionCode}${query}`);
-}
-
-/** 동 단위 분기 지표 — 분기를 생략하면 백엔드가 최신 분기를 쓴다. 업종 파라미터가 없다. */
-export function fetchCommerceChangeMetrics(
-  metric: CommerceChangeMetricKey,
-  yearQuarter?: string,
-): Promise<MetricRow[]> {
-  const params = new URLSearchParams({ metric });
-  if (yearQuarter) params.set("year_quarter", yearQuarter);
-  return apiGet<MetricRow[]>(`/commerce-changes?${params.toString()}`);
-}
-
-/** 유형 단계구분도 — 범주 계약. 분기를 생략하면 최신 분기. 업종 파라미터가 없다. */
-export function fetchProfileTypes(yearQuarter?: string): Promise<CategoryRow[]> {
-  const query = yearQuarter ? `?${new URLSearchParams({ year_quarter: yearQuarter })}` : "";
-  return apiGet<CategoryRow[]>(`/profiles/types${query}`);
-}
-
-/** 파생 지표 단계구분도 — 숫자 계약(GET /profiles?metric=). 분기를 생략하면 최신 분기. 업종 파라미터가 없다. */
-export function fetchProfileMetrics(metric: ProfileMetricKey, yearQuarter?: string): Promise<MetricRow[]> {
-  const params = new URLSearchParams({ metric });
-  if (yearQuarter) params.set("year_quarter", yearQuarter);
-  return apiGet<MetricRow[]>(`/profiles?${params.toString()}`);
 }
 
 /** 동별 상권 변화 상세 — 분기를 생략하면 그 동의 최신 분기, 서울 평균 동봉. */

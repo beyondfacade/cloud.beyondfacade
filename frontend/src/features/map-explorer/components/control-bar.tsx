@@ -1,9 +1,7 @@
 "use client";
 
 import { INDUSTRY_GROUPS, INDUSTRY_LABELS } from "@/shared/industries";
-import { METRIC_GROUPS, METRIC_LABELS, metricGroupOf, type MapState } from "../lib/map-state";
-import { availableQuarters, availableYears, clampToCoverage } from "../lib/metric-coverage";
-import { formatQuarter } from "../lib/quarters";
+import type { MapState } from "../lib/map-state";
 import styles from "./map-workspace.module.css";
 
 const FIELD =
@@ -11,35 +9,22 @@ const FIELD =
 
 const LEGEND = "text-xs font-medium tracking-wide text-[var(--text-secondary)]";
 
-const INDUSTRY_NOTE_ID = "industry-axis-note";
-
 interface ControlBarProps {
   state: MapState;
   onChange: (state: MapState) => void;
 }
 
-/** 지표 버튼 두 무리 + 축을 따라가는 셀렉터.
- *  무리 자체가 모드다 — 동네 무리를 고르면 업종 select가 흐려지고(값은 살아 있다: 사이드패널·마커가 쓴다)
- *  시간 셀렉터가 연도에서 분기로 바뀐다. 연 데이터를 분기로 위장하지 않고, 분기 데이터에 연도를 묻지 않는다. */
+/** 최신 판정 지도의 업종 선택기. */
 export function ControlBar({ state, onChange }: ControlBarProps) {
-  const group = metricGroupOf(state.metric);
-  const regionAxis = group.axis === "region_quarter";
-  const latestAxis = group.axis === "industry_latest";
-  // 업종·지표를 바꾸면 현재 연도가 범위 밖일 수 있다 — 조용히 유효 범위로 당긴다(clamp는 멱등).
-  const change = (next: MapState) => onChange(clampToCoverage(next));
-  const years = availableYears(state.metric, state.industry);
-  const quarters = availableQuarters(state.metric);
-
   return (
     <div className={styles.filterTray}>
       <div className={styles.filterIntro}><span className={styles.eyebrow}>YOUR PERSPECTIVE</span><span>어떤 상권이 궁금하세요?</span></div>
-      <label className={`${styles.industryField} flex flex-col gap-2 ${regionAxis ? styles.axisMuted : ""}`}>
+      <label className={`${styles.industryField} flex flex-col gap-2`}>
         <span className={LEGEND}>업종</span>
         <select
           value={state.industry}
-          onChange={(e) => change({ ...state, industry: e.target.value })}
+          onChange={(e) => onChange({ ...state, industry: e.target.value })}
           className={FIELD}
-          aria-describedby={regionAxis ? INDUSTRY_NOTE_ID : undefined}
         >
           {INDUSTRY_GROUPS.map((group) => (
             <optgroup key={group.label} label={group.label}>
@@ -51,78 +36,7 @@ export function ControlBar({ state, onChange }: ControlBarProps) {
             </optgroup>
           ))}
         </select>
-        {regionAxis && (
-          <span id={INDUSTRY_NOTE_ID} className="text-[11px] leading-none text-[var(--text-secondary)]">
-            이 지표는 업종과 무관합니다
-          </span>
-        )}
       </label>
-
-      <div className={`${styles.metricField} flex flex-col gap-2`}>
-        <span className={LEGEND} id="metric-legend">
-          지표
-        </span>
-        <div className={styles.metricGroups} aria-labelledby="metric-legend">
-          {METRIC_GROUPS.map((g) => (
-            <div key={g.key} role="group" aria-label={g.label} className={styles.metricGroup}>
-              <span className={styles.metricGroupLabel}>{g.label}</span>
-              <div className={`${styles.metricButtons} rounded-lg border border-[var(--border)] bg-[var(--bg-raised)] p-1`}>
-                {g.metrics.map((m) => {
-                  const selected = state.metric === m;
-                  return (
-                    <button
-                      key={m}
-                      type="button"
-                      aria-pressed={selected}
-                      onClick={() => change({ ...state, metric: m })}
-                      className={`min-h-8 flex-1 whitespace-nowrap rounded-md px-3 py-1 text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)] active:translate-y-px ${
-                        selected
-                          ? "bg-[var(--accent)] text-[var(--accent-fg)]"
-                          : "text-[var(--text-secondary)] hover:bg-[var(--bg-surface)] hover:text-[var(--text-primary)]"
-                      }`}
-                    >
-                      {METRIC_LABELS[m]}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {latestAxis ? null : regionAxis ? (
-        <label className={`${styles.yearField} flex flex-col gap-2`}>
-          <span className={LEGEND}>분기</span>
-          <select
-            value={state.year_quarter ?? ""}
-            onChange={(e) => change({ ...state, year_quarter: e.target.value || null })}
-            className={`${FIELD} tabular-nums`}
-          >
-            <option value="">최신 자료</option>
-            {quarters.map((yq) => (
-              <option key={yq} value={yq}>
-                {formatQuarter(yq)}
-              </option>
-            ))}
-          </select>
-        </label>
-      ) : (
-        <label className={`${styles.yearField} flex flex-col gap-2`}>
-          <span className={LEGEND}>연도</span>
-          <select
-            value={state.year}
-            onChange={(e) => change({ ...state, year: Number(e.target.value) })}
-            className={`${FIELD} tabular-nums`}
-          >
-            {years.map((year) => (
-              <option key={year} value={year}>
-                {year}
-              </option>
-            ))}
-          </select>
-        </label>
-      )}
     </div>
   );
 }
