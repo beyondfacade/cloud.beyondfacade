@@ -133,3 +133,30 @@ it("분석 POST·SSE는 config.apiBase(NEXT_PUBLIC_API_BASE)를 따른다", asyn
   expect(fetchMock.mock.calls[0][0]).toBe("http://localhost:8201/analysis");
   expect(FakeEventSource.instances[0].url).toBe("http://localhost:8201/analysis/abc/events");
 });
+
+it.each([undefined, 0, 50_000_000])("분석 요청은 선택 예산 %s를 원 단위 그대로 전달한다", async (budget) => {
+  FakeEventSource.instances = [];
+  vi.stubGlobal("EventSource", FakeEventSource);
+  const fetchMock = stubFetch({ analysis_id: "abc" });
+  const { result } = renderHook(() => useAgentReport());
+  await act(() => result.current.start({ region: "1168064000", industry: "cafe", budget }));
+  expect(JSON.parse(fetchMock.mock.calls[0][1].body)).toEqual({
+    region: "1168064000", industry: "cafe", ...(budget === undefined ? {} : { budget }),
+  });
+});
+
+it("자동 시작 POST가 끝나기 전에 화면을 떠나면 늦은 응답으로 스트림을 열지 않는다", async () => {
+  FakeEventSource.instances = [];
+  vi.stubGlobal("EventSource", FakeEventSource);
+  let resolvePost!: (response: Response) => void;
+  vi.stubGlobal("fetch", vi.fn(() => new Promise<Response>((resolve) => { resolvePost = resolve; })));
+  const { result, unmount } = renderHook(() => useAgentReport());
+  let pending!: Promise<void>;
+  act(() => { pending = result.current.start({ region: "1168064000", industry: "cafe" }); });
+  unmount();
+  await act(async () => {
+    resolvePost(Response.json({ analysis_id: "late" }));
+    await pending;
+  });
+  expect(FakeEventSource.instances).toHaveLength(0);
+});

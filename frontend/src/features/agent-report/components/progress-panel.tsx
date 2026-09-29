@@ -2,10 +2,11 @@ import type { AgentName } from "@/shared/api/types";
 import type { AgentState, AgentStatus } from "../lib/agent-events";
 import styles from "./analysis-workspace.module.css";
 
-const AGENT_ORDER: AgentName[] = ["orchestrator", "market", "shock", "funding"];
+const AGENT_ORDER: AgentName[] = ["orchestrator", "verdict", "market", "shock", "funding"];
 
 const LABEL: Record<AgentName, string> = {
   orchestrator: "오케스트레이터",
+  verdict: "판정 읽기",
   market: "상권 진단",
   shock: "충격 분석",
   funding: "정책자금",

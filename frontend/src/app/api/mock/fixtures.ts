@@ -252,6 +252,10 @@ export function convenienceSummaryOf(regionCode: string): ConvenienceRegionSumma
 }
 
 const AGENT_TOOLS: Record<Exclude<AgentName, "orchestrator">, { tool: string; summary: string }[]> = {
+  verdict: [
+    { tool: "get_verdict", summary: "판정 등급·켜진 신호·산출일 조회" },
+    { tool: "get_verdict_alternatives", summary: "대안 동네·업종 조회" },
+  ],
   market: [
     { tool: "closure_rate_lookup", summary: "강남구 카페 폐업률 조회" },
     { tool: "sales_trend_lookup", summary: "인근 상권 매출 데이터 조회" },
@@ -267,18 +271,7 @@ const AGENT_TOOLS: Record<Exclude<AgentName, "orchestrator">, { tool: string; su
   ],
 };
 
-const CALCULATOR_MARKDOWN = [
-  "### 월세 vs 매입 비교",
-  "",
-  "| 구분 | 월세 (보증금 5,000만원 + 월 300만원) | 매입 (10억원, 대출 70%) |",
-  "|---|---|---|",
-  "| 초기 투자금 | 5,000만원 | 3억원 |",
-  "| 월 고정비 | 300만원 | 대출이자 약 175만원 (연 3.5%) |",
-  "| 5년 누적 비용 | 1억 8,500만원 | 1억 500만원 + 대출 원금 상환 |",
-  "| 자산 형성 | 없음 | 부동산 자산 10억원 (시세 변동 별도) |",
-].join("\n");
-
-/** 발표 시연용 에이전트 이벤트 스크립트 — orchestrator → market/shock/funding → 리포트 → 완료. */
+/** 발표 시연용 에이전트 이벤트 스크립트 — orchestrator → verdict → market → shock → funding → 리포트 → 완료. */
 export function agentEventScript(): AgentEvent[] {
   const events: AgentEvent[] = [{ type: "agent_status", agent: "orchestrator", status: "running" }];
 
@@ -294,24 +287,28 @@ export function agentEventScript(): AgentEvent[] {
     {
       type: "report_delta",
       section: "verdict",
-      markdown: "### 종합 진단\n\n강남구 카페 상권은 **안정적 성장세**이나 원두 가격 상승발 원가 압박이 존재합니다.",
+      markdown: "### 판정\n\n**조건부** — 켜진 신호: 폐업률 상승.\n\n산출일: 2026-09-29 (시연 데이터).",
     },
     {
       type: "report_delta",
-      section: "market",
-      markdown: "### 상권 진단\n\n최근 1년 신규 카페 개업이 12% 증가했고, 폐업률은 6.4%로 서울 평균 대비 낮습니다.",
+      section: "reasons",
+      markdown: "### 왜 안 되나\n\n폐업률은 6.4%로 전년보다 1.2%p 상승했습니다. 원두 원가도 전년 대비 8% 올라 마진 압박이 있습니다. (시연 데이터)",
     },
     {
       type: "report_delta",
-      section: "shock",
-      markdown: "### 충격 분석\n\n기준금리는 동결 기조지만 원두 원가는 전년 대비 8% 상승 — 마진 압박 요인입니다.",
+      section: "conditions",
+      markdown: "### 그래도 한다면\n\n점심·오후 수요에 맞춘 영업을 전제로 임대료 상한 월 200만원, 손익분기 매출 월 1,500만원을 검토하세요. (시연 데이터)",
+    },
+    {
+      type: "report_delta",
+      section: "alternatives",
+      markdown: "### 대안 동네·업종\n\n굳이 이 동네라면: 미용실(경고 없음), 한식(조건부), 헬스장(조건부).\n\n굳이 카페라면: 역삼2동(경고 없음), 삼성1동(조건부), 서초1동(조건부). (시연 데이터)",
     },
     {
       type: "report_delta",
       section: "funding",
-      markdown: "### 정책자금\n\n소상공인 정책자금(최대 7,000만원, 금리 2.5%) 신청 조건을 충족합니다.",
+      markdown: "### 대안 업종 지원사업\n\n대안 업종인 미용실·한식·헬스장을 먼저 소상공인 정책자금 공고와 대조하세요. 신청 가능 여부는 업종과 사업자 요건 확인이 필요합니다. (시연 데이터)",
     },
-    { type: "report_delta", section: "calculator", markdown: CALCULATOR_MARKDOWN },
   );
 
   events.push(

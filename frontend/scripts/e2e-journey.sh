@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # E2E 여정: /map → 동 폴리곤 클릭 → 사이드패널 확인 → 점포 마커 로드 확인 → [AI 분석] 클릭
-#           → /analysis 프리필 확인 → 분석 시작 → report_done까지 대기 → 리포트 텍스트 존재 assert
+#           → /analysis URL 조건 확인 → 자동 시작 → report_done까지 대기 → 리포트 텍스트 존재 assert
 #
 # 전제: http://localhost:3200 (또는 $BASE_URL)에 dev 서버가 떠 있어야 한다 (npm run dev).
 # agent-browser는 전역 설치가 안 된 환경을 고려해 npx로 실행한다.
@@ -150,7 +150,7 @@ fi
 
 # 이후 단계는 "의도한 동"이 아니라 "실제로 선택된 동"을 기준으로 검증한다.
 # 경계 데이터가 목 픽스처(사각형)냐 실 행정동이냐에 따라 같은 좌표가 다른 동에 떨어지므로,
-# 특정 동을 맞히는 것이 아니라 "동 선택 → 마커 로드 → 분석 프리필" 배선을 확인하는 것이 목적이다.
+# 특정 동을 맞히는 것이 아니라 "동 선택 → 마커 로드 → 분석 자동 시작" 배선을 확인하는 것이 목적이다.
 SELECTED_REGION="$(AB get url | sed -n 's/.*[?&]region=\([0-9]*\).*/\1/p')"
 if [[ -z "$SELECTED_REGION" ]]; then
   echo "오류: 선택된 region 코드를 URL에서 읽지 못했습니다." >&2
@@ -186,21 +186,21 @@ echo "[5/8] [AI 분석] 클릭"
 # 상단 바에도 "AI 분석" 탭이 있으므로 href로 사이드패널 링크를 특정한다.
 AB eval "document.querySelector('a[href^=\"/analysis?\"]')?.scrollIntoView({block:'center'})" >/dev/null
 AB find text "AI 분석 리포트 보기" click >/dev/null
-AB wait --text "분석 시작" >/dev/null
+AB wait --text "다시 분석" >/dev/null
 
-echo "[6/8] /analysis 프리필 확인"
-PREFILL="$(cat <<'EOF' | AB eval --stdin
+echo "[6/8] /analysis URL 조건 확인"
+ANALYSIS_CONTEXT="$(cat <<'EOF' | AB eval --stdin
 (() => {
-  const byLabel = (text) => Array.from(document.querySelectorAll("label"))
-    .find((l) => l.textContent.trim().startsWith(text))
-    ?.querySelector("input,select")?.value ?? "";   // 업종은 v0.14.x부터 select다 — input만 읽으면 ""가 된다
-  return JSON.stringify({ region: byLabel("지역 코드"), industry: byLabel("업종") });
+  const params = new URLSearchParams(location.search);
+  const hasInputForm = Array.from(document.querySelectorAll("label"))
+    .some((label) => label.textContent.trim().startsWith("지역 코드"));
+  return JSON.stringify({ region: params.get("region"), industry: params.get("industry"), hasInputForm });
 })()
 EOF
 )"
-echo "  프리필 값: $PREFILL"
-if [[ "$PREFILL" != *"$SELECTED_REGION"* ]] || [[ "$PREFILL" != *"$INDUSTRY"* ]]; then
-  echo "오류: /analysis 프리필이 예상과 다릅니다 (region=$SELECTED_REGION, industry=$INDUSTRY 기대)." >&2
+echo "  분석 조건: $ANALYSIS_CONTEXT"
+if [[ "$ANALYSIS_CONTEXT" != *"$SELECTED_REGION"* ]] || [[ "$ANALYSIS_CONTEXT" != *"$INDUSTRY"* ]] || [[ "$ANALYSIS_CONTEXT" == *'"hasInputForm":true'* ]]; then
+  echo "오류: /analysis URL 조건 또는 접힌 폼이 예상과 다릅니다 (region=$SELECTED_REGION, industry=$INDUSTRY 기대)." >&2
   exit 1
 fi
 
@@ -219,8 +219,7 @@ report_state() {
 JS
 }
 
-echo "[7/8] 분석 시작 → 리포트 완료 대기"
-AB find role button click --name "분석 시작" >/dev/null
+echo "[7/8] 자동 시작한 리포트 완료 대기"
 # 빈 상태 안내문("분석 내용과 참고 자료가 이곳에 차례로 모입니다")에도 "참고 자료"가 들어 있어
 # `wait --text "참고 자료"`는 분석이 시작되기도 전에 즉시 통과한다. 목 응답은 빨라 우연히 맞았지만
 # 실 백엔드는 LLM 생성이라 느려 그대로 8단계에서 빈 화면을 보게 된다.

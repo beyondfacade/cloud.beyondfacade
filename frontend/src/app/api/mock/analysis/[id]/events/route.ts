@@ -1,6 +1,6 @@
 import { agentEventScript } from "../../../fixtures";
 
-export async function GET() {
+export async function GET(_request: Request) {
   const script = agentEventScript();
   const stream = new ReadableStream({
     async start(controller) {

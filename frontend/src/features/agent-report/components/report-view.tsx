@@ -1,10 +1,18 @@
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import type { ReportSection } from "@/shared/api/types";
 import { GradeBadge } from "@/shared/ui/grade-badge";
 import type { AgentState } from "../lib/agent-events";
 import styles from "./analysis-workspace.module.css";
 
-const SECTION_ORDER = ["verdict", "market", "shock", "funding", "calculator"] as const;
+const SECTION_ORDER: ReportSection[] = ["verdict", "reasons", "conditions", "alternatives", "funding"];
+const SECTION_LABEL: Record<ReportSection, string> = {
+  verdict: "판정",
+  reasons: "왜 안 되나",
+  conditions: "그래도 한다면",
+  alternatives: "대안 동네·업종",
+  funding: "대안 업종 지원사업",
+};
 
 interface Citation {
   title: string;
@@ -42,9 +50,9 @@ export function ReportView({ state }: ReportViewProps) {
           <h2>우리 동네를 이해하는<br />또 하나의 시선.</h2>
           <p className={`${styles.emptyDescription} text-[var(--text-secondary)]`}>아직 리포트가 없습니다.<br />지역 코드와 업종을 확인한 뒤 분석을 시작하세요.<br />분석 내용과 참고 자료가 이곳에 차례로 모입니다.</p>
           <div className={`${styles.reportOutline} border-[var(--border)]`}>
-            <span><small className="text-[var(--accent)]">01</small>상권 진단</span>
-            <span><small className="text-[var(--accent)]">02</small>충격 분석</span>
-            <span><small className="text-[var(--accent)]">03</small>정책자금</span>
+            {SECTION_ORDER.map((section, index) => (
+              <span key={section}><small className="text-[var(--accent)]">{String(index + 1).padStart(2, "0")}</small>{SECTION_LABEL[section]}</span>
+            ))}
           </div>
         </div>
         <p className={`${styles.reportFooter} border-[var(--border)] text-[var(--text-secondary)]`}>METABOLE<span>동네의 맥락에서, 다음 가능성으로.</span></p>

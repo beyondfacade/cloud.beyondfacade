@@ -23,3 +23,16 @@ it("report_done이면 done=true", () => {
     { type: "report_done", report_id: "r1", citations: [] });
   expect(s.done).toBe(true);
 });
+
+it("판정 슬롯은 대기로 시작하고 두 도구를 순서대로 누적한 뒤 완료된다", () => {
+  let state = initialAgentState();
+  expect(state.agents.verdict).toEqual({ status: "idle", tools: [] });
+  state = applyAgentEvent(state, { type: "agent_status", agent: "verdict", status: "running" });
+  for (const tool of ["get_verdict", "get_verdict_alternatives"]) {
+    state = applyAgentEvent(state, { type: "tool_call", agent: "verdict", tool, summary: "조회" });
+  }
+  state = applyAgentEvent(state, { type: "agent_status", agent: "verdict", status: "done" });
+  expect(state.agents.verdict).toEqual({ status: "done", tools: [
+    { tool: "get_verdict", summary: "조회" }, { tool: "get_verdict_alternatives", summary: "조회" },
+  ] });
+});

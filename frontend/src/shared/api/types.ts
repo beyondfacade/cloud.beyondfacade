@@ -1,9 +1,11 @@
-export type AgentName = "orchestrator" | "market" | "shock" | "funding";
+export type AgentName = "orchestrator" | "verdict" | "market" | "shock" | "funding";
+
+export type ReportSection = "verdict" | "reasons" | "conditions" | "alternatives" | "funding";
 
 export type AgentEvent =
   | { type: "agent_status"; agent: AgentName; status: "running" | "done" | "error" }
   | { type: "tool_call"; agent: AgentName; tool: string; summary: string }
-  | { type: "report_delta"; section: string; markdown: string }
+  | { type: "report_delta"; section: ReportSection; markdown: string }
   | { type: "report_done"; report_id: string; citations: unknown[] };
 
 export type MetricKey = "closure_rate" | "growth_rate" | "store_count";

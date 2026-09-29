@@ -5,6 +5,10 @@
 ## [v0.31.0] - 2026-09-29
 
 ### Added
+- **Task 5 URL 자동 분석** — `/analysis?region&industry&budget`에서 즉시 분석 시작. 동 이름·업종·만원 단위 예산 요약,
+  "다시 분석" 버튼과 접힌 선택 질문 입력 제공. 이름 조회 지연/실패는 분석을 막지 않으며 직접 방문 폼은 유지.
+- **Task 5 회귀/계약 검증** — StrictMode 중복 시작 방지, 예산 생략·0원·원 단위 보존, URL 변경/이탈,
+  재분석·오류 재시도, 다섯 섹션·verdict 진행 표시, mock POST/SSE 계약을 검증하는 테스트 추가.
 - **Task 4 동네 한 줄** — `NeighborhoodLine`이 `useRegionProfile(region, null)`로 최신 프로필을 조회하고
   유형 이름·시간대 문장, `type_reason` 툴팁을 표시. 프로필이 없으면 줄을 생략.
 - **Task 4 brief 회귀 검증** — 헤더→판정/대안→동네 한 줄→폐업 토글→CTA 순서, 예산(null·0·양수) 전달,
@@ -13,6 +17,13 @@
   실제 조회 훅을 통한 최신 판정 요청·지도/범례 색 일치·판정 제외 업종 조회 생략을 검증.
 
 ### Changed
+- **Task 5 리포트 계약** — 섹션을 `verdict → reasons → conditions → alternatives → funding`으로 변경하고
+  빈 아웃라인도 판정 / 왜 안 되나 / 그래도 한다면 / 대안 동네·업종 / 대안 업종 지원사업으로 통일.
+  `AgentName`·`AgentEvent`·`ReportSection`은 `shared/api/types.ts`를 단일 원천으로 사용.
+- 진행 패널과 mock SSE에 `verdict`("판정 읽기")·`get_verdict`·`get_verdict_alternatives`를 추가하고
+  verdict → market → shock → funding 순서 적용. 분석 POST에 선택 `budget`을 원 단위로 전달.
+- 자동 시작 POST가 화면 이탈 뒤 완료되어도 SSE를 새로 열지 않도록 정리.
+  E2E/스크린샷 스크립트의 리포트 구간을 URL 자동 시작 흐름에 맞게 갱신.
 - **Task 4 brief 한 화면 요약** — 켜진 판정 신호를 strong 우선 최대 3행으로 압축하고 긴 근거는 말줄임/원문 툴팁으로 제공.
   `shrinking`은 신호 목록 밖 회색 `참고: {evidence}`로 표시. 기존 대안 두 축과 폐업 토글 유지.
 - 주 버튼을 **AI 분석 리포트 보기**로 변경하고 `/analysis?region&industry&budget` 전달, 보조 `자금 계획 →` 링크도 예산 유지.
@@ -29,6 +40,8 @@
   mock 라우트와 응답 계약은 유지. 부동산 제외 집합 변경은 명세 §8의 Task 4 담당으로 남김.
 
 ### Removed
+- **Task 5** 옛 리포트 섹션 키 `market`·`shock`·`calculator` 소비처/테스트 픽스처와 미사용 `CALCULATOR_MARKDOWN` 제거.
+  파일 단위 삭제 없음. 기존 직접 방문 폼·mock 라우트·리포트 인용의 `GradeBadge`는 유지.
 - **Task 4** 상세 프로필·시간대 막대·시간대 불일치·영업 지속·어린이집 요약 컴포넌트와 테스트,
   분기별 사이드패널 테스트, `hour-gap-sentence`와 테스트, 업종 실적 카드·brief의 `GradeBadge` 소비처·근거 보기 토글.
 - 소비자 없는 `fetchChildcareSummary`·`fetchCommerceChangeDetail`·`fetchHourGaps`, 차트 전용 공통 시간대 어휘/서사와 테스트,
@@ -38,6 +51,10 @@
   판정 테스트만 쓰는 명도 계산은 `verdict-palette.test.ts`로 이동.
 
 ### Validation
+- Task 5 최종 `npx vitest run`: **344/344 passed (71 files)**. `npx tsc --noEmit` clean,
+  `git diff --check` clean, 두 스크립트 `bash -n` 통과. TDD/셀프 리뷰는 `task-5-report.md` 참조.
+- Task 5 브라우저/E2E 실행은 3200 접속 시 소켓 제한(`Operation not permitted`)으로 미검증.
+  실 API 왕복은 Task 6 통합 확인에서 필요. 기존 Vite native loader 예고 경고 유지. 커밋·서브에이전트·dev 서버 조작 없음.
 - Task 4 최종 `npx vitest run`: **311/311 passed (68 files)**. `npx tsc --noEmit` clean,
   `git diff --check` clean, `bash -n scripts/e2e-journey.sh` 통과. 요구 동작별 Red→Green 기록은 `task-4-report.md` 참조.
 - Task 4의 3200 서버 접속 역시 소켓 제한(`Operation not permitted`)으로 실패하여 브라우저의 무스크롤 배치·실 API 왕복은 미검증.

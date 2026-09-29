@@ -10,6 +10,7 @@ export interface StartAnalysisParams {
   region: string;
   industry: string;
   question?: string;
+  budget?: number;
 }
 
 const EVENT_TYPES: AgentEvent["type"][] = ["agent_status", "tool_call", "report_delta", "report_done"];
@@ -19,11 +20,16 @@ export function useAgentReport() {
   const [state, setState] = useState<AgentState>(initialAgentState());
   const [loading, setLoading] = useState(false);
   const sourceRef = useRef<EventSource | null>(null);
+  const mountedRef = useRef(false);
   // ref로 동기 재진입 가드 — start()가 첫 await(apiPost) 전에 즉시 체크해야 더블클릭 레이스를 막는다.
   const loadingRef = useRef(false);
 
   useEffect(() => {
-    return () => sourceRef.current?.close();
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+      sourceRef.current?.close();
+    };
   }, []);
 
   const finish = () => {
@@ -55,6 +61,7 @@ export function useAgentReport() {
 
     try {
       const { analysis_id } = await apiPost<{ analysis_id: string }>("/analysis", params);
+      if (!mountedRef.current) return;
       const source = new EventSource(`${config.apiBase}/analysis/${analysis_id}/events`);
       sourceRef.current = source;
 
@@ -83,6 +90,7 @@ export function useAgentReport() {
         finish();
       };
     } catch (err) {
+      if (!mountedRef.current) return;
       const message = err instanceof Error ? err.message : "분석 시작에 실패했습니다.";
       setState((prev) => ({ ...prev, error: message }));
       finish();
