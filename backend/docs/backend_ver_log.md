@@ -5,8 +5,10 @@
 ### Added
 - **판정 원천 `basis`** (업종 특화 신호 설계서 §9) — `region_industry_verdict.basis`(`permit`·`proxy`·`aggregate`, 기본 `permit`) 컬럼·마이그레이션 `d0e1f2a3b4c5`, 엔티티·DTO·단건 API 응답 `basis`.
 - **편의점 이력 도메인** (설계서 §5·§6) — `domain/services/convenience_history.py`(브랜드 사전: 옛 이름 LG25·훼미리마트·바이더웨이·위드미 포함, 'CU' 영문자 경계 / 같은 지번 ±90일 승계 접기, 영업 중 에피소드에는 잇지 않음), `domain/services/tobacco_gap.py`(반경 50m 격자 근접 판정 `blocked_counts`).
+- **신호 프로필 Strategy** (설계서 §4) — `domain/services/profiles.py`: `PermitProfile`(공통 5) · `TobaccoProxyProfile`(공통 5 원천 표기 `tobacco` + 담배권 빈자리) · `AggregateProfile`(폐업률 · 코호트 2종 미지원 · 포화 `commerce` · 상권 축소). 신호: `SourcedSignal`(Decorator) · `UnsupportedSignal`(Null Object) · `ClosureRateSignal` · `TobaccoGapSignal`. 상수 `SPECIFIC_SIGNAL_KEYS`·`ALL_SIGNAL_KEYS`, `min_gap_candidates = 30`.
 
 ### Changed
+- `ADVISORY_SIGNAL_KEYS`에 `tobacco_gap` 추가(진입 가능성 신호 — 등급 계산 제외).
 
 ## [v0.45.0] - 2026-09-29
 

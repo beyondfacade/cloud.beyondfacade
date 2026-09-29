@@ -18,6 +18,7 @@ class VerdictThresholds:
     min_sample: int = 10  # 순유출 시작 점포·코호트·폐업 건수 가드
     min_population: int = 1000  # 포화 분모(상주인구) 가드
     min_evaluable: int = 2  # 판정 신호 4개 중 2개 — 이보다 적게 판정 가능하면 보류
+    min_gap_candidates: int = 30  # 담배권 빈자리 후보 자리 가드 — 비율 표본이라 점포 가드보다 크게 (업종 특화 신호 설계서 §6-1)
 
 
 DEFAULT_THRESHOLDS = VerdictThresholds()

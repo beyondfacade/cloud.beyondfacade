@@ -49,6 +49,9 @@ class StoreSignalStat:
     cohort_survived: int
     closed_3y_count: int
     closed_3y_median_months: float | None
+    # 담배권 빈자리 (편의점 원천만 채운다, 업종 특화 신호 설계서 §6) — 다른 원천은 0 → 가드가 unavailable로 만든다
+    gap_candidates: int = 0
+    gap_blocked: int = 0
 
 
 @dataclass(frozen=True)

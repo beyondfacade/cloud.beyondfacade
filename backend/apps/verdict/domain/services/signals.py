@@ -1,9 +1,10 @@
-"""신호 5개 — Specification 패턴 (CLAUDE.md §5). 신호 하나 = 클래스 하나, 새 신호는 클래스 추가로 끝난다.
-값·가드·나쁜 방향·근거 문장은 신호가 스스로 안다. 백분위 분포는 인터랙터가 업종별로 넘긴다 (설계서 §3)."""
+"""신호 — Specification 패턴 (CLAUDE.md §5). 신호 하나 = 클래스 하나, 새 신호는 클래스 추가로 끝난다.
+값·가드·나쁜 방향·근거 문장은 신호가 스스로 안다. 백분위 분포는 인터랙터가 업종별로 넘긴다 (설계서 §3).
+signals()가 내는 개수는 "항상 5개"가 아니라 프로필(profiles.py)이 정한 개수·순서다 — 인허가 5 · 편의점 6 · 부동산 5."""
 
 from abc import ABC, abstractmethod
 from collections.abc import Sequence
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 
 from apps.verdict.domain.entities.region_industry_verdict_entity import (
     LEVEL_OFF,
@@ -13,6 +14,7 @@ from apps.verdict.domain.entities.region_industry_verdict_entity import (
     SignalResult,
 )
 from apps.verdict.domain.services.thresholds import VerdictThresholds, level_of, percentile_rank
+from apps.verdict.domain.services.tobacco_gap import TOBACCO_GAP_RADIUS_M
 
 _SHRINKING_CODE = "HL"  # 서울시 상권변화지표 '상권축소'
 
@@ -40,6 +42,9 @@ class SignalInput:
     change_quarter: str | None  # '20262'
     closed_months: float | None
     seoul_closed_months: float | None
+    # 담배권 빈자리 (편의점 원천) — 기본값 0이면 TobaccoGapSignal 가드가 unavailable로 만든다
+    gap_candidates: int = 0
+    gap_blocked: int = 0
 
 
 def _top(percentile: float) -> int:
@@ -201,6 +206,99 @@ class ShrinkingSignal(Signal):
             )
             level = LEVEL_STRONG if faster_than_seoul else LEVEL_ON
         return SignalResult(self.key, level, value, None, self.evidence(i, value, 0.0), self.source)
+
+
+class ClosureRateSignal(Signal):
+    """집계 원천 폐업률 — 개업 수가 끊긴 원천(부동산 아카이브 2024Q1~)에서 순유출 대신 쓴다 (업종 특화 신호 설계서 §7-1)."""
+
+    key = "closure_rate"
+    source = "commerce"
+
+    def raw_value(self, i, t):
+        if i.start_store_count < t.min_sample:
+            return None
+        return i.closed_12m / i.start_store_count
+
+    def worse(self, value):
+        return value
+
+    def evidence(self, i, value, percentile):
+        return (
+            f"지난 4분기 폐업 {i.closed_12m:,}곳 (4분기 전 점포 {i.start_store_count:,}곳의 {value * 100:.0f}%, "
+            f"서울 {i.industry_name} 상위 {_top(percentile)}%, 서울시 상권분석 집계)"
+        )
+
+    def unavailable_reason(self, i, t):
+        return f"표본 부족 — 4분기 전 점포 {i.start_store_count}곳 ({t.min_sample}곳 미만)"
+
+
+class TobaccoGapSignal(Signal):
+    """담배권 빈자리 — 상가 자리 중 영업 중인 담배소매인 반경 안 비율, 높을수록 나쁨. 참고 신호 (설계서 §6)."""
+
+    key = "tobacco_gap"
+    source = "tobacco"
+
+    def raw_value(self, i, t):
+        if i.gap_candidates < t.min_gap_candidates:
+            return None
+        return i.gap_blocked / i.gap_candidates
+
+    def worse(self, value):
+        return value
+
+    def evidence(self, i, value, percentile):
+        return (
+            f"이 동 상가 자리 {i.gap_candidates:,}곳 중 {value * 100:.0f}%가 영업 중인 담배소매인 "
+            f"{TOBACCO_GAP_RADIUS_M:.0f}m 안 — 새 담배소매인 지정이 어렵다 (서울 상위 {_top(percentile)}%)"
+        )
+
+    def unavailable_reason(self, i, t):
+        return f"상가 좌표 표본 부족 — {i.gap_candidates}곳 ({t.min_gap_candidates}곳 미만)"
+
+
+class SourcedSignal(Signal):
+    """Decorator — 같은 계산을 다른 원천 데이터로 돌릴 때 source 표기만 바꾼다 (업종 특화 신호 설계서 §4)."""
+
+    def __init__(self, inner: Signal, source: str) -> None:
+        self._inner = inner
+        self.key = inner.key
+        self.source = source
+
+    def raw_value(self, i, t):
+        return self._inner.raw_value(i, t)
+
+    def worse(self, value):
+        return self._inner.worse(value)
+
+    def evidence(self, i, value, percentile):
+        return self._inner.evidence(i, value, percentile)
+
+    def unavailable_reason(self, i, t):
+        return self._inner.unavailable_reason(i, t)
+
+    def evaluate(self, i, t, distribution):
+        return replace(self._inner.evaluate(i, t, distribution), source=self.source)
+
+
+class UnsupportedSignal(Signal):
+    """Null Object — 원천이 이 신호의 재료를 주지 않는다. 표본 부족과 다른 사유 문장으로 항상 unavailable (설계서 §7-1)."""
+
+    def __init__(self, key: str, source: str, reason: str) -> None:
+        self.key = key
+        self.source = source
+        self._reason = reason
+
+    def raw_value(self, i, t):
+        return None
+
+    def worse(self, value):
+        return value
+
+    def evidence(self, i, value, percentile):
+        return self._reason
+
+    def unavailable_reason(self, i, t):
+        return self._reason
 
 
 SIGNALS: tuple[Signal, ...] = (
