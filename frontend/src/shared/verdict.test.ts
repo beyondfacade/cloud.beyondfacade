@@ -9,7 +9,7 @@ it("판정 라벨은 이름과 괄호 설명을 갖고, 🟢 추천은 없다", 
   expect(verdictLabel("red")).toEqual({ name: "비추천", qualifier: "강한 경고 신호 2개 이상" });
   expect(verdictLabel("orange").name).toBe("조건부");
   expect(verdictLabel("clear").name).toBe("경고 없음");
-  expect(verdictLabel("insufficient").name).toBe("판정 보류");
+  expect(verdictLabel("insufficient")).toEqual({ name: "판정 보류", qualifier: "표본 부족 — 판정 가능한 신호 2개 미만" });
   expect(Object.values(VERDICT_CODES)).not.toContain("green");
 });
 

@@ -7,15 +7,15 @@ function call(regionCode: string, query = "?industry=korean_food") {
   });
 }
 
-it("단건은 신호 5개를 고정 순서로 담고 켜진 개수가 신호와 맞는다", async () => {
-  const res = await call("1168064000");
+it("단건은 신호 5개를 유지하되 참고 신호를 빼고 판정 가능 신호가 한 개이면 보류한다", async () => {
+  const res = await call("1135056000", "?industry=chinese_food"); // 월계1동
   expect(res.status).toBe(200);
   const v = await res.json();
   expect(v.signals.map((s: { key: string }) => s.key)).toEqual(["net_outflow", "survival_cliff", "early_closure", "saturation", "shrinking"]);
-  const strong = v.signals.filter((s: { level: string }) => s.level === "strong").length;
-  const on = v.signals.filter((s: { level: string }) => s.level === "on" || s.level === "strong").length;
-  expect(v.strong_count).toBe(strong);
-  expect(v.on_count).toBe(on);
+  expect(v.signals.map((s: { level: string }) => s.level)).toEqual([
+    "unavailable", "unavailable", "unavailable", "off", "on",
+  ]);
+  expect(v).toMatchObject({ verdict_code: "insufficient", strong_count: 0, on_count: 0 });
   for (const s of v.signals) expect(s.evidence.length).toBeGreaterThan(5);
 });
 

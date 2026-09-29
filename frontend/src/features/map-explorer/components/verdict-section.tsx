@@ -3,7 +3,7 @@
 import type { VerdictCode, VerdictSignal } from "@/shared/api/types";
 import { ApiError } from "@/shared/api/client";
 import { industryLabel } from "@/shared/industries";
-import { isVerdictIndustry, signalLabel, verdictLabel } from "@/shared/verdict";
+import { ADVISORY_SIGNAL_KEYS, isVerdictIndustry, signalLabel, verdictLabel } from "@/shared/verdict";
 import { useVerdict } from "../hooks/use-verdict";
 import { VerdictAlternatives } from "./verdict-alternatives";
 
@@ -32,7 +32,7 @@ const SOURCE_LABEL: Record<VerdictSignal["source"], string> = {
 function firedSignals(signals: VerdictSignal[]): VerdictSignal[] {
   const rank: Record<VerdictSignal["level"], number> = { strong: 0, on: 1, off: 2, unavailable: 3 };
   return signals
-    .filter((s) => s.key !== "shrinking" && (s.level === "strong" || s.level === "on"))
+    .filter((s) => !ADVISORY_SIGNAL_KEYS.has(s.key) && (s.level === "strong" || s.level === "on"))
     .sort((a, b) => rank[a.level] - rank[b.level])
     .slice(0, 3);
 }
@@ -66,7 +66,7 @@ export function VerdictSection({ regionCode, industry }: VerdictSectionProps) {
   const verdict = query.data;
   const label = verdictLabel(verdict.verdict_code);
   const fired = firedSignals(verdict.signals);
-  const advisory = verdict.signals.find((s) => s.key === "shrinking" && (s.level === "on" || s.level === "strong"));
+  const advisory = verdict.signals.find((s) => ADVISORY_SIGNAL_KEYS.has(s.key) && (s.level === "on" || s.level === "strong"));
   const color = BADGE_TOKEN[verdict.verdict_code];
 
   return (

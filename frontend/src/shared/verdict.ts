@@ -15,7 +15,7 @@ const LABELS: Record<VerdictCode, VerdictLabel> = {
   red: { name: "비추천", qualifier: "강한 경고 신호 2개 이상" },
   orange: { name: "조건부", qualifier: "경고 신호 1개 이상" },
   clear: { name: "경고 없음", qualifier: "켜진 신호 없음" },
-  insufficient: { name: "판정 보류", qualifier: "표본 부족 — 판정 가능한 신호 3개 미만" },
+  insufficient: { name: "판정 보류", qualifier: "표본 부족 — 판정 가능한 신호 2개 미만" },
 };
 
 export function verdictLabel(code: string): VerdictLabel {
@@ -37,6 +37,9 @@ export function signalLabel(key: string): string {
 /** 판정 제외 select 업종 — 편의점은 담배권 특화 신호 단계까지 보류, 부동산은 원천에 폐업 이력이 없어 제외한다.
  *  백엔드 `EXCLUDED_INDUSTRIES` 중 프론트 `INDUSTRIES`(14)에 남아 있는 것만 여기 둔다. */
 export const VERDICT_EXCLUDED_INDUSTRIES: ReadonlySet<string> = new Set(["convenience_store", "real_estate"]);
+
+/** 백엔드 `ADVISORY_SIGNAL_KEYS` 미러 — 평가·표시는 하되 등급 계산 제외. */
+export const ADVISORY_SIGNAL_KEYS: ReadonlySet<VerdictSignalKey> = new Set(["shrinking"]);
 
 export function isVerdictIndustry(industryId: string): boolean {
   return (INDUSTRIES as readonly string[]).includes(industryId) && !VERDICT_EXCLUDED_INDUSTRIES.has(industryId);

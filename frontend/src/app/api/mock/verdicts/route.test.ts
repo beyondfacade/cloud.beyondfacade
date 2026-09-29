@@ -6,7 +6,7 @@ function call(query: string) {
 }
 
 it("판정 대상 업종은 200과 region_code·value(판정 코드) 쌍 목록을 준다", async () => {
-  const res = await call("?industry=korean_food");
+  const res = await call("?industry=chinese_food");
   expect(res.status).toBe(200);
   const rows = await res.json();
   expect(rows.length).toBeGreaterThan(400);

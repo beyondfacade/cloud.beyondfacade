@@ -34,7 +34,7 @@ import type {
 } from "@/shared/api/types";
 import { STORE_SAMPLES, type StoreSample } from "./store-samples";
 import { INDUSTRIES, INDUSTRY_LABELS, type IndustryId } from "@/shared/industries";
-import { isVerdictIndustry } from "@/shared/verdict";
+import { ADVISORY_SIGNAL_KEYS, isVerdictIndustry } from "@/shared/verdict";
 import { neighborhoodTypeLabel } from "@/shared/neighborhood";
 import { SEOUL_DISTRICTS, districtOf } from "@/shared/seoul-districts";
 
@@ -765,7 +765,7 @@ const SIGNAL_SOURCE: Record<VerdictSignalKey, VerdictSignal["source"]> = {
   net_outflow: "store", survival_cliff: "store", early_closure: "store", saturation: "metric", shrinking: "neighborhood",
 };
 
-/** 판정 대상 여부 — 실 API의 EXCLUDED_INDUSTRIES 미러 = 프론트 INDUSTRIES 14종 − 편의점(shared/verdict.ts 단일 원천). */
+/** 판정 대상 여부 — 실 API의 EXCLUDED_INDUSTRIES 미러 = 프론트 INDUSTRIES 14종 − 편의점·부동산(shared/verdict.ts 단일 원천). */
 export function isJudgedIndustry(industryId: string): industryId is IndustryId {
   return isVerdictIndustry(industryId);
 }
@@ -793,10 +793,11 @@ function signalOf(key: VerdictSignalKey, regionCode: string, industryId: string)
 }
 
 function judgeOf(signals: VerdictSignal[]): VerdictCode {
-  const evaluable = signals.filter((s) => s.level !== "unavailable").length;
-  const strong = signals.filter((s) => s.level === "strong").length;
-  const on = signals.filter((s) => s.level === "on" || s.level === "strong").length;
-  if (evaluable < 3) return "insufficient";
+  const judging = signals.filter((s) => !ADVISORY_SIGNAL_KEYS.has(s.key));
+  const evaluable = judging.filter((s) => s.level !== "unavailable").length;
+  const strong = judging.filter((s) => s.level === "strong").length;
+  const on = judging.filter((s) => s.level === "on" || s.level === "strong").length;
+  if (evaluable < 2) return "insufficient";
   if (strong >= 2) return "red";
   if (on >= 1) return "orange";
   return "clear";
@@ -804,12 +805,13 @@ function judgeOf(signals: VerdictSignal[]): VerdictCode {
 
 export function verdictOf(regionCode: string, industryId: string): RegionIndustryVerdict {
   const signals = SIGNAL_KEYS.map((key) => signalOf(key, regionCode, industryId));
+  const judging = signals.filter((s) => !ADVISORY_SIGNAL_KEYS.has(s.key));
   return {
     region_code: regionCode,
     industry_id: industryId,
     verdict_code: judgeOf(signals),
-    strong_count: signals.filter((s) => s.level === "strong").length,
-    on_count: signals.filter((s) => s.level === "on" || s.level === "strong").length,
+    strong_count: judging.filter((s) => s.level === "strong").length,
+    on_count: judging.filter((s) => s.level === "on" || s.level === "strong").length,
     signals,
     computed_at: "2026-09-29T04:30:00+09:00",
   };
