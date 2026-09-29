@@ -107,3 +107,8 @@ def test_대안은_두_축을_담고_404는_단건과_같다():
     assert _client().get("/verdicts/1168064000/alternatives?industry=chicken").json()["error"]["code"] == "INDUSTRY_NOT_FOUND"
     missing = _client().get("/verdicts/0000000000/alternatives?industry=korean_food")
     assert missing.status_code == 404 and missing.json()["error"]["code"] == "VERDICT_NOT_FOUND"
+
+
+def test_단건은_판정_원천_basis를_싣는다():
+    body = _client().get("/verdicts/1168064000?industry=korean_food").json()
+    assert body["basis"] == "permit"

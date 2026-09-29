@@ -3,6 +3,8 @@
 from dataclasses import dataclass
 from datetime import date, datetime
 
+from apps.verdict.domain.entities.region_industry_verdict_entity import BASIS_PERMIT
+
 
 @dataclass(frozen=True)
 class SignalResultDto:
@@ -23,6 +25,7 @@ class RegionIndustryVerdictDto:
     on_count: int
     signals: tuple[SignalResultDto, ...]
     computed_at: datetime
+    basis: str = BASIS_PERMIT
 
 
 @dataclass(frozen=True)

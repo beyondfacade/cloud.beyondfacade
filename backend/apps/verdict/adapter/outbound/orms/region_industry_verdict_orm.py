@@ -24,5 +24,6 @@ class RegionIndustryVerdictOrm(OrmBase):
     verdict_code: Mapped[str] = mapped_column(String(12))  # red | orange | clear | insufficient
     strong_count: Mapped[int] = mapped_column(SmallInteger)
     on_count: Mapped[int] = mapped_column(SmallInteger)
-    signals_json: Mapped[str] = mapped_column(Text)  # SignalResult 5개 JSON 배열
+    signals_json: Mapped[str] = mapped_column(Text)  # 프로필의 신호 JSON 배열
     computed_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    basis: Mapped[str] = mapped_column(String(12), server_default="permit")  # permit | proxy | aggregate (설계서 §9)

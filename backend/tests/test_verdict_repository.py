@@ -1,5 +1,6 @@
 """판정 리포지토리 — 업서트 멱등·signals JSON 왕복·업종별 목록 (실 DB, beyondfacade_test)."""
 
+from dataclasses import replace
 from datetime import datetime, timezone
 
 from sqlalchemy import delete, select
@@ -74,5 +75,16 @@ def test_동_기준_목록은_업종순이다():
         repo.upsert([_verdict(codes[0], "clear", industry_id="pub"), _verdict(codes[0], "orange"), _verdict(codes[1], "clear")])
         listed = repo.list_by_region(codes[0])
         assert [(v.industry_id, v.verdict_code) for v in listed] == [(_INDUSTRY, "orange"), ("pub", "clear")]
+    finally:
+        _cleanup(codes)
+
+
+def test_basis가_왕복되고_지정하지_않으면_permit이다():
+    codes = _two_region_codes()
+    repo = SqlAlchemyRegionIndustryVerdictRepository()
+    try:
+        repo.upsert([replace(_verdict(codes[0], "orange"), basis="aggregate"), _verdict(codes[1], "clear")])
+        assert repo.find(codes[0], _INDUSTRY).basis == "aggregate"
+        assert repo.find(codes[1], _INDUSTRY).basis == "permit"
     finally:
         _cleanup(codes)

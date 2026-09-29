@@ -19,6 +19,7 @@ def to_orm(entity: RegionIndustryVerdict) -> RegionIndustryVerdictOrm:
         on_count=entity.on_count,
         signals_json=json.dumps([asdict(s) for s in entity.signals], ensure_ascii=False),
         computed_at=entity.computed_at,
+        basis=entity.basis,
     )
 
 
@@ -31,4 +32,5 @@ def to_entity(orm: RegionIndustryVerdictOrm) -> RegionIndustryVerdict:
         on_count=orm.on_count,
         signals=tuple(SignalResult(**item) for item in json.loads(orm.signals_json)),
         computed_at=orm.computed_at,
+        basis=orm.basis,
     )

@@ -1,5 +1,12 @@
 # Backend Version Log
 
+## [v0.46.0] - 2026-09-29
+
+### Added
+- **판정 원천 `basis`** (업종 특화 신호 설계서 §9) — `region_industry_verdict.basis`(`permit`·`proxy`·`aggregate`, 기본 `permit`) 컬럼·마이그레이션 `d0e1f2a3b4c5`, 엔티티·DTO·단건 API 응답 `basis`.
+
+### Changed
+
 ## [v0.45.0] - 2026-09-29
 
 ### Added

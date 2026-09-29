@@ -200,4 +200,5 @@ def _to_dto(entity: RegionIndustryVerdict) -> RegionIndustryVerdictDto:
         region_code=entity.region_code, industry_id=entity.industry_id, verdict_code=entity.verdict_code,
         strong_count=entity.strong_count, on_count=entity.on_count,
         signals=tuple(SignalResultDto(**asdict(s)) for s in entity.signals), computed_at=entity.computed_at,
+        basis=entity.basis,
     )

@@ -20,6 +20,7 @@ class RegionIndustryVerdictResponse(BaseModel):
     on_count: int
     signals: list[SignalResultResponse]
     computed_at: datetime
+    basis: str  # permit | proxy | aggregate — 카드 배지 (업종 특화 신호 설계서 §9-3)
 
 
 class VerdictValueResponse(BaseModel):
