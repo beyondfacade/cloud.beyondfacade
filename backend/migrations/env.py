@@ -55,6 +55,7 @@ import apps.shock.adapter.outbound.orms.shock_event_region_orm  # noqa: F401
 import apps.store.adapter.outbound.orms.academy_course_orm  # noqa: F401
 import apps.store.adapter.outbound.orms.store_orm  # noqa: F401
 import apps.tobacco.adapter.outbound.orms.tobacco_retailer_orm  # noqa: F401
+import apps.housing.adapter.outbound.orms.apt_trade_count_orm  # noqa: F401
 import apps.verdict.adapter.outbound.orms.region_industry_verdict_orm  # noqa: F401
 
 config.set_main_option("sqlalchemy.url", get_settings().database_url)

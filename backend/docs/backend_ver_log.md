@@ -10,6 +10,7 @@
 - **담배소매인 편의점 원천** (설계서 §5·§6) — `TobaccoConvenienceSignalData`: 브랜드 사전 매칭 → 승계 접기 에피소드로 창 집계(`stats_from_episodes`, 인허가 SQL과 같은 규칙), 기준일 = min(요청일, 원천 최신 2026-08-21), 점포수·진입 결과, 담배권 빈자리(영업 상가 × 영업 담배소매인 50m). 적재 시점에 폐업처리·직권취소·임시소매기간만료·지정취소인데 종료일이 둘 다 없는 유령 행을 뺀다(실측 9/29 730건, 그중 편의점 55건 — §17 진행 기록). 의존성에 `convenience_store` 등록(판정 대상 편입은 게이트 후).
 - **상권분석 집계 원천** (설계서 §7) — `CommerceAggregateSignalData`: `region_commerce_store`(업종 ↔ `seoul_commercial` 코드)에서 최근 4분기 폐업·4분기 전 점포수(폐업률 재료), 분기 상한 점포수(포화), 재고 결과(T 분기 점포수 대비 이후 폐업). `quarter_of`·`shift_quarter`. 의존성에 `real_estate` 등록(판정 대상 편입은 게이트 후).
 - **재포함 게이트** (설계서 §8) — `reinclusion_gate`(경고 lift = (🔴+🟠) 폐업률 ÷ ⚪ ≥ 1.10×, 표본: 대리 원천 개업 각 50·집계 원천 동 각 30), `BacktestReportDto.gates`. CLI `backtest_verdicts --candidates convenience_store,real_estate` → "재포함 심사" 절(원천·판정별 폐업률·경고 lift·게이트)과 심사 업종 신호별 lift. 업종표의 집계 기반 업종 † 표기, 신호 칸에 폐업률·담배권 빈자리.
+- **아파트 매매 건수 수집** (설계서 §11, 파일럿 통과) — 신규 `housing` BC(엔티티·ORM·게이트웨이·CLI, 라우터 없음), 보조 테이블 `apt_trade_count`(자치구×법정동×월, 마이그레이션 `e1f2a3b4c5d6`), `load_apt_trade_counts --from 202101`(적재된 구·월 건너뜀, 멱등 업서트).
 
 ### Changed
 - `ADVISORY_SIGNAL_KEYS`에 `tobacco_gap` 추가(진입 가능성 신호 — 등급 계산 제외).

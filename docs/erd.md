@@ -47,6 +47,7 @@ erDiagram
     district |o--o{ rent_price : "임대시세(상권 단위 원천 - 자치구 매핑 후속)"
     district ||--o{ tobacco_retailer : "지정관할(보조 테이블)"
     region |o--o{ tobacco_retailer : "위치(공간조인 후 채움)"
+    district ||--o{ apt_trade_count : "아파트 매매 건수(보조 테이블)"
     region ||--o{ convenience_store : "수집 단위(보조 테이블)"
     district ||--o{ childcare_center : "수집 단위(보조 테이블)"
     region |o--o{ childcare_center : "위치(공간조인 후 채움)"
@@ -288,6 +289,9 @@ erDiagram
   의도된 미연결은 좌표 결측 9.9%분)로 마스터 허브에 연결, 고립 없음.
   store에 합치지 않는 근거: 담배소매인은 점포(업종)가 아니라 **지정 권리** — industry FK가 성립하지
   않고(편의점·슈퍼·가판 복합), 지정일자·취소일자 등 고유 컬럼 축이 다르다.
+- `apt_trade_count` — **보조 테이블 추가** (2026-09-29, 업종 특화 신호 §11). 국토부 아파트 매매 건수,
+  자치구×법정동×월. district FK로 허브 연결, 법정동은 원천 문자열(행정동 배분은 verdict BC 근사).
+  수집 전용(라우터 없음).
 - `convenience_store` — **MVP 15테이블 밖 보조 테이블 추가** (2026-09-07, 편의점 축 2단계).
   원천은 소진공 상가정보 sdsc2 `storeListInDong`(indsSclsCd=G20405 체인화 편의점) × 행정동 427회.
   **store에 합치지 않는 근거**: 상가정보는 개폐업 시계열 분석 불가(api.md §2-3 — 상가업소번호
@@ -382,6 +386,7 @@ erDiagram
     store ||--o{ academy_course : "교습과정"
     district ||--o{ tobacco_retailer : "지정관할"
     region |o--o{ tobacco_retailer : "위치(공간조인)"
+    district ||--o{ apt_trade_count : "아파트 매매 건수(보조 테이블)"
 
     %% ── 원천 계층: 스냅샷 ──
     region ||--o{ convenience_store : "수집 단위"
