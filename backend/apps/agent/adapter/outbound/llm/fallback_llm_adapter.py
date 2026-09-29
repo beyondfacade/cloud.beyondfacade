@@ -14,9 +14,14 @@ gemma4:12b 50% · gemini-2.5-flash 90%, 평균 소요 39.9s · 17.4s였다. 그 
 """
 
 import logging
-from collections.abc import Callable
+from collections.abc import Callable, Iterator
 
-from apps.agent.app.ports.output.agent_port import LLMGatewayPort, LLMToolSpec, LLMTurn
+from apps.agent.app.ports.output.agent_port import (
+    LLMGatewayPort,
+    LLMStreamEvent,
+    LLMToolSpec,
+    LLMTurn,
+)
 
 LOGGER = logging.getLogger("beyondfacade.agent.llm")
 
@@ -57,6 +62,31 @@ class FallbackLLMAdapter(LLMGatewayPort):
         turn = secondary.chat(messages, tools)
         self.model_name = secondary.model_name
         return turn
+
+    def stream(self, messages: list[dict], tools: list[LLMToolSpec]) -> Iterator[LLMStreamEvent]:
+        """첫 텍스트 조각 **전**의 실패만 폴백한다 — 반쯤 쓴 글을 다른 모델이 이어 쓰지 않는다."""
+        primary = self._resolve_primary()
+        if primary is not None:
+            wrote = False
+            try:
+                self.model_name = primary.model_name
+                for event in primary.stream(messages, tools):
+                    wrote = wrote or event.kind == "text"
+                    yield event
+            except Exception as error:
+                if wrote:
+                    raise  # 이미 화면에 나간 글이 있다 — 호출부가 폴백 섹션으로 마무리한다
+                LOGGER.warning(
+                    "primary LLM(%s) 스트림이 첫 조각 전에 실패 — secondary로 폴백한다: %s",
+                    primary.model_name,
+                    type(error).__name__,
+                )
+            else:
+                return
+
+        secondary = self._resolve_secondary()
+        self.model_name = secondary.model_name
+        yield from secondary.stream(messages, tools)
 
     def _resolve_primary(self) -> LLMGatewayPort | None:
         """생성이 한 번 실패하면(키 없음 등) 이후 턴에서는 만들지 않는다."""

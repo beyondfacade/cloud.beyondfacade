@@ -1,9 +1,13 @@
 """Ollama LLM 어댑터 — LLMGatewayPort 구현 (gemma3 등 로컬 모델)."""
 
+import json
+from collections.abc import Iterator
+
 import httpx
 
 from apps.agent.app.ports.output.agent_port import (
     LLMGatewayPort,
+    LLMStreamEvent,
     LLMToolCall,
     LLMToolSpec,
     LLMTurn,
@@ -57,6 +61,52 @@ class OllamaLLMAdapter(LLMGatewayPort):
                 output_tokens=data.get("eval_count", 0),
             ),
         )
+
+
+    def stream(self, messages: list[dict], tools: list[LLMToolSpec]) -> Iterator[LLMStreamEvent]:
+        """`stream: true` NDJSON — 줄마다 message.content 조각, 도구 호출은 마지막 메시지에 온다."""
+        tool_calls: list[LLMToolCall] = []
+        usage = LLMUsage(input_tokens=0, output_tokens=0)
+        with self.client.stream(
+            "POST",
+            "/api/chat",
+            json={
+                "model": self.model_name,
+                "messages": messages,
+                "tools": [_to_ollama_tool(tool) for tool in tools],
+                "stream": True,
+            },
+        ) as response:
+            response.raise_for_status()
+            for line in response.iter_lines():
+                if not line.strip():
+                    continue
+                data = json.loads(line)
+                message = data.get("message") or {}
+                text = message.get("content") or ""
+                if text:
+                    yield LLMStreamEvent(kind="text", text=text)
+                tool_calls.extend(_to_tool_calls(message))
+                usage = _usage_of(data, usage)
+        yield LLMStreamEvent(kind="tool_calls", tool_calls=tool_calls)
+        yield LLMStreamEvent(kind="usage", usage=usage)
+
+
+def _to_tool_calls(message: dict) -> list[LLMToolCall]:
+    return [
+        LLMToolCall(tool_name=call["function"]["name"], arguments=call["function"]["arguments"])
+        for call in message.get("tool_calls") or []
+    ]
+
+
+def _usage_of(data: dict, current: LLMUsage) -> LLMUsage:
+    """토큰 수는 마지막(done) 줄에만 실린다 — 값이 없는 줄은 앞서 본 값을 유지한다."""
+    if "prompt_eval_count" not in data and "eval_count" not in data:
+        return current
+    return LLMUsage(
+        input_tokens=data.get("prompt_eval_count") or 0,
+        output_tokens=data.get("eval_count") or 0,
+    )
 
 
 def _to_ollama_tool(tool: LLMToolSpec) -> dict:

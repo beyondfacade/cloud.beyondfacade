@@ -2,12 +2,14 @@
 
 import logging
 import time
+from collections.abc import Iterator
 
 from google import genai
 from google.genai import errors, types
 
 from apps.agent.app.ports.output.agent_port import (
     LLMGatewayPort,
+    LLMStreamEvent,
     LLMToolCall,
     LLMToolSpec,
     LLMTurn,
@@ -83,6 +85,24 @@ def to_function_declarations(tools: list[LLMToolSpec]) -> list[dict]:
     ]
 
 
+def _chunk_text(chunk) -> str:
+    """조각의 본문. 함수 호출만 든 조각에서 `.text`는 경고와 함께 None이거나 예외다 — 빈 글로 본다."""
+    try:
+        return chunk.text or ""
+    except Exception:  # SDK 버전마다 다르다. 조각 하나 때문에 스트림을 끊지 않는다
+        return ""
+
+
+def _usage_of(metadata, current: LLMUsage) -> LLMUsage:
+    """usage_metadata는 조각마다 누적으로 실린다 — 마지막에 본 값이 그 턴의 사용량이다."""
+    if metadata is None:
+        return current
+    return LLMUsage(
+        input_tokens=metadata.prompt_token_count or 0,
+        output_tokens=metadata.candidates_token_count or 0,
+    )
+
+
 class GeminiLLMAdapter(LLMGatewayPort):
     """Gemini generateContent 기반 LLM 어댑터."""
 
@@ -94,14 +114,7 @@ class GeminiLLMAdapter(LLMGatewayPort):
     def chat(self, messages: list[dict], tools: list[LLMToolSpec]) -> LLMTurn:
         """메시지 히스토리와 도구 목록을 받아 한 턴 응답을 반환."""
         system_instruction, contents = to_gemini_contents(messages)
-        config = types.GenerateContentConfig(
-            system_instruction=system_instruction or None,
-            tools=(
-                [types.Tool(function_declarations=to_function_declarations(tools))]
-                if tools
-                else None
-            ),
-        )
+        config = self._config(system_instruction, tools)
 
         response = self._generate_with_retry(contents, config)
 
@@ -118,6 +131,73 @@ class GeminiLLMAdapter(LLMGatewayPort):
                 output_tokens=(usage.candidates_token_count or 0) if usage else 0,
             ),
         )
+
+    def stream(self, messages: list[dict], tools: list[LLMToolSpec]) -> Iterator[LLMStreamEvent]:
+        """generate_content_stream — 조각의 text는 즉시, function_calls·usage는 턴 끝에 모아 낸다."""
+        system_instruction, contents = to_gemini_contents(messages)
+        config = self._config(system_instruction, tools)
+
+        tool_calls: list[LLMToolCall] = []
+        usage = LLMUsage(input_tokens=0, output_tokens=0)
+        for chunk in self._stream_with_retry(contents, config):
+            text = _chunk_text(chunk)
+            if text:
+                yield LLMStreamEvent(kind="text", text=text)
+            tool_calls.extend(
+                LLMToolCall(tool_name=call.name, arguments=dict(call.args or {}))
+                for call in (chunk.function_calls or [])
+            )
+            usage = _usage_of(chunk.usage_metadata, usage)
+        yield LLMStreamEvent(kind="tool_calls", tool_calls=tool_calls)
+        yield LLMStreamEvent(kind="usage", usage=usage)
+
+    def _config(
+        self, system_instruction: str, tools: list[LLMToolSpec]
+    ) -> "types.GenerateContentConfig":
+        return types.GenerateContentConfig(
+            system_instruction=system_instruction or None,
+            tools=(
+                [types.Tool(function_declarations=to_function_declarations(tools))]
+                if tools
+                else None
+            ),
+        )
+
+    def _stream_with_retry(self, contents: list[dict], config: "types.GenerateContentConfig"):
+        """429 재시도는 **첫 조각 전까지만** — 반쯤 흘려보낸 글을 처음부터 다시 쓰게 하지 않는다."""
+        self._respect_min_interval()
+        self._last_request_at = time.monotonic()
+
+        waited = 0.0
+        attempt = 0
+        while True:
+            try:
+                chunks = iter(
+                    self._client.models.generate_content_stream(
+                        model=self.model_name, contents=contents, config=config
+                    )
+                )
+                first = next(chunks)
+            except StopIteration:  # 빈 스트림 — 계약(tool_calls·usage)은 호출부가 닫는다
+                return
+            except errors.ClientError as exc:
+                delay = min(_RETRY_BASE_DELAY * 2**attempt, _RETRY_MAX_DELAY)
+                if exc.code != 429 or waited + delay > _RETRY_BUDGET_SECONDS:
+                    if exc.code == 429:
+                        LOGGER.warning(
+                            "LLM 스트림 429 재시도 예산 %.1fs 소진 (%d회) — 호출부가 폴백한다",
+                            waited,
+                            attempt + 1,
+                        )
+                    raise
+                time.sleep(delay)
+                waited += delay
+                attempt += 1
+                continue
+            break
+
+        yield first
+        yield from chunks
 
     def _generate_with_retry(self, contents: list[dict], config: "types.GenerateContentConfig"):
         self._respect_min_interval()

@@ -5,6 +5,7 @@ import pytest
 from apps.agent.adapter.outbound.llm.fallback_llm_adapter import FallbackLLMAdapter
 from apps.agent.app.ports.output.agent_port import (
     LLMGatewayPort,
+    LLMStreamEvent,
     LLMToolCall,
     LLMTurn,
     LLMUsage,
@@ -12,9 +13,11 @@ from apps.agent.app.ports.output.agent_port import (
 
 
 class FakeLLM(LLMGatewayPort):
-    def __init__(self, name: str, error: Exception | None = None) -> None:
+    def __init__(self, name: str, error: Exception | None = None, after: int = 0) -> None:
+        """`error`가 있으면 텍스트 조각 `after`개를 낸 뒤 던진다 (0이면 첫 조각 전 실패)."""
         self.model_name = name
         self._error = error
+        self._after = after
         self.calls = 0
 
     def chat(self, messages, tools) -> LLMTurn:
@@ -26,6 +29,16 @@ class FakeLLM(LLMGatewayPort):
             tool_calls=[LLMToolCall(tool_name="t", arguments={})],
             usage=LLMUsage(input_tokens=1, output_tokens=2),
         )
+
+    def stream(self, messages, tools):
+        self.calls += 1
+        for index in range(self._after):
+            yield LLMStreamEvent(kind="text", text=f"{self.model_name} 조각{index}")
+        if self._error is not None:
+            raise self._error
+        yield LLMStreamEvent(kind="text", text=f"{self.model_name} 응답")
+        yield LLMStreamEvent(kind="tool_calls", tool_calls=[])
+        yield LLMStreamEvent(kind="usage", usage=LLMUsage(input_tokens=1, output_tokens=2))
 
 
 def _adapter(primary, secondary) -> FallbackLLMAdapter:
@@ -118,6 +131,60 @@ def test_polling_중_primary가_회복되면_다시_primary를_쓴다():
     assert adapter.chat([], []).text == "gemma4:12b 응답"
     assert adapter.chat([], []).text == "회복"
     assert adapter.model_name == "gemini-2.5-flash"
+
+
+# --- 스트림 폴백 (설계서 §3-4) ---
+
+
+def test_스트림이_정상이면_primary만_쓰고_model_name도_primary다():
+    primary, secondary = FakeLLM("gemini-2.5-flash"), FakeLLM("gemma4:12b")
+    adapter = _adapter(primary, secondary)
+
+    events = list(adapter.stream([], []))
+
+    assert [event.text for event in events if event.kind == "text"] == ["gemini-2.5-flash 응답"]
+    assert (primary.calls, secondary.calls) == (1, 0)
+    assert adapter.model_name == "gemini-2.5-flash"
+
+
+def test_첫_조각_전에_터지면_secondary가_이어받는다():
+    primary = FakeLLM("gemini-2.5-flash", error=RuntimeError("429"))
+    secondary = FakeLLM("gemma4:12b")
+    adapter = _adapter(primary, secondary)
+
+    events = list(adapter.stream([], []))
+
+    assert [event.text for event in events if event.kind == "text"] == ["gemma4:12b 응답"]
+    assert (primary.calls, secondary.calls) == (1, 1)
+    assert adapter.model_name == "gemma4:12b"
+
+
+def test_첫_조각_뒤에_터지면_예외를_그대로_올린다():
+    """반쯤 쓴 글을 다른 모델이 이어 쓰지 않는다 — 인터랙터가 폴백 섹션으로 마무리한다."""
+    primary = FakeLLM("gemini-2.5-flash", error=RuntimeError("연결 끊김"), after=1)
+    secondary = FakeLLM("gemma4:12b")
+    adapter = _adapter(primary, secondary)
+
+    seen = []
+    with pytest.raises(RuntimeError, match="연결 끊김"):
+        for event in adapter.stream([], []):
+            seen.append(event.text)
+
+    assert seen == ["gemini-2.5-flash 조각0"]
+    assert secondary.calls == 0
+
+
+def test_키가_없으면_스트림도_바로_secondary로_간다():
+    secondary = FakeLLM("gemma4:12b")
+
+    def no_key() -> LLMGatewayPort:
+        raise ValueError("GEMINI_API_KEY 미설정")
+
+    adapter = FallbackLLMAdapter(primary=no_key, secondary=lambda: secondary)
+    events = list(adapter.stream([], []))
+
+    assert [event.text for event in events if event.kind == "text"] == ["gemma4:12b 응답"]
+    assert adapter.model_name == "gemma4:12b"
 
 
 # --- Composition Root 배선 (설계 결정: 기본이 hybrid) ---

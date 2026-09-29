@@ -22,6 +22,7 @@ from apps.agent.adapter.inbound.cli.agent_eval_scoring import (
 )
 from apps.agent.dependencies.analysis_dependencies import build_analysis_use_case
 from apps.agent.domain.entities.agent_event_entity import AgentEvent
+from apps.agent.domain.services.section_stream import concat_sections
 
 # apps/agent/adapter/inbound/cli/run_agent_eval.py → parents[6] == repo root
 _REPO_ROOT = Path(__file__).resolve().parents[6]
@@ -71,12 +72,12 @@ def run_case(model: str, case: EvalCase) -> dict:
         events.append(event)
     latency_ms = int((time.monotonic() - started) * 1000)
     usage = use_case.last_usage
-    report_parts = [
-        e.payload.get("markdown") or ""
+    # delta는 조각 단위다 — 섹션별로 이어 붙여야 읽을 수 있는 리포트가 된다 (설계서 §3-3⑤)
+    report_md = concat_sections(
+        (e.payload.get("section") or "", e.payload.get("markdown") or "")
         for e in events
         if e.type == "report_delta"
-    ]
-    report_md = "\n\n".join(report_parts)
+    )
     tool_score = score_tool_calls(events)
     rule_hits = check_rule_keywords(report_md)
     sections = section_completion(events)

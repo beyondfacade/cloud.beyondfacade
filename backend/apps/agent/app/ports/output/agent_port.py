@@ -1,7 +1,8 @@
 """Driven Port — Agent가 LLM 프로바이더에 요구하는 계약 (ISP: 역할별 분리)."""
 
 from abc import ABC, abstractmethod
-from dataclasses import dataclass
+from collections.abc import Iterator
+from dataclasses import dataclass, field
 
 
 @dataclass
@@ -38,6 +39,21 @@ class LLMTurn:
     usage: LLMUsage
 
 
+@dataclass
+class LLMStreamEvent:
+    """스트림 조각 1건 — `kind`로 갈린다 (설계서 §3-4).
+
+    - `text`: 본문 조각. 도착하는 대로 여러 번 온다.
+    - `tool_calls`: 그 턴의 도구 호출 전량. 턴 끝에 **정확히 한 번**(없으면 빈 목록) 온다.
+    - `usage`: 그 턴의 토큰 사용량. 턴 끝에 한 번 온다.
+    """
+
+    kind: str
+    text: str = ""
+    tool_calls: list[LLMToolCall] = field(default_factory=list)
+    usage: LLMUsage | None = None
+
+
 class LLMGatewayPort(ABC):
     """LLM 게이트웨이 포트 — 도구 호출이 가능한 채팅 한 턴."""
 
@@ -46,6 +62,10 @@ class LLMGatewayPort(ABC):
     @abstractmethod
     def chat(self, messages: list[dict], tools: list[LLMToolSpec]) -> LLMTurn:
         """메시지 히스토리와 도구 목록을 받아 한 턴 응답을 반환."""
+
+    @abstractmethod
+    def stream(self, messages: list[dict], tools: list[LLMToolSpec]) -> Iterator[LLMStreamEvent]:
+        """같은 한 턴을 조각으로 흘린다 — 본문 조각 여러 건 → tool_calls 1건 → usage 1건."""
 
 
 class RegionFactsPort(ABC):

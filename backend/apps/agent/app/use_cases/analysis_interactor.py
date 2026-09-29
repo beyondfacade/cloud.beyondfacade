@@ -1,4 +1,4 @@
-"""AnalysisInteractor — 단일 에이전트 루프 (LLM 턴 + 도구 실행 → SSE 이벤트 제너레이터).
+"""AnalysisInteractor — 단일 에이전트 루프 (LLM 스트림 + 도구 실행 → SSE 이벤트 제너레이터).
 
 `app/` 레이어이므로 FastAPI·SQLAlchemy·어댑터를 import하지 않는다. 도구는 주입받는다
 (조립은 Task 11의 Composition Root).
@@ -7,10 +7,16 @@
 같은 값을 첫 user 메시지의 `[FACTS]`에 넣는다 (설계서 §3-3). 도구 루프는 남지만 facts가
 대신할 수 없는 4종만 돈다.
 
+본문은 `LLMGatewayPort.stream()`으로 **조각 단위**로 흘린다 (설계서 §3-3③). `SectionSplitter`가
+마커를 기준으로 조각을 갈라 `report_delta`로 그때그때 내보낸다 — 같은 섹션이 여러 번 온다.
+턴이 도구 호출로 끝나면 현행 루프대로 도구를 실행하고 다음 스트림 턴을 이어간다. 재프롬프트만
+비스트리밍 `chat()`을 쓴다(짧은 한 턴이고 화면에 나갈 글이 아니다).
+
 스테이지 개폐 규칙 (agent_status의 running/done 짝):
-- `running`: 그 스테이지의 도구가 처음 실행될 때 1회만 — 열린 스테이지 집합에 등록한다.
-- `done`: ① 뒤이은 턴의 도구 호출 목록에 그 스테이지가 더 이상 없을 때, ② 루프가 끝난 뒤
-  아직 열려 있는 스테이지 전부(리포트 delta 방출 직전). 등록 순서대로 닫는다.
+- `running`: `writer`는 첫 스트림 직전 1회, 도구 스테이지는 그 도구가 처음 실행될 때 1회.
+- `done`: ① 뒤이은 턴의 도구 호출 목록에 그 스테이지가 더 이상 없을 때, ② **본문 첫 조각이
+  나올 때** 열린 스테이지 전부 — 섹션을 쓰기 시작하면 도구를 부르지 않는다(프롬프트 계약),
+  ③ 루프가 끝난 뒤 아직 열려 있는 스테이지 전부. 등록 순서대로 닫는다.
 
 한 턴 처리 순서: 인자가 유효한 도구 호출을 **먼저 전부 실행·응답**한 뒤, 스키마를 위반한
 호출만 모아 재프롬프트한다 — 재프롬프트 chat이 다른 호출의 응답 사이에 끼어들지 않도록.
@@ -30,6 +36,7 @@ from collections.abc import Callable, Iterator
 from apps.agent.app.ports.input.analysis_use_case import AnalysisUseCase
 from apps.agent.app.ports.output.agent_port import (
     LLMGatewayPort,
+    LLMStreamEvent,
     LLMToolCall,
     LLMToolSpec,
     LLMTurn,
@@ -42,6 +49,7 @@ from apps.agent.domain.services.report_fallback import (
     alternatives_markdown,
     verdict_markdown,
 )
+from apps.agent.domain.services.section_stream import SectionSplitter
 
 LOGGER = logging.getLogger("beyondfacade.agent.loop")
 
@@ -106,11 +114,9 @@ SYSTEM_PROMPT = """당신은 서울 상권 분석 리포트를 작성하는 단�
 섹션을 쓰기 시작하면 도구를 부르지 않는다.
 
 [verdict 섹션 출력 계약]
-**판정**은 `facts.verdict`만으로 쓴다. 자유 서술이 아니다.
-- 첫 줄은 배지 한 줄: 판정 등급과 켜진 신호 수(`on_count`·`strong_count`)를 한 문장으로.
-- 다음은 켜진 신호(`level`이 on 또는 strong) 목록: 신호마다 `evidence` 문장을 그대로 옮긴다.
-- `advisory: true` 신호는 이 목록에 넣지 말고 "참고:" 한 줄로 따로 덧붙인다.
-- 마지막 줄에 산출일(`computed_at`)을 적는다.
+**판정**은 화면의 판정 카드가 배지·신호 목록·근거·산출 시점을 이미 그린다. 글은 그것을 되풀이하지
+않는다. `facts.verdict`의 **배지 한 줄 해석 1~2문장**만 쓴다 — 판정 등급과 켜진 신호 수
+(`on_count`·`strong_count`)만 언급하고, 신호를 하나씩 나열하거나 날짜를 적지 않는다.
 `available: false`면 "판정 없음"과 `reason`만 쓰고 등급을 지어내지 않는다.
 
 [reasons 섹션 출력 계약]
@@ -231,6 +237,47 @@ def _dedupe_citations(citations: list[dict]) -> list[dict]:
     return unique
 
 
+class _StreamTurn:
+    """스트림 한 턴의 누적 상태 — 조각 종류별 처리기를 테이블로 갈라 if/elif를 없앤다."""
+
+    def __init__(self, splitter: SectionSplitter) -> None:
+        self._splitter = splitter
+        self._texts: list[str] = []
+        self.tool_calls: list[LLMToolCall] = []
+        self.usage = LLMUsage(input_tokens=0, output_tokens=0)
+        self.failed = False
+        self._handlers = {
+            "text": self._on_text,
+            "tool_calls": self._on_tool_calls,
+            "usage": self._on_usage,
+        }
+
+    @property
+    def text(self) -> str:
+        """그 턴의 원문 전체 — 메시지 이력에 남길 assistant 본문이다(서문 포함)."""
+        return "".join(self._texts)
+
+    @property
+    def wrote(self) -> bool:
+        return bool(self._texts)
+
+    def handle(self, event: LLMStreamEvent) -> list[tuple[str, str]]:
+        """조각 1건을 먹고 방출할 `(섹션, 조각)` 목록을 돌려준다 (본문 조각이 아니면 빈 목록)."""
+        return self._handlers[event.kind](event)
+
+    def _on_text(self, event: LLMStreamEvent) -> list[tuple[str, str]]:
+        self._texts.append(event.text)
+        return self._splitter.feed(event.text)
+
+    def _on_tool_calls(self, event: LLMStreamEvent) -> list[tuple[str, str]]:
+        self.tool_calls = list(event.tool_calls)
+        return []
+
+    def _on_usage(self, event: LLMStreamEvent) -> list[tuple[str, str]]:
+        self.usage = event.usage or self.usage
+        return []
+
+
 class AnalysisInteractor(AnalysisUseCase):
     def __init__(
         self,
@@ -262,7 +309,31 @@ class AnalysisInteractor(AnalysisUseCase):
         specs = [tool.spec for tool in self._tools]
         citations: list[dict] = []
         open_stages: dict[str, None] = {}  # 삽입 순서를 유지하는 열린 스테이지 집합
-        final_text = ""
+        splitter = SectionSplitter()
+        written: set[str] = set()  # 실제로 조각이 나간 섹션 — 나머지는 폴백이 메운다
+
+        def close_open_stages() -> Iterator[AgentEvent]:
+            """열린 도구 스테이지를 등록 순서대로 닫는다."""
+            for stage in list(open_stages):
+                del open_stages[stage]
+                yield AgentEvent("agent_status", {"agent": stage, "status": "done"})
+
+        def emit(chunks: list[tuple[str, str]]) -> Iterator[AgentEvent]:
+            """본문 조각을 report_delta로 흘린다 — 첫 조각이 나오면 도구 스테이지는 끝난 것이다."""
+            for section, chunk in chunks:
+                yield from close_open_stages()
+                written.add(section)
+                yield AgentEvent("report_delta", {"section": section, "markdown": chunk})
+
+        def stream_turn(turn: _StreamTurn) -> Iterator[AgentEvent]:
+            """스트림 한 턴 — 조각은 그때그때 내보내고 결과·usage는 turn에 쌓는다."""
+            try:
+                for event in self._llm.stream(messages, specs):
+                    yield from emit(turn.handle(event))
+            except Exception:  # LLM 장애·타임아웃으로 스트림을 끊지 않는다 — 모은 것까지로 마무리
+                LOGGER.warning("스트림 턴 실패 — 모은 것까지로 리포트를 맺는다", exc_info=True)
+                turn.failed = True
+            self._accumulate(turn.usage)
 
         def execute(tool: AgentTool, arguments: dict) -> Iterator[AgentEvent]:
             """도구 1건 실행 — 이벤트 방출 + 결과·인용 적재 (루프 지역 상태를 클로저로 공유)."""
@@ -297,7 +368,10 @@ class AnalysisInteractor(AnalysisUseCase):
             {"role": "user", "content": _user_message(region, industry, question, facts)},
         ]
 
+        yield AgentEvent("agent_status", {"agent": "writer", "status": "running"})
+
         deadline = self._now() + _TOOL_LOOP_BUDGET_SECONDS
+        settled = False  # 도구 없이 끝난 스트림 턴 = 리포트를 다 썼다
         for _ in range(_MAX_TURNS):
             if self._now() >= deadline:
                 LOGGER.warning(
@@ -305,13 +379,14 @@ class AnalysisInteractor(AnalysisUseCase):
                     _TOOL_LOOP_BUDGET_SECONDS,
                 )
                 break
-            try:
-                turn = self._chat(messages, specs)
-            except Exception:  # LLM 장애·타임아웃으로 스트림을 끊지 않는다 — 모은 것까지로 마무리한다
-                LOGGER.warning("도구 수집 턴 실패 — 리포트 작성으로 넘어간다", exc_info=True)
+            turn = _StreamTurn(splitter)
+            yield from stream_turn(turn)
+            if turn.failed:
+                # 이미 흘린 글이 있으면 같은 글을 다시 쓰게 하지 않는다 (설계서 §3-4)
+                settled = turn.wrote
                 break
             if not turn.tool_calls:
-                final_text = turn.text
+                settled = True
                 break
             messages.append(_assistant_message(turn.text, turn.tool_calls))
 
@@ -347,24 +422,24 @@ class AnalysisInteractor(AnalysisUseCase):
                     continue
                 yield from execute(tool, arguments)
 
-        if not final_text:
+        if not settled:
+            # 마무리 턴까지 실패하면 섹션 폴백으로 낸다. 빈 스트림(리포트 자체가 안 뜸)보다
+            # "분석 데이터가 부족합니다"가 낫다 — 화면이 끝을 알 수 있어야 한다.
             messages.append({"role": "user", "content": _FINAL_REQUEST})
-            try:
-                final_text = self._chat(messages, specs).text
-            except Exception:
-                # 마무리 턴까지 실패하면 섹션 폴백으로 낸다. 빈 스트림(리포트 자체가 안 뜸)보다
-                # "분석 데이터가 부족합니다"가 낫다 — 화면이 끝을 알 수 있어야 한다.
-                LOGGER.warning("마무리 턴 실패 — 폴백 섹션으로 리포트를 낸다", exc_info=True)
-                final_text = ""
+            yield from stream_turn(_StreamTurn(splitter))
 
-        for stage in open_stages:
-            yield AgentEvent("agent_status", {"agent": stage, "status": "done"})
+        yield from emit(splitter.flush())
+        yield from close_open_stages()
 
-        sections = split_report_sections(final_text)
         for name, title in _SECTIONS:
-            markdown = sections.get(name) or _fallback_section(name, title, facts)
-            yield AgentEvent("report_delta", {"section": name, "markdown": markdown})
+            if name in written:
+                continue
+            yield AgentEvent(
+                "report_delta",
+                {"section": name, "markdown": _fallback_section(name, title, facts)},
+            )
 
+        yield AgentEvent("agent_status", {"agent": "writer", "status": "done"})
         yield AgentEvent("agent_status", {"agent": "orchestrator", "status": "done"})
         yield AgentEvent(
             "report_done",
@@ -372,13 +447,17 @@ class AnalysisInteractor(AnalysisUseCase):
         )
 
     def _chat(self, messages: list[dict], specs: list[LLMToolSpec]) -> LLMTurn:
-        """한 턴 호출 + usage 누적 (재프롬프트·최종 강제 호출도 모두 합산된다)."""
+        """비스트리밍 한 턴 — 재프롬프트 전용이다 (화면에 나갈 글이 아니다)."""
         turn = self._llm.chat(messages, specs)
-        self.last_usage = LLMUsage(
-            input_tokens=self.last_usage.input_tokens + turn.usage.input_tokens,
-            output_tokens=self.last_usage.output_tokens + turn.usage.output_tokens,
-        )
+        self._accumulate(turn.usage)
         return turn
+
+    def _accumulate(self, usage: LLMUsage) -> None:
+        """턴 사용량 합산 — 스트림·재프롬프트가 모두 여기로 들어온다."""
+        self.last_usage = LLMUsage(
+            input_tokens=self.last_usage.input_tokens + usage.input_tokens,
+            output_tokens=self.last_usage.output_tokens + usage.output_tokens,
+        )
 
     def _retry_arguments(
         self,

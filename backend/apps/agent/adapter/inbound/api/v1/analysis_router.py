@@ -23,6 +23,7 @@ from apps.agent.dependencies.analysis_dependencies import (
     get_analysis_use_case,
 )
 from apps.agent.domain.entities.agent_event_entity import AgentEvent
+from apps.agent.domain.services.section_stream import concat_sections
 
 router = APIRouter(prefix="/analysis", tags=["analysis"])
 
@@ -73,7 +74,8 @@ def stream_events(
         use_case = override() if override is not None else build_analysis_use_case(
             pending["model"], pending["budget"]
         )
-        sections: list[str] = []
+        # report_delta는 이제 조각 단위다 — 섹션별로 이어 붙여야 저장본이 글이 된다 (설계서 §3-3⑤)
+        chunks: list[tuple[str, str]] = []
         citations: list[dict] = []
         started = time.monotonic()
         try:
@@ -82,7 +84,12 @@ def stream_events(
             ):
                 frame_event = _with_stable_report_id(event, analysis_id)
                 if frame_event.type == "report_delta":
-                    sections.append(frame_event.payload.get("markdown") or "")
+                    chunks.append(
+                        (
+                            frame_event.payload.get("section") or "",
+                            frame_event.payload.get("markdown") or "",
+                        )
+                    )
                 elif frame_event.type == "report_done":
                     citations = list(frame_event.payload.get("citations") or [])
                 yield _sse_frame(frame_event).encode("utf-8")
@@ -103,7 +110,7 @@ def stream_events(
                         region_code=pending["region"],
                         industry=pending["industry"],
                         question=pending["question"],
-                        report_md="\n\n".join(sections),
+                        report_md=concat_sections(chunks),
                         citations=citations,
                         model=model_name,
                         input_tokens=input_tokens,

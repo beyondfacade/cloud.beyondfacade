@@ -44,3 +44,15 @@ def test_section_completion_counts_non_placeholder():
     result = section_completion(events)
     assert result["complete"] == 2
     assert result["total"] == 5
+
+
+def test_section_completion은_조각_delta를_이어_붙인다():
+    """delta가 조각 단위가 되면 마지막 조각만 보고 판단하던 채점이 어긋난다 (설계서 §3-2)."""
+    events = [
+        AgentEvent("report_delta", {"section": "verdict", "markdown": "### 판정\n\n"}),
+        AgentEvent("report_delta", {"section": "verdict", "markdown": "🔴 위험"}),
+    ]
+
+    result = section_completion(events)
+
+    assert result["complete"] == 1

@@ -198,3 +198,34 @@ def test_SSE_배선은_pending_예산을_UseCase_생성에_넘긴다(monkeypatch
     client.get(f"/analysis/{analysis_id}/events")
 
     assert captured == {"model": "hybrid", "budget": 50_000_000}
+
+
+def test_저장되는_report_md는_조각을_섹션별로_이어_붙인_글이다(monkeypatch):
+    """report_delta가 조각 단위가 됐다 — 조각마다 빈 줄을 넣으면 저장본이 글이 아니게 된다."""
+    from apps.agent.adapter.inbound.api.v1 import analysis_router
+    from apps.agent.dependencies.analysis_dependencies import get_analysis_repository
+
+    saved: dict = {}
+
+    class _CapturingRepository:
+        def save_report(self, **kwargs) -> None:
+            saved.update(kwargs)
+
+    class _ChunkedUseCase(FakeAnalysisUseCase):
+        def run(self, region, industry, question):
+            yield AgentEvent("report_delta", {"section": "verdict", "markdown": "🔴 "})
+            yield AgentEvent("report_delta", {"section": "verdict", "markdown": "비추천."})
+            yield AgentEvent("report_delta", {"section": "reasons", "markdown": "폐업률이 높다."})
+            yield AgentEvent("report_done", {"report_id": "x", "citations": []})
+
+    app.dependency_overrides.clear()  # 오버라이드가 있으면 영속화 경로를 건너뛴다
+    app.dependency_overrides[get_analysis_repository] = lambda: _CapturingRepository()
+    monkeypatch.setattr(analysis_router, "build_analysis_use_case", lambda *a, **k: _ChunkedUseCase())
+
+    client = TestClient(app)
+    analysis_id = client.post("/analysis", json={"region": "1168064000", "industry": "cafe"}).json()[
+        "analysis_id"
+    ]
+    client.get(f"/analysis/{analysis_id}/events")
+
+    assert saved["report_md"] == "🔴 비추천.\n\n폐업률이 높다."

@@ -34,7 +34,10 @@ def check_rule_keywords(report_md: str) -> list[str]:
 
 
 def section_completion(events: list[AgentEvent]) -> dict:
-    """report_delta 5섹션 완성률 — '분석 데이터가 부족합니다' 만이면 incomplete."""
+    """report_delta 5섹션 완성률 — '분석 데이터가 부족합니다' 만이면 incomplete.
+
+    delta는 조각 단위라 같은 섹션이 여러 번 온다 — 덮어쓰지 말고 이어 붙여야 한다.
+    """
     expected = ("verdict", "reasons", "conditions", "alternatives", "funding")
     present: dict[str, str] = {}
     for event in events:
@@ -43,7 +46,7 @@ def section_completion(events: list[AgentEvent]) -> dict:
         section = event.payload.get("section")
         markdown = event.payload.get("markdown") or ""
         if isinstance(section, str):
-            present[section] = markdown
+            present[section] = present.get(section, "") + markdown
     complete = 0
     for name in expected:
         md = present.get(name, "")

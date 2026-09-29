@@ -4,6 +4,7 @@ import json
 
 from apps.agent.app.ports.output.agent_port import (
     LLMGatewayPort,
+    LLMStreamEvent,
     LLMToolCall,
     LLMToolSpec,
     LLMTurn,
@@ -27,6 +28,8 @@ _FINAL_TEXT = (
     "[SECTION:funding]\n### 대안 업종 지원사업\n\n공고 2건.\n"
 )
 
+_SECTION_ORDER = ["verdict", "reasons", "conditions", "alternatives", "funding"]
+
 _SIGNATURE_FIELDS = {
     "agent_status": ("agent", "status"),
     "facts": (),
@@ -42,17 +45,36 @@ def _signature(event: AgentEvent) -> tuple:
 
 
 class FakeLLM(LLMGatewayPort):
-    """턴 스크립트를 순서대로 뱉는 Fake — 호출 시점의 messages를 기록한다."""
+    """턴 스크립트를 순서대로 뱉는 Fake — 호출 시점의 messages를 기록한다.
+
+    `chunk`를 주면 스트림이 텍스트를 그 길이로 쪼개 흘린다(조각 단위 방출 검증용).
+    """
 
     model_name = "fake-llm"
 
-    def __init__(self, turns: list[LLMTurn]) -> None:
+    def __init__(self, turns: list[LLMTurn], chunk: int | None = None) -> None:
         self._turns = list(turns)
+        self._chunk = chunk
         self.calls: list[list[dict]] = []
 
     def chat(self, messages: list[dict], tools: list[LLMToolSpec]) -> LLMTurn:
         self.calls.append([dict(message) for message in messages])
         return self._turns.pop(0)
+
+    def stream(self, messages: list[dict], tools: list[LLMToolSpec]):
+        turn = self.chat(messages, tools)
+        for piece in _pieces(turn.text, self._chunk):
+            yield LLMStreamEvent(kind="text", text=piece)
+        yield LLMStreamEvent(kind="tool_calls", tool_calls=turn.tool_calls)
+        yield LLMStreamEvent(kind="usage", usage=turn.usage)
+
+
+def _pieces(text: str, chunk: int | None) -> list[str]:
+    if not text:
+        return []
+    if chunk is None:
+        return [text]
+    return [text[index : index + chunk] for index in range(0, len(text), chunk)]
 
 
 class FakeFactsCollector(ReportFactsCollector):
@@ -164,6 +186,7 @@ def test_event_order_contract_for_two_stage_tool_turn():
         ("agent_status", "facts", "running"),
         ("facts",),
         ("agent_status", "facts", "done"),
+        ("agent_status", "writer", "running"),
         ("agent_status", "market", "running"),
         ("tool_call", "market", "stub_market_tool"),
         ("agent_status", "funding", "running"),
@@ -175,10 +198,11 @@ def test_event_order_contract_for_two_stage_tool_turn():
         ("report_delta", "conditions"),
         ("report_delta", "alternatives"),
         ("report_delta", "funding"),
+        ("agent_status", "writer", "done"),
         ("agent_status", "orchestrator", "done"),
         ("report_done",),
     ]
-    assert events[10].payload["markdown"] == "### 판정\n\n🔴 위험."
+    assert events[11].payload["markdown"] == "### 판정\n\n🔴 위험."
     assert events[-1].payload["report_id"]
     assert events[-1].payload["citations"] == [
         {"title": "stub_market_tool: 역삼동", "url": "", "grade": "fact"},
@@ -235,13 +259,14 @@ def test_cite_failure_drops_citations_but_keeps_the_stream_alive():
     events = list(interactor.run("역삼동", "cafe", None))
 
     assert json.loads(llm.calls[1][-1]["content"]) == {"store_count": 10}
-    assert [_signature(event) for event in events[-8:]] == [
+    assert [_signature(event) for event in events[-9:]] == [
         ("agent_status", "market", "done"),
         ("report_delta", "verdict"),
         ("report_delta", "reasons"),
         ("report_delta", "conditions"),
         ("report_delta", "alternatives"),
         ("report_delta", "funding"),
+        ("agent_status", "writer", "done"),
         ("agent_status", "orchestrator", "done"),
         ("report_done",),
     ]
@@ -339,8 +364,8 @@ def test_schema_violation_retry_with_valid_arguments_runs_the_tool():
     events = list(interactor.run("역삼동", "cafe", None))
 
     assert executed == [{"region_code": "11680640", "industry": "cafe"}]
-    assert _signature(events[4]) == ("agent_status", "market", "running")
-    assert _signature(events[5]) == ("tool_call", "market", "stub_market_tool")
+    assert _signature(events[5]) == ("agent_status", "market", "running")
+    assert _signature(events[6]) == ("tool_call", "market", "stub_market_tool")
     # 이력: assistant(위반 호출) → tool(위반 통보) → assistant(재시도 호출 1건) → tool(결과)
     assert [message["role"] for message in llm.calls[2]] == [
         "system",
@@ -399,7 +424,7 @@ def test_valid_calls_are_answered_before_the_invalid_call_reprompt():
     assert reprompt_messages[3]["tool_name"] == "search_funding"  # 유효 호출 응답이 먼저
     assert reprompt_messages[4]["tool_name"] == "stub_market_tool"
     assert "industry" in reprompt_messages[4]["content"]
-    assert [_signature(event) for event in events[4:8]] == [
+    assert [_signature(event) for event in events[5:9]] == [
         ("agent_status", "funding", "running"),
         ("tool_call", "funding", "search_funding"),
         ("agent_status", "market", "running"),
@@ -429,13 +454,14 @@ def test_turn_limit_forces_a_final_report_call_and_finishes_the_contract():
         "role": "user",
         "content": "도구 호출을 멈추고, 지금까지 수집한 내용만으로 최종 리포트를 5개 섹션 마커 형식에 맞춰 지금 작성하라.",
     }
-    assert [_signature(event) for event in events[-8:]] == [
+    assert [_signature(event) for event in events[-9:]] == [
         ("agent_status", "market", "done"),
         ("report_delta", "verdict"),
         ("report_delta", "reasons"),
         ("report_delta", "conditions"),
         ("report_delta", "alternatives"),
         ("report_delta", "funding"),
+        ("agent_status", "writer", "done"),
         ("agent_status", "orchestrator", "done"),
         ("report_done",),
     ]
@@ -470,7 +496,7 @@ def test_tool_run_exception_is_fed_back_as_error_and_loop_continues():
     tool_result = llm.calls[1][-1]
     assert tool_result["role"] == "tool"
     assert json.loads(tool_result["content"]) == {"error": "행정동 코드를 찾을 수 없습니다"}
-    assert [_signature(event) for event in events[4:7]] == [
+    assert [_signature(event) for event in events[5:8]] == [
         ("agent_status", "market", "running"),
         ("tool_call", "market", "stub_market_tool"),
         ("agent_status", "market", "done"),
@@ -660,6 +686,13 @@ class _BoomLLM(LLMGatewayPort):
             raise TimeoutError("ollama read timeout")
         return self._turns.pop(0)
 
+    def stream(self, messages: list[dict], tools: list[LLMToolSpec]):
+        turn = self.chat(messages, tools)
+        if turn.text:
+            yield LLMStreamEvent(kind="text", text=turn.text)
+        yield LLMStreamEvent(kind="tool_calls", tool_calls=turn.tool_calls)
+        yield LLMStreamEvent(kind="usage", usage=turn.usage)
+
 
 def test_수집_턴이_터져도_리포트는_나간다():
     """LLM 타임아웃이 스트림을 끊으면 화면에 리포트가 아예 안 뜬다(NO_ARTICLE). 마무리로 넘어간다."""
@@ -790,3 +823,106 @@ def test_LLM이_쓴_판정_섹션은_폴백이_덮어쓰지_않는다():
     }
 
     assert deltas["verdict"] == "### 판정\n\n🔴 위험."
+
+
+# --- 토큰 스트리밍 (설계서 §3-3③) ---
+
+
+def test_본문은_조각_단위로_흘러나온다():
+    """같은 섹션의 report_delta가 여러 번 온다 — 프론트는 append한다 (설계서 §3-2)."""
+    from apps.agent.domain.services.section_stream import concat_sections
+
+    llm = FakeLLM([_final_turn()], chunk=13)
+    interactor = _interactor(llm, [_market_tool()])
+
+    deltas = [e for e in interactor.run("1168064000", "korean_food", None) if e.type == "report_delta"]
+
+    sections = [e.payload["section"] for e in deltas]
+    assert len(deltas) > 5, "조각이 아니라 섹션 통째로 나갔다"
+    assert sections.count("verdict") > 1
+    assert sections == sorted(sections, key=_SECTION_ORDER.index)
+    assert concat_sections((e.payload["section"], e.payload["markdown"]) for e in deltas) == (
+        "### 판정\n\n🔴 위험.\n\n"
+        "### 왜 안 되나\n\n생존 절벽이 켜졌다.\n\n"
+        "### 그래도 한다면\n\n손익분기 900만원.\n\n"
+        "### 대안 동네·업종\n\n제과점.\n\n"
+        "### 대안 업종 지원사업\n\n공고 2건."
+    )
+
+
+def test_첫_마커_앞_서문은_리포트에_실리지_않는다():
+    """도구 호출 전 잡담은 본문이 아니다 — 서문이 판정 절 머리에 붙으면 카드와 글이 어긋난다."""
+    llm = FakeLLM([_final_turn("알겠습니다. 이제 작성합니다.\n" + _FINAL_TEXT)], chunk=7)
+    interactor = _interactor(llm, [_market_tool()])
+
+    deltas = [e for e in interactor.run("1168064000", "korean_food", None) if e.type == "report_delta"]
+
+    first = [e for e in deltas if e.payload["section"] == "verdict"][0]
+    assert first.payload["markdown"].startswith("### 판정")
+    assert all("알겠습니다" not in e.payload["markdown"] for e in deltas)
+
+
+class _MidStreamBoomLLM(LLMGatewayPort):
+    """텍스트를 얼마간 흘린 뒤 끊기는 Fake — 스트림 중단 재현."""
+
+    model_name = "mid-boom"
+
+    def __init__(self, text: str) -> None:
+        self._text = text
+        self.calls = 0
+
+    def chat(self, messages, tools) -> LLMTurn:
+        raise AssertionError("스트림 중단 뒤에는 다시 부르지 않는다")
+
+    def stream(self, messages, tools):
+        self.calls += 1
+        yield LLMStreamEvent(kind="text", text=self._text)
+        raise TimeoutError("연결이 끊겼습니다")
+
+
+def test_스트림이_끊겨도_흘린_글은_남고_나머지는_폴백으로_채운다():
+    """반쯤 쓴 글을 버리지 않는다 — 남은 섹션만 폴백이 메우고 스트림은 정상 종료한다 (설계서 §3-4)."""
+    llm = _MidStreamBoomLLM("[SECTION:verdict]\n### 판정\n\n🔴 위험.\n[SECTION:reasons]\n생존 절벽.")
+    interactor = _interactor(llm, [_market_tool()], now=lambda: 0.0)
+
+    events = list(interactor.run("1168064000", "korean_food", None))
+
+    deltas = {e.payload["section"]: e.payload["markdown"] for e in events if e.type == "report_delta"}
+    assert llm.calls == 1  # 끊긴 뒤 같은 글을 다시 쓰게 하지 않는다
+    assert deltas["verdict"] == "### 판정\n\n🔴 위험."
+    assert deltas["reasons"] == "생존 절벽."
+    assert "분석 데이터가 부족합니다" in deltas["conditions"]
+    assert set(deltas) == {"verdict", "reasons", "conditions", "alternatives", "funding"}
+    assert _signature(events[-1]) == ("report_done",)
+
+
+def test_writer_스테이지가_생성_전후로_열리고_닫힌다():
+    """프론트 진행 패널이 '글 쓰는 중'을 보여주는 근거다 (설계서 §3-2)."""
+    llm = FakeLLM([_final_turn()])
+    interactor = _interactor(llm, [_market_tool()])
+
+    events = list(interactor.run("1168064000", "korean_food", None))
+
+    writer = [i for i, e in enumerate(events) if _signature(e)[:2] == ("agent_status", "writer")]
+    first_delta = next(i for i, e in enumerate(events) if e.type == "report_delta")
+    assert [events[i].payload["status"] for i in writer] == ["running", "done"]
+    assert writer[0] < first_delta < writer[1]
+
+
+def test_시스템_프롬프트가_판정_글을_배지_한_줄_해석으로_묶는다():
+    """배지·신호 목록·산출일은 판정 카드가 그린다 — 글이 그걸 되풀이하면 화면이 두 번 같은 말을 한다."""
+    from apps.agent.app.use_cases.analysis_interactor import SYSTEM_PROMPT
+
+    contract = SYSTEM_PROMPT[
+        SYSTEM_PROMPT.find("[verdict 섹션 출력 계약]") : SYSTEM_PROMPT.find("[reasons 섹션 출력 계약]")
+    ]
+    assert "배지 한 줄 해석" in contract
+    assert "산출일" not in contract  # 카드가 이미 적는다
+    assert "`evidence` 문장을 그대로 옮긴다" not in contract
+
+
+def test_시스템_프롬프트가_섹션을_쓰기_시작하면_도구를_금지한다():
+    """마커 뒤 도구 호출이 오면 이미 흘려보낸 조각을 되돌릴 수 없다 (설계서 §9)."""
+    from apps.agent.app.use_cases.analysis_interactor import SYSTEM_PROMPT
+
+    assert "섹션을 쓰기 시작하면 도구를 부르지 않는다" in SYSTEM_PROMPT
