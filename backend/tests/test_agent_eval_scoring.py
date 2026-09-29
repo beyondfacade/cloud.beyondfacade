@@ -29,13 +29,18 @@ def test_check_rule_keywords_clean_report_returns_empty():
 
 
 def test_section_completion_counts_non_placeholder():
+    """기대 섹션은 재편된 5개 키다 — alternatives도 완성으로 세어야 한다 (설계서 §6)."""
     events = [
-        AgentEvent("report_delta", {"section": "verdict", "markdown": "### 종합\n\n양호"}),
+        AgentEvent("report_delta", {"section": "verdict", "markdown": "### 판정\n\n🔴 위험"}),
         AgentEvent(
             "report_delta",
-            {"section": "market", "markdown": "### 상권\n\n분석 데이터가 부족합니다."},
+            {"section": "reasons", "markdown": "### 왜 안 되나\n\n분석 데이터가 부족합니다."},
+        ),
+        AgentEvent(
+            "report_delta",
+            {"section": "alternatives", "markdown": "### 대안 동네·업종\n\n제과점"},
         ),
     ]
     result = section_completion(events)
-    assert result["complete"] == 1
+    assert result["complete"] == 2
     assert result["total"] == 5

@@ -13,11 +13,48 @@ from apps.agent.app.ports.output.agent_port import (
     FundingFactsPort,
     LLMToolSpec,
     RegionFactsPort,
+    VerdictFactsPort,
 )
 from apps.rag.app.ports.input.rag_use_case import RagSearchUseCase
 from apps.rag.domain.entities.rag_chunk_entity import RagHit
 
 _ACQUISITION_COST_RATE = 0.046  # 매입 부대비용(취득세 등) 개산율 — §8.1③
+
+# finance 엔진 입력 13필드 — 선언 순서가 곧 required 순서다.
+_FINANCE_PROPERTIES: dict[str, dict] = {
+    "deposit": {"type": "integer", "description": "보증금(원)"},
+    "key_money": {"type": "integer", "description": "권리금(원)"},
+    "interior_cost": {"type": "integer", "description": "인테리어 비용(원)"},
+    "equipment_cost": {"type": "integer", "description": "설비 비용(원)"},
+    "monthly_rent": {"type": "integer", "description": "월세(원)"},
+    "monthly_payroll": {"type": "integer", "description": "월 인건비(원)"},
+    "monthly_insurance": {"type": "integer", "description": "월 보험료(원)"},
+    "cost_ratio": {"type": "number", "description": "원가율(비율, 예 0.35)"},
+    "fee_ratio": {"type": "number", "description": "수수료율(비율, 예 0.03)"},
+    "equity": {"type": "integer", "description": "자기자본(원)"},
+    "desired_loan": {"type": "integer", "description": "희망 대출금(원)"},
+    "loan_rate": {"type": "number", "description": "대출 연금리(비율, 예 0.0405)"},
+    "expected_monthly_revenue": {"type": "integer", "description": "예상 월매출(원)"},
+}
+
+
+def _finance_input_schema(budget: int | None) -> dict:
+    """세션 예산이 있으면 자기자본을 선택 인자로 내린다 — 생략하면 예산이 기본값으로 들어간다."""
+    equity = (
+        _FINANCE_PROPERTIES["equity"]
+        if budget is None
+        else {
+            "type": "integer",
+            "description": f"자기자본(원). 생략하면 사용자가 밝힌 예산 {budget}원을 쓴다",
+        }
+    )
+    return {
+        "type": "object",
+        "properties": {**_FINANCE_PROPERTIES, "equity": equity},
+        "required": [
+            name for name in _FINANCE_PROPERTIES if budget is None or name != "equity"
+        ],
+    }
 
 
 @dataclass
@@ -25,7 +62,7 @@ class AgentTool:
     """LLM에 노출할 도구 1개 — spec(스키마) + stage(SSE 매핑) + run(실행) + cite(인용 추출)."""
 
     spec: LLMToolSpec
-    stage: str  # "market" | "shock" | "funding" — SSE agent_status 매핑
+    stage: str  # "verdict" | "market" | "shock" | "funding" — SSE agent_status 매핑
     run: Callable[[dict], str]  # 결과는 LLM에 넣을 압축 JSON 문자열
     cite: Callable[[dict, str], list[dict]] | None = None  # (args, result) -> citations 항목
 
@@ -98,8 +135,25 @@ def build_tools(
     rag_search: RagSearchUseCase,
     finance: FinanceFactsPort,
     funding: FundingFactsPort,
+    verdict: VerdictFactsPort,
+    budget: int | None = None,
 ) -> list[AgentTool]:
-    """10종 도구를 조립한다 — 이름/분기는 registry(리스트) 하나로, if/elif 없이."""
+    """12종 도구를 조립한다 — 이름/분기는 registry(리스트) 하나로, if/elif 없이."""
+
+    def run_get_verdict(args: dict) -> str:
+        result = verdict.verdict(args["region_code"], args["industry_id"])
+        return json.dumps(result, ensure_ascii=False)
+
+    def cite_get_verdict(args: dict, _result: str) -> list[dict]:
+        return _fact_citation(
+            "region_industry_verdict",
+            region_code=args["region_code"],
+            industry_id=args["industry_id"],
+        )
+
+    def run_get_verdict_alternatives(args: dict) -> str:
+        result = verdict.alternatives(args["region_code"], args["industry_id"])
+        return json.dumps(result, ensure_ascii=False)
 
     def run_get_region_metrics(args: dict) -> str:
         result = facts.metrics(args["region_code"], args["industry"])
@@ -175,7 +229,8 @@ def build_tools(
 
     def run_finance_simulation(args: dict) -> str:
         # 계산은 finance BC 엔진이 한다 — LLM은 표를 읽고 설명만 한다 (설계서 §6)
-        return json.dumps(finance.simulate(args), ensure_ascii=False)
+        inputs = args if budget is None else {"equity": budget, **args}
+        return json.dumps(finance.simulate(inputs), ensure_ascii=False)
 
     def cite_finance_simulation(_args: dict, _result: str) -> list[dict]:
         return _fact_citation("finance_engine")
@@ -198,6 +253,47 @@ def build_tools(
         return json.dumps(result, ensure_ascii=False)
 
     return [
+        # 판정 도구가 앞자리다 — 리포트 첫 섹션이 판정이라 LLM이 판정부터 읽어야 한다 (설계서 §5-2)
+        AgentTool(
+            spec=LLMToolSpec(
+                name="get_verdict",
+                description=(
+                    "행정동×업종의 창업 판정 카드를 조회한다 — 등급·신호 5개(근거·백분위·참고 여부)·산출일. "
+                    "판정이 없거나 판정 대상 업종이 아니면 available=false와 이유를 돌려준다."
+                ),
+                input_schema={
+                    "type": "object",
+                    "properties": {
+                        "region_code": {"type": "string", "description": "행정동 코드"},
+                        "industry_id": {"type": "string", "description": "업종 ID"},
+                    },
+                    "required": ["region_code", "industry_id"],
+                },
+            ),
+            stage="verdict",
+            run=run_get_verdict,
+            cite=cite_get_verdict,
+        ),
+        AgentTool(
+            spec=LLMToolSpec(
+                name="get_verdict_alternatives",
+                description=(
+                    "판정 대안 두 축을 조회한다 — 같은 동네의 다른 업종, 같은 업종의 다른 동네. "
+                    "기준 판정이 없으면 available=false와 이유를 돌려준다."
+                ),
+                input_schema={
+                    "type": "object",
+                    "properties": {
+                        "region_code": {"type": "string", "description": "행정동 코드"},
+                        "industry_id": {"type": "string", "description": "업종 ID"},
+                    },
+                    "required": ["region_code", "industry_id"],
+                },
+            ),
+            stage="verdict",
+            run=run_get_verdict_alternatives,
+            cite=cite_get_verdict,
+        ),
         AgentTool(
             spec=LLMToolSpec(
                 name="get_region_metrics",
@@ -352,27 +448,9 @@ def build_tools(
                     "창업 자금 계획을 결정론 엔진으로 계산한다 — 총 준비자금·자기자본 외 조달 필요·"
                     "희망대출 반영 후 부족액·손익분기 매출·시나리오 3·금리 스트레스 2. 원 단위 정수, 비율은 소수."
                 ),
-                input_schema={
-                    "type": "object",
-                    "properties": {
-                        "deposit": {"type": "integer", "description": "보증금(원)"},
-                        "key_money": {"type": "integer", "description": "권리금(원)"},
-                        "interior_cost": {"type": "integer", "description": "인테리어 비용(원)"},
-                        "equipment_cost": {"type": "integer", "description": "설비 비용(원)"},
-                        "monthly_rent": {"type": "integer", "description": "월세(원)"},
-                        "monthly_payroll": {"type": "integer", "description": "월 인건비(원)"},
-                        "monthly_insurance": {"type": "integer", "description": "월 보험료(원)"},
-                        "cost_ratio": {"type": "number", "description": "원가율(비율, 예 0.35)"},
-                        "fee_ratio": {"type": "number", "description": "수수료율(비율, 예 0.03)"},
-                        "equity": {"type": "integer", "description": "자기자본(원)"},
-                        "desired_loan": {"type": "integer", "description": "희망 대출금(원)"},
-                        "loan_rate": {"type": "number", "description": "대출 연금리(비율, 예 0.0405)"},
-                        "expected_monthly_revenue": {"type": "integer", "description": "예상 월매출(원)"},
-                    },
-                    "required": ["deposit", "key_money", "interior_cost", "equipment_cost", "monthly_rent", "monthly_payroll", "monthly_insurance", "cost_ratio", "fee_ratio", "equity", "desired_loan", "loan_rate", "expected_monthly_revenue"],
-                },
+                input_schema=_finance_input_schema(budget),
             ),
-            # SSE agent_status 어휘는 market|shock|funding 셋뿐(프론트 AgentName 합집합) — 계산기는 funding에 속한다
+            # SSE agent_status 어휘에 계산기 스테이지는 없다(프론트 AgentName 합집합) — 계산기는 funding에 속한다
             stage="funding",
             run=run_finance_simulation,
             cite=cite_finance_simulation,

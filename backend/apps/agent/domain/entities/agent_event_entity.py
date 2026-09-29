@@ -8,9 +8,9 @@ class AgentEvent:
     """스트리밍 이벤트 1건.
 
     type별 payload 필드:
-    - agent_status : {agent, status}        agent ∈ orchestrator|market|shock|funding, status ∈ running|done
+    - agent_status : {agent, status}        agent ∈ orchestrator|verdict|market|shock|funding, status ∈ running|done
     - tool_call    : {agent, tool, summary}
-    - report_delta : {section, markdown}    section ∈ verdict|market|shock|funding|calculator
+    - report_delta : {section, markdown}    section ∈ verdict|reasons|conditions|alternatives|funding
     - report_done  : {report_id, citations}
     """
 

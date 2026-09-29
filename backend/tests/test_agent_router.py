@@ -12,7 +12,7 @@ from main import app
 
 _FIXED_EVENTS = (
     AgentEvent("agent_status", {"agent": "orchestrator", "status": "running"}),
-    AgentEvent("report_delta", {"section": "verdict", "markdown": "### 종합 판정\n\n테스트"}),
+    AgentEvent("report_delta", {"section": "verdict", "markdown": "### 판정\n\n테스트"}),
     AgentEvent(
         "report_done",
         {"report_id": "will-be-overridden", "citations": [{"title": "t", "url": "", "grade": "fact"}]},
@@ -94,3 +94,28 @@ def test_unknown_analysis_id_returns_404_body():
     body = response.json()
     assert body["error"]["code"] == "ANALYSIS_NOT_FOUND"
     assert body["error"]["message"]
+
+
+def test_예산을_받으면_pending에_실린다():
+    """budget은 finance 도구 기본값으로 배선에 넘어간다 (설계서 §5-2)."""
+    from apps.agent.adapter.inbound.api.v1 import analysis_router
+
+    analysis_id = TestClient(app).post(
+        "/analysis",
+        json={"region": "1168064000", "industry": "cafe", "budget": 50_000_000},
+    ).json()["analysis_id"]
+
+    assert analysis_router._PENDING[analysis_id]["budget"] == 50_000_000
+
+
+def test_예산_없는_기존_요청도_그대로_받는다():
+    """FE 컷오버 전 요청 호환 — budget은 선택이고 없으면 None이다."""
+    from apps.agent.adapter.inbound.api.v1 import analysis_router
+
+    response = TestClient(app).post(
+        "/analysis",
+        json={"region": "1168064000", "industry": "cafe"},
+    )
+
+    assert response.status_code == 200
+    assert analysis_router._PENDING[response.json()["analysis_id"]]["budget"] is None

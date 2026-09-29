@@ -1,4 +1,4 @@
-"""agent_tools — 도구 레지스트리 10종 + 월세vs매입 계산기 단위 테스트 (Fake 포트, DB 없음)."""
+"""agent_tools — 도구 레지스트리 12종 + 월세vs매입 계산기 단위 테스트 (Fake 포트, DB 없음)."""
 
 import json
 
@@ -6,6 +6,7 @@ from apps.agent.app.ports.output.agent_port import (
     FinanceFactsPort,
     FundingFactsPort,
     RegionFactsPort,
+    VerdictFactsPort,
 )
 from apps.agent.app.use_cases.agent_tools import build_tools, compare_rent_vs_buy
 from apps.rag.app.ports.input.rag_use_case import RagSearchUseCase
@@ -136,14 +137,87 @@ class FakeFundingFactsPort(FundingFactsPort):
         }
 
 
+class FakeVerdictFactsPort(VerdictFactsPort):
+    """판정 카드·대안 Fake — 게이트웨이가 만들어 주는 dict 형태를 그대로 흉내 낸다."""
+
+    def __init__(self) -> None:
+        self.calls: list[tuple[str, str, str]] = []
+
+    def verdict(self, region_code: str, industry_id: str) -> dict:
+        self.calls.append(("verdict", region_code, industry_id))
+        return {
+            "available": True,
+            "region_code": region_code,
+            "industry_id": industry_id,
+            "verdict_code": "red",
+            "strong_count": 2,
+            "on_count": 3,
+            "signals": [
+                {
+                    "key": "survival_cliff",
+                    "level": "strong",
+                    "value": 0.41,
+                    "percentile": 93.0,
+                    "evidence": "3년 생존율 41%로 서울 하위 7%입니다.",
+                    "source": "store",
+                    "advisory": False,
+                },
+                {
+                    "key": "shrinking",
+                    "level": "on",
+                    "value": None,
+                    "percentile": None,
+                    "evidence": "서울시 상권변화지표가 '상권축소'입니다.",
+                    "source": "neighborhood",
+                    "advisory": True,
+                },
+            ],
+            "computed_at": "2026-09-29T00:00:00",
+        }
+
+    def alternatives(self, region_code: str, industry_id: str) -> dict:
+        self.calls.append(("alternatives", region_code, industry_id))
+        return {
+            "available": True,
+            "region_code": region_code,
+            "industry_id": industry_id,
+            "neighborhood_type": "office",
+            "industries": [
+                {
+                    "industry_id": "bakery",
+                    "industry_name": "제과점",
+                    "verdict_code": "clear",
+                    "strong_count": 0,
+                    "on_count": 0,
+                }
+            ],
+            "regions": [],
+        }
+
+
+class UnavailableVerdictFactsPort(FakeVerdictFactsPort):
+    """판정 없음·대상 아님 — 게이트웨이가 예외를 삼키고 돌려주는 형태."""
+
+    def verdict(self, region_code: str, industry_id: str) -> dict:
+        return {"available": False, "reason": "판정 대상 업종이 아닙니다"}
+
+    def alternatives(self, region_code: str, industry_id: str) -> dict:
+        return {"available": False, "reason": "판정 대상 업종이 아닙니다"}
+
+
 def _build_tools(
-    finance: FinanceFactsPort | None = None, funding: FundingFactsPort | None = None
+    finance: FinanceFactsPort | None = None,
+    funding: FundingFactsPort | None = None,
+    verdict: VerdictFactsPort | None = None,
+    budget: int | None = None,
 ) -> list:
     return build_tools(
         FakeRegionFactsPort(),
         FakeRagSearchUseCase(),
         finance or FakeFinanceFactsPort(),
         funding or FakeFundingFactsPort(),
+        verdict or FakeVerdictFactsPort(),
+        budget,
     )
 
 
@@ -191,12 +265,14 @@ def test_compare_rent_vs_buy_monthly_interest_exceeds_rent_gives_none_breakeven(
 
 
 def test_build_tools_returns_9_tools_with_correct_name_and_stage():
-    """10종 도구 name/stage 정확 매핑."""
+    """12종 도구 name/stage 정확 매핑."""
     tools = _build_tools()
 
     by_name = {tool.spec.name: tool.stage for tool in tools}
 
     assert by_name == {
+        "get_verdict": "verdict",
+        "get_verdict_alternatives": "verdict",
         "get_region_metrics": "market",
         "get_region_summary": "market",
         "get_neighborhood_profile": "market",
@@ -230,7 +306,13 @@ def test_every_tool_input_schema_declares_required_params():
 def test_get_region_metrics_run_returns_json_string_via_fake_port():
     """get_region_metrics.run은 RegionFactsPort.metrics 결과를 압축 JSON 문자열로 반환한다."""
     facts = FakeRegionFactsPort()
-    tools = build_tools(facts, FakeRagSearchUseCase(), FakeFinanceFactsPort(), FakeFundingFactsPort())
+    tools = build_tools(
+        facts,
+        FakeRagSearchUseCase(),
+        FakeFinanceFactsPort(),
+        FakeFundingFactsPort(),
+        FakeVerdictFactsPort(),
+    )
     tool = next(t for t in tools if t.spec.name == "get_region_metrics")
 
     result = tool.run({"region_code": "11010", "industry": "cafe"})
@@ -250,7 +332,11 @@ def test_compare_rent_vs_buy_tool_returns_error_payload_when_loan_facility_rate_
             return {}
 
     tools = build_tools(
-        RatelessRegionFactsPort(), FakeRagSearchUseCase(), FakeFinanceFactsPort(), FakeFundingFactsPort()
+        RatelessRegionFactsPort(),
+        FakeRagSearchUseCase(),
+        FakeFinanceFactsPort(),
+        FakeFundingFactsPort(),
+        FakeVerdictFactsPort(),
     )
     tool = next(t for t in tools if t.spec.name == "compare_rent_vs_buy")
 
@@ -352,7 +438,7 @@ def test_run_finance_simulation_requires_all_13_fields_and_cites_the_engine():
     tool = next(t for t in _build_tools() if t.spec.name == "run_finance_simulation")
 
     assert set(tool.spec.input_schema["required"]) == set(_ENGINE_INPUT)
-    assert tool.stage == "funding"  # SSE agent_status 어휘는 market|shock|funding — calculator 스테이지는 없다
+    assert tool.stage == "funding"  # SSE agent_status 어휘는 verdict|market|shock|funding — 계산기 스테이지는 없다
     assert tool.cite({}, "{}") == [{"grade": "fact", "source": "finance_engine"}]
 
 
@@ -398,3 +484,106 @@ def test_get_funding_candidates_cites_each_program_url():
             "url": "https://example.test/1",
         }
     ]
+
+
+# --- verdict 스테이지 도구 2종 (설계서 §5-2) ---
+
+
+def test_판정_도구가_다른_스테이지보다_먼저_배치된다():
+    """리포트 첫 섹션이 판정이라 LLM이 판정부터 읽게 한다 — 목록 앞자리가 그 신호다."""
+    tools = _build_tools()
+
+    assert [t.spec.name for t in tools[:2]] == ["get_verdict", "get_verdict_alternatives"]
+    assert [t.stage for t in tools[:2]] == ["verdict", "verdict"]
+
+
+def test_get_verdict가_카드_전_필드를_참고_신호_표시와_함께_돌려준다():
+    """등급·신호·근거·백분위·산출일을 그대로 옮기고, 참고 신호는 advisory로 구분한다."""
+    verdict = FakeVerdictFactsPort()
+    tool = next(t for t in _build_tools(verdict=verdict) if t.spec.name == "get_verdict")
+
+    payload = json.loads(tool.run({"region_code": "1168064000", "industry_id": "cafe"}))
+
+    assert verdict.calls == [("verdict", "1168064000", "cafe")]
+    assert payload["verdict_code"] == "red"
+    assert (payload["strong_count"], payload["on_count"]) == (2, 3)
+    assert payload["computed_at"] == "2026-09-29T00:00:00"
+    assert payload["signals"][0]["evidence"].startswith("3년 생존율")
+    assert payload["signals"][0]["advisory"] is False
+    assert payload["signals"][1]["advisory"] is True  # 상권 축소는 경고가 아니라 참고
+
+
+def test_get_verdict_alternatives가_두_축을_그대로_돌려준다():
+    verdict = FakeVerdictFactsPort()
+    tool = next(
+        t for t in _build_tools(verdict=verdict) if t.spec.name == "get_verdict_alternatives"
+    )
+
+    payload = json.loads(tool.run({"region_code": "1168064000", "industry_id": "cafe"}))
+
+    assert verdict.calls == [("alternatives", "1168064000", "cafe")]
+    assert payload["industries"][0]["industry_name"] == "제과점"
+    assert payload["regions"] == []
+
+
+def test_판정이_없으면_도구가_available_false와_이유를_돌려준다():
+    """예외가 아니라 값으로 돌려줘야 LLM이 '판정 없음'을 그대로 쓸 수 있다."""
+    tools = _build_tools(verdict=UnavailableVerdictFactsPort())
+
+    for name in ("get_verdict", "get_verdict_alternatives"):
+        tool = next(t for t in tools if t.spec.name == name)
+        payload = json.loads(tool.run({"region_code": "1168064000", "industry_id": "real_estate"}))
+        assert payload == {"available": False, "reason": "판정 대상 업종이 아닙니다"}
+
+
+def test_판정_도구는_판정_테이블을_인용한다():
+    tool = next(t for t in _build_tools() if t.spec.name == "get_verdict")
+
+    citations = tool.cite({"region_code": "1168064000", "industry_id": "cafe"}, "{}")
+
+    assert citations == [
+        {
+            "grade": "fact",
+            "source": "region_industry_verdict",
+            "region_code": "1168064000",
+            "industry_id": "cafe",
+        }
+    ]
+
+
+# --- 세션 예산 → finance 도구 기본값 (설계서 §5-2) ---
+
+
+def test_예산을_주면_자기자본을_생략해도_예산이_기본값으로_들어간다():
+    finance = FakeFinanceFactsPort()
+    tool = next(
+        t
+        for t in _build_tools(finance=finance, budget=50_000_000)
+        if t.spec.name == "run_finance_simulation"
+    )
+    without_equity = {k: v for k, v in _ENGINE_INPUT.items() if k != "equity"}
+
+    tool.run(dict(without_equity))
+
+    assert finance.inputs == [{**without_equity, "equity": 50_000_000}]
+    assert "equity" not in tool.spec.input_schema["required"]  # 생략이 가능해야 기본값이 뜻을 갖는다
+
+
+def test_예산이_있어도_LLM이_준_자기자본이_이긴다():
+    finance = FakeFinanceFactsPort()
+    tool = next(
+        t
+        for t in _build_tools(finance=finance, budget=50_000_000)
+        if t.spec.name == "run_finance_simulation"
+    )
+
+    tool.run(dict(_ENGINE_INPUT))
+
+    assert finance.inputs == [_ENGINE_INPUT]
+
+
+def test_예산이_없으면_자기자본은_그대로_필수다():
+    """기존 요청(budget 없음)의 스키마는 한 글자도 달라지지 않는다."""
+    tool = next(t for t in _build_tools() if t.spec.name == "run_finance_simulation")
+
+    assert "equity" in tool.spec.input_schema["required"]

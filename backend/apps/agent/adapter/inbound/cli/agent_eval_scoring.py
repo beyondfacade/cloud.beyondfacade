@@ -35,7 +35,7 @@ def check_rule_keywords(report_md: str) -> list[str]:
 
 def section_completion(events: list[AgentEvent]) -> dict:
     """report_delta 5섹션 완성률 — '분석 데이터가 부족합니다' 만이면 incomplete."""
-    expected = ("verdict", "market", "shock", "funding", "calculator")
+    expected = ("verdict", "reasons", "conditions", "alternatives", "funding")
     present: dict[str, str] = {}
     for event in events:
         if event.type != "report_delta":

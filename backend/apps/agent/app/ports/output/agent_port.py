@@ -89,6 +89,22 @@ class FundingFactsPort(ABC):
         """서울/전국 미만료 공고 상위 8건 + 요청 값 되돌림. 자격 확정이 아니다."""
 
 
+class VerdictFactsPort(ABC):
+    """Driven Port — verdict BC의 판정 카드·대안 조회 (cross-BC 접근은 구현체 안에서만).
+
+    판정 없음·판정 대상 아님은 예외가 아니라 `{"available": False, "reason": ...}` 값으로 돌려준다 —
+    LLM이 "판정 없음"을 이유와 함께 그대로 옮겨 쓸 수 있어야 한다 (설계서 §5-2).
+    """
+
+    @abstractmethod
+    def verdict(self, region_code: str, industry_id: str) -> dict:
+        """판정 카드 전 필드 — 등급·신호 5개(근거·백분위·참고 여부)·산출일."""
+
+    @abstractmethod
+    def alternatives(self, region_code: str, industry_id: str) -> dict:
+        """대안 두 축 — 같은 동네의 다른 업종, 같은 업종의 다른 동네."""
+
+
 class FinanceFactsPort(ABC):
     """Driven Port — finance BC 결정론 엔진 호출 (cross-BC 접근은 구현체 안에서만).
 

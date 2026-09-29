@@ -9,6 +9,7 @@ from collections.abc import Callable
 from apps.agent.adapter.outbound.gateways.finance_facts_gateway import FinanceFactsGateway
 from apps.agent.adapter.outbound.gateways.funding_facts_gateway import FundingFactsGateway
 from apps.agent.adapter.outbound.gateways.region_facts_gateway import RegionFactsGateway
+from apps.agent.adapter.outbound.gateways.verdict_facts_gateway import VerdictFactsGateway
 from apps.agent.adapter.outbound.llm.fallback_llm_adapter import FallbackLLMAdapter
 from apps.agent.adapter.outbound.llm.gemini_llm_adapter import GeminiLLMAdapter
 from apps.agent.adapter.outbound.llm.ollama_llm_adapter import OllamaLLMAdapter
@@ -44,8 +45,11 @@ _LLM_REGISTRY: dict[str, Callable[[], LLMGatewayPort]] = {
 }
 
 
-def build_analysis_use_case(model: str = "hybrid") -> AnalysisUseCase:
-    """요청 스코프 AnalysisInteractor — last_usage 누적이 요청 간에 섞이지 않게."""
+def build_analysis_use_case(model: str = "hybrid", budget: int | None = None) -> AnalysisUseCase:
+    """요청 스코프 AnalysisInteractor — last_usage 누적이 요청 간에 섞이지 않게.
+
+    세션 예산(원)은 여기서 도구에 심는다 — finance 도구의 자기자본 기본값이 된다(설계서 §5-2).
+    """
     try:
         llm_factory = _LLM_REGISTRY[model]
     except KeyError as error:
@@ -55,6 +59,8 @@ def build_analysis_use_case(model: str = "hybrid") -> AnalysisUseCase:
         get_rag_search_use_case(),
         FinanceFactsGateway(),
         FundingFactsGateway(),
+        VerdictFactsGateway(),
+        budget,
     )
     return AnalysisInteractor(llm=llm_factory(), tools=tools)
 

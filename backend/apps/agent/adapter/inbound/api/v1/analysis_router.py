@@ -45,6 +45,7 @@ def create_analysis(body: AnalysisCreateRequest) -> AnalysisCreateResponse:
         "industry": body.industry,
         "question": body.question,
         "model": body.model,
+        "budget": body.budget,
     }
     return AnalysisCreateResponse(analysis_id=analysis_id)
 
@@ -70,7 +71,7 @@ def stream_events(
     def event_stream() -> Iterator[bytes]:
         override = request.app.dependency_overrides.get(get_analysis_use_case)
         use_case = override() if override is not None else build_analysis_use_case(
-            pending["model"]
+            pending["model"], pending["budget"]
         )
         sections: list[str] = []
         citations: list[dict] = []

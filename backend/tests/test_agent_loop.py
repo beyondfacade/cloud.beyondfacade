@@ -17,11 +17,11 @@ from apps.agent.app.use_cases.analysis_interactor import (
 from apps.agent.domain.entities.agent_event_entity import AgentEvent
 
 _FINAL_TEXT = (
-    "[SECTION:verdict]\n### 종합 판정\n\n조건부 추천.\n"
-    "[SECTION:market]\n### 상권 기초체력\n\n점포수 10개.\n"
-    "[SECTION:shock]\n### 충격 취약도\n\nV자 회복.\n"
-    "[SECTION:funding]\n### 자금 조달\n\n공고 2건.\n"
-    "[SECTION:calculator]\n### 비용 계산\n\n손익분기 1.2년.\n"
+    "[SECTION:verdict]\n### 판정\n\n🔴 위험.\n"
+    "[SECTION:reasons]\n### 왜 안 되나\n\n생존 절벽이 켜졌다.\n"
+    "[SECTION:conditions]\n### 그래도 한다면\n\n손익분기 900만원.\n"
+    "[SECTION:alternatives]\n### 대안 동네·업종\n\n제과점.\n"
+    "[SECTION:funding]\n### 대안 업종 지원사업\n\n공고 2건.\n"
 )
 
 _SIGNATURE_FIELDS = {
@@ -147,14 +147,14 @@ def test_event_order_contract_for_two_stage_tool_turn():
         ("agent_status", "market", "done"),
         ("agent_status", "funding", "done"),
         ("report_delta", "verdict"),
-        ("report_delta", "market"),
-        ("report_delta", "shock"),
+        ("report_delta", "reasons"),
+        ("report_delta", "conditions"),
+        ("report_delta", "alternatives"),
         ("report_delta", "funding"),
-        ("report_delta", "calculator"),
         ("agent_status", "orchestrator", "done"),
         ("report_done",),
     ]
-    assert events[7].payload["markdown"] == "### 종합 판정\n\n조건부 추천."
+    assert events[7].payload["markdown"] == "### 판정\n\n🔴 위험."
     assert events[-1].payload["report_id"]
     assert events[-1].payload["citations"] == [
         {"title": "get_region_metrics: 역삼동", "url": "", "grade": "fact"},
@@ -214,10 +214,10 @@ def test_cite_failure_drops_citations_but_keeps_the_stream_alive():
     assert [_signature(event) for event in events[-8:]] == [
         ("agent_status", "market", "done"),
         ("report_delta", "verdict"),
-        ("report_delta", "market"),
-        ("report_delta", "shock"),
+        ("report_delta", "reasons"),
+        ("report_delta", "conditions"),
+        ("report_delta", "alternatives"),
         ("report_delta", "funding"),
-        ("report_delta", "calculator"),
         ("agent_status", "orchestrator", "done"),
         ("report_done",),
     ]
@@ -228,27 +228,27 @@ def test_split_report_sections_parses_five_markers():
     """섹션 파서 정상 — 마커 5개를 순서대로 분할한다."""
     sections = split_report_sections(_FINAL_TEXT)
 
-    assert list(sections) == ["verdict", "market", "shock", "funding", "calculator"]
-    assert sections["calculator"] == "### 비용 계산\n\n손익분기 1.2년."
+    assert list(sections) == ["verdict", "reasons", "conditions", "alternatives", "funding"]
+    assert sections["funding"] == "### 대안 업종 지원사업\n\n공고 2건."
 
 
 def test_missing_sections_fall_back_to_shortage_notice():
     """최종 텍스트에 없는 섹션은 폴백 문구로 채워 5건을 모두 방출한다."""
-    llm = FakeLLM([_final_turn("[SECTION:verdict]\n### 종합 판정\n\n추천.")])
+    llm = FakeLLM([_final_turn("[SECTION:verdict]\n### 판정\n\n🔴 위험.")])
     interactor = AnalysisInteractor(llm, [_metrics_tool()])
 
     deltas = [event for event in interactor.run("역삼동", "cafe", None) if event.type == "report_delta"]
 
     assert [event.payload["section"] for event in deltas] == [
         "verdict",
-        "market",
-        "shock",
+        "reasons",
+        "conditions",
+        "alternatives",
         "funding",
-        "calculator",
     ]
-    assert deltas[0].payload["markdown"] == "### 종합 판정\n\n추천."
-    assert deltas[1].payload["markdown"] == "### 상권 기초체력\n\n분석 데이터가 부족합니다."
-    assert deltas[4].payload["markdown"] == "### 비용 계산\n\n분석 데이터가 부족합니다."
+    assert deltas[0].payload["markdown"] == "### 판정\n\n🔴 위험."
+    assert deltas[1].payload["markdown"] == "### 왜 안 되나\n\n분석 데이터가 부족합니다."
+    assert deltas[4].payload["markdown"] == "### 대안 업종 지원사업\n\n분석 데이터가 부족합니다."
 
 
 def test_split_report_sections_keeps_last_duplicate_marker():
@@ -409,10 +409,10 @@ def test_turn_limit_forces_a_final_report_call_and_finishes_the_contract():
     assert [_signature(event) for event in events[-8:]] == [
         ("agent_status", "market", "done"),
         ("report_delta", "verdict"),
-        ("report_delta", "market"),
-        ("report_delta", "shock"),
+        ("report_delta", "reasons"),
+        ("report_delta", "conditions"),
+        ("report_delta", "alternatives"),
         ("report_delta", "funding"),
-        ("report_delta", "calculator"),
         ("agent_status", "orchestrator", "done"),
         ("report_done",),
     ]
@@ -457,15 +457,49 @@ def test_tool_run_exception_is_fed_back_as_error_and_loop_continues():
     assert events[-1].payload["citations"] == []
 
 
-def test_시스템_프롬프트가_market_슬롯_여섯을_순서대로_고정한다():
-    """market 섹션은 자유 서술이 아니다 — 라벨 6종이 선언된 순서 그대로 있어야 한다 (설계서 §7-4)."""
+def test_시스템_프롬프트가_다섯_섹션_마커를_순서대로_고정한다():
+    """섹션 키·제목·순서는 프론트와의 계약이다 (설계서 §6 계약 표)."""
     from apps.agent.app.use_cases.analysis_interactor import SYSTEM_PROMPT
 
-    labels = ["한 줄 요약", "동네 설명", "고객 구성", "시간대 특성", "주의점", "확인할 것"]
-    positions = [SYSTEM_PROMPT.find(f"**{label}**") for label in labels]
+    markers = [
+        "[SECTION:verdict] 판정",
+        "[SECTION:reasons] 왜 안 되나",
+        "[SECTION:conditions] 그래도 한다면",
+        "[SECTION:alternatives] 대안 동네·업종",
+        "[SECTION:funding] 대안 업종 지원사업",
+    ]
+    positions = [SYSTEM_PROMPT.find(marker) for marker in markers]
 
-    assert all(position > 0 for position in positions), "선언되지 않은 슬롯이 있다"
-    assert positions == sorted(positions), "슬롯 순서가 계약과 다르다"
+    assert all(position > 0 for position in positions), "선언되지 않은 마커가 있다"
+    assert positions == sorted(positions), "마커 순서가 계약과 다르다"
+
+
+def test_시스템_프롬프트가_판정을_도구_값_그대로_옮기게_한다():
+    """등급을 LLM이 새로 만들면 지도 배지와 리포트가 어긋난다 (설계서 §5-2)."""
+    from apps.agent.app.use_cases.analysis_interactor import SYSTEM_PROMPT
+
+    assert "get_verdict" in SYSTEM_PROMPT
+    assert "그대로 옮긴다" in SYSTEM_PROMPT
+    assert "등급을 바꾸거나" in SYSTEM_PROMPT
+    assert "🟢 추천을 쓰지 않는다" in SYSTEM_PROMPT
+    assert "판정 없음" in SYSTEM_PROMPT
+
+
+def test_시스템_프롬프트가_참고_신호를_경고로_쓰지_못하게_한다():
+    """상권 축소는 등급에서 빠진 참고 신호다 (설계서 §7)."""
+    from apps.agent.app.use_cases.analysis_interactor import SYSTEM_PROMPT
+
+    assert "advisory" in SYSTEM_PROMPT
+    assert "참고" in SYSTEM_PROMPT
+
+
+def test_시스템_프롬프트가_대안을_두_축_각_최대_3개로_묶는다():
+    from apps.agent.app.use_cases.analysis_interactor import SYSTEM_PROMPT
+
+    assert "[alternatives 섹션 출력 계약]" in SYSTEM_PROMPT
+    assert "get_verdict_alternatives" in SYSTEM_PROMPT
+    assert "최대 3개" in SYSTEM_PROMPT
+    assert "대안 없음" in SYSTEM_PROMPT
 
 
 def test_시스템_프롬프트가_없는_수치를_지어내지_못하게_한다():
@@ -475,7 +509,7 @@ def test_시스템_프롬프트가_없는_수치를_지어내지_못하게_한�
     assert "caveats" in SYSTEM_PROMPT
 
 
-def test_시스템_프롬프트가_동네_설명과_주의점을_벤치마크와_비교해_쓰게_한다():
+def test_시스템_프롬프트가_지표를_벤치마크와_비교해_쓰게_한다():
     """패널에서 본 절대값을 리포트가 되풀이하지 않게 — 서울 평균·유형 중앙값 대비로 쓴다 (무대 설계서 §7)."""
     from apps.agent.app.use_cases.analysis_interactor import SYSTEM_PROMPT
 
@@ -483,11 +517,14 @@ def test_시스템_프롬프트가_동네_설명과_주의점을_벤치마크와
     assert "비교 기준 없는 절대값" in SYSTEM_PROMPT
 
 
-def test_시스템_프롬프트가_calculator_절에서_엔진_수치를_그대로_인용하게_한다():
-    """비용 계산은 다시 계산하지 않고 표를 인용한다. 부족액 0원 함정 — '충분합니다'를 쓰지 않는다."""
+def test_시스템_프롬프트가_conditions_절에_조건_셋을_세운다():
+    """그래도 한다면 = 시간대 조건·임대료 상한·손익분기 매출. 부족액 0원 함정도 그대로 막는다."""
     from apps.agent.app.use_cases.analysis_interactor import SYSTEM_PROMPT
 
-    assert "[calculator 섹션 출력 계약]" in SYSTEM_PROMPT
+    assert "[conditions 섹션 출력 계약]" in SYSTEM_PROMPT
+    assert "시간대 조건" in SYSTEM_PROMPT
+    assert "임대료 상한" in SYSTEM_PROMPT
+    assert "손익분기 매출" in SYSTEM_PROMPT
     assert "run_finance_simulation" in SYSTEM_PROMPT
     assert "다시 계산하지 않는다" in SYSTEM_PROMPT
     assert "external_funding_need" in SYSTEM_PROMPT
@@ -516,10 +553,10 @@ def test_도구_수집이_벽시계_예산을_넘기면_멈추고_리포트를_�
     assert llm.calls[-1][-1]["content"].startswith("도구 호출을 멈추고")
     assert [e.payload["section"] for e in events if e.type == "report_delta"] == [
         "verdict",
-        "market",
-        "shock",
+        "reasons",
+        "conditions",
+        "alternatives",
         "funding",
-        "calculator",
     ]
 
 
@@ -561,10 +598,10 @@ def test_수집_턴이_터져도_리포트는_나간다():
 
     assert [e.payload["section"] for e in events if e.type == "report_delta"] == [
         "verdict",
-        "market",
-        "shock",
+        "reasons",
+        "conditions",
+        "alternatives",
         "funding",
-        "calculator",
     ]
     assert events[-1].type == "report_done"
 
@@ -583,9 +620,10 @@ def test_마무리_턴까지_터지면_폴백_섹션으로_낸다():
 
 
 def test_시스템_프롬프트가_공고_후보를_자격_확정으로_쓰지_못하게_한다():
-    """후보는 해당 가능성이지 자격 판정이 아니다 (설계서 §6)."""
+    """후보는 해당 가능성이지 자격 판정이 아니다 (설계서 §6). 대안 업종 공고를 먼저 놓는다."""
     from apps.agent.app.use_cases.analysis_interactor import SYSTEM_PROMPT
 
     assert "[funding 섹션 출력 계약]" in SYSTEM_PROMPT
     assert "get_funding_candidates" in SYSTEM_PROMPT
     assert "자격 확정이 아니라" in SYSTEM_PROMPT
+    assert "대안 업종" in SYSTEM_PROMPT

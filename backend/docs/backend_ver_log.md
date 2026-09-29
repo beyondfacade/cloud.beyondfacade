@@ -2,15 +2,23 @@
 
 ## [v0.44.0] - 2026-09-29
 
+### Added
+- **agent BC 판정 도구 2종** (설계서 §5-2) — 신규 `VerdictFactsPort`(agent_port) + `verdict_facts_gateway.py`(verdict 유스케이스 프로세스 내 호출, `finance_facts_gateway` 전례). 도구 `get_verdict`(등급·신호 5개·근거·백분위·산출일)·`get_verdict_alternatives`(두 축), 스테이지 `verdict`로 다른 스테이지보다 **앞자리**. 판정 없음·판정 대상 아님은 `IndustryNotFoundError`·`None`을 삼켜 `{"available": false, "reason": …}`로 돌려준다. 참고 신호(`ADVISORY_SIGNAL_KEYS`)는 `"advisory": true`로 표시해 LLM이 켜진 경고로 쓰지 못하게 한다.
+- `POST /analysis` 요청에 **`budget: int | None`**(선택). 라우터 `_PENDING` → `build_analysis_use_case(model, budget)` → `build_tools(..., budget)`로 내려가 `run_finance_simulation`의 자기자본 기본값이 된다(예산이 있으면 `equity`가 선택 인자로 내려가고, 생략하면 예산이 들어간다). 예산 없는 기존 요청은 스키마·동작 그대로.
+
 ### Changed
 - **부동산 판정 제외** (설계서 §7, HANDOFF §0-12 A) — `EXCLUDED_INDUSTRIES`에 `real_estate` 추가(원천에 폐업 이력 없음 — 브이월드 API·공공데이터 파일·서울 열린데이터 모두 현재 사무소만). 판정 대상 13종 → **12종**. 헬스장은 원천 정상 확인(연 3% 폐업이 실제)으로 유지.
 - **상권 축소를 참고 신호로** — 신규 `ADVISORY_SIGNAL_KEYS = {"shrinking"}`(entity). `rules.strong_count`/`on_count`/`evaluable_count`가 이 키를 건너뛴다 — 신호는 그대로 평가·저장(카드·리포트 "참고" 표기)하되 등급 계산에서만 뺀다. `min_evaluable=3`은 판정 신호 4개 기준으로 그대로.
 - CLI·크론 문구 "13업종" → "12업종" (`build_verdicts.py`, `scripts/store-collector.sh`, `RegionIndustryVerdictUseCase.build` 독스트링), 백테스트 CLI "읽는 법" 노트를 부동산 제외 반영으로 갱신.
+- **리포트 섹션 5개 재편** (설계서 §6 계약 표) — `_SECTIONS`가 `verdict "판정" · reasons "왜 안 되나" · conditions "그래도 한다면" · alternatives "대안 동네·업종" · funding "대안 업종 지원사업"`. 옛 `market`·`shock`·`calculator` 섹션 키는 사라졌다(도구 스테이지 이름 market/shock/funding은 그대로). `agent_eval_scoring.section_completion`의 기대 섹션 튜플·`AgentEvent` 독스트링(스테이지 `verdict` 추가)도 같은 계약으로 갱신.
+- **SYSTEM_PROMPT** — 응답 규칙 ⑤ 추가(판정 등급·신호·대안은 도구 값 그대로, 등급 변경·신호 신설·🟢 추천 금지, `available: false`면 "판정 없음"+이유, `advisory`는 참고로만). 섹션별 출력 계약을 verdict(배지·켜진 신호·산출일)·reasons(신호별 근거+지표 숫자+충격·뉴스)·conditions(시간대 조건·임대료 상한·손익분기 매출)·alternatives(두 축 각 최대 3개, 없으면 "대안 없음")·funding(대안 업종 우선)으로 교체. 옛 market 여섯 슬롯·calculator 계약은 소비자가 없어져 제거(벤치마크 비교·`caveats` 준수 규칙은 reasons 절로 이관).
+- `run_finance_simulation` 입력 스키마를 `_FINANCE_PROPERTIES` + `_finance_input_schema(budget)`로 정리(13필드 선언 중복 제거).
 
 ### Validation
 - 신규 테스트 4(`test_verdict_rules.py` — 상권 축소 strong/on/evaluable 미포함, 단독 strong이어도 clear 유지) RED 먼저 확인 후 GREEN. 기존 카운트 고정 테스트 갱신(`test_verdict_thresholds.py` 제외 6종, `test_verdict_gateways.py` 판정 대상 12종). 전체 pytest 597 passed.
 - 실DB 배치 재실행 `build_verdicts`: 5,124건 업서트(12×427), prune이 부동산 427행 삭제(5,551 → 5,124 확인).
 - 백테스트 재실행(`--as-of 2022-06-30`): 전체 🔴 62.0% vs ⚪ 36.9%, lift 1.68×(부동산의 0% 폐업 제거로 ⚪ 폐업률이 올라 lift는 소폭 낮아짐 — 원천 왜곡 제거가 원인). 업종별 카페 1.97×·미용실 1.30×·한식 1.18×. 상권 축소 신호별 lift는 여전히 0.96×(전체) — 참고 신호 판단 재확인.
+- agent BC 신규 테스트 18(`test_agent_verdict_facts.py` 5 — 게이트웨이 카드 전 필드·advisory 표시·산출일 문자열·판정 없음/대상 아님 2종, `test_agent_tools.py` 8 — 도구 2종 앞자리·스테이지·두 축·available false·인용·예산 기본값 3종, `test_agent_loop.py` 순증 3 — 섹션 마커 5개 순서·판정 인용 규칙·참고 신호·대안 계약, `test_agent_router.py` 2 — budget `_PENDING` 적재·예산 없는 기존 요청) RED 먼저 확인 후 GREEN. 실 LLM 호출 없음(Fake LLM). 전체 pytest **615 passed**.
 
 ## [v0.43.0] - 2026-09-29
 
