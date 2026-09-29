@@ -137,6 +137,21 @@ class BacktestBucketDto:
 
 
 @dataclass(frozen=True)
+class BacktestSignalBucketDto:
+    industry_id: str | None  # None = 전체
+    industry_name: str | None
+    signal_key: str
+    fired: bool  # on·strong = True, off = False (unavailable 제외)
+    pairs: int
+    opened: int
+    closed: int
+
+    @property
+    def rate(self) -> float | None:
+        return None if self.opened == 0 else self.closed / self.opened
+
+
+@dataclass(frozen=True)
 class BacktestReportDto:
     as_of: date
     quarter_max: str
@@ -144,3 +159,4 @@ class BacktestReportDto:
     entry_days: int
     horizon_days: int
     buckets: tuple[BacktestBucketDto, ...]
+    signal_buckets: tuple[BacktestSignalBucketDto, ...]

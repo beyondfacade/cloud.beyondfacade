@@ -6,7 +6,13 @@ from dataclasses import dataclass
 from datetime import date
 
 from apps.verdict.app.dtos.region_industry_verdict_dto import EntrantOutcome
-from apps.verdict.domain.entities.region_industry_verdict_entity import RegionIndustryVerdict
+from apps.verdict.domain.entities.region_industry_verdict_entity import (
+    LEVEL_OFF,
+    LEVEL_ON,
+    LEVEL_STRONG,
+    SIGNAL_KEYS,
+    RegionIndustryVerdict,
+)
 
 VERDICT_ORDER: tuple[str, ...] = ("red", "orange", "clear", "insufficient")
 
@@ -44,3 +50,42 @@ def summarize(verdicts: Sequence[RegionIndustryVerdict], outcomes: Iterable[Entr
             cell[2] += closed
     ordered = sorted(acc, key=lambda k: (k[0] is not None, k[0] or "", VERDICT_ORDER.index(k[1])))
     return [OutcomeBucket(industry, code, *acc[(industry, code)]) for industry, code in ordered]
+
+
+@dataclass(frozen=True)
+class SignalBucket:
+    """신호 하나의 켜짐(on·strong) vs 꺼짐(off) 버킷. unavailable은 어느 쪽에도 넣지 않는다."""
+
+    industry_id: str | None  # None = 전체
+    signal_key: str
+    fired: bool
+    pairs: int
+    opened: int
+    closed: int
+
+    @property
+    def rate(self) -> float | None:
+        return None if self.opened == 0 else self.closed / self.opened
+
+
+_FIRED_OF = {LEVEL_STRONG: True, LEVEL_ON: True, LEVEL_OFF: False}
+
+
+def summarize_signals(verdicts: Sequence[RegionIndustryVerdict], outcomes: Iterable[EntrantOutcome]) -> list[SignalBucket]:
+    """신호별로 '켜진 동×업종'과 '꺼진 동×업종'의 진입 코호트 폐업을 센다 — 어느 신호가 맞히는가 (설계서 §13)."""
+    by_key = {(o.region_code, o.industry_id): o for o in outcomes}
+    acc: dict[tuple[str | None, str, bool], list[int]] = {}
+    for v in verdicts:
+        o = by_key.get((v.region_code, v.industry_id))
+        opened, closed = (o.opened, o.closed_within) if o else (0, 0)
+        for signal in v.signals:
+            fired = _FIRED_OF.get(signal.level)
+            if fired is None:
+                continue
+            for industry in (None, v.industry_id):
+                cell = acc.setdefault((industry, signal.key, fired), [0, 0, 0])
+                cell[0] += 1
+                cell[1] += opened
+                cell[2] += closed
+    ordered = sorted(acc, key=lambda k: (k[0] is not None, k[0] or "", SIGNAL_KEYS.index(k[1]), not k[2]))
+    return [SignalBucket(industry, key, fired, *acc[(industry, key, fired)]) for industry, key, fired in ordered]

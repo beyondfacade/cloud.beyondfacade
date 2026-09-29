@@ -9,6 +9,7 @@ from apps.verdict.app.dtos.region_industry_verdict_dto import (
     AlternativeRegionDto,
     BacktestBucketDto,
     BacktestReportDto,
+    BacktestSignalBucketDto,
     JudgedIndustry,
     LatestStoreCount,
     RegionContext,
@@ -38,7 +39,7 @@ from apps.verdict.domain.entities.region_industry_verdict_entity import (
 )
 from apps.verdict.domain.errors import IndustryNotFoundError
 from apps.verdict.domain.services.alternatives import rank_alternatives
-from apps.verdict.domain.services.backtest import quarter_before, summarize
+from apps.verdict.domain.services.backtest import quarter_before, summarize, summarize_signals
 from apps.verdict.domain.services.rules import judge, on_count, strong_count
 from apps.verdict.domain.services.signals import SIGNALS, Signal, SignalInput
 from apps.verdict.domain.services.thresholds import DEFAULT_THRESHOLDS, VerdictThresholds
@@ -112,6 +113,10 @@ class RegionIndustryVerdictInteractor(RegionIndustryVerdictUseCase):
             buckets=tuple(
                 BacktestBucketDto(b.industry_id, names.get(b.industry_id), b.verdict_code, b.pairs, b.opened, b.closed)
                 for b in summarize(verdicts, outcomes)
+            ),
+            signal_buckets=tuple(
+                BacktestSignalBucketDto(b.industry_id, names.get(b.industry_id), b.signal_key, b.fired, b.pairs, b.opened, b.closed)
+                for b in summarize_signals(verdicts, outcomes)
             ),
         )
 

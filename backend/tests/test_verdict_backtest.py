@@ -18,8 +18,8 @@ from apps.verdict.app.ports.output.region_industry_verdict_port import (
     StoreSignalStatsPort,
 )
 from apps.verdict.app.use_cases.region_industry_verdict_interactor import RegionIndustryVerdictInteractor
-from apps.verdict.domain.entities.region_industry_verdict_entity import RegionIndustryVerdict
-from apps.verdict.domain.services.backtest import quarter_before, summarize
+from apps.verdict.domain.entities.region_industry_verdict_entity import RegionIndustryVerdict, SignalResult
+from apps.verdict.domain.services.backtest import quarter_before, summarize, summarize_signals
 
 _AT = datetime(2026, 9, 29, tzinfo=timezone.utc)
 
@@ -50,6 +50,31 @@ def test_집계는_판정_코드별_조합_개업_폐업을_전체와_업종별�
     cafe = {b.verdict_code: b for b in buckets if b.industry_id == "cafe"}
     assert (cafe["clear"].opened, cafe["clear"].closed) == (20, 4)
     assert {b.verdict_code for b in buckets if b.industry_id == "pub"} == {"clear"}
+
+
+def _sig(key: str, level: str) -> SignalResult:
+    return SignalResult(key, level, None, None, "", "store")
+
+
+def test_신호별_집계는_켜짐과_꺼짐을_나누고_미판정은_뺀다():
+    verdicts = [
+        RegionIndustryVerdict("r1", "cafe", "red", 1, 1, (_sig("net_outflow", "strong"), _sig("saturation", "off")), _AT),
+        RegionIndustryVerdict("r2", "cafe", "orange", 0, 1, (_sig("net_outflow", "on"), _sig("saturation", "unavailable")), _AT),
+        RegionIndustryVerdict("r3", "cafe", "clear", 0, 0, (_sig("net_outflow", "off"), _sig("saturation", "off")), _AT),
+        RegionIndustryVerdict("r1", "pub", "clear", 0, 0, (_sig("net_outflow", "off"), _sig("saturation", "on")), _AT),
+    ]
+    outcomes = [
+        EntrantOutcome("r1", "cafe", 10, 8), EntrantOutcome("r2", "cafe", 10, 5),
+        EntrantOutcome("r3", "cafe", 10, 2), EntrantOutcome("r1", "pub", 10, 3),
+    ]
+    buckets = summarize_signals(verdicts, outcomes)
+    overall = {(b.signal_key, b.fired): b for b in buckets if b.industry_id is None}
+    assert (overall[("net_outflow", True)].pairs, overall[("net_outflow", True)].opened, overall[("net_outflow", True)].closed) == (2, 20, 13)
+    assert (overall[("net_outflow", False)].opened, overall[("net_outflow", False)].closed) == (20, 5)
+    assert (overall[("saturation", True)].opened, overall[("saturation", False)].opened) == (10, 20)  # r2 미판정 제외
+    cafe = {(b.signal_key, b.fired): b for b in buckets if b.industry_id == "cafe"}
+    assert cafe[("net_outflow", True)].rate == 0.65 and cafe[("net_outflow", False)].rate == 0.2
+    assert ("saturation", True) not in cafe
 
 
 # --- 인터랙터 ---
@@ -134,3 +159,5 @@ def test_백테스트는_상한을_넘겨_T시점_판정을_내고_결과와_조
     # 순유출 상위 동만 orange(strong 1개) — 나머지는 clear. 폐업률은 orange 쪽이 높아야 한다
     assert overall["orange"].rate > overall["clear"].rate
     assert sum(b.pairs for b in overall.values()) == 20
+    fired = {(b.signal_key, b.fired): b for b in report.signal_buckets if b.industry_id is None}
+    assert fired[("net_outflow", True)].rate > fired[("net_outflow", False)].rate
