@@ -1,5 +1,6 @@
 import { afterEach, expect, it, vi } from "vitest";
 import { act, renderHook, waitFor } from "@testing-library/react";
+import type { ReportFacts } from "@/shared/api/types";
 import { useAgentReport } from "./use-agent-report";
 
 afterEach(() => {
@@ -63,6 +64,26 @@ it("start()를 연속 호출해도 EventSource는 1개만 생성된다", async (
 
   await waitFor(() => expect(FakeEventSource.instances).toHaveLength(1));
   expect(fetchMock).toHaveBeenCalledTimes(1);
+});
+
+it("SSE facts 이벤트를 받으면 훅 상태에 사실이 저장된다", async () => {
+  FakeEventSource.instances = [];
+  vi.stubGlobal("EventSource", FakeEventSource as unknown as typeof EventSource);
+  stubFetch({ analysis_id: "abc" });
+  const unavailable = { available: false, reason: "자료 없음" } as const;
+  const facts: ReportFacts = {
+    region: { code: "1168064000", name: "역삼1동", industry_id: "cafe", industry_name: "카페" },
+    verdict: unavailable, alternatives: unavailable, profile: unavailable,
+    hour_gap: unavailable, commerce_change: unavailable, metrics_history: unavailable,
+    population: unavailable, shocks: unavailable, news: unavailable, funding_candidates: unavailable,
+    budget: null,
+  };
+  const { result } = renderHook(() => useAgentReport());
+
+  await act(() => result.current.start({ region: "1168064000", industry: "cafe" }));
+  act(() => FakeEventSource.instances[0].emit("facts", JSON.stringify({ type: "facts", facts })));
+
+  expect(result.current.state.facts).toEqual(facts);
 });
 
 it("SSE payload가 JSON이 아니면 error 상태로 합류하고 스트림을 닫는다", async () => {

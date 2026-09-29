@@ -13,7 +13,7 @@ export interface StartAnalysisParams {
   budget?: number;
 }
 
-const EVENT_TYPES: AgentEvent["type"][] = ["agent_status", "tool_call", "report_delta", "report_done"];
+const EVENT_TYPES: AgentEvent["type"][] = ["agent_status", "tool_call", "facts", "report_delta", "report_done"];
 
 /** POST /analysis 로 분석을 시작하고 SSE 이벤트를 구독해 리듀서에 적용한다. */
 export function useAgentReport() {

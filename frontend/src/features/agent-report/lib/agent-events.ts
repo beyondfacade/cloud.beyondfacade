@@ -1,4 +1,4 @@
-import type { AgentEvent, AgentName, ReportSection } from "@/shared/api/types";
+import type { AgentEvent, AgentName, ReportFacts, ReportSection } from "@/shared/api/types";
 
 export type AgentStatus = "idle" | "running" | "done" | "error";
 
@@ -14,20 +14,21 @@ export interface AgentSlot {
 
 export interface AgentState {
   agents: Record<AgentName, AgentSlot>;
+  facts: ReportFacts | null;
   sections: Partial<Record<ReportSection, string>>;
   done: boolean;
   citations: unknown[];
   error: string | null;
 }
 
-const AGENT_NAMES: AgentName[] = ["orchestrator", "verdict", "market", "shock", "funding"];
+const AGENT_NAMES: AgentName[] = ["orchestrator", "facts", "writer", "market", "shock", "funding"];
 
 export function initialAgentState(): AgentState {
   const agents = {} as Record<AgentName, AgentSlot>;
   for (const name of AGENT_NAMES) {
     agents[name] = { status: "idle", tools: [] };
   }
-  return { agents, sections: {}, done: false, citations: [], error: null };
+  return { agents, facts: null, sections: {}, done: false, citations: [], error: null };
 }
 
 export function applyAgentEvent(state: AgentState, ev: AgentEvent): AgentState {
@@ -51,6 +52,8 @@ export function applyAgentEvent(state: AgentState, ev: AgentEvent): AgentState {
           },
         },
       };
+    case "facts":
+      return { ...state, facts: ev.facts };
     case "report_delta":
       return {
         ...state,

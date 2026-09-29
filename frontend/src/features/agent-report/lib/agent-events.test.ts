@@ -1,3 +1,4 @@
+import type { ReportFacts } from "@/shared/api/types";
 import { expect, it } from "vitest";
 import { applyAgentEvent, initialAgentState } from "./agent-events";
 
@@ -24,15 +25,37 @@ it("report_done이면 done=true", () => {
   expect(s.done).toBe(true);
 });
 
-it("판정 슬롯은 대기로 시작하고 두 도구를 순서대로 누적한 뒤 완료된다", () => {
-  let state = initialAgentState();
-  expect(state.agents.verdict).toEqual({ status: "idle", tools: [] });
-  state = applyAgentEvent(state, { type: "agent_status", agent: "verdict", status: "running" });
-  for (const tool of ["get_verdict", "get_verdict_alternatives"]) {
-    state = applyAgentEvent(state, { type: "tool_call", agent: "verdict", tool, summary: "조회" });
-  }
-  state = applyAgentEvent(state, { type: "agent_status", agent: "verdict", status: "done" });
-  expect(state.agents.verdict).toEqual({ status: "done", tools: [
-    { tool: "get_verdict", summary: "조회" }, { tool: "get_verdict_alternatives", summary: "조회" },
-  ] });
+it("초기 상태는 사실 없이 여섯 스테이지를 대기로 둔다", () => {
+  const state = initialAgentState();
+  expect(state.facts).toBeNull();
+  expect(Object.keys(state.agents)).toEqual(["orchestrator", "facts", "writer", "market", "shock", "funding"]);
+  expect(Object.values(state.agents).every((slot) => slot.status === "idle")).toBe(true);
+});
+
+it("사실 수집과 리포트 작성 스테이지를 독립적으로 갱신한다", () => {
+  let state = applyAgentEvent(initialAgentState(), { type: "agent_status", agent: "facts", status: "done" });
+  state = applyAgentEvent(state, { type: "agent_status", agent: "writer", status: "running" });
+  expect(state.agents.facts.status).toBe("done");
+  expect(state.agents.writer.status).toBe("running");
+});
+
+it("facts는 자료 없음 항목도 그대로 저장하고 이후 본문 조각과 완료에도 유지한다", () => {
+  const unavailable = { available: false, reason: "자료 없음" } as const;
+  const facts: ReportFacts = {
+    region: { code: "1168064000", name: "역삼1동", industry_id: "cafe", industry_name: "카페" },
+    verdict: unavailable, alternatives: unavailable, profile: unavailable,
+    hour_gap: unavailable, commerce_change: unavailable, metrics_history: unavailable,
+    population: unavailable, shocks: unavailable, news: unavailable, funding_candidates: unavailable,
+    budget: null,
+  };
+  const before = initialAgentState();
+  let state = applyAgentEvent(before, { type: "facts", facts });
+  expect(state.facts).toBe(facts);
+  expect(before.facts).toBeNull();
+  expect(state.sections).toEqual({});
+  state = applyAgentEvent(state, { type: "report_delta", section: "verdict", markdown: "첫 문장. " });
+  state = applyAgentEvent(state, { type: "report_delta", section: "verdict", markdown: "다음 문장." });
+  state = applyAgentEvent(state, { type: "report_done", report_id: "r1", citations: [] });
+  expect(state.facts).toBe(facts);
+  expect(state.sections.verdict).toBe("첫 문장. 다음 문장.");
 });

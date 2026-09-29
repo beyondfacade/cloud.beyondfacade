@@ -2,6 +2,23 @@
 
 > 2026-09-23 T0-2 병합에서 v0.14.x 충돌로 우리 쪽 4항목(랜딩·E2E·동네 프로필·영업 지속 개월)을 v0.15.0·v0.15.1·v0.16.0·v0.17.0으로 재번호했다. 해당 커밋 메시지의 번호는 병합 전 번호다.
 
+## [v0.32.0] - 2026-09-29
+
+### Added
+- **리포트 v2 Task 3 사실 계약** — `ReportFacts` 12개 키와 항목별 `available: false` 실패 형태,
+  `facts` SSE 이벤트 및 리듀서 저장 추가. 확정 응답은 기존 타입을 재사용하고 인구·충격·뉴스·지원사업 후보는
+  Task 4 카드 구현 전까지 느슨한 도구 응답 타입으로 유지.
+- **Task 3 TDD·계약 검증** — 사실 저장·본문 누적 유지, 새 스테이지와 도구 스테이지 조건부 표시,
+  SSE 이벤트 순서·12키·결정적 픽스처 재사용·연도별 이력·다섯 섹션 문장 조각 결합 검증.
+
+### Changed
+- 진행 스테이지의 `verdict`를 `facts`("사실 수집")·`writer`("리포트 작성")로 교체.
+  `market/shock/funding`은 idle일 때 숨기고 열린 상태·도구 내역만 표시.
+- mock SSE를 orchestrator → facts 선수집 → writer 문장 조각 → writer/orchestrator 완료 → report_done으로 변경.
+  판정·대안·프로필·시간대·상권 변화·연도별 지표·지원사업은 기존 결정적 픽스처를 재사용.
+  기존 Route Handler의 이벤트 프레임 및 400ms 지연은 유지.
+- **Task 3 훅 구독 보완** — `EVENT_TYPES`에 `facts` 추가, EventSource 수신→훅 상태 저장 회귀 테스트 Red→Green 확인; 전체 Vitest 72파일·374테스트 통과, `npx tsc --noEmit` 통과.
+
 ## [v0.31.0] - 2026-09-29
 
 ### Added

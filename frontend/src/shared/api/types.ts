@@ -1,12 +1,39 @@
-export type AgentName = "orchestrator" | "verdict" | "market" | "shock" | "funding";
+export type AgentName = "orchestrator" | "facts" | "writer" | "market" | "shock" | "funding";
 
 export type ReportSection = "verdict" | "reasons" | "conditions" | "alternatives" | "funding";
 
 export type AgentEvent =
   | { type: "agent_status"; agent: AgentName; status: "running" | "done" | "error" }
   | { type: "tool_call"; agent: AgentName; tool: string; summary: string }
+  | { type: "facts"; facts: ReportFacts }
   | { type: "report_delta"; section: ReportSection; markdown: string }
   | { type: "report_done"; report_id: string; citations: unknown[] };
+
+/** 사실 조회 실패는 해당 항목만 자료 없음으로 표시한다. */
+export type UnavailableFact = { available: false; reason: string };
+
+export interface ReportFacts {
+  region: { code: string; name: string; industry_id: string; industry_name: string };
+  verdict: RegionIndustryVerdict | UnavailableFact;
+  alternatives: VerdictAlternatives | UnavailableFact;
+  profile: RegionProfile | UnavailableFact;
+  hour_gap: RegionIndustryHourGap | UnavailableFact;
+  commerce_change: RegionCommerceChangeDetail | UnavailableFact;
+  metrics_history: {
+    year: number;
+    store_count: number;
+    open_count: number;
+    close_count: number;
+    closure_rate: number;
+    growth_rate: number;
+  }[] | UnavailableFact;
+  // 백엔드 도구 응답 형태 미확정: Task 4에서 카드에 필요한 필드만 좁힌다.
+  population: Record<string, unknown> | UnavailableFact;
+  shocks: Array<Record<string, unknown>> | UnavailableFact;
+  news: Array<Record<string, unknown>> | UnavailableFact;
+  funding_candidates: Array<Record<string, unknown>> | UnavailableFact;
+  budget: number | null;
+}
 
 export type MetricKey = "closure_rate" | "growth_rate" | "store_count";
 

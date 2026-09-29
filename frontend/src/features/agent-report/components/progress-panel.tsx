@@ -2,11 +2,12 @@ import type { AgentName } from "@/shared/api/types";
 import type { AgentState, AgentStatus } from "../lib/agent-events";
 import styles from "./analysis-workspace.module.css";
 
-const AGENT_ORDER: AgentName[] = ["orchestrator", "verdict", "market", "shock", "funding"];
+const AGENT_ORDER: AgentName[] = ["orchestrator", "facts", "writer", "market", "shock", "funding"];
 
 const LABEL: Record<AgentName, string> = {
   orchestrator: "오케스트레이터",
-  verdict: "판정 읽기",
+  facts: "사실 수집",
+  writer: "리포트 작성",
   market: "상권 진단",
   shock: "충격 분석",
   funding: "정책자금",
@@ -41,6 +42,7 @@ export function ProgressPanel({ state }: ProgressPanelProps) {
       <ol className="flex flex-col divide-y divide-[var(--border)]">
         {AGENT_ORDER.map((name) => {
           const slot = state.agents[name];
+          if ((name === "market" || name === "shock" || name === "funding") && slot.status === "idle") return null;
           return (
             <li key={name} className={styles.progressItem}>
               <div className="flex items-center gap-2.5">

@@ -3,7 +3,8 @@ import path from "node:path";
 import type { FeatureCollection, MultiPolygon } from "geojson";
 import type {
   AgentEvent,
-  AgentName,
+  ReportFacts,
+  ReportSection,
   CategoryRow,
   ChildcareCenter,
   FinancePrefill,
@@ -34,7 +35,7 @@ import type {
 } from "@/shared/api/types";
 import { STORE_SAMPLES, type StoreSample } from "./store-samples";
 import { INDUSTRIES, INDUSTRY_LABELS, type IndustryId } from "@/shared/industries";
-import { ADVISORY_SIGNAL_KEYS, isVerdictIndustry } from "@/shared/verdict";
+import { ADVISORY_SIGNAL_KEYS, isVerdictIndustry, verdictLabel } from "@/shared/verdict";
 import { neighborhoodTypeLabel } from "@/shared/neighborhood";
 import { SEOUL_DISTRICTS, districtOf } from "@/shared/seoul-districts";
 
@@ -251,80 +252,87 @@ export function convenienceSummaryOf(regionCode: string): ConvenienceRegionSumma
   };
 }
 
-const AGENT_TOOLS: Record<Exclude<AgentName, "orchestrator">, { tool: string; summary: string }[]> = {
-  verdict: [
-    { tool: "get_verdict", summary: "판정 등급·켜진 신호·산출일 조회" },
-    { tool: "get_verdict_alternatives", summary: "대안 동네·업종 조회" },
-  ],
-  market: [
-    { tool: "closure_rate_lookup", summary: "강남구 카페 폐업률 조회" },
-    { tool: "sales_trend_lookup", summary: "인근 상권 매출 데이터 조회" },
-  ],
-  shock: [
-    { tool: "interest_rate_history", summary: "금리 변동 이력 조회" },
-    { tool: "commodity_index_lookup", summary: "원두 가격 지수 조회" },
-    { tool: "supply_chain_news", summary: "원두 공급망 뉴스 스캔" },
-  ],
-  funding: [
-    { tool: "policy_fund_catalog", summary: "소상공인 정책자금 목록 조회" },
-    { tool: "rent_market_lookup", summary: "임대료 시세 데이터 조회" },
-  ],
-};
-
-/** 발표 시연용 에이전트 이벤트 스크립트 — orchestrator → verdict → market → shock → funding → 리포트 → 완료. */
+/** 고정 시연 입력의 사실 선수집 → 문장 스트리밍. 실 API의 이벤트 순서·스키마를 미러한다. */
 export function agentEventScript(): AgentEvent[] {
-  const events: AgentEvent[] = [{ type: "agent_status", agent: "orchestrator", status: "running" }];
-
-  (Object.keys(AGENT_TOOLS) as Exclude<AgentName, "orchestrator">[]).forEach((agent) => {
-    events.push({ type: "agent_status", agent, status: "running" });
-    for (const { tool, summary } of AGENT_TOOLS[agent]) {
-      events.push({ type: "tool_call", agent, tool, summary });
-    }
-    events.push({ type: "agent_status", agent, status: "done" });
+  const regionCode = "1168064000";
+  const industryId = "cafe";
+  const verdict = verdictOf(regionCode, industryId);
+  const alternatives = alternativesOf(regionCode, industryId);
+  const profile = regionProfileOf(regionCode, LATEST_PROFILE_QUARTER);
+  const metricsHistory = Array.from({ length: 8 }, (_, index) => {
+    const year = 2019 + index;
+    const valueOf = (metric: MetricKey) => metricRows(metric, year, industryId).find((row) => row.region_code === regionCode)!.value;
+    const storeCount = valueOf("store_count");
+    const closureRate = valueOf("closure_rate");
+    const growthRate = valueOf("growth_rate");
+    // 개폐업 수는 기존 지표 픽스처에 없어 별도 결정적 시연 표본으로 둔다(실측 추정 아님).
+    return {
+      year, store_count: storeCount,
+      open_count: 10 + hashSeed("open_count", year, regionCode, industryId) % 25,
+      close_count: 5 + hashSeed("close_count", year, regionCode, industryId) % 20,
+      closure_rate: closureRate, growth_rate: growthRate,
+    };
   });
-
+  const news = [{ title: "강남 카페 상권 동향 (시연 자료)", url: "https://data.seoul.go.kr", summary: "인근 점포 변화와 소비 시간대를 함께 확인하세요." }];
+  const facts: ReportFacts = {
+    region: { code: regionCode, name: REGIONS.find((r) => r.region_code === regionCode)!.name, industry_id: industryId, industry_name: INDUSTRY_LABELS[industryId] },
+    verdict, alternatives, profile,
+    hour_gap: hourGapOf(regionCode, industryId, LATEST_HOUR_GAP_QUARTER) ?? { available: false, reason: "시간대 자료가 없습니다." },
+    commerce_change: commerceChangeDetailOf(regionCode, LATEST_PROFILE_QUARTER),
+    metrics_history: metricsHistory,
+    // 아직 별도 픽스처가 없는 도구 응답은 작은 결정적 표본으로 제공한다.
+    population: { region_code: regionCode, resident_total: profile.resident_total },
+    shocks: [{ name: "원두 가격 상승", summary: "원가 변동에 따른 마진 영향을 확인하세요.", grade: "signal" }],
+    news,
+    funding_candidates: fundingCandidatesOf(null).map((candidate) => ({ ...candidate })),
+    budget: null,
+  };
+  const events: AgentEvent[] = [
+    { type: "agent_status", agent: "orchestrator", status: "running" },
+    { type: "agent_status", agent: "facts", status: "running" },
+    { type: "facts", facts },
+    { type: "agent_status", agent: "facts", status: "done" },
+    { type: "agent_status", agent: "writer", status: "running" },
+  ];
+  const industryAlternatives = alternatives.industries.map((item) => `${item.industry_name}(${verdictLabel(item.verdict_code).name})`).join(", ") || "자료 없음";
+  const regionAlternatives = alternatives.regions.map((item) => `${item.region_name}(${verdictLabel(item.verdict_code).name})`).join(", ") || "자료 없음";
+  // 문장 경계에서 직접 나누어 소수점·마크다운·공백을 손상시키지 않는다.
+  const sections: { section: ReportSection; sentences: string[] }[] = [
+    { section: "verdict", sentences: [
+      `### 판정\n\n**${verdictLabel(verdict.verdict_code).name}** 판정입니다. `,
+      `켜진 신호 ${verdict.on_count}개와 강한 신호 ${verdict.strong_count}개를 확인하세요.`,
+    ] },
+    { section: "reasons", sentences: [
+      "### 왜 안 되나\n\n점포 수와 폐업률의 연도별 변화를 함께 살펴보세요. ",
+      "원두 원가 변동도 마진에 영향을 줄 수 있습니다.",
+    ] },
+    { section: "conditions", sentences: [
+      "### 그래도 한다면\n\n유동인구와 매출 시간대가 맞는지 확인하세요. ",
+      "실제 임대료와 원가를 입력해 손익분기 매출을 검토하세요.",
+    ] },
+    { section: "alternatives", sentences: [
+      `### 대안 동네·업종\n\n굳이 이 동네라면: ${industryAlternatives}.\n\n`,
+      `굳이 카페라면: ${regionAlternatives}.`,
+    ] },
+    { section: "funding", sentences: [
+      "### 대안 업종 지원사업\n\n후보 공고의 지원 대상과 대안 업종을 대조하세요. ",
+      "신청 가능 여부는 업종과 사업자 요건 확인이 필요합니다.",
+    ] },
+  ];
+  for (const { section, sentences } of sections) {
+    for (const markdown of sentences) events.push({ type: "report_delta", section, markdown });
+  }
   events.push(
-    {
-      type: "report_delta",
-      section: "verdict",
-      markdown: "### 판정\n\n**조건부** — 켜진 신호: 폐업률 상승.\n\n산출일: 2026-09-29 (시연 데이터).",
-    },
-    {
-      type: "report_delta",
-      section: "reasons",
-      markdown: "### 왜 안 되나\n\n폐업률은 6.4%로 전년보다 1.2%p 상승했습니다. 원두 원가도 전년 대비 8% 올라 마진 압박이 있습니다. (시연 데이터)",
-    },
-    {
-      type: "report_delta",
-      section: "conditions",
-      markdown: "### 그래도 한다면\n\n점심·오후 수요에 맞춘 영업을 전제로 임대료 상한 월 200만원, 손익분기 매출 월 1,500만원을 검토하세요. (시연 데이터)",
-    },
-    {
-      type: "report_delta",
-      section: "alternatives",
-      markdown: "### 대안 동네·업종\n\n굳이 이 동네라면: 미용실(경고 없음), 한식(조건부), 헬스장(조건부).\n\n굳이 카페라면: 역삼2동(경고 없음), 삼성1동(조건부), 서초1동(조건부). (시연 데이터)",
-    },
-    {
-      type: "report_delta",
-      section: "funding",
-      markdown: "### 대안 업종 지원사업\n\n대안 업종인 미용실·한식·헬스장을 먼저 소상공인 정책자금 공고와 대조하세요. 신청 가능 여부는 업종과 사업자 요건 확인이 필요합니다. (시연 데이터)",
-    },
-  );
-
-  events.push(
+    { type: "agent_status", agent: "writer", status: "done" },
     { type: "agent_status", agent: "orchestrator", status: "done" },
     {
-      type: "report_done",
-      report_id: "mock-report-001",
+      type: "report_done", report_id: "mock-report-001",
       citations: [
-        { title: "서울시 상권분석 서비스 — 강남구 폐업률 통계", url: "https://data.seoul.go.kr", grade: "fact" },
+        { title: "서울시 상권분석 서비스", url: "https://data.seoul.go.kr", grade: "fact" },
         { title: "소상공인시장진흥공단 정책자금 공고", url: "https://semas.or.kr", grade: "fact" },
-        { title: "국제 원두 선물 가격 동향 리포트", url: "https://example-news.com/coffee-price", grade: "fact" },
-        { title: "강남 카페 상권 SNS 언급량 분석", url: "https://example-news.com/sns-trend", grade: "signal" },
       ],
     },
   );
-
   return events;
 }
 
