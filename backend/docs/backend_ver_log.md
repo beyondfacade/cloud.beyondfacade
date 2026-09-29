@@ -8,10 +8,14 @@
 - **신호 프로필 Strategy** (설계서 §4) — `domain/services/profiles.py`: `PermitProfile`(공통 5) · `TobaccoProxyProfile`(공통 5 원천 표기 `tobacco` + 담배권 빈자리) · `AggregateProfile`(폐업률 · 코호트 2종 미지원 · 포화 `commerce` · 상권 축소). 신호: `SourcedSignal`(Decorator) · `UnsupportedSignal`(Null Object) · `ClosureRateSignal` · `TobaccoGapSignal`. 상수 `SPECIFIC_SIGNAL_KEYS`·`ALL_SIGNAL_KEYS`, `min_gap_candidates = 30`.
 - **업종별 원천 레지스트리** (설계서 §4) — `IndustrySignalDataPort`(창 집계·점포수·진입 결과), `IndustrySource(profile, data)`, `PermitSignalData`(기존 인허가 포트 3개 Adapter), `IndustryCatalogPort.named_industries`. 인터랙터 `sources=`로 업종별 원천 등록 — 등록 안 된 업종은 기존 인허가 원천.
 - **담배소매인 편의점 원천** (설계서 §5·§6) — `TobaccoConvenienceSignalData`: 브랜드 사전 매칭 → 승계 접기 에피소드로 창 집계(`stats_from_episodes`, 인허가 SQL과 같은 규칙), 기준일 = min(요청일, 원천 최신 2026-08-21), 점포수·진입 결과, 담배권 빈자리(영업 상가 × 영업 담배소매인 50m). 적재 시점에 폐업처리·직권취소·임시소매기간만료·지정취소인데 종료일이 둘 다 없는 유령 행을 뺀다(실측 9/29 730건, 그중 편의점 55건 — §17 진행 기록). 의존성에 `convenience_store` 등록(판정 대상 편입은 게이트 후).
+- **상권분석 집계 원천** (설계서 §7) — `CommerceAggregateSignalData`: `region_commerce_store`(업종 ↔ `seoul_commercial` 코드)에서 최근 4분기 폐업·4분기 전 점포수(폐업률 재료), 분기 상한 점포수(포화), 재고 결과(T 분기 점포수 대비 이후 폐업). `quarter_of`·`shift_quarter`. 의존성에 `real_estate` 등록(판정 대상 편입은 게이트 후).
 
 ### Changed
 - `ADVISORY_SIGNAL_KEYS`에 `tobacco_gap` 추가(진입 가능성 신호 — 등급 계산 제외).
 - 인터랙터 `compute(..., industries=)`·`backtest(..., industry_ids=)` — 원천마다 1회 로드, 판정 행에 프로필 `basis`, 백테스트 결과는 원천별로 읽어 그 원천 업종만 남긴다. 집계 기반 업종은 백테스트 "전체" 합산에서 뺀다(`_SCOPES_OF_BASIS`). `BacktestReportDto.industry_basis`.
+
+### Fixed
+- `seed_master.py`의 `_SOURCE_CODES`에 `real_estate ↔ seoul_commercial CS200033` 백필 — 마이그레이션 `c7a4f2e19b35`는 industry 테이블이 비어 있으면(빈 테스트 DB) 이 매핑을 건너뛰고 다시 채우지 않는다. `seed_master`는 매 실행 시 industry를 먼저 merge하므로 여기서 멱등하게 백필한다.
 
 ## [v0.45.0] - 2026-09-29
 

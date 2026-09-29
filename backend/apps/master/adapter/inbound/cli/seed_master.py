@@ -59,6 +59,9 @@ _SOURCE_CODES = [
     ("real_estate", "molit_broker", "15123990"),
     ("academy", "seoul_academy", "OA-20528"),
     ("childcare", "childcare_portal", "15013108"),
+    # c7a4f2e19b35는 빈 DB(테스트 DB)에서 industry 행이 없어 이 매핑을 건너뛴다 — seed_master는
+    # 매 실행 시 industry를 먼저 채운 뒤라 여기서 백필한다 (업종 특화 신호 설계서 §7).
+    ("real_estate", "seoul_commercial", "CS200033"),
 ]
 
 # 인허가 API 개방자치단체코드 (2026-08-25 karaoke_rooms/info 실응답에서 구명 교차확인)

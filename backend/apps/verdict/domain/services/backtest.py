@@ -39,6 +39,17 @@ def quarter_before(as_of: date) -> str:
     return f"{as_of.year - 1}4" if quarter == 1 else f"{as_of.year}{quarter - 1}"
 
 
+def quarter_of(d: date) -> str:
+    """d가 속한 분기 라벨('20222')."""
+    return f"{d.year}{(d.month - 1) // 3 + 1}"
+
+
+def shift_quarter(year_quarter: str, n: int) -> str:
+    """분기 라벨을 n분기 옮긴다 — shift_quarter('20254', -4) == '20244'."""
+    index = int(year_quarter[:4]) * 4 + int(year_quarter[4]) - 1 + n
+    return f"{index // 4}{index % 4 + 1}"
+
+
 @dataclass(frozen=True)
 class OutcomeBucket:
     industry_id: str | None  # None = 전체

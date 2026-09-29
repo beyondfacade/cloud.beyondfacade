@@ -19,7 +19,7 @@ from apps.verdict.app.ports.output.region_industry_verdict_port import (
 )
 from apps.verdict.app.use_cases.region_industry_verdict_interactor import RegionIndustryVerdictInteractor
 from apps.verdict.domain.entities.region_industry_verdict_entity import RegionIndustryVerdict, SignalResult
-from apps.verdict.domain.services.backtest import quarter_before, summarize, summarize_signals
+from apps.verdict.domain.services.backtest import quarter_before, quarter_of, shift_quarter, summarize, summarize_signals
 
 _AT = datetime(2026, 9, 29, tzinfo=timezone.utc)
 
@@ -32,6 +32,14 @@ def test_직전_분기_라벨():
     assert quarter_before(date(2022, 6, 30)) == "20221"
     assert quarter_before(date(2026, 1, 15)) == "20254"
     assert quarter_before(date(2024, 12, 31)) == "20243"
+
+
+def test_분기_보조_함수():
+    assert quarter_of(date(2022, 6, 30)) == "20222"
+    assert quarter_of(date(2022, 7, 1)) == "20223"
+    assert shift_quarter("20254", -4) == "20244"
+    assert shift_quarter("20221", -1) == "20214"
+    assert shift_quarter("20214", 1) == "20221"
 
 
 def test_집계는_판정_코드별_조합_개업_폐업을_전체와_업종별로_센다():
