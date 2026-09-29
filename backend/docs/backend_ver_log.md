@@ -1,5 +1,17 @@
 # Backend Version Log
 
+## [v0.44.0] - 2026-09-29
+
+### Changed
+- **부동산 판정 제외** (설계서 §7, HANDOFF §0-12 A) — `EXCLUDED_INDUSTRIES`에 `real_estate` 추가(원천에 폐업 이력 없음 — 브이월드 API·공공데이터 파일·서울 열린데이터 모두 현재 사무소만). 판정 대상 13종 → **12종**. 헬스장은 원천 정상 확인(연 3% 폐업이 실제)으로 유지.
+- **상권 축소를 참고 신호로** — 신규 `ADVISORY_SIGNAL_KEYS = {"shrinking"}`(entity). `rules.strong_count`/`on_count`/`evaluable_count`가 이 키를 건너뛴다 — 신호는 그대로 평가·저장(카드·리포트 "참고" 표기)하되 등급 계산에서만 뺀다. `min_evaluable=3`은 판정 신호 4개 기준으로 그대로.
+- CLI·크론 문구 "13업종" → "12업종" (`build_verdicts.py`, `scripts/store-collector.sh`, `RegionIndustryVerdictUseCase.build` 독스트링), 백테스트 CLI "읽는 법" 노트를 부동산 제외 반영으로 갱신.
+
+### Validation
+- 신규 테스트 4(`test_verdict_rules.py` — 상권 축소 strong/on/evaluable 미포함, 단독 strong이어도 clear 유지) RED 먼저 확인 후 GREEN. 기존 카운트 고정 테스트 갱신(`test_verdict_thresholds.py` 제외 6종, `test_verdict_gateways.py` 판정 대상 12종). 전체 pytest 597 passed.
+- 실DB 배치 재실행 `build_verdicts`: 5,124건 업서트(12×427), prune이 부동산 427행 삭제(5,551 → 5,124 확인).
+- 백테스트 재실행(`--as-of 2022-06-30`): 전체 🔴 62.0% vs ⚪ 36.9%, lift 1.68×(부동산의 0% 폐업 제거로 ⚪ 폐업률이 올라 lift는 소폭 낮아짐 — 원천 왜곡 제거가 원인). 업종별 카페 1.97×·미용실 1.30×·한식 1.18×. 상권 축소 신호별 lift는 여전히 0.96×(전체) — 참고 신호 판단 재확인.
+
 ## [v0.43.0] - 2026-09-29
 
 ### Added

@@ -5,6 +5,7 @@ from abc import ABC, abstractmethod
 from collections.abc import Sequence
 
 from apps.verdict.domain.entities.region_industry_verdict_entity import (
+    ADVISORY_SIGNAL_KEYS,
     LEVEL_ON,
     LEVEL_STRONG,
     LEVEL_UNAVAILABLE,
@@ -18,15 +19,15 @@ from apps.verdict.domain.services.thresholds import VerdictThresholds
 
 
 def strong_count(results: Sequence[SignalResult]) -> int:
-    return sum(1 for r in results if r.level == LEVEL_STRONG)
+    return sum(1 for r in results if r.key not in ADVISORY_SIGNAL_KEYS and r.level == LEVEL_STRONG)
 
 
 def on_count(results: Sequence[SignalResult]) -> int:
-    return sum(1 for r in results if r.level in (LEVEL_ON, LEVEL_STRONG))
+    return sum(1 for r in results if r.key not in ADVISORY_SIGNAL_KEYS and r.level in (LEVEL_ON, LEVEL_STRONG))
 
 
 def evaluable_count(results: Sequence[SignalResult]) -> int:
-    return sum(1 for r in results if r.level != LEVEL_UNAVAILABLE)
+    return sum(1 for r in results if r.key not in ADVISORY_SIGNAL_KEYS and r.level != LEVEL_UNAVAILABLE)
 
 
 class VerdictRule(ABC):

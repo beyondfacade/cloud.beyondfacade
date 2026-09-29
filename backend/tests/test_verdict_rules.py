@@ -11,7 +11,7 @@ from apps.verdict.domain.entities.region_industry_verdict_entity import (
     VERDICT_RED,
     SignalResult,
 )
-from apps.verdict.domain.services.rules import judge, on_count, strong_count
+from apps.verdict.domain.services.rules import evaluable_count, judge, on_count, strong_count
 from apps.verdict.domain.services.thresholds import DEFAULT_THRESHOLDS as T
 
 
@@ -44,3 +44,35 @@ def test_카운트():
     r = _results(LEVEL_STRONG, LEVEL_ON, LEVEL_OFF, LEVEL_UNAVAILABLE, LEVEL_STRONG)
     assert strong_count(r) == 2
     assert on_count(r) == 3  # on + strong
+
+
+def _results_with_keys(**by_key: str) -> tuple[SignalResult, ...]:
+    return tuple(
+        SignalResult(key=key, level=lv, value=None, percentile=None, evidence="", source="store")
+        for key, lv in by_key.items()
+    )
+
+
+def test_참고_신호_shrinking은_strong이어도_strong_count에서_빠진다():
+    r = _results_with_keys(net_outflow=LEVEL_OFF, survival_cliff=LEVEL_OFF, early_closure=LEVEL_OFF,
+                            saturation=LEVEL_OFF, shrinking=LEVEL_STRONG)
+    assert strong_count(r) == 0
+
+
+def test_참고_신호_shrinking은_on이어도_on_count에서_빠진다():
+    r = _results_with_keys(net_outflow=LEVEL_OFF, survival_cliff=LEVEL_OFF, early_closure=LEVEL_OFF,
+                            saturation=LEVEL_OFF, shrinking=LEVEL_ON)
+    assert on_count(r) == 0
+
+
+def test_참고_신호_shrinking은_evaluable_count에서_빠진다():
+    r = _results_with_keys(net_outflow=LEVEL_UNAVAILABLE, survival_cliff=LEVEL_UNAVAILABLE,
+                            early_closure=LEVEL_UNAVAILABLE, saturation=LEVEL_OFF, shrinking=LEVEL_STRONG)
+    assert evaluable_count(r) == 1  # saturation만 — shrinking은 참고라 아예 세지 않는다
+
+
+def test_참고_신호_shrinking_strong은_혼자서는_판정을_뒤집지_않는다():
+    # 판정 신호 4개 중 3개만 판정 가능(min_evaluable=3 충족) + off, shrinking만 strong → clear (red/orange 아님)
+    r = _results_with_keys(net_outflow=LEVEL_OFF, survival_cliff=LEVEL_OFF, early_closure=LEVEL_OFF,
+                            saturation=LEVEL_OFF, shrinking=LEVEL_STRONG)
+    assert judge(r, T) == VERDICT_CLEAR

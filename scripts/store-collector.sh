@@ -23,7 +23,7 @@ cd "${BACKEND_DIR}"
   .venv/bin/python -m apps.store.adapter.inbound.cli.assign_regions
   echo "[$(date '+%Y-%m-%d %H:%M:%S')] 지표 배치 집계 (region_industry_metric)"
   .venv/bin/python -m apps.metric.adapter.inbound.cli.build_metrics
-  echo "[$(date '+%Y-%m-%d %H:%M:%S')] 판정 배치 (region_industry_verdict, 13업종 × 427동)"
+  echo "[$(date '+%Y-%m-%d %H:%M:%S')] 판정 배치 (region_industry_verdict, 12업종 × 427동)"
   .venv/bin/python -m apps.verdict.adapter.inbound.cli.build_verdicts
 } >> "${LOG_FILE}" 2>&1 || echo "[$(date '+%Y-%m-%d %H:%M:%S')] store collector 실패 (exit $?)" >> "${LOG_FILE}"
 
