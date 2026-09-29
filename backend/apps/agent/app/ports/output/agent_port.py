@@ -93,7 +93,10 @@ class RegionFactsPort(ABC):
 
     @abstractmethod
     def neighborhood_profile(self, region_code: str) -> dict:
-        """최신 분기 동네 프로필 + reasons·conditions 절이 쓰는 지표·시간대 재료 (없으면 빈 dict)."""
+        """최신 분기 동네 프로필 + reasons·conditions 절이 쓰는 지표·시간대 재료.
+
+        프론트 `RegionProfile` 키를 그대로 싣는다 — 없으면 {"available": False, "reason": ...}.
+        """
 
     @abstractmethod
     def hour_gap(self, region_code: str, industry_id: str) -> dict:

@@ -44,6 +44,10 @@ FACTS_KEYS = (
 _SHOCK_LIMIT = 5
 _NEWS_TOP_K = 5
 
+# SQLAlchemy 기본 풀은 5+10이다 — 12칸으로 열면 12개 세션이 동시에 풀을 긁는다. 긴 항목은
+# 뉴스 RAG 하나뿐이라 6칸으로도 수집 시간이 그 하나에 묶인다.
+_MAX_WORKERS = 6
+
 
 def _resolve(future: Future) -> object:
     """항목 1건 회수 — 실패는 값으로 바꾼다(전부 아니면 무, 가 아니다)."""
@@ -68,9 +72,9 @@ class ReportFactsCollector:
 
     def collect(self, region: str, industry: str, budget: int | None = None) -> dict:
         """§5 계약 표의 12키를 모은 JSON 직렬화 가능한 dict (키 순서도 계약)."""
-        with ThreadPoolExecutor(max_workers=len(FACTS_KEYS)) as pool:
+        with ThreadPoolExecutor(max_workers=_MAX_WORKERS) as pool:
+            # region을 **가장 먼저** 넣는다 — 큐가 FIFO라 첫 워커가 반드시 집어 간다.
             region_future = pool.submit(self._region_info, region, industry)
-            # 뉴스 질의는 동 이름·업종명을 쓴다 — 워커가 그 future를 기다린다(풀이 12칸이라 굶지 않는다)
             futures: dict[str, Future] = {
                 "region": region_future,
                 "verdict": pool.submit(self._verdict_facts.verdict, region, industry),
@@ -85,10 +89,10 @@ class ReportFactsCollector:
                 ),
                 "population": pool.submit(self._region_facts.population, region),
                 "shocks": pool.submit(self._shocks, industry),
+                "funding_candidates": pool.submit(self._funding, industry),
+                # 뉴스 질의는 동 이름·업종명을 쓴다 — 워커가 region future를 기다리므로 **맨 뒤**에
+                # 넣는다. 앞선 항목이 워커를 다 채워도 region은 이미 실행 중이라 굶지 않는다.
                 "news": pool.submit(self._news, region_future),
-                "funding_candidates": pool.submit(
-                    self._funding_facts.candidates, industry, None, None
-                ),
             }
             values: dict[str, object] = {key: _resolve(f) for key, f in futures.items()}
         values["budget"] = budget
@@ -119,6 +123,19 @@ class ReportFactsCollector:
         return [
             {**event, "industry_specific": False}
             for event in self._region_facts.shocks(None, _SHOCK_LIMIT)
+        ]
+
+    def _funding(self, industry: str) -> list[dict]:
+        """공고 목록만 남긴다 — 프론트 계약은 배열이다 (설계서 §3-1).
+
+        되돌려받는 요청 값(`industry_id`·`stage`)과 `disclaimer`는 버린다 — 앞의 둘은 호출부가
+        이미 알고, 면책 문구는 funding 절 프롬프트 계약이 이미 갖는다.
+        `target`은 공고 분야(`field_category`)다 — 카드의 '대상' 줄이 그 값을 읽는다.
+        """
+        candidates = self._funding_facts.candidates(industry, None, None)["candidates"]
+        return [
+            {**item, "target": item["field_category"]} if "field_category" in item else item
+            for item in candidates
         ]
 
     def _news(self, region_future: Future) -> list[dict]:

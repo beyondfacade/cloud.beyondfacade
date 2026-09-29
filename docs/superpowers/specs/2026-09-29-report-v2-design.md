@@ -88,7 +88,7 @@
 | 항목 | 값 |
 |---|---|
 | 이벤트 | `agent_status, tool_call, facts, report_delta, report_done` |
-| 스테이지 | `orchestrator, facts, writer, market, shock, funding` |
+| 스테이지 | `orchestrator, facts, writer, market, shock, funding` — `market`은 **예약**이다: 현재 도구 없음(도구는 shock·funding에만 달려 있다) |
 | `facts` 키 | `region, verdict, alternatives, profile, hour_gap, commerce_change, metrics_history, population, shocks, news, funding_candidates, budget` |
 | 섹션 | `verdict, reasons, conditions, alternatives, funding` (불변) |
 | `report_delta` | 조각 단위, 같은 section 반복 가능, 프론트는 append |

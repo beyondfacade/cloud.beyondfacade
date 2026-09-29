@@ -64,7 +64,11 @@ class FakeRegionFacts(RegionFactsPort):
 
     def neighborhood_profile(self, region_code: str) -> dict:
         self._guard("neighborhood_profile")
-        return {"region_code": region_code, "type_code": "office"}
+        return {
+            "region_code": region_code,
+            "neighborhood_type": "office",
+            "block_intensities": {"morning": 0.8, "day": 1.4, "evening": 1.1, "night": 0.4},
+        }
 
     def hour_gap(self, region_code: str, industry_id: str) -> dict:
         self._guard("hour_gap")
@@ -96,7 +100,16 @@ class FakeFundingFacts(FundingFactsPort):
         self, industry_id: str | None, external_funding_need: int | None, stage: str | None
     ) -> dict:
         self.calls.append((industry_id, external_funding_need, stage))
-        return {"candidates": [{"title": "청년창업자금"}]}
+        return {
+            "candidates": [
+                {"program_id": "P1", "title": "청년창업자금", "field_category": "금융"},
+                {"program_id": "P2", "title": "대상 없는 공고"},
+            ],
+            "industry_id": industry_id,
+            "external_funding_need": external_funding_need,
+            "stage": stage,
+            "disclaimer": "자격 확정이 아니다",
+        }
 
 
 class FakeNewsSearch(RagSearchUseCase):
@@ -169,7 +182,35 @@ def test_지원사업_후보는_업종만_걸러_받는다():
     facts = _collector(funding=funding).collect("1168064000", "korean_food", None)
 
     assert funding.calls == [("korean_food", None, None)]
-    assert facts["funding_candidates"]["candidates"][0]["title"] == "청년창업자금"
+    assert facts["funding_candidates"][0]["title"] == "청년창업자금"
+
+
+def test_지원사업_후보는_공고_배열_그대로_싣는다():
+    """프론트 계약은 배열이다 (설계서 §3-1) — dict로 싸면 카드가 한 장도 안 뜬다."""
+    facts = _collector().collect("1168064000", "korean_food", None)
+
+    assert isinstance(facts["funding_candidates"], list)
+    assert [c["program_id"] for c in facts["funding_candidates"]] == ["P1", "P2"]
+
+
+def test_지원사업_후보의_대상은_공고_분야를_옮긴다():
+    """카드의 '대상' 줄이 이 값이다 — 원천에 분야가 없는 공고는 그 줄을 지운다."""
+    candidates = _collector().collect("1168064000", "korean_food", None)["funding_candidates"]
+
+    assert candidates[0]["target"] == "금융"
+    assert "target" not in candidates[1]
+
+
+def test_프로필은_시간대_블록_강도를_함께_싣는다():
+    """복원한 하루 흐름 막대가 이 키만 읽는다 — 빠지면 그림이 사라진다 (설계서 §4-2)."""
+    profile = _collector().collect("1168064000", "korean_food", None)["profile"]
+
+    assert profile["block_intensities"] == {
+        "morning": 0.8,
+        "day": 1.4,
+        "evening": 1.1,
+        "night": 0.4,
+    }
 
 
 def test_한_항목이_실패해도_나머지_사실은_나간다():

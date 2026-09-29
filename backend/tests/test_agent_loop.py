@@ -11,10 +11,7 @@ from apps.agent.app.ports.output.agent_port import (
     LLMUsage,
 )
 from apps.agent.app.use_cases.agent_tools import AgentTool
-from apps.agent.app.use_cases.analysis_interactor import (
-    AnalysisInteractor,
-    split_report_sections,
-)
+from apps.agent.app.use_cases.analysis_interactor import AnalysisInteractor
 from apps.agent.app.use_cases.report_facts import ReportFactsCollector
 from apps.agent.domain.entities.agent_event_entity import AgentEvent
 
@@ -273,14 +270,6 @@ def test_cite_failure_drops_citations_but_keeps_the_stream_alive():
     assert events[-1].payload["citations"] == []
 
 
-def test_split_report_sections_parses_five_markers():
-    """섹션 파서 정상 — 마커 5개를 순서대로 분할한다."""
-    sections = split_report_sections(_FINAL_TEXT)
-
-    assert list(sections) == ["verdict", "reasons", "conditions", "alternatives", "funding"]
-    assert sections["funding"] == "### 대안 업종 지원사업\n\n공고 2건."
-
-
 def test_missing_sections_fall_back_to_shortage_notice():
     """최종 텍스트에 없는 섹션은 폴백 문구로 채워 5건을 모두 방출한다."""
     llm = FakeLLM([_final_turn("[SECTION:verdict]\n### 판정\n\n🔴 위험.")])
@@ -298,15 +287,6 @@ def test_missing_sections_fall_back_to_shortage_notice():
     assert deltas[0].payload["markdown"] == "### 판정\n\n🔴 위험."
     assert deltas[1].payload["markdown"] == "### 왜 안 되나\n\n분석 데이터가 부족합니다."
     assert deltas[4].payload["markdown"] == "### 대안 업종 지원사업\n\n분석 데이터가 부족합니다."
-
-
-def test_split_report_sections_keeps_last_duplicate_marker():
-    """같은 마커가 두 번 나오면 뒤에 나온 본문이 이긴다."""
-    sections = split_report_sections(
-        "[SECTION:verdict]\n초안\n[SECTION:verdict]\n최종본"
-    )
-
-    assert sections["verdict"] == "최종본"
 
 
 def test_schema_violation_reprompts_once_then_skips_and_continues():
@@ -946,12 +926,18 @@ def test_빈_턴이_와도_마무리_요청으로_다시_쓰게_한다():
     assert all("분석 데이터가 부족합니다" not in md for md in deltas.values())
 
 
-def test_마커_없는_글만_온_턴은_다시_쓰게_하지_않는다():
-    """글은 썼는데 마커를 안 붙인 경우다 — 같은 글을 한 번 더 쓰게 하면 왕복만 는다(현행 유지)."""
-    llm = FakeLLM([_final_turn("마커 없이 그냥 쓴 리포트입니다.")])
+def test_마커_없는_글만_온_턴도_마무리_요청으로_다시_쓰게_한다():
+    """마커가 하나도 없으면 리포트를 쓴 게 아니다 — 서문은 버려지므로 다섯 절이 전부 폴백이 된다.
+
+    마커 없는 글은 이력에 쌓이지 않으니(조각이 버려진다) 다시 써도 같은 글이 겹치지 않는다.
+    """
+    llm = FakeLLM([_final_turn("마커 없이 그냥 쓴 리포트입니다."), _final_turn()])
     interactor = _interactor(llm, [_market_tool()], now=lambda: 0.0)
 
     events = list(interactor.run("1168064000", "korean_food", None))
 
-    assert len(llm.calls) == 1
-    assert len([e for e in events if e.type == "report_delta"]) == 5  # 전부 폴백
+    assert len(llm.calls) == 2, "마커 없는 턴 뒤 마무리 스트림을 돌리지 않았다"
+    assert llm.calls[1][-1]["content"].startswith("도구 호출을 멈추고")
+    deltas = {e.payload["section"]: e.payload["markdown"] for e in events if e.type == "report_delta"}
+    assert deltas["verdict"] == "### 판정\n\n🔴 위험."
+    assert all("분석 데이터가 부족합니다" not in md for md in deltas.values())

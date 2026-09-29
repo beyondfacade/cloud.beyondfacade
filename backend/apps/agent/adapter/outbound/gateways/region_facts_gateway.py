@@ -151,12 +151,8 @@ class RegionFactsGateway(RegionFactsPort):
                 .limit(1)
             ).scalar_one_or_none()
             if latest_period is None:
-                return {
-                    "region_code": region_code,
-                    "period": None,
-                    "age_distribution": {},
-                    "school_age_population": 0,
-                }
+                # 0으로 채우면 "인구 0명"이라는 거짓말이 된다 — 없는 것은 없다고 한다
+                return _unavailable(f"인구 자료가 없다: {region_code}")
             rows = session.execute(
                 select(PopulationStatOrm).where(
                     PopulationStatOrm.region_code == region_code,
@@ -206,19 +202,26 @@ class RegionFactsGateway(RegionFactsPort):
                 .limit(1)
             ).scalar_one_or_none()
             if profile is None:
-                return {}
+                return _unavailable(f"동네 프로필이 없다: {region_code}")
             quarter = profile.year_quarter
             top_facilities = self._top_facilities(session, region_code, quarter)
             benchmarks = self._benchmarks(session, profile)
             return {
+                # 프론트 `RegionProfile` 계약 — 유형·시간대는 **코드**로 나간다(화면 문구는 프론트가 갖는다)
                 "region_code": region_code,
                 "year_quarter": quarter,
-                "type_code": profile.neighborhood_type,
-                "type_name": type_name(profile.neighborhood_type),
+                "neighborhood_type": profile.neighborhood_type,
                 "type_reason": profile.type_reason,
-                "time_label": label_name(profile.time_label),
-                "peak_block": block_name(profile.peak_block),
-                "trough_block": block_name(profile.trough_block),
+                "time_label": profile.time_label,
+                "peak_block": profile.peak_block,
+                "trough_block": profile.trough_block,
+                "block_intensities": _block_intensities(profile),
+                "footfall_20s_share": profile.footfall_20s_share,
+                # 글을 쓰는 LLM은 코드를 읽지 못한다 — 같은 값의 한국어 이름을 나란히 둔다
+                "type_name": type_name(profile.neighborhood_type),
+                "time_label_name": label_name(profile.time_label),
+                "peak_block_name": block_name(profile.peak_block),
+                "trough_block_name": block_name(profile.trough_block),
                 "footfall_age_mix": self._footfall_age_mix(session, region_code, quarter),
                 "worker_resident_ratio": profile.worker_resident_ratio,
                 "weekend_index": profile.weekend_index,
@@ -348,6 +351,17 @@ class RegionFactsGateway(RegionFactsPort):
                 RegionHousingAverageQuarterOrm.year_quarter == quarter,
             )
         ).scalar_one_or_none()
+
+
+def _block_intensities(profile) -> dict | None:
+    """4블록 시간당 강도 — 넷 중 하나라도 없으면 막대를 그릴 수 없으므로 통째로 None이다."""
+    blocks = {
+        "morning": profile.block_morning,
+        "day": profile.block_day,
+        "evening": profile.block_evening,
+        "night": profile.block_night,
+    }
+    return None if any(value is None for value in blocks.values()) else blocks
 
 
 def _type_median(rows) -> dict | None:

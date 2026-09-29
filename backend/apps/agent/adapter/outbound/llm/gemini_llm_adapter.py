@@ -30,6 +30,8 @@ _RETRY_BUDGET_SECONDS = 30.0
 # 리포트 작성은 facts를 해석해 옮겨 쓰는 일이라 사전 추론이 필요 없다. 2026-09-29 실측(같은
 # 시스템 프롬프트·facts): thinking ON 첫 토큰 11.7초·완료 22.5초 → OFF 첫 토큰 1.1초·완료 8.4~9.0초.
 _THINKING_OFF = types.ThinkingConfig(thinking_budget=0)
+# Pro는 thinking을 끌 수 없다 — budget 0을 보내면 호출이 400으로 거절된다. flash 계열에만 건다.
+_THINKING_OFF_PREFIX = "gemini-2.5-flash"
 
 
 def to_gemini_contents(messages: list[dict]) -> tuple[str, list[dict]]:
@@ -158,10 +160,12 @@ class GeminiLLMAdapter(LLMGatewayPort):
     def _config(
         self, system_instruction: str, tools: list[LLMToolSpec]
     ) -> "types.GenerateContentConfig":
-        """chat()·stream()이 함께 쓰는 호출 설정 — 사전 추론은 끈다(_THINKING_OFF)."""
+        """chat()·stream()이 함께 쓰는 호출 설정 — flash 계열이면 사전 추론을 끈다(_THINKING_OFF)."""
         return types.GenerateContentConfig(
             system_instruction=system_instruction or None,
-            thinking_config=_THINKING_OFF,
+            thinking_config=(
+                _THINKING_OFF if self.model_name.startswith(_THINKING_OFF_PREFIX) else None
+            ),
             tools=(
                 [types.Tool(function_declarations=to_function_declarations(tools))]
                 if tools

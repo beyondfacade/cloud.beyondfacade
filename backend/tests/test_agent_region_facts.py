@@ -8,6 +8,7 @@ from apps.agent.adapter.outbound.gateways import region_facts_gateway
 from apps.agent.adapter.outbound.gateways.region_facts_gateway import (
     RegionFactsGateway,
     _profile_caveats,
+    _shock_event_to_dict,
     _type_median,
 )
 from apps.metric.adapter.outbound.orms.region_industry_metric_orm import (
@@ -280,3 +281,116 @@ def test_상권_변화_자료가_없으면_이유와_함께_비운다(monkeypatc
 
     assert result["available"] is False
     assert result["reason"]
+
+
+# --- facts가 프론트 계약(RegionProfile·ReportShock)으로 나가는지 (리뷰 라운드 2) ---
+
+# 프론트 `RegionProfile`이 읽는 키 (frontend/src/shared/api/types.ts) — 하나라도 빠지면 그림이 빈다
+_PROFILE_KEYS = frozenset(
+    {
+        "region_code",
+        "year_quarter",
+        "neighborhood_type",
+        "time_label",
+        "peak_block",
+        "trough_block",
+        "type_reason",
+        "worker_resident_ratio",
+        "weekend_index",
+        "night_index",
+        "footfall_20s_share",
+        "fnb_share",
+        "facility_total",
+        "resident_total",
+        "block_intensities",
+    }
+)
+
+
+def test_동네_프로필은_프론트_계약_키를_모두_싣는다():
+    """유형·시간대는 **코드**로 나간다 — 한국어 문구는 화면이 갖는다(프롬프트용 이름은 별도 키)."""
+    from apps.metric.adapter.outbound.orms.region_profile_quarter_orm import (
+        RegionProfileQuarterOrm,
+    )
+
+    region_code = _first_region_code()
+    quarter = "20991"  # 최신 분기로 뽑히도록 실제 분기보다 뒤에 둔다
+    with session_scope() as session:
+        session.add(
+            RegionProfileQuarterOrm(
+                region_code=region_code,
+                year_quarter=quarter,
+                neighborhood_type="office",
+                type_reason="시험",
+                time_label="day",
+                peak_block="day",
+                trough_block="night",
+                footfall_20s_share=0.21,
+                block_morning=0.8,
+                block_day=1.4,
+                block_evening=1.1,
+                block_night=0.4,
+            )
+        )
+    try:
+        profile = RegionFactsGateway().neighborhood_profile(region_code)
+    finally:
+        with session_scope() as session:
+            session.execute(
+                delete(RegionProfileQuarterOrm).where(
+                    RegionProfileQuarterOrm.region_code == region_code,
+                    RegionProfileQuarterOrm.year_quarter == quarter,
+                )
+            )
+
+    assert _PROFILE_KEYS <= set(profile)
+    assert profile["neighborhood_type"] == "office"  # 코드 그대로 — 화면이 문구를 붙인다
+    assert (profile["peak_block"], profile["trough_block"]) == ("day", "night")
+    assert profile["block_intensities"] == {
+        "morning": 0.8,
+        "day": 1.4,
+        "evening": 1.1,
+        "night": 0.4,
+    }
+    assert profile["type_name"] == "낮 인구 우위형"  # 프롬프트가 읽는 한국어 이름은 별도 키로 남는다
+    assert {"time_label_name", "peak_block_name", "trough_block_name"} <= set(profile)
+    assert {"benchmarks", "caveats"} <= set(profile)  # LLM 해석 재료는 그대로 남는다
+
+
+def test_프로필_행이_없는_동은_이유와_함께_비운다():
+    """빈 dict를 주면 프론트가 `available` 분기를 못 탄다 — 그림 자리에 '자료 없음'이 떠야 한다."""
+    profile = RegionFactsGateway().neighborhood_profile("0000000000")
+
+    assert profile["available"] is False
+    assert profile["reason"]
+
+
+def test_인구_행이_없는_동도_이유와_함께_비운다():
+    """0으로 채운 dict는 '인구 0명'이라는 거짓말이다."""
+    population = RegionFactsGateway().population("0000000000")
+
+    assert population["available"] is False
+    assert population["reason"]
+
+
+def test_충격_사건은_프론트_계약_키를_싣는다():
+    """`ReportShock`이 event_id·name·기간을 읽는다."""
+    from datetime import date
+
+    from apps.shock.app.dtos.shock_event_dto import IndustryImpactDto, ShockEventDto
+
+    event = _shock_event_to_dict(
+        ShockEventDto(
+            event_id="E1",
+            layer="policy",
+            name="재난지원금",
+            start_date=date(2020, 5, 13),
+            scope="national",
+            source="정부",
+            industry_impacts=[IndustryImpactDto(industry_id="korean_food", severity="high")],
+        )
+    )
+
+    assert {"event_id", "name", "start_date", "end_date", "layer", "scope", "source"} <= set(event)
+    assert event["start_date"] == "2020-05-13"
+    assert event["industry_impacts"] == [{"industry_id": "korean_food", "severity": "high"}]

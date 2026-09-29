@@ -21,6 +21,7 @@ class FundingFactsGateway(FundingFactsPort):
         return {
             "candidates": [
                 {
+                    "program_id": c.program.program_id,  # 프론트 카드의 key
                     "title": c.program.title,
                     "org": c.program.org,
                     "url": c.program.url,

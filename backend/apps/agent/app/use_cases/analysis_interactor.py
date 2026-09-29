@@ -28,7 +28,6 @@
 
 import json
 import logging
-import re
 import time
 import uuid
 from collections.abc import Callable, Iterator
@@ -69,8 +68,6 @@ _SECTIONS = (
     ("alternatives", "대안 동네·업종"),
     ("funding", "대안 업종 지원사업"),
 )
-
-_SECTION_MARKER = re.compile(r"\[SECTION:(\w+)\]")
 
 # LLM이 빼먹어도 코드가 facts로 쓸 수 있는 섹션 — 섹션 이름이 곧 facts 키다 (설계서 §3-3④).
 # if/elif 대신 테이블 디스패치 (CLAUDE.md §5).
@@ -170,16 +167,6 @@ _TITLE_BY_GRADE = {
     "fact": lambda item, fallback: fallback,
     "signal": lambda item, fallback: item.get("org") or item.get("source_id") or fallback,
 }
-
-
-def split_report_sections(text: str) -> dict[str, str]:
-    """`[SECTION:name]` 마커로 최종 텍스트를 분할한다 — 같은 마커가 겹치면 뒤엣것이 이긴다."""
-    markers = list(_SECTION_MARKER.finditer(text))
-    sections: dict[str, str] = {}
-    for index, marker in enumerate(markers):
-        end = markers[index + 1].start() if index + 1 < len(markers) else len(text)
-        sections[marker.group(1)] = text[marker.end() : end].strip()
-    return sections
 
 
 def check_arguments(schema: dict, arguments: dict) -> str | None:
@@ -378,7 +365,7 @@ class AnalysisInteractor(AnalysisUseCase):
         yield AgentEvent("agent_status", {"agent": "writer", "status": "running"})
 
         deadline = self._now() + _TOOL_LOOP_BUDGET_SECONDS
-        settled = False  # 도구 없이 끝난 스트림 턴 = 리포트를 다 썼다
+        settled = False  # 섹션이 한 번이라도 나간 채 끝난 스트림 턴 = 리포트를 다 썼다
         for _ in range(_MAX_TURNS):
             if self._now() >= deadline:
                 LOGGER.warning(
@@ -389,13 +376,14 @@ class AnalysisInteractor(AnalysisUseCase):
             turn = _StreamTurn(splitter)
             yield from stream_turn(turn)
             if turn.failed:
-                # 이미 흘린 글이 있으면 같은 글을 다시 쓰게 하지 않는다 (설계서 §3-4)
-                settled = turn.wrote
+                # 이미 흘린 **섹션**이 있으면 같은 글을 다시 쓰게 하지 않는다 (설계서 §3-4)
+                settled = bool(written)
                 break
             if not turn.tool_calls:
-                # 글도 도구 호출도 없는 턴은 실패가 아니라 **빈 턴**이다(생각하다 MAX_TOKENS,
-                # 세이프티 차단 — 예외가 안 난다). 여기서 끝내면 다섯 절이 모두 폴백이 된다.
-                settled = turn.wrote
+                # 마커가 하나도 없는 턴은 리포트를 쓴 게 아니다 — 빈 턴(생각하다 MAX_TOKENS·세이프티
+                # 차단)도, 마커 없이 줄글만 쓴 턴도 마찬가지다. 여기서 끝내면 다섯 절이 모두
+                # 폴백이 된다. 마커 없는 글은 서문으로 버려져 이력에도 안 남으니 겹치지 않는다.
+                settled = bool(written)
                 break
             messages.append(_assistant_message(turn.text, turn.tool_calls))
 

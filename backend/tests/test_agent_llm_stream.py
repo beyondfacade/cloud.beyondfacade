@@ -202,3 +202,16 @@ def test_gemini는_사전_추론을_끄고_부른다(gemini):
     adapter.chat([{"role": "user", "content": "써줘"}], [])
 
     assert [call["config"].thinking_config.thinking_budget for call in models.calls] == [0, 0]
+
+
+def test_gemini_pro는_사전_추론을_끄지_않는다(gemini, monkeypatch):
+    """Pro는 thinking을 끌 수 없다 — budget 0을 보내면 호출 자체가 400으로 거절된다."""
+    models = _StubModels([[_StubChunk(text="글")]])
+    monkeypatch.setattr(
+        gemini_llm_adapter.genai, "Client", lambda **kwargs: type("C", (), {"models": models})()
+    )
+    adapter = GeminiLLMAdapter(model="gemini-2.5-pro", api_key="stub-key")
+
+    list(adapter.stream([{"role": "user", "content": "써줘"}], []))
+
+    assert models.calls[0]["config"].thinking_config is None
