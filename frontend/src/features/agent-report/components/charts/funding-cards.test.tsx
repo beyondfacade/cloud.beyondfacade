@@ -26,7 +26,13 @@ it("빈 후보와 실패는 자료 없음이며 누락 필드와 위험한 링�
   expect(screen.getByText("자료 없음")).toBeInTheDocument();
   rerender(<FundingCards candidates={{ available: false, reason: "실패" }} />);
   expect(screen.getByText("자료 없음")).toBeInTheDocument();
-  rerender(<FundingCards candidates={[{ title: "공고", target_text: "예비 창업자", url: "javascript:alert(1)" }]} />);
+  rerender(<FundingCards candidates={[{ title: "공고", target: "예비 창업자", url: "javascript:alert(1)" }]} />);
   expect(screen.getByText("대상: 예비 창업자")).toBeInTheDocument();
   expect(screen.queryByRole("link")).toBeNull();
+});
+
+it.each([undefined, null, ""])("대상이 %s이면 대상 줄을 생략한다", (target) => {
+  render(<FundingCards candidates={[{ title: "공고", target, target_text: "구형 대상", field_category: "창업", apply_period: "상시" }]} />);
+  expect(screen.queryByText(/^대상:/)).toBeNull();
+  expect(screen.queryByText(/자료 없음/)).toBeNull();
 });

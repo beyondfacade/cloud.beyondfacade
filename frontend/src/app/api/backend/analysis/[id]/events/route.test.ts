@@ -18,6 +18,15 @@ afterEach(() => {
 });
 
 describe("분석 SSE 프록시", () => {
+  it("분석 식별자의 예약 문자를 인코딩해 하나의 업스트림 경로 구간으로 전달한다", async () => {
+    fetchStub.mockResolvedValue(new Response(""));
+    await GET(new Request(url), { params: Promise.resolve({ id: "analysis/1?view=full#part%" }) });
+    expect(fetchStub).toHaveBeenCalledWith(
+      "http://127.0.0.1:8201/analysis/analysis%2F1%3Fview%3Dfull%23part%25/events",
+      expect.any(Object),
+    );
+  });
+
   it("스트림 종료를 기다리지 않고 업스트림 청크와 SSE 헤더를 그대로 전달한다", async () => {
     let controller!: ReadableStreamDefaultController<Uint8Array>;
     const stream = new ReadableStream<Uint8Array>({ start(value) { controller = value; } });

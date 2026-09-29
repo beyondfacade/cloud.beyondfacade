@@ -4,12 +4,6 @@
 
 ## [v0.32.0] - 2026-09-29
 
-### Fixed
-- **Task 4 수정 라운드 1 — 지원사업 설명**: `summary`가 없으면 `why`, 둘 다 없으면 "요약 없음"을
-  한 줄 설명과 툴팁에 동일하게 표시. `ReportFundingCandidate`에 선택적 `why` 타입 추가.
-- **Task 4 수정 라운드 1 — 섹션 제목 중복**: 마크다운 접두사 없는 제목과 줄바꿈 없이 제목만 도착한
-  첫 본문 조각도 제거. `## 판정`·`판정` 단독 수신 및 후속 본문 보존 회귀 테스트 추가.
-
 ### Added
 - **리포트 v2 Task 4 시각 자료** — 공유 `VerdictCard`(판정 배지·켜진 신호 최대 3개·참고 줄·산출일),
   `SignalBars`(5신호·75/90 기준선), 대안 두 축 카드(각 3개), 지원사업 후보 카드(최대 5개),
@@ -19,7 +13,7 @@
   색은 모두 기존 토큰 사용. 삭제된 시간대 어휘·결정론 문장 로직과 테스트도 리포트 내부에 복원.
 - **Task 4 TDD 검증** — 신규 모듈 미존재 및 facts만 수신하는 뷰의 Red 확인 후 Green.
   차트의 정상·빈 값·수집 실패, facts만/본문 추가/필드 누락, 백분위 경계·색,
-  중복 제목 제거·인용 유지 검증. 전체 Vitest **82파일·417테스트** 및 `npx tsc --noEmit` 통과.
+  중복 제목 제거·인용 유지 검증. 전체 Vitest **83파일·439테스트** 및 `npx tsc --noEmit` 통과.
 - **리포트 v2 Task 3 사실 계약** — `ReportFacts` 12개 키와 항목별 `available: false` 실패 형태,
   `facts` SSE 이벤트 및 리듀서 저장 추가. 확정 응답은 기존 타입을 재사용하고 인구·충격·뉴스·지원사업 후보는
   Task 4 카드 구현 전까지 느슨한 도구 응답 타입으로 유지.
@@ -32,14 +26,29 @@
   빈 리포트·인용 목록은 유지. `VerdictSection`은 기존 훅·대안 조회를 유지하며 공유 카드 사용;
   기존 `verdict-section.test.tsx`·`side-panel.test.tsx` 수정 없이 통과.
 - **Task 4 사실 표시 타입** — 충격·지원사업에서 화면이 쓰는 필드만 선택적으로 좁힘.
-  후보의 `program_id|id`, `target|target_text`와 충격의 `event_id|id`, `name|title`, `period|start` 대응.
+  후보의 `program_id|id`, `target`과 충격의 `event_id|id`, `name|title`, `start_date`·`end_date` 대응.
   인구·뉴스는 사용하지 않으므로 느슨한 타입 유지. 지원사업 원문은 HTTP(S) 링크와 `rel="noopener"` 적용.
 - 진행 스테이지의 `verdict`를 `facts`("사실 수집")·`writer`("리포트 작성")로 교체.
   `market/shock/funding`은 idle일 때 숨기고 열린 상태·도구 내역만 표시.
 - mock SSE를 orchestrator → facts 선수집 → writer 문장 조각 → writer/orchestrator 완료 → report_done으로 변경.
   판정·대안·프로필·시간대·상권 변화·연도별 지표·지원사업은 기존 결정적 픽스처를 재사용.
   기존 Route Handler의 이벤트 프레임 및 400ms 지연은 유지.
-- **Task 3 훅 구독 보완** — `EVENT_TYPES`에 `facts` 추가, EventSource 수신→훅 상태 저장 회귀 테스트 Red→Green 확인; 전체 Vitest 72파일·374테스트 통과, `npx tsc --noEmit` 통과.
+- **Task 3 훅 구독 보완** — `EVENT_TYPES`에 `facts` 추가, EventSource 수신→훅 상태 저장 회귀 테스트 Red→Green 확인; 전체 Vitest 83파일·439테스트 통과, `npx tsc --noEmit` 통과.
+
+### Fixed
+- **Task 4 수정 라운드 1 — 지원사업 설명**: `summary`가 없으면 `why`, 둘 다 없으면 "요약 없음"을
+  한 줄 설명과 툴팁에 동일하게 표시. `ReportFundingCandidate`에 선택적 `why` 타입 추가.
+- **Task 4 수정 라운드 1 — 섹션 제목 중복**: 마크다운 접두사 없는 제목과 줄바꿈 없이 제목만 도착한
+  첫 본문 조각도 제거. `## 판정`·`판정` 단독 수신 및 후속 본문 보존 회귀 테스트 추가.
+- **최종 리뷰 — 충격·지원사업 표시**: 충격 날짜를 `start_date`와 선택 `end_date`로 표시하고,
+  `industry_specific === false`인 항목에 토큰 색상의 "전 업종 공통" 칩 추가.
+  지원사업 `target`이 없으면 대상 줄을 생략하며 `field_category`·`apply_period` 타입 추가.
+- **최종 리뷰 — facts 픽스처 정합성**: 지원사업 배열을 확정 필드로 맞추고 mock `target`은
+  `field_category`에서 채움. 충격 식별자·시작일·업종 관련 여부를 보완하고 FE 인구 결측은
+  `{available: false, reason}`으로 표현. 프로필 코드·`block_intensities`는 기존 계약 유지.
+- **최종 리뷰 — SSE 경로**: 업스트림 분석 식별자에 `encodeURIComponent` 적용.
+  공통 충격·시작/종료일·대상 누락·예약 문자·mock 계약의 Red→Green 검증 후
+  전체 Vitest **83파일·439테스트**, `npx tsc --noEmit` 통과.
 
 ## [v0.31.0] - 2026-09-29
 

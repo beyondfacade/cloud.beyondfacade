@@ -16,8 +16,11 @@ function ShockList({ shocks }: { shocks?: ReportFacts["shocks"] }) {
     <h3 className="text-sm font-semibold text-[var(--text-primary)]">외부 충격</h3>
     {shocks.length === 0 ? <p className="text-sm text-[var(--text-secondary)]">자료 없음</p> : <ul className="space-y-2 text-sm">
       {shocks.map((shock, index) => <li key={shock.event_id ?? shock.id ?? index} className="flex flex-wrap justify-between gap-2 border-b border-[var(--border)] py-2">
-        <span>{shock.name || shock.title || "이름 없음"}</span>
-        {(shock.period || shock.start) && <span className="text-xs text-[var(--text-secondary)]">{shock.period || shock.start}</span>}
+        <span className="flex flex-wrap items-center gap-2">
+          <span>{shock.name || shock.title || "이름 없음"}</span>
+          {shock.industry_specific === false && <span className="rounded-full bg-[var(--bg-raised)] px-2 py-0.5 text-xs text-[var(--text-secondary)]">전 업종 공통</span>}
+        </span>
+        {shock.start_date && <span className="text-xs text-[var(--text-secondary)]">{shock.start_date}{shock.end_date ? `~${shock.end_date}` : ""}</span>}
       </li>)}
     </ul>}
   </section>;

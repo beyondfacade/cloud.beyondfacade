@@ -282,9 +282,14 @@ export function agentEventScript(): AgentEvent[] {
     metrics_history: metricsHistory,
     // 아직 별도 픽스처가 없는 도구 응답은 작은 결정적 표본으로 제공한다.
     population: { region_code: regionCode, resident_total: profile.resident_total },
-    shocks: [{ name: "원두 가격 상승", summary: "원가 변동에 따른 마진 영향을 확인하세요.", grade: "signal" }],
+    shocks: [{ event_id: "mock-shock-1", name: "원두 가격 상승", start_date: "2026-09-01", industry_specific: true, summary: "원가 변동에 따른 마진 영향을 확인하세요.", grade: "signal" }],
     news,
-    funding_candidates: fundingCandidatesOf(null).map((candidate) => ({ ...candidate })),
+    funding_candidates: fundingCandidatesOf(null).map((candidate) => ({
+      program_id: candidate.program_id, title: candidate.title, org: candidate.org,
+      why: candidate.why, summary: candidate.summary, url: candidate.url,
+      field_category: candidate.field_category, apply_period: candidate.apply_period,
+      target: candidate.field_category,
+    })),
     budget: null,
   };
   const events: AgentEvent[] = [

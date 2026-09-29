@@ -60,12 +60,25 @@ it("SSE 사실은 계약의 12개 키와 기존 결정적 픽스처를 담는다
   expect(facts.profile).toEqual(regionProfileOf(code, LATEST_PROFILE_QUARTER));
   expect(facts.hour_gap).toEqual(hourGapOf(code, industry_id, "20254"));
   expect(facts.commerce_change).toEqual(commerceChangeDetailOf(code, LATEST_PROFILE_QUARTER));
-  expect(facts.funding_candidates).toEqual(fundingCandidatesOf(null));
+  expect(facts.funding_candidates).toEqual(fundingCandidatesOf(null).map((candidate) => ({
+    program_id: candidate.program_id, title: candidate.title, org: candidate.org,
+    why: candidate.why, summary: candidate.summary, url: candidate.url,
+    field_category: candidate.field_category, apply_period: candidate.apply_period,
+    target: candidate.field_category,
+  })));
   expect(facts.population).toEqual(expect.any(Object));
   expect(facts.shocks).toEqual(expect.any(Array));
   expect(facts.news).toEqual(expect.any(Array));
   expect(facts.budget).toBeNull();
   expect(events).toEqual(await readEvents());
+});
+
+it("SSE 충격은 시작일과 업종 관련 여부를 계약 키로 제공한다", async () => {
+  const event = (await readEvents()).find((e) => e.type === "facts");
+  expect(event?.facts.shocks).toEqual([expect.objectContaining({
+    event_id: expect.any(String), name: "원두 가격 상승",
+    start_date: "2026-09-01", industry_specific: true,
+  })]);
 });
 
 it("SSE 연도별 이력은 2019년부터 최신까지 기존 지표와 개폐업 수를 담는다", async () => {

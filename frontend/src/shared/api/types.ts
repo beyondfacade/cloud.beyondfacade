@@ -43,6 +43,8 @@ export interface ReportFundingCandidate extends Record<string, unknown> {
   org?: string | null;
   summary?: string | null;
   why?: string | null;
+  field_category?: string | null;
+  apply_period?: string | null;
   target?: string | null;
   target_text?: string | null;
   url?: string | null;
@@ -53,8 +55,9 @@ export interface ReportShock extends Record<string, unknown> {
   id?: string;
   name?: string;
   title?: string;
-  period?: string | null;
-  start?: string | null;
+  start_date?: string | null;
+  end_date?: string | null;
+  industry_specific?: boolean;
 }
 
 export type MetricKey = "closure_rate" | "growth_rate" | "store_count";

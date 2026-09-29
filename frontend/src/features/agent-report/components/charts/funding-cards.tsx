@@ -7,7 +7,7 @@ export function FundingCards({ candidates }: { candidates?: ReportFacts["funding
       <h3 className="text-sm font-semibold text-[var(--text-primary)]">{candidate.title || "제목 없음"}</h3>
       <p className="text-xs text-[var(--text-secondary)]">{candidate.org || "기관 정보 없음"}</p>
       <p className="truncate text-sm text-[var(--text-secondary)]" title={candidate.summary || candidate.why || "요약 없음"}>{candidate.summary || candidate.why || "요약 없음"}</p>
-      <p className="text-xs text-[var(--text-secondary)]">대상: {candidate.target || candidate.target_text || "자료 없음"}</p>
+      {candidate.target && <p className="text-xs text-[var(--text-secondary)]">대상: {candidate.target}</p>}
       {candidate.url && /^https?:\/\//i.test(candidate.url) && <a href={candidate.url} target="_blank" rel="noopener" className="text-sm text-[var(--accent)] underline">원문</a>}
     </li>)}
   </ul>;

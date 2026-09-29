@@ -14,7 +14,7 @@ export async function GET(
   }
 
   const { id } = await params;
-  const upstream = await fetch(`${origin}/analysis/${id}/events`, {
+  const upstream = await fetch(`${origin}/analysis/${encodeURIComponent(id)}/events`, {
     headers: { accept: "text/event-stream" },
     cache: "no-store",
     signal: request.signal,
