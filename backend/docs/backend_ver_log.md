@@ -4,6 +4,7 @@
 
 ### Added
 - **판정 원천 `basis`** (업종 특화 신호 설계서 §9) — `region_industry_verdict.basis`(`permit`·`proxy`·`aggregate`, 기본 `permit`) 컬럼·마이그레이션 `d0e1f2a3b4c5`, 엔티티·DTO·단건 API 응답 `basis`.
+- **편의점 이력 도메인** (설계서 §5·§6) — `domain/services/convenience_history.py`(브랜드 사전: 옛 이름 LG25·훼미리마트·바이더웨이·위드미 포함, 'CU' 영문자 경계 / 같은 지번 ±90일 승계 접기, 영업 중 에피소드에는 잇지 않음), `domain/services/tobacco_gap.py`(반경 50m 격자 근접 판정 `blocked_counts`).
 
 ### Changed
 
