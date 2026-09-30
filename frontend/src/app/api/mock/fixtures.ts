@@ -322,6 +322,10 @@ function eventAnalogsDemo(industryId: string, industryName: string): EventAnalog
       { category: "work_hours", label: "근로시간", keyword: "52시간" },
       { category: "relief", label: "지원금·보상", keyword: "지원금" },
     ],
+    recent_news: [{
+      category: "pandemic", label: "감염병·방역", days: 30, keywords: ["집합금지", "영업제한", "거리두기 격상"],
+      checked: true, article_count: 0, headlines: [],
+    }],
   };
 }
 

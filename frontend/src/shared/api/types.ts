@@ -96,6 +96,19 @@ export interface EventAnalogs {
   caveats: string[];
   /** 이번에 비교하지 않은 유형 — 질문에 keyword를 넣으면 함께 비교한다 */
   hints?: { category: string; label: string; keyword: string }[];
+  /** 진행 중 이벤트가 없는 질문 속 유형 — 지금 그 상황인지 최근 조치 기사로 확인한 결과 */
+  recent_news?: RecentNews[];
+}
+
+export interface RecentNews {
+  category: string;
+  label: string;
+  days: number;
+  keywords: string[];
+  /** false: 검색 실패로 확인하지 못함 */
+  checked: boolean;
+  article_count: number;
+  headlines: { title: string; published_at: string; url: string }[];
 }
 
 /** 리포트 카드가 사용하는 필드만 좁힌다. 도구별 ID·대상 필드 차이와 누락을 허용한다. */

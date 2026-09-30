@@ -61,6 +61,22 @@ it("유형별 사례 종합으로 내 업종 추세·지속 기간·거듭 강�
   expect(within(weak).getByText("PC방")).toHaveStyle({ color: "var(--danger)" });
 });
 
+it("진행 중 이벤트가 없는 유형은 사례 종합에 최근 조치 소식을 함께 적는다", () => {
+  const data = eventAnalogs();
+  const { rerender } = render(<AnalogCases analogs={data} />);
+  const outlook = () => screen.getByRole("article", { name: "감염병·방역 사례 종합" });
+  expect(outlook()).toHaveTextContent("최근 30일 집합금지·영업제한·거리두기 격상 기사 없음 — 비슷한 상황이 다시 올 때의 참고예요");
+  const active = {
+    ...data.recent_news![0], article_count: 2,
+    headlines: [{ title: "집합금지 명령 발동", published_at: "2026-09-25", url: "https://news.example/1" }],
+  };
+  rerender(<AnalogCases analogs={{ ...data, recent_news: [active] }} />);
+  expect(outlook()).toHaveTextContent("최근 30일 집합금지·영업제한·거리두기 격상 기사 2건");
+  expect(within(outlook()).getByRole("link", { name: /집합금지 명령 발동/ })).toHaveAttribute("href", "https://news.example/1");
+  rerender(<AnalogCases analogs={{ ...data, recent_news: [{ ...active, checked: false }] }} />);
+  expect(outlook()).toHaveTextContent("최근 소식은 확인하지 못했어요");
+});
+
 it("해석 주의사항을 함께 적는다", () => {
   render(<AnalogCases analogs={eventAnalogs()} />);
   expect(screen.getByText(/12월에는 행정 정리로 폐업이 몰린다/)).toBeInTheDocument();

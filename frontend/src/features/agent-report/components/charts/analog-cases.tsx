@@ -1,4 +1,6 @@
-import type { AnalogQuarter, CategoryOutlook, EventAnalogs, EventImpact, IndustrySeries, UnavailableFact } from "@/shared/api/types";
+import type {
+  AnalogQuarter, CategoryOutlook, EventAnalogs, EventImpact, IndustrySeries, RecentNews, UnavailableFact,
+} from "@/shared/api/types";
 import { availableFact } from "../../lib/available-fact";
 
 const REASON_LABEL: Record<EventAnalogs["categories"][number]["reason"], string> = {
@@ -119,7 +121,28 @@ function IndustryChips({ label, industries, color }: { label: string; industries
   );
 }
 
-function OutlookCard({ outlook }: { outlook: CategoryOutlook }) {
+function RecentNewsLine({ recent }: { recent: RecentNews }) {
+  if (!recent.checked) return <p className="text-xs text-[var(--text-secondary)]">최근 소식은 확인하지 못했어요</p>;
+  const subject = `최근 ${recent.days}일 ${recent.keywords.join("·")} 기사`;
+  if (recent.article_count === 0) {
+    return <p className="text-xs text-[var(--text-secondary)]">{subject} 없음 — 비슷한 상황이 다시 올 때의 참고예요</p>;
+  }
+  return (
+    <div className="flex flex-col gap-1 text-xs">
+      <p className="text-[var(--danger)]">{subject} {recent.article_count}건</p>
+      <ul className="flex flex-col gap-0.5 text-[var(--text-secondary)]">
+        {recent.headlines.map((h) => (
+          <li key={h.url}>
+            <a href={h.url} target="_blank" rel="noopener noreferrer" className="underline underline-offset-2">{h.title}</a>
+            <span className="tabular-nums"> · {h.published_at}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+function OutlookCard({ outlook, recent }: { outlook: CategoryOutlook; recent?: RecentNews }) {
   const duration = outlook.typical_duration_months !== null ? ` · 보통 약 ${outlook.typical_duration_months}개월 이어짐` : "";
   return (
     <article aria-label={`${outlook.label} 사례 종합`} className="flex flex-col gap-2 rounded-lg bg-[var(--bg-raised)] p-3">
@@ -127,6 +150,7 @@ function OutlookCard({ outlook }: { outlook: CategoryOutlook }) {
         <span className="font-medium">{outlook.label}</span> 사례 {outlook.analog_count}건 — {TREND_LABEL[outlook.target_trend]}
         <span className="text-xs text-[var(--text-secondary)]">{duration}</span>
       </p>
+      {recent && <RecentNewsLine recent={recent} />}
       <IndustryChips label="거듭 강세" industries={outlook.recommended} color="var(--ok)" />
       <IndustryChips label="거듭 약세" industries={outlook.avoid} color="var(--danger)" />
     </article>
@@ -184,7 +208,10 @@ export function AnalogCases({ analogs }: { analogs?: EventAnalogs | UnavailableF
           ))}
         </ul>
       )}
-      {(data.outlooks ?? []).map((outlook) => <OutlookCard key={outlook.category} outlook={outlook} />)}
+      {(data.outlooks ?? []).map((outlook) => (
+        <OutlookCard key={outlook.category} outlook={outlook}
+          recent={data.recent_news?.find((r) => r.category === outlook.category)} />
+      ))}
       {events.length === 0 ? <p className="text-sm text-[var(--text-secondary)]">비교할 이벤트가 없습니다.</p>
         : events.map((event) => <EventCard key={event.event_id} event={event} />)}
       {data.caveats.length > 0 && (
