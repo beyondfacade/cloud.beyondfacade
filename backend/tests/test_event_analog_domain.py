@@ -20,7 +20,7 @@ from apps.shock.domain.services.event_analog import (
 from apps.shock.domain.services.event_category_hints import categories_in
 from apps.shock.domain.services.event_window import Quarter, Window, event_quarters
 from apps.shock.domain.services.industry_flows import IndustryFlows, WindowChange
-from apps.shock.domain.value_objects.event_category import EventCategory
+from apps.shock.domain.value_objects.event_category import CATEGORY_YEARS, EventCategory
 
 TODAY = date(2026, 9, 30)
 
@@ -171,13 +171,25 @@ def test_강세와_약세는_겹치지_않는다():
 # ── 진행 중·유사 사례 ───────────────────────────────────────────────────
 
 
-def test_진행_중은_유형이_있고_비교_기간_안에서_시작해_아직_끝나지_않은_이벤트다():
-    assert is_current(_event("w26", date(2026, 1, 1), "minimum_wage", date(2026, 12, 31)), TODAY, 3)
-    assert not is_current(_event("w25", date(2025, 1, 1), "minimum_wage", date(2025, 12, 31)), TODAY, 3)
-    assert is_current(_event("h", date(2024, 7, 1), "work_hours"), TODAY, 3)  # 끝나지 않았고 3년 안
-    assert not is_current(_event("h", date(2021, 7, 1), "work_hours"), TODAY, 3)  # 상시 효과지만 오래됨
-    assert not is_current(_event("x", date(2026, 3, 1), None), TODAY, 3)  # 유형 없음
-    assert not is_current(_event("f", date(2026, 12, 1), "relief"), TODAY, 3)  # 아직 시작 전
+def test_유형마다_비교_기간이_다르다():
+    # 해마다 바뀌는 최저임금·한 번 지급하는 지원금은 그 해 4분기, 드문 감염병·제도 변경은 3년 12분기
+    assert CATEGORY_YEARS == {
+        EventCategory.PANDEMIC: 3,
+        EventCategory.MINIMUM_WAGE: 1,
+        EventCategory.WORK_HOURS: 3,
+        EventCategory.RELIEF: 1,
+    }
+
+
+def test_진행_중은_유형이_있고_유형의_비교_기간_안에서_시작해_아직_끝나지_않은_이벤트다():
+    assert is_current(_event("w26", date(2026, 1, 1), "minimum_wage", date(2026, 12, 31)), TODAY)
+    assert not is_current(_event("w25", date(2025, 1, 1), "minimum_wage", date(2025, 12, 31)), TODAY)
+    assert not is_current(_event("w25-open", date(2025, 1, 1), "minimum_wage"), TODAY)  # 1년이 지났다
+    assert is_current(_event("virus", date(2024, 7, 1), "pandemic"), TODAY)  # 감염병은 3년 안이면 진행 중
+    assert is_current(_event("h", date(2024, 7, 1), "work_hours"), TODAY)
+    assert not is_current(_event("h", date(2021, 7, 1), "work_hours"), TODAY)  # 상시 효과지만 오래됨
+    assert not is_current(_event("x", date(2026, 3, 1), None), TODAY)  # 유형 없음
+    assert not is_current(_event("f", date(2026, 12, 1), "relief"), TODAY)  # 아직 시작 전
 
 
 def test_유사_사례는_요청_유형의_지난_이벤트를_최근순으로_유형당_3건까지_고른다():
@@ -190,13 +202,14 @@ def test_유사_사례는_요청_유형의_지난_이벤트를_최근순으로_�
         ],
         _event("etc", date(2020, 5, 4), "relief", date(2020, 8, 31)),
     ]
-    picked = select_analogs(events, ["pandemic", "minimum_wage"], TODAY, years=3)
+    picked = select_analogs(events, ["pandemic", "minimum_wage"], TODAY)
     assert [e.event_id for e in picked] == ["covid", "mers", "w2025", "w2024", "w2023"]
 
 
-def test_이벤트_영향은_분기마다_변동폭을_담고_지속_기간을_센다():
+def test_감염병_영향은_3년_12분기를_담고_지속_기간을_센다():
     covid = _event("covid", date(2020, 1, 20), "pandemic", date(2022, 4, 17))
-    impact = event_impact(covid, [_flat("cafe", 10, 5)], "cafe", TODAY, years=3)
+    impact = event_impact(covid, [_flat("cafe", 10, 5)], "cafe", TODAY)
+    assert impact.years == 3
     assert [q.quarter.index for q in impact.quarters] == list(range(12))
     assert impact.current is False
     assert impact.duration_months == 27  # 2020-01 → 2022-04
@@ -204,8 +217,17 @@ def test_이벤트_영향은_분기마다_변동폭을_담고_지속_기간을_�
     assert impact.series("academy") == [None] * 12
 
 
+def test_최저임금_영향은_그_해_4분기만_담는다():
+    event = _event("w23", date(2023, 1, 1), "minimum_wage", date(2023, 12, 31))
+    impact = event_impact(event, [_flat("cafe", 10, 5)], "cafe", TODAY)
+    assert impact.years == 1
+    assert [q.quarter.window.start for q in impact.quarters] == [
+        date(2023, 1, 1), date(2023, 4, 1), date(2023, 7, 1), date(2023, 10, 1),
+    ]
+
+
 def test_끝나지_않은_이벤트는_지속_기간이_없다():
-    impact = event_impact(_event("h", date(2021, 7, 1), "work_hours"), [], "cafe", TODAY, years=3)
+    impact = event_impact(_event("h", date(2021, 7, 1), "work_hours"), [], "cafe", TODAY)
     assert impact.duration_months is None
 
 
@@ -219,6 +241,7 @@ def _impact(duration: int | None, quarters: list[tuple[float | None, list[tuple[
     return EventImpact(
         event=_event("e", date(2020, 1, 1), "pandemic"),
         current=False,
+        years=3,
         duration_months=duration,
         quarters=[
             QuarterImpact(

@@ -29,6 +29,7 @@ class EventImpactResponse(BaseModel):
     description: str | None
     source: str
     current: bool
+    years: int
     quarters: list[QuarterResponse] = []
     series: list[IndustrySeriesResponse] = []
     target_weak_quarters: int = 0
@@ -59,7 +60,6 @@ class CategoryOutlookResponse(BaseModel):
 
 class EventAnalogReportResponse(BaseModel):
     industry_id: str
-    years: int
     as_of: str
     categories: list[AnalogCategoryResponse] = []
     current_events: list[EventImpactResponse] = []

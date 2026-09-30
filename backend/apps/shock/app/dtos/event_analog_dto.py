@@ -31,6 +31,7 @@ class EventImpactDto:
     description: str | None
     source: str
     current: bool
+    years: int  # 유형의 비교 기간 — 최저임금·지원금 1년(4분기), 감염병·근로시간 3년(12분기)
     quarters: list[QuarterDto] = field(default_factory=list)
     series: list[IndustrySeriesDto] = field(default_factory=list)
     target_weak_quarters: int = 0  # 내 업종이 평소보다 0.3%p 넘게 줄어든 분기 수 (흩어진 것 포함)
@@ -65,7 +66,6 @@ class CategoryOutlookDto:
 @dataclass
 class EventAnalogReportDto:
     industry_id: str
-    years: int
     as_of: str  # 마지막 완결 달 YYYY-MM
     categories: list[AnalogCategoryDto] = field(default_factory=list)
     current_events: list[EventImpactDto] = field(default_factory=list)

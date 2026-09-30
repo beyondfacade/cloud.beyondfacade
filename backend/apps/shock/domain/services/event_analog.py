@@ -18,6 +18,7 @@ from apps.shock.domain.services.event_window import (
     months_between,
 )
 from apps.shock.domain.services.industry_flows import IndustryFlows, WindowChange
+from apps.shock.domain.value_objects.event_category import CATEGORY_YEARS
 
 TOP_MOVERS = 3
 ANALOGS_PER_CATEGORY = 3
@@ -47,6 +48,7 @@ class QuarterImpact:
 class EventImpact:
     event: ShockEvent
     current: bool
+    years: int  # 유형의 비교 기간
     duration_months: int | None  # 끝나지 않은 이벤트는 None
     quarters: list[QuarterImpact]
 
@@ -136,13 +138,13 @@ def category_outlook(category: str, impacts: list[EventImpact], target_id: str) 
     )
 
 
-def is_current(event: ShockEvent, today: date, years: int) -> bool:
-    """유형이 있고, 비교 기간(years) 안에 시작해 아직 끝나지 않은 이벤트."""
+def is_current(event: ShockEvent, today: date) -> bool:
+    """유형이 있고, 유형의 비교 기간 안에 시작해 아직 끝나지 않은 이벤트."""
     if event.category is None or event.start_date > today:
         return False
     if event.end_date is not None and event.end_date < today:
         return False
-    return add_months(month_of(event.start_date), 12 * years) > month_of(today)
+    return add_months(month_of(event.start_date), 12 * CATEGORY_YEARS[event.category]) > month_of(today)
 
 
 def quarter_impact(quarter: Quarter, flows: list[IndustryFlows], target_id: str) -> QuarterImpact:
@@ -176,11 +178,12 @@ def event_impact(
     flows: list[IndustryFlows],
     target_id: str,
     today: date,
-    years: int,
 ) -> EventImpact:
+    years = CATEGORY_YEARS[event.category] if event.category else 1
     return EventImpact(
         event=event,
-        current=is_current(event, today, years),
+        current=is_current(event, today),
+        years=years,
         duration_months=None
         if event.end_date is None
         else months_between(event.start_date, event.end_date),
@@ -192,7 +195,7 @@ def event_impact(
 
 
 def select_analogs(
-    events: list[ShockEvent], categories: list[str], today: date, years: int
+    events: list[ShockEvent], categories: list[str], today: date
 ) -> list[ShockEvent]:
     """요청 유형 순서대로, 유형마다 진행 중이 아닌 지난 이벤트를 최근순으로 최대 3건."""
     picked: list[ShockEvent] = []
@@ -201,7 +204,7 @@ def select_analogs(
             (
                 e
                 for e in events
-                if e.category == category and e.start_date <= today and not is_current(e, today, years)
+                if e.category == category and e.start_date <= today and not is_current(e, today)
             ),
             key=lambda e: e.start_date,
             reverse=True,

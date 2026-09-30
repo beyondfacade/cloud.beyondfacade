@@ -94,7 +94,7 @@ def _interactor(events=_EVENTS) -> EventAnalogInteractor:
 
 
 def test_질문의_유형과_진행_중_이벤트_유형의_지난_사례를_함께_돌려준다():
-    report = _interactor().analogs("cafe", "새 바이러스가 도는데 카페 창업 괜찮을까", 3)
+    report = _interactor().analogs("cafe", "새 바이러스가 도는데 카페 창업 괜찮을까")
     assert [c.category for c in report.categories] == ["pandemic", "minimum_wage"]
     assert [c.reason for c in report.categories] == ["question", "current"]
     assert [e.event_id for e in report.current_events] == ["w2026"]
@@ -103,7 +103,7 @@ def test_질문의_유형과_진행_중_이벤트_유형의_지난_사례를_함
 
 
 def _covid():
-    return next(e for e in _interactor().analogs("cafe", "코로나 같은 상황", 3).analogs if e.event_id == "covid")
+    return next(e for e in _interactor().analogs("cafe", "코로나 같은 상황").analogs if e.event_id == "covid")
 
 
 def test_사례마다_3년_12분기의_라벨과_기간을_담는다():
@@ -134,13 +134,24 @@ def test_내_업종과_추천_업종의_분기별_흐름과_약세_분기_수를
     assert covid.target_weak_streak == 4  # 1분기부터 연속 약세
 
 
+def test_최저임금_사례는_그_해_4분기만_본다():
+    w2025 = next(e for e in _interactor().analogs("cafe", None).analogs if e.event_id == "w2025")
+    assert w2025.years == 1
+    assert [(q.label, q.start_month, q.end_month) for q in w2025.quarters] == [
+        ("1년 차 1분기", "2025-01", "2025-03"), ("1년 차 2분기", "2025-04", "2025-06"),
+        ("1년 차 3분기", "2025-07", "2025-09"), ("1년 차 4분기", "2025-10", "2025-12"),
+    ]
+    assert all(len(s.values) == 4 for s in w2025.series)
+    assert _covid().years == 3
+
+
 def test_진행_중_이벤트는_끝난_분기까지만_본다():
-    current = _interactor().analogs("cafe", None, 3).current_events[0]
+    current = _interactor().analogs("cafe", None).current_events[0]
     assert [q.label for q in current.quarters] == ["1년 차 1분기", "1년 차 2분기"]
 
 
 def test_유형마다_지난_사례의_결론을_싣는다():
-    report = _interactor().analogs("cafe", "코로나", 3)
+    report = _interactor().analogs("cafe", "코로나")
     outlooks = {o.category: o for o in report.outlooks}
     assert list(outlooks) == ["pandemic", "minimum_wage"]
     pandemic = outlooks["pandemic"]
@@ -150,21 +161,21 @@ def test_유형마다_지난_사례의_결론을_싣는다():
 
 
 def test_해석_주의사항을_함께_싣는다():
-    caveats = " ".join(_interactor().analogs("cafe", "코로나", 3).caveats)
+    caveats = " ".join(_interactor().analogs("cafe", "코로나").caveats)
     assert "12월" in caveats  # 연말 폐업 몰림
     assert "지원금" in caveats  # 2020~2022 폐업 지연
     assert "서울 전체" in caveats
 
 
 def test_유형_단서도_진행_중_이벤트도_없으면_비어_있다():
-    report = _interactor(events=_EVENTS[:2]).analogs("cafe", "역삼동 카페 어때", 3)
+    report = _interactor(events=_EVENTS[:2]).analogs("cafe", "역삼동 카페 어때")
     assert report.categories == []
     assert report.analogs == []
     assert report.current_events == []
 
 
 def test_흐름이_없는_업종은_대상_변동폭이_없다():
-    report = _interactor().analogs("academy", "코로나", 3)
+    report = _interactor().analogs("academy", "코로나")
     assert all(v is None for e in report.analogs for v in e.series[0].values)
     assert all(e.target_weak_quarters == 0 for e in report.analogs)
 
@@ -201,12 +212,6 @@ def test_유사_사례_myself_배선():
     body = response.json()
     assert body["industry_id"] == "myself"
     assert body["analogs"][0]["quarters"][0]["label"]
-
-
-def test_비교_연수가_범위를_벗어나면_400():
-    response = TestClient(app).get("/shocks/analogs", params={"industry": "cafe", "years": 4})
-    assert response.status_code == 400
-    assert response.json()["error"]["code"] == "INVALID_WINDOW"
 
 
 # ── 시드 유형 ──────────────────────────────────────────────────────────
