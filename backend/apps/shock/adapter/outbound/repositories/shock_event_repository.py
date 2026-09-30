@@ -79,14 +79,24 @@ class SqlAlchemyShockEventRepository(ShockEventRepositoryPort):
                     ShockEventIndustryOrm,
                     ShockEventIndustryOrm.event_id == ShockEventOrm.event_id,
                 ).where(ShockEventIndustryOrm.industry_id == industry_id)
-            orms = list(session.execute(statement).scalars())
-            impacts_by_event: dict[str, list[ShockEventIndustryOrm]] = {}
-            for impact_orm in session.execute(
-                select(ShockEventIndustryOrm).where(
-                    ShockEventIndustryOrm.event_id.in_([o.event_id for o in orms])
-                )
-            ).scalars():
-                impacts_by_event.setdefault(impact_orm.event_id, []).append(impact_orm)
-            return [
-                to_entity(orm, impacts_by_event.get(orm.event_id, [])) for orm in orms
-            ]
+            return _with_impacts(session, list(session.execute(statement).scalars()))
+
+    def list_categorized(self) -> list[ShockEvent]:
+        with session_scope() as session:
+            statement = (
+                select(ShockEventOrm)
+                .where(ShockEventOrm.category.is_not(None))
+                .order_by(ShockEventOrm.start_date, ShockEventOrm.event_id)
+            )
+            return _with_impacts(session, list(session.execute(statement).scalars()))
+
+
+def _with_impacts(session, orms: list[ShockEventOrm]) -> list[ShockEvent]:
+    impacts_by_event: dict[str, list[ShockEventIndustryOrm]] = {}
+    for impact_orm in session.execute(
+        select(ShockEventIndustryOrm).where(
+            ShockEventIndustryOrm.event_id.in_([o.event_id for o in orms])
+        )
+    ).scalars():
+        impacts_by_event.setdefault(impact_orm.event_id, []).append(impact_orm)
+    return [to_entity(orm, impacts_by_event.get(orm.event_id, [])) for orm in orms]

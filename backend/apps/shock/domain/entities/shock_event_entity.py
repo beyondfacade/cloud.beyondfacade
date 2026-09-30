@@ -1,6 +1,7 @@
 from dataclasses import dataclass, field
 from datetime import date
 
+from apps.shock.domain.value_objects.event_category import EventCategory
 from apps.shock.domain.value_objects.shock_layer import Severity, ShockLayer
 
 
@@ -34,10 +35,13 @@ class ShockEvent:
     source_url: str | None = None
     description: str | None = None
     industry_impacts: list[IndustryImpact] = field(default_factory=list)
+    category: str | None = None  # EventCategory 값 — 유사 사례 비교 대상일 때만
 
     def __post_init__(self) -> None:
         if self.layer not in ShockLayer:
             raise ValueError(f"허용되지 않는 layer: {self.layer}")
+        if self.category is not None and self.category not in EventCategory:
+            raise ValueError(f"허용되지 않는 category: {self.category}")
         if not self.source:
             raise ValueError("근거 출처(source) 없는 충격은 등록할 수 없다")
         if self.end_date is not None and self.end_date < self.start_date:

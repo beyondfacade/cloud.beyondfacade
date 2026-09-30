@@ -136,6 +136,17 @@ class VerdictFactsPort(ABC):
         """대안 두 축 — 같은 동네의 다른 업종, 같은 업종의 다른 동네."""
 
 
+class EventAnalogFactsPort(ABC):
+    """Driven Port — shock BC의 유사 사례(진행 중·질문 속 이벤트 유형의 지난 사례와 업종 변동폭).
+
+    유형 단서가 질문에 있으므로 `RegionFactsPort`(동·업종 사실)와 따로 둔다(ISP).
+    """
+
+    @abstractmethod
+    def analogs(self, industry_id: str, question: str | None) -> dict:
+        """유형·진행 중 이벤트·지난 사례(창별 대상 업종 변동폭·강세/약세 업종)·해석 주의사항."""
+
+
 class FinanceFactsPort(ABC):
     """Driven Port — finance BC 결정론 엔진 호출 (cross-BC 접근은 구현체 안에서만).
 

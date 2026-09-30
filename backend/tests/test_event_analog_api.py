@@ -1,0 +1,231 @@
+"""유사 사례 유스케이스·캐시 프록시·라우터·시드 유형·저장소 왕복 (흐름 원천은 Fake, 이벤트 저장은 실제 DB)."""
+
+from datetime import date, datetime, timedelta
+
+from fastapi.testclient import TestClient
+from sqlalchemy import delete
+
+from apps.shock.adapter.outbound.gateways.caching_store_flow_gateway import (
+    CachingStoreFlowGateway,
+)
+from apps.shock.adapter.outbound.gateways.shock_seed_gateway import ShockSeedGateway
+from apps.shock.adapter.outbound.orms.shock_event_industry_orm import ShockEventIndustryOrm
+from apps.shock.adapter.outbound.orms.shock_event_orm import ShockEventOrm
+from apps.shock.adapter.outbound.repositories.shock_event_repository import (
+    SqlAlchemyShockEventRepository,
+)
+from apps.shock.app.ports.output.event_analog_port import StoreFlowPort
+from apps.shock.app.ports.output.shock_event_port import ShockEventRepositoryPort
+from apps.shock.app.use_cases.event_analog_interactor import EventAnalogInteractor
+from apps.shock.app.use_cases.shock_event_interactor import ShockEventInteractor
+from apps.shock.domain.entities.shock_event_entity import ShockEvent
+from apps.shock.domain.services.industry_flows import IndustryFlows
+from apps.shock.domain.value_objects.event_category import EventCategory
+from core.matrix.grid_oracle_database_manager import session_scope
+from main import app
+
+TODAY = date(2026, 9, 30)
+_TEST_PREFIX = "test-analog-"
+
+
+def _event(event_id: str, start: date, category: str | None, end: date | None = None) -> ShockEvent:
+    return ShockEvent(
+        event_id=event_id,
+        layer="policy",
+        name=f"{event_id} 이름",
+        start_date=start,
+        end_date=end,
+        scope="전국",
+        source="테스트 출처",
+        category=category,
+    )
+
+
+def _flows(industry_id: str, name: str, opens: int, closes: int) -> IndustryFlows:
+    openings = {date(2012, 12, 1): 1000}
+    closings: dict[date, int] = {}
+    for year in range(2013, 2027):
+        for month in range(1, 13):
+            openings[date(year, month, 1)] = opens
+            closings[date(year, month, 1)] = closes
+    return IndustryFlows(industry_id, name, openings, closings)
+
+
+class FakeEvents(ShockEventRepositoryPort):
+    def __init__(self, events: list[ShockEvent]) -> None:
+        self._events = events
+        self.saved: list[ShockEvent] = []
+
+    def upsert(self, events: list[ShockEvent]) -> tuple[int, int]:
+        self.saved.extend(events)
+        return len(events), 0
+
+    def list_events(self, industry_id: str | None, limit: int) -> list[ShockEvent]:
+        return self._events[:limit]
+
+    def list_categorized(self) -> list[ShockEvent]:
+        return [e for e in self._events if e.category is not None]
+
+
+class FakeFlows(StoreFlowPort):
+    def __init__(self) -> None:
+        self.calls = 0
+
+    def monthly_flows(self) -> list[IndustryFlows]:
+        self.calls += 1
+        return [_flows("cafe", "카페", 10, 8), _flows("pc_bang", "PC방", 3, 1)]
+
+
+_EVENTS = [
+    _event("covid", date(2020, 1, 20), "pandemic", date(2022, 4, 17)),
+    _event("mers", date(2015, 5, 20), "pandemic", date(2015, 12, 23)),
+    _event("w2025", date(2025, 1, 1), "minimum_wage", date(2025, 12, 31)),
+    _event("w2026", date(2026, 1, 1), "minimum_wage", date(2026, 12, 31)),
+    _event("distancing-phase", date(2020, 3, 22), None, date(2020, 5, 5)),
+]
+
+
+def _interactor(events=_EVENTS) -> EventAnalogInteractor:
+    return EventAnalogInteractor(events=FakeEvents(events), flows=FakeFlows(), today=lambda: TODAY)
+
+
+# ── 유스케이스 ──────────────────────────────────────────────────────────
+
+
+def test_질문의_유형과_진행_중_이벤트_유형의_지난_사례를_함께_돌려준다():
+    report = _interactor().analogs("cafe", "새 바이러스가 도는데 카페 창업 괜찮을까", 3, 1)
+    assert [c.category for c in report.categories] == ["pandemic", "minimum_wage"]
+    assert [c.reason for c in report.categories] == ["question", "current"]
+    assert [e.event_id for e in report.current_events] == ["w2026"]
+    assert [e.event_id for e in report.analogs] == ["covid", "mers", "w2025"]
+    assert report.as_of == "2026-08"
+
+
+def test_사례마다_창_라벨과_기간과_대상_업종_변동폭을_담는다():
+    covid = next(e for e in _interactor().analogs("cafe", "코로나 같은 상황", 3, 1).analogs if e.event_id == "covid")
+    assert covid.category_label == "감염병·방역"
+    assert covid.duration_months == 27
+    immediate, late = covid.windows
+    assert (immediate.kind, immediate.label, immediate.start_month, immediate.end_month) == (
+        "immediate", "직후 3개월", "2020-01", "2020-03",
+    )
+    assert (late.label, late.start_month, late.end_month) == ("1년 차 마지막 3개월", "2020-10", "2020-12")
+    assert immediate.target is not None
+    assert immediate.target.industry_name == "카페"
+    assert immediate.target.openings == 30
+
+
+def test_진행_중_이벤트의_두_번째_창은_최근_n개월이다():
+    current = _interactor().analogs("cafe", None, 2, 1).current_events[0]
+    assert [w.label for w in current.windows] == ["직후 2개월", "최근 2개월"]
+    assert current.windows[1].start_month == "2026-07"
+
+
+def test_유형마다_지난_사례의_결론을_싣는다():
+    report = _interactor().analogs("cafe", "코로나", 3, 1)
+    outlooks = {o.category: o for o in report.outlooks}
+    assert list(outlooks) == ["pandemic", "minimum_wage"]
+    pandemic = outlooks["pandemic"]
+    assert (pandemic.label, pandemic.analog_count, pandemic.typical_duration_months) == ("감염병·방역", 2, 17)
+    assert pandemic.target_trend in {"weak", "strong", "mixed", "unknown"}
+    assert all(r.industry_id != "cafe" for r in pandemic.recommended)
+
+
+def test_해석_주의사항을_함께_싣는다():
+    caveats = " ".join(_interactor().analogs("cafe", "코로나", 3, 1).caveats)
+    assert "12월" in caveats  # 연말 폐업 몰림
+    assert "지원금" in caveats  # 2020~2022 폐업 지연
+    assert "서울 전체" in caveats
+
+
+def test_유형_단서도_진행_중_이벤트도_없으면_비어_있다():
+    report = _interactor(events=_EVENTS[:2]).analogs("cafe", "역삼동 카페 어때", 3, 1)
+    assert report.categories == []
+    assert report.analogs == []
+    assert report.current_events == []
+
+
+def test_흐름이_없는_업종은_대상_변동폭이_없다():
+    report = _interactor().analogs("academy", "코로나", 3, 1)
+    assert all(w.target is None for e in report.analogs for w in e.windows)
+
+
+def test_이벤트를_유형과_함께_등록한다():
+    events = FakeEvents([])
+    interactor = ShockEventInteractor(repository=events)
+    interactor.register(_event("new-virus", date(2026, 9, 1), "pandemic"))
+    assert [e.category for e in events.saved] == ["pandemic"]
+
+
+# ── 캐시 프록시 ─────────────────────────────────────────────────────────
+
+
+def test_흐름은_유효_시간_안에는_다시_조회하지_않는다():
+    inner = FakeFlows()
+    clock = [datetime(2026, 9, 30, 9, 0)]
+    proxy = CachingStoreFlowGateway(inner, ttl=timedelta(hours=6), now=lambda: clock[0])
+    proxy.monthly_flows()
+    clock[0] += timedelta(hours=5)
+    proxy.monthly_flows()
+    assert inner.calls == 1
+    clock[0] += timedelta(hours=2)
+    proxy.monthly_flows()
+    assert inner.calls == 2
+
+
+# ── 라우터 ─────────────────────────────────────────────────────────────
+
+
+def test_유사_사례_myself_배선():
+    response = TestClient(app).get("/shocks/analogs/myself")
+    assert response.status_code == 200
+    body = response.json()
+    assert body["industry_id"] == "myself"
+    assert body["analogs"][0]["windows"][0]["label"]
+
+
+def test_n이_범위를_벗어나면_400():
+    response = TestClient(app).get("/shocks/analogs", params={"industry": "cafe", "months": 4})
+    assert response.status_code == 400
+    assert response.json()["error"]["code"] == "INVALID_WINDOW"
+
+
+# ── 시드 유형 ──────────────────────────────────────────────────────────
+
+
+def test_시드의_유형은_모두_유효하고_대표_사례에_붙어_있다():
+    by_id = {e.event_id: e for e in ShockSeedGateway().fetch_events()}
+    assert all(e.category is None or e.category in EventCategory for e in by_id.values())
+    assert by_id["outbreak-covid19-20200120"].category == "pandemic"
+    assert by_id["outbreak-covid19-20200120"].end_date == date(2022, 4, 17)
+    assert by_id["outbreak-mers-20150520"].category == "pandemic"
+    assert by_id["outbreak-mers-20150520"].end_date == date(2015, 12, 23)
+    assert all(by_id[f"min-wage-{y}"].category == "minimum_wage" for y in range(2019, 2027))
+    # 거리두기 단계 조정은 한 사건의 세부 국면 — 따로 비교하지 않는다
+    assert by_id["covid-distancing-20200322"].category is None
+
+
+# ── 저장소 왕복 ────────────────────────────────────────────────────────
+
+
+def _cleanup() -> None:
+    with session_scope() as session:
+        session.execute(
+            delete(ShockEventIndustryOrm).where(ShockEventIndustryOrm.event_id.like(f"{_TEST_PREFIX}%"))
+        )
+        session.execute(delete(ShockEventOrm).where(ShockEventOrm.event_id.like(f"{_TEST_PREFIX}%")))
+
+
+def test_유형은_저장했다가_그대로_읽히고_유형_있는_이벤트만_골라_읽는다():
+    _cleanup()
+    repository = SqlAlchemyShockEventRepository()
+    repository.upsert(
+        [
+            _event(f"{_TEST_PREFIX}1", date(2020, 1, 20), "pandemic"),
+            _event(f"{_TEST_PREFIX}2", date(2020, 3, 22), None),
+        ]
+    )
+    ids = {e.event_id: e.category for e in repository.list_categorized() if e.event_id.startswith(_TEST_PREFIX)}
+    assert ids == {f"{_TEST_PREFIX}1": "pandemic"}
+    assert repository.upsert([_event(f"{_TEST_PREFIX}1", date(2020, 1, 20), "relief")]) == (0, 1)
+    _cleanup()

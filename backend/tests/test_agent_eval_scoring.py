@@ -29,7 +29,7 @@ def test_check_rule_keywords_clean_report_returns_empty():
 
 
 def test_section_completion_counts_non_placeholder():
-    """기대 섹션은 재편된 5개 키다 — alternatives도 완성으로 세어야 한다 (설계서 §6)."""
+    """기대 섹션은 유사 사례를 더한 6개 키다 — alternatives도 완성으로 세어야 한다 (설계서 §6)."""
     events = [
         AgentEvent("report_delta", {"section": "verdict", "markdown": "### 판정\n\n🔴 위험"}),
         AgentEvent(
@@ -43,7 +43,7 @@ def test_section_completion_counts_non_placeholder():
     ]
     result = section_completion(events)
     assert result["complete"] == 2
-    assert result["total"] == 5
+    assert result["total"] == 6
 
 
 def test_section_completion은_조각_delta를_이어_붙인다():

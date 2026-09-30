@@ -1,5 +1,23 @@
 # Backend Version Log
 
+## [v0.53.0] - 2026-09-30
+
+### Added
+- **이벤트 유형** — `shock_event.category`(nullable, 마이그레이션 `b5e9d2c4a817`)와 VO `EventCategory`(`pandemic` 감염병·방역, `minimum_wage` 최저임금, `work_hours` 근로시간, `relief` 지원금·보상). 시드에 메르스(`outbreak-mers-20150520`)·코로나19(`outbreak-covid19-20200120`) 유행 이벤트를 더하고, 최저임금 8건·주 52시간 3건·재난지원금·손실보상에 유형을 달았다(거리두기 단계 이벤트는 유형 없음).
+- **기간 창** (`domain/services/event_window.py`) — 이벤트 달부터 직후 n개월, 그리고 이벤트 후 N년 차 마지막 n개월(아직 N년이 안 됐으면 최근 n개월, 직후 창과 겹치면 생략). n·N은 1~3, 완결된 달만 쓴다.
+- **변동폭** (`industry_flows.py`) — 창마다 업종별 개업·폐업·전년 같은 창 대비 증감률, 점포수 증감률, 평소 대비 초과분 `excess_pct`(창 점포수 증감률 − 전년 같은 창 증감률, %p).
+- **유사 사례** (`event_analog.py`) — 질문 속 키워드(바이러스·감염병·거리두기·최저임금·52시간·지원금 등)와 진행 중인 유형 이벤트로 유형을 고르고, 유형마다 지난 이벤트 최대 3건의 창별 대상 업종·강세 3·약세 3(창 시작 점포 100개 미만 제외)을 낸다. 유형별 종합 `outlooks`: 대상 업종 추세(weak/strong/mixed/unknown, ±0.3%p 과반), 여러 창에서 거듭 강세였던 업종(`recommended`)·거듭 약세였던 업종(`avoid`, 강세 +1·약세 −1 순점수), 보통 지속 기간(중앙값).
+- API `GET /shocks/analogs/myself`, `GET /shocks/analogs?industry=&months=3&years=1&question=` (범위 밖은 400 `INVALID_WINDOW`). 서울 `store` 월별 개폐업 집계 게이트웨이와 6시간 캐싱 프록시(`CachingStoreFlowGateway`). 해석 주의사항 4줄(범위·12월 폐업 몰림·2020~2022 지원금 폐업 지연·"평소 대비"는 이벤트만의 효과가 아님).
+- CLI `python -m apps.shock.adapter.inbound.cli.register_shock_event --event-id … --category pandemic --name … --start YYYY-MM-DD --source …` — 진행 중인 이벤트를 유형과 함께 등록·수정.
+- **리포트 "유사 사례" 섹션** — 사실 키 `analogs`(13키), 섹션 순서 verdict → reasons → **analogs** → conditions → alternatives → funding. 프롬프트 계약: `outlooks`로 결론(대상 업종 추세·지속 기간), 대표 사례 1~2건 수치 근거, 대상 업종이 약세면 창업을 권하지 않고 `recommended` 업종을 대안으로, 6문장 이내. 폴백 `analogs_markdown`(사례별 기간·창별 변동·유형별 결론).
+- 테스트: `test_event_analog_domain.py` 28개, `test_event_analog_api.py` 13개, 폴백·사실 수집 테스트 추가.
+
+### Changed
+- `ReportFactsCollector.collect`가 `question`을 받는다. 리포트는 6개 섹션, 길이 한도 2,400자. `agent_eval_scoring`도 6개 섹션 기준.
+
+### 한계
+- 서울 전체 점포 기준이며 학원·어린이집·편의점·치킨·부동산·기타 음식점은 빠진다. 10~12월 창은 12월 폐업 몰림이, 2020~2022년은 지원금으로 인한 폐업 지연이 섞인다. 유형 분류는 질문 키워드 힌트이고 사례 해석은 LLM이 한다. 실데이터에서 코로나 때 PC방도 약세였다(대면 업종 전반 약세).
+
 ## [v0.52.0] - 2026-09-30
 
 ### Added

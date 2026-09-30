@@ -61,6 +61,64 @@ def alternatives_markdown(alternatives: dict | None) -> str | None:
     )
 
 
+def analogs_markdown(analogs: dict | None) -> str | None:
+    """facts.analogs → 유사 사례 절. 해석(전망·권고)은 LLM 몫이라 사례별 변동과 업종만 옮긴다."""
+    if not analogs:
+        return None
+    if analogs.get("available") is False:
+        return f"### 유사 사례\n\n자료 없음 — {analogs.get('reason') or '이유 없음'}"
+    events = [*(analogs.get("current_events") or []), *(analogs.get("analogs") or [])]
+    if not events:
+        return "### 유사 사례\n\n비교할 이벤트가 없습니다."
+    return "\n".join(
+        [
+            "### 유사 사례",
+            "",
+            *(_analog_line(event) for event in events),
+            *(_outlook_line(outlook) for outlook in analogs.get("outlooks") or []),
+        ]
+    )
+
+
+_TREND_LABELS = {
+    "weak": "평소보다 약했다",
+    "strong": "평소보다 강했다",
+    "mixed": "뚜렷한 방향이 없었다",
+    "unknown": "판단할 자료가 없다",
+}
+
+
+def _industry_names(industries: list[dict] | None) -> str:
+    return "·".join(i["industry_name"] for i in industries or []) or "없음"
+
+
+def _outlook_line(outlook: dict) -> str:
+    return (
+        f"\n**{outlook.get('label')}** 지난 사례 {outlook.get('analog_count')}건에서 이 업종은 "
+        f"{_TREND_LABELS.get(outlook.get('target_trend'), '판단할 자료가 없다')}. "
+        f"사례 속 강세 업종 {_industry_names(outlook.get('recommended'))} / "
+        f"약세 업종 {_industry_names(outlook.get('avoid'))}."
+    )
+
+
+def _analog_line(event: dict) -> str:
+    period = f"{event.get('start_date')}~{event.get('end_date') or '진행 중'}"
+    if event.get("duration_months") is not None:
+        period += f", 약 {event['duration_months']}개월"
+    windows = event.get("windows") or []
+    measured = [w for w in windows if w.get("target") and w["target"].get("excess_pct") is not None]
+    line = f"- **{event.get('name')}** ({period})"
+    if measured:
+        changes = " · ".join(f"{w.get('label')} {w['target']['excess_pct']:+.1f}%p" for w in measured)
+        line += f" — {measured[0]['target']['industry_name']} 평소 대비 {changes}"
+    if windows:
+        first = windows[0]
+        strong = "·".join(m["industry_name"] for m in first.get("strongest") or [])
+        weak = "·".join(m["industry_name"] for m in first.get("weakest") or [])
+        line += f". {first.get('label')} 강세 {strong or '없음'} / 약세 {weak or '없음'}"
+    return line
+
+
 def _axis(items: list[dict] | None, name_key: str) -> list[str]:
     """한 축의 목록 줄 — 순서 그대로 최대 3개. 비어 있으면 '대안 없음' 한 줄."""
     if not items:

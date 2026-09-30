@@ -20,12 +20,13 @@ _FACTS = {"region": {"code": "1168064000", "name": "역삼1동"}, "verdict": {"a
 _FINAL_TEXT = (
     "[SECTION:verdict]\n### 판정\n\n🔴 위험.\n"
     "[SECTION:reasons]\n### 왜 안 되나\n\n생존 절벽이 켜졌다.\n"
+    "[SECTION:analogs]\n### 유사 사례\n\n코로나 때 대면 업종이 약세였다.\n"
     "[SECTION:conditions]\n### 그래도 한다면\n\n손익분기 900만원.\n"
     "[SECTION:alternatives]\n### 대안 동네·업종\n\n제과점.\n"
     "[SECTION:funding]\n### 대안 업종 지원사업\n\n공고 2건.\n"
 )
 
-_SECTION_ORDER = ["verdict", "reasons", "conditions", "alternatives", "funding"]
+_SECTION_ORDER = ["verdict", "reasons", "analogs", "conditions", "alternatives", "funding"]
 
 _SIGNATURE_FIELDS = {
     "agent_status": ("agent", "status"),
@@ -81,8 +82,10 @@ class FakeFactsCollector(ReportFactsCollector):
         self.facts = _FACTS if facts is None else facts
         self.calls: list[tuple] = []
 
-    def collect(self, region: str, industry: str, budget: int | None = None) -> dict:
-        self.calls.append((region, industry, budget))
+    def collect(
+        self, region: str, industry: str, budget: int | None = None, question: str | None = None
+    ) -> dict:
+        self.calls.append((region, industry, budget, question))
         return self.facts
 
 
@@ -192,6 +195,7 @@ def test_event_order_contract_for_two_stage_tool_turn():
         ("agent_status", "funding", "done"),
         ("report_delta", "verdict"),
         ("report_delta", "reasons"),
+        ("report_delta", "analogs"),
         ("report_delta", "conditions"),
         ("report_delta", "alternatives"),
         ("report_delta", "funding"),
@@ -256,10 +260,11 @@ def test_cite_failure_drops_citations_but_keeps_the_stream_alive():
     events = list(interactor.run("역삼동", "cafe", None))
 
     assert json.loads(llm.calls[1][-1]["content"]) == {"store_count": 10}
-    assert [_signature(event) for event in events[-9:]] == [
+    assert [_signature(event) for event in events[-10:]] == [
         ("agent_status", "market", "done"),
         ("report_delta", "verdict"),
         ("report_delta", "reasons"),
+        ("report_delta", "analogs"),
         ("report_delta", "conditions"),
         ("report_delta", "alternatives"),
         ("report_delta", "funding"),
@@ -271,7 +276,7 @@ def test_cite_failure_drops_citations_but_keeps_the_stream_alive():
 
 
 def test_missing_sections_fall_back_to_shortage_notice():
-    """최종 텍스트에 없는 섹션은 폴백 문구로 채워 5건을 모두 방출한다."""
+    """최종 텍스트에 없는 섹션은 폴백 문구로 채워 6건을 모두 방출한다."""
     llm = FakeLLM([_final_turn("[SECTION:verdict]\n### 판정\n\n🔴 위험.")])
     interactor = _interactor(llm, [_market_tool()])
 
@@ -280,13 +285,14 @@ def test_missing_sections_fall_back_to_shortage_notice():
     assert [event.payload["section"] for event in deltas] == [
         "verdict",
         "reasons",
+        "analogs",
         "conditions",
         "alternatives",
         "funding",
     ]
     assert deltas[0].payload["markdown"] == "### 판정\n\n🔴 위험."
     assert deltas[1].payload["markdown"] == "### 왜 안 되나\n\n분석 데이터가 부족합니다."
-    assert deltas[4].payload["markdown"] == "### 대안 업종 지원사업\n\n분석 데이터가 부족합니다."
+    assert deltas[5].payload["markdown"] == "### 대안 업종 지원사업\n\n분석 데이터가 부족합니다."
 
 
 def test_schema_violation_reprompts_once_then_skips_and_continues():
@@ -312,7 +318,7 @@ def test_schema_violation_reprompts_once_then_skips_and_continues():
     assert [event for event in events if event.type == "tool_call"] == []
     assert _signature(events[0]) == ("agent_status", "orchestrator", "running")
     assert _signature(events[-1]) == ("report_done",)
-    assert len([event for event in events if event.type == "report_delta"]) == 5
+    assert len([event for event in events if event.type == "report_delta"]) == 6
 
 
 def test_schema_violation_retry_with_valid_arguments_runs_the_tool():
@@ -432,12 +438,13 @@ def test_turn_limit_forces_a_final_report_call_and_finishes_the_contract():
     assert len(llm.calls) == 13
     assert llm.calls[-1][-1] == {
         "role": "user",
-        "content": "도구 호출을 멈추고, 지금까지 수집한 내용만으로 최종 리포트를 5개 섹션 마커 형식에 맞춰 지금 작성하라.",
+        "content": "도구 호출을 멈추고, 지금까지 수집한 내용만으로 최종 리포트를 6개 섹션 마커 형식에 맞춰 지금 작성하라.",
     }
-    assert [_signature(event) for event in events[-9:]] == [
+    assert [_signature(event) for event in events[-10:]] == [
         ("agent_status", "market", "done"),
         ("report_delta", "verdict"),
         ("report_delta", "reasons"),
+        ("report_delta", "analogs"),
         ("report_delta", "conditions"),
         ("report_delta", "alternatives"),
         ("report_delta", "funding"),
@@ -632,6 +639,7 @@ def test_도구_수집이_벽시계_예산을_넘기면_멈추고_리포트를_�
     assert [e.payload["section"] for e in events if e.type == "report_delta"] == [
         "verdict",
         "reasons",
+        "analogs",
         "conditions",
         "alternatives",
         "funding",
@@ -684,6 +692,7 @@ def test_수집_턴이_터져도_리포트는_나간다():
     assert [e.payload["section"] for e in events if e.type == "report_delta"] == [
         "verdict",
         "reasons",
+        "analogs",
         "conditions",
         "alternatives",
         "funding",
@@ -702,10 +711,11 @@ def test_마무리_턴까지_터지면_폴백_섹션으로_낸다():
     events = list(interactor.run("11680640", "cafe", None))
 
     deltas = {e.payload["section"]: e.payload["markdown"] for e in events if e.type == "report_delta"}
-    assert len(deltas) == 5
+    assert len(deltas) == 6
     assert "판정 없음" in deltas["verdict"]
     assert all(
-        "분석 데이터가 부족합니다" in deltas[name] for name in ("reasons", "conditions", "funding")
+        "분석 데이터가 부족합니다" in deltas[name]
+        for name in ("reasons", "analogs", "conditions", "funding")
     )
     assert events[-1].type == "report_done"
 
@@ -729,7 +739,7 @@ def test_facts는_LLM을_부르기_전에_먼저_나간다():
     llm = FakeLLM([_final_turn()])
     interactor = _interactor(llm, [_market_tool()], facts=collector, budget=50_000_000)
 
-    events = list(interactor.run("1168064000", "korean_food", None))
+    events = list(interactor.run("1168064000", "korean_food", "바이러스가 돌면?"))
 
     assert [_signature(event) for event in events[:4]] == [
         ("agent_status", "orchestrator", "running"),
@@ -738,7 +748,8 @@ def test_facts는_LLM을_부르기_전에_먼저_나간다():
         ("agent_status", "facts", "done"),
     ]
     assert events[2].payload == {"facts": collector.facts}  # 프론트 계약은 중첩이다
-    assert collector.calls == [("1168064000", "korean_food", 50_000_000)]
+    # 질문은 유사 사례의 유형 단서라 사실 수집에도 넘긴다
+    assert collector.calls == [("1168064000", "korean_food", 50_000_000, "바이러스가 돌면?")]
 
 
 def test_수집한_사실이_LLM_첫_메시지에_통째로_실린다():
@@ -824,6 +835,7 @@ def test_본문은_조각_단위로_흘러나온다():
     assert concat_sections((e.payload["section"], e.payload["markdown"]) for e in deltas) == (
         "### 판정\n\n🔴 위험.\n\n"
         "### 왜 안 되나\n\n생존 절벽이 켜졌다.\n\n"
+        "### 유사 사례\n\n코로나 때 대면 업종이 약세였다.\n\n"
         "### 그래도 한다면\n\n손익분기 900만원.\n\n"
         "### 대안 동네·업종\n\n제과점.\n\n"
         "### 대안 업종 지원사업\n\n공고 2건."
@@ -872,7 +884,7 @@ def test_스트림이_끊겨도_흘린_글은_남고_나머지는_폴백으로_�
     assert deltas["verdict"] == "### 판정\n\n🔴 위험."
     assert deltas["reasons"] == "생존 절벽."
     assert "분석 데이터가 부족합니다" in deltas["conditions"]
-    assert set(deltas) == {"verdict", "reasons", "conditions", "alternatives", "funding"}
+    assert set(deltas) == {"verdict", "reasons", "analogs", "conditions", "alternatives", "funding"}
     assert _signature(events[-1]) == ("report_done",)
 
 

@@ -2,6 +2,30 @@
   "_doc": "특이변수 ①계층(정책·규제) 시드 — API 미커버 구간·공표 시행일 기반. 각 행은 source(근거 출처) 필수. 적재: python -m apps.shock.adapter.inbound.cli.seed_shock_events",
   "events": [
     {
+      "event_id": "outbreak-mers-20150520",
+      "layer": "policy",
+      "category": "pandemic",
+      "name": "메르스(MERS) 국내 유행 — 첫 확진부터 상황 종료까지",
+      "start_date": "2015-05-20",
+      "end_date": "2015-12-23",
+      "scope": "전국",
+      "source": "보건복지부 질병관리본부 발표 (2015-05-20 첫 확진, 2015-12-23 상황 종료 선언)",
+      "source_url": "https://www.seoul.co.kr/news/society/health-medical/2015/12/23/20151223800042",
+      "description": "확진 186명·사망 38명. 병원 중심 전파로 외출·대면 소비가 위축됐고 영업 제한 조치는 없었다. 정부는 2015-07-28 사실상 종식을 선언했다."
+    },
+    {
+      "event_id": "outbreak-covid19-20200120",
+      "layer": "policy",
+      "category": "pandemic",
+      "name": "코로나19 국내 유행과 방역 조치 — 첫 확진부터 사회적 거리두기 전면 해제까지",
+      "start_date": "2020-01-20",
+      "end_date": "2022-04-17",
+      "scope": "전국",
+      "source": "보건복지부·중앙재난안전대책본부 보도자료 (2020-01-20 첫 확진, 2022-04-18 거리두기 전면 해제)",
+      "source_url": "https://www.mohw.go.kr/board.es?act=view&bid=0027&cg_code=&list_no=371078&mid=a10503010100&tag=",
+      "description": "영업시간·사적모임·집합금지 등 대면 영업 제한이 약 2년 1개월 이어졌다. 이 기간 폐업 수치는 재난지원금·손실보상으로 폐업이 지연되어 실제보다 적게 잡혔을 수 있다."
+    },
+    {
       "event_id": "covid-distancing-20200322",
       "layer": "policy",
       "name": "코로나19 강력한 사회적 거리두기",
@@ -334,6 +358,7 @@
     {
       "event_id": "min-wage-2019",
       "layer": "policy",
+      "category": "minimum_wage",
       "name": "최저임금 인상 — 2019년 시급 8,350원(+10.9%)",
       "start_date": "2019-01-01",
       "end_date": "2019-12-31",
@@ -355,6 +380,7 @@
     {
       "event_id": "min-wage-2020",
       "layer": "policy",
+      "category": "minimum_wage",
       "name": "최저임금 인상 — 2020년 시급 8,590원(+2.9%)",
       "start_date": "2020-01-01",
       "end_date": "2020-12-31",
@@ -376,6 +402,7 @@
     {
       "event_id": "min-wage-2021",
       "layer": "policy",
+      "category": "minimum_wage",
       "name": "최저임금 인상 — 2021년 시급 8,720원(+1.5%)",
       "start_date": "2021-01-01",
       "end_date": "2021-12-31",
@@ -397,6 +424,7 @@
     {
       "event_id": "min-wage-2022",
       "layer": "policy",
+      "category": "minimum_wage",
       "name": "최저임금 인상 — 2022년 시급 9,160원(+5.1%)",
       "start_date": "2022-01-01",
       "end_date": "2022-12-31",
@@ -418,6 +446,7 @@
     {
       "event_id": "min-wage-2023",
       "layer": "policy",
+      "category": "minimum_wage",
       "name": "최저임금 인상 — 2023년 시급 9,620원(+5.0%)",
       "start_date": "2023-01-01",
       "end_date": "2023-12-31",
@@ -439,6 +468,7 @@
     {
       "event_id": "min-wage-2024",
       "layer": "policy",
+      "category": "minimum_wage",
       "name": "최저임금 인상 — 2024년 시급 9,860원(+2.5%)",
       "start_date": "2024-01-01",
       "end_date": "2024-12-31",
@@ -460,6 +490,7 @@
     {
       "event_id": "min-wage-2025",
       "layer": "policy",
+      "category": "minimum_wage",
       "name": "최저임금 인상 — 2025년 시급 10,030원(+1.7%)",
       "start_date": "2025-01-01",
       "end_date": "2025-12-31",
@@ -481,6 +512,7 @@
     {
       "event_id": "min-wage-2026",
       "layer": "policy",
+      "category": "minimum_wage",
       "name": "최저임금 인상 — 2026년 시급 10,320원(+2.9%)",
       "start_date": "2026-01-01",
       "end_date": "2026-12-31",
@@ -502,6 +534,7 @@
     {
       "event_id": "work-hour-52-20180701",
       "layer": "policy",
+      "category": "work_hours",
       "name": "주 52시간제 시행 — 300인 이상 사업장",
       "start_date": "2018-07-01",
       "end_date": null,
@@ -523,6 +556,7 @@
     {
       "event_id": "work-hour-52-20200101",
       "layer": "policy",
+      "category": "work_hours",
       "name": "주 52시간제 시행 — 50~299인 사업장",
       "start_date": "2020-01-01",
       "end_date": null,
@@ -544,6 +578,7 @@
     {
       "event_id": "work-hour-52-20210701",
       "layer": "policy",
+      "category": "work_hours",
       "name": "주 52시간제 시행 — 5~49인 사업장",
       "start_date": "2021-07-01",
       "end_date": null,
@@ -565,6 +600,7 @@
     {
       "event_id": "relief-fund-20200504",
       "layer": "policy",
+      "category": "relief",
       "name": "1차 긴급재난지원금 지급 (전 국민)",
       "start_date": "2020-05-04",
       "end_date": "2020-08-31",
@@ -618,6 +654,7 @@
     {
       "event_id": "loss-compensation-20211027",
       "layer": "policy",
+      "category": "relief",
       "name": "소상공인 손실보상제 시행",
       "start_date": "2021-10-27",
       "end_date": null,

@@ -9,7 +9,7 @@ class AgentEvent:
 
     type별 payload 필드:
     - agent_status : {agent, status}        agent ∈ orchestrator|facts|writer|market|shock|funding, status ∈ running|done
-    - facts        : ReportFacts dict 12키    LLM 호출 전 코드가 모은 사실 (설계서 §3-1)
+    - facts        : ReportFacts dict 13키    LLM 호출 전 코드가 모은 사실 (설계서 §3-1)
     - tool_call    : {agent, tool, summary}
     - report_delta : {section, markdown}    section ∈ verdict|reasons|conditions|alternatives|funding
                                             **조각 단위**다 — 같은 section이 여러 번 온다(프론트는 append)

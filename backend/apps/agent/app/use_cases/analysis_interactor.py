@@ -46,6 +46,7 @@ from apps.agent.app.use_cases.report_facts import ReportFactsCollector
 from apps.agent.domain.entities.agent_event_entity import AgentEvent
 from apps.agent.domain.services.report_fallback import (
     alternatives_markdown,
+    analogs_markdown,
     verdict_markdown,
 )
 from apps.agent.domain.services.section_stream import SectionSplitter
@@ -64,6 +65,7 @@ _TOOL_LOOP_BUDGET_SECONDS = 180.0
 _SECTIONS = (
     ("verdict", "판정"),
     ("reasons", "왜 안 되나"),
+    ("analogs", "유사 사례"),
     ("conditions", "그래도 한다면"),
     ("alternatives", "대안 동네·업종"),
     ("funding", "대안 업종 지원사업"),
@@ -71,11 +73,15 @@ _SECTIONS = (
 
 # LLM이 빼먹어도 코드가 facts로 쓸 수 있는 섹션 — 섹션 이름이 곧 facts 키다 (설계서 §3-3④).
 # if/elif 대신 테이블 디스패치 (CLAUDE.md §5).
-_FACT_FALLBACKS = {"verdict": verdict_markdown, "alternatives": alternatives_markdown}
+_FACT_FALLBACKS = {
+    "verdict": verdict_markdown,
+    "analogs": analogs_markdown,
+    "alternatives": alternatives_markdown,
+}
 
 _FINAL_REQUEST = (
     "도구 호출을 멈추고, 지금까지 수집한 내용만으로 최종 리포트를 "
-    "5개 섹션 마커 형식에 맞춰 지금 작성하라."
+    "6개 섹션 마커 형식에 맞춰 지금 작성하라."
 )
 
 SYSTEM_PROMPT = """당신은 서울 상권 분석 리포트를 작성하는 단일 에이전트다.
@@ -98,12 +104,13 @@ SYSTEM_PROMPT = """당신은 서울 상권 분석 리포트를 작성하는 단�
 
 [분량]
 숫자는 화면의 시각 자료가 이미 보여준다. **표·숫자 나열 대신 해석 2~4문장**으로 쓴다 —
-같은 숫자를 다시 늘어놓지 말고 "그래서 무엇을 뜻하는지"를 쓴다. 리포트 전체를 2,000자 이내로 맺는다.
+같은 숫자를 다시 늘어놓지 말고 "그래서 무엇을 뜻하는지"를 쓴다. 리포트 전체를 2,400자 이내로 맺는다.
 
 [최종 리포트 형식]
-아래 5개 마커를 순서대로 모두 포함한 마크다운 한 벌을 출력한다.
+아래 6개 마커를 순서대로 모두 포함한 마크다운 한 벌을 출력한다.
 [SECTION:verdict] 판정
 [SECTION:reasons] 왜 안 되나
+[SECTION:analogs] 유사 사례
 [SECTION:conditions] 그래도 한다면
 [SECTION:alternatives] 대안 동네·업종
 [SECTION:funding] 대안 업종 지원사업
@@ -127,6 +134,27 @@ SYSTEM_PROMPT = """당신은 서울 상권 분석 리포트를 작성하는 단�
 서술은 하지 않는다. `benchmarks`가 null인 항목은 비교하지 않는다.
 facts에 없는 수치는 지어내지 않는다. 값이 없으면 "자료 없음"이라고 쓴다.
 `facts.profile.caveats` 항목은 해석 금지 사항이다 — 반드시 지킨다.
+
+[analogs 섹션 출력 계약]
+**유사 사례**는 `facts.analogs`로 "비슷한 일이 예전에 있었을 때 업종마다 무슨 일이 있었고, 그래서
+앞으로 무엇이 예상되는가"를 쓴다.
+- 지금 상황의 유형부터 밝힌다. `categories`의 `reason: "question"`은 사용자 질문 속 상황,
+  `"current"`는 운영자가 등록한 진행 중 이벤트(`current_events`)다. 질문 속 상황이 어느 유형에도
+  맞지 않으면 억지로 잇지 말고 "비교할 만한 과거 사례가 없다"고 쓴다.
+- 결론은 유형별 `outlooks`에서 가져온다(코드가 사례 전체를 이미 집계했다). `target_trend`가 `weak`면
+  "지난 사례에서 이 업종은 평소보다 약했다", `strong`이면 "강했다", `mixed`면 "뚜렷한 방향이 없었다",
+  `unknown`이면 "판단할 자료가 없다"로 쓴다. `typical_duration_months`로 "비슷한 상황은 약 N개월
+  이어졌다"고 쓴다.
+- 근거로 대표 사례 1~2건의 창(`windows[].label`)별 대상 업종 `excess_pct`(평소 대비 점포수 증감, %p)를
+  인용해 충격이 굳었는지 풀렸는지 보인다. "모두·항상"은 인용한 모든 창이 같은 방향일 때만 쓴다.
+- `current_events`가 있으면 그 이벤트의 창 변동을 과거 사례와 한 문장으로 나란히 놓는다.
+- 마지막 문장은 권고다 — `target_trend`가 `weak`면 지금 창업을 권하지 않고 `recommended` 업종을 이름
+  그대로(순서 유지) 대안으로 든다. `avoid` 업종은 대안으로 들지 않는다. 전망은 "가능성"으로 쓰고,
+  판정 등급은 바꾸지 않는다(규칙 ⑤). 목록에 없는 업종을 보태지 않는다.
+- `caveats`는 해석 금지 사항이다 — 반드시 지킨다. 10~12월이 걸린 창을 인용하면 12월 폐업 몰림일 수
+  있다고 덧붙인다.
+- 이 절은 6문장 이내로 쓴다. 유형·업종 이름은 백틱·따옴표 없이 그대로 쓴다.
+- `categories`가 비어 있으면 "비교할 이벤트가 없습니다"라고만 쓴다. `available: false`면 그 `reason`을 쓴다.
 
 [conditions 섹션 출력 계약]
 **그래도 한다면**은 조건 셋을 이 순서·이 라벨 그대로 쓴다.
@@ -353,7 +381,7 @@ class AnalysisInteractor(AnalysisUseCase):
 
         # 사실은 코드가 먼저 모은다 — 프론트는 이 프레임만으로 시각 자료를 다 그린다 (설계서 §3-3①)
         yield AgentEvent("agent_status", {"agent": "facts", "status": "running"})
-        facts = self._facts.collect(region, industry, self._budget)
+        facts = self._facts.collect(region, industry, self._budget, question)
         yield AgentEvent("facts", {"facts": facts})  # 프론트 계약은 중첩이다 (설계서 §4-1)
         yield AgentEvent("agent_status", {"agent": "facts", "status": "done"})
 

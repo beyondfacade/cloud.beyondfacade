@@ -6,6 +6,9 @@ AnalysisInteractor.last_usage는 가변 인스턴스 상태이므로 요청마�
 
 from collections.abc import Callable
 
+from apps.agent.adapter.outbound.gateways.event_analog_facts_gateway import (
+    EventAnalogFactsGateway,
+)
 from apps.agent.adapter.outbound.gateways.finance_facts_gateway import FinanceFactsGateway
 from apps.agent.adapter.outbound.gateways.funding_facts_gateway import FundingFactsGateway
 from apps.agent.adapter.outbound.gateways.region_facts_gateway import RegionFactsGateway
@@ -65,6 +68,7 @@ def build_analysis_use_case(model: str = "hybrid", budget: int | None = None) ->
         verdict_facts=VerdictFactsGateway(),
         funding_facts=FundingFactsGateway(),
         news_search=rag_search,
+        analog_facts=EventAnalogFactsGateway(),
     )
     return AnalysisInteractor(llm=llm_factory(), tools=tools, facts=facts, budget=budget)
 

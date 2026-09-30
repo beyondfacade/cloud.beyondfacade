@@ -3,7 +3,7 @@
 사실은 코드가 모으고 LLM은 글만 쓴다. 같은 dict가 `facts` SSE 이벤트(프론트가 즉시 그림을 그린다)와
 LLM 첫 메시지의 `[FACTS]`로 동시에 나간다.
 
-12항목을 **동시에** 조회한다 — 항목마다 제 세션(`session_scope`)을 여는 독립 조회라 서로 기다릴
+13항목을 **동시에** 조회한다 — 항목마다 제 세션(`session_scope`)을 여는 독립 조회라 서로 기다릴
 이유가 없다. 직렬로 돌면 가장 느린 항목(뉴스 RAG 임베딩)이 전체 수집 시간을 결정한다.
 
 항목마다 예외를 격리한다 — 하나가 실패해도 나머지 그림은 뜬다. 실패한 자리는
@@ -16,6 +16,7 @@ import logging
 from concurrent.futures import Future, ThreadPoolExecutor
 
 from apps.agent.app.ports.output.agent_port import (
+    EventAnalogFactsPort,
     FundingFactsPort,
     RegionFactsPort,
     VerdictFactsPort,
@@ -36,6 +37,7 @@ FACTS_KEYS = (
     "metrics_history",
     "population",
     "shocks",
+    "analogs",
     "news",
     "funding_candidates",
     "budget",
@@ -64,14 +66,18 @@ class ReportFactsCollector:
         verdict_facts: VerdictFactsPort,
         funding_facts: FundingFactsPort,
         news_search: RagSearchUseCase,
+        analog_facts: EventAnalogFactsPort | None = None,
     ) -> None:
         self._region_facts = region_facts
         self._verdict_facts = verdict_facts
         self._funding_facts = funding_facts
         self._news_search = news_search
+        self._analog_facts = analog_facts
 
-    def collect(self, region: str, industry: str, budget: int | None = None) -> dict:
-        """§5 계약 표의 12키를 모은 JSON 직렬화 가능한 dict (키 순서도 계약)."""
+    def collect(
+        self, region: str, industry: str, budget: int | None = None, question: str | None = None
+    ) -> dict:
+        """§5 계약 표의 13키를 모은 JSON 직렬화 가능한 dict (키 순서도 계약)."""
         with ThreadPoolExecutor(max_workers=_MAX_WORKERS) as pool:
             # region을 **가장 먼저** 넣는다 — 큐가 FIFO라 첫 워커가 반드시 집어 간다.
             region_future = pool.submit(self._region_info, region, industry)
@@ -89,6 +95,7 @@ class ReportFactsCollector:
                 ),
                 "population": pool.submit(self._region_facts.population, region),
                 "shocks": pool.submit(self._shocks, industry),
+                "analogs": pool.submit(self._analogs, industry, question),
                 "funding_candidates": pool.submit(self._funding, industry),
                 # 뉴스 질의는 동 이름·업종명을 쓴다 — 워커가 region future를 기다리므로 **맨 뒤**에
                 # 넣는다. 앞선 항목이 워커를 다 채워도 region은 이미 실행 중이라 굶지 않는다.
@@ -124,6 +131,11 @@ class ReportFactsCollector:
             {**event, "industry_specific": False}
             for event in self._region_facts.shocks(None, _SHOCK_LIMIT)
         ]
+
+    def _analogs(self, industry: str, question: str | None) -> dict:
+        if self._analog_facts is None:
+            return {"available": False, "reason": "유사 사례 조회가 연결되지 않았습니다"}
+        return self._analog_facts.analogs(industry, question)
 
     def _funding(self, industry: str) -> list[dict]:
         """공고 목록만 남긴다 — 프론트 계약은 배열이다 (설계서 §3-1).

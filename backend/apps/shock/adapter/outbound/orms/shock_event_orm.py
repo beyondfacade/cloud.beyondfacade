@@ -27,3 +27,4 @@ class ShockEventOrm(OrmBase):
     source: Mapped[str]  # 근거 출처 (기관·고시·API명) — 전 행 필수
     source_url: Mapped[str | None]
     description: Mapped[str | None]  # 지원금 왜곡 주의(§5.2 ⚠️) 등 분석 참고사항
+    category: Mapped[str | None]  # EventCategory 값 — 유사 사례 비교 대상만 (세부 국면은 NULL)

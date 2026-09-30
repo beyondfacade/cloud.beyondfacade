@@ -31,6 +31,7 @@ def _to_event(row: dict) -> ShockEvent:
             IndustryImpact(impact["industry_id"], impact["severity"])
             for impact in row.get("industry_impacts", [])
         ],
+        category=row.get("category"),
     )
 
 

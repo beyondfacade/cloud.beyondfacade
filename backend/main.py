@@ -45,6 +45,7 @@ from apps.ops.adapter.inbound.api.error_handlers import ops_error_handler
 from apps.ops.adapter.inbound.api.v1.facility_router import router as facility_router
 from apps.ops.adapter.inbound.api.v1.healthcare_router import router as healthcare_router
 from apps.ops.app.errors import OpsError
+from apps.shock.adapter.inbound.api.v1.event_analog_router import router as event_analog_router
 from apps.shock.adapter.inbound.api.v1.shock_event_router import router as shock_router
 from apps.store.adapter.inbound.api.v1.store_router import router as store_router
 from apps.verdict.adapter.inbound.api.v1.region_industry_verdict_router import (
@@ -85,6 +86,7 @@ app.include_router(hour_gap_router)
 app.include_router(commerce_change_router)
 app.include_router(news_router)
 app.include_router(shock_router)
+app.include_router(event_analog_router)
 app.include_router(store_router)
 app.include_router(verdict_router)
 

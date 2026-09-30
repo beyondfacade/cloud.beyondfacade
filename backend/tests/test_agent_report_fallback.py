@@ -2,6 +2,7 @@
 
 from apps.agent.domain.services.report_fallback import (
     alternatives_markdown,
+    analogs_markdown,
     verdict_markdown,
 )
 
@@ -99,6 +100,77 @@ def test_빈_축은_대안_없음이라고_쓴다():
     markdown = alternatives_markdown({"available": True, "industries": [], "regions": []})
 
     assert markdown.count("대안 없음") == 2
+
+
+def _move(name: str, excess: float) -> dict:
+    return {"industry_id": name, "industry_name": name, "excess_pct": excess}
+
+
+_ANALOGS = {
+    "industry_id": "cafe",
+    "categories": [{"category": "pandemic", "label": "감염병·방역", "reason": "question"}],
+    "current_events": [],
+    "analogs": [
+        {
+            "event_id": "outbreak-covid19-20200120",
+            "name": "코로나19 국내 유행",
+            "start_date": "2020-01-20",
+            "end_date": "2022-04-17",
+            "duration_months": 27,
+            "windows": [
+                {
+                    "label": "직후 3개월",
+                    "target": _move("카페", -0.8),
+                    "strongest": [_move("중식", 0.8), _move("한식", 0.6)],
+                    "weakest": [_move("카페", -0.8), _move("PC방", -0.6)],
+                },
+                {"label": "1년 차 마지막 3개월", "target": None, "strongest": [], "weakest": []},
+            ],
+        }
+    ],
+}
+
+
+def test_유사_사례_폴백은_사례마다_대상_업종_변동폭과_강세_약세_업종을_옮긴다():
+    markdown = analogs_markdown(_ANALOGS)
+
+    assert markdown.startswith("### 유사 사례")
+    assert "코로나19 국내 유행" in markdown
+    assert "약 27개월" in markdown
+    assert "직후 3개월 -0.8%p" in markdown
+    assert "강세 중식·한식" in markdown
+    assert "약세 카페·PC방" in markdown
+
+
+def test_유사_사례_폴백은_유형별_결론과_강세_업종을_덧붙인다():
+    markdown = analogs_markdown(
+        {
+            **_ANALOGS,
+            "outlooks": [
+                {
+                    "label": "감염병·방역",
+                    "analog_count": 2,
+                    "target_trend": "weak",
+                    "recommended": [{"industry_id": "western_food", "industry_name": "양식"}],
+                    "avoid": [{"industry_id": "pc_bang", "industry_name": "PC방"}],
+                }
+            ],
+        }
+    )
+
+    assert "지난 사례 2건에서 이 업종은 평소보다 약했다" in markdown
+    assert "사례 속 강세 업종 양식 / 약세 업종 PC방" in markdown
+
+
+def test_비교할_이벤트가_없으면_그렇게_쓴다():
+    markdown = analogs_markdown({"categories": [], "current_events": [], "analogs": []})
+
+    assert "비교할 이벤트가 없습니다" in markdown
+
+
+def test_유사_사례가_없으면_이유와_함께_자료_없음이라고_쓴다():
+    assert "흐름 조회 실패" in analogs_markdown({"available": False, "reason": "흐름 조회 실패"})
+    assert analogs_markdown(None) is None
 
 
 def test_대안이_없으면_이유와_함께_대안_없음이라고_쓴다():

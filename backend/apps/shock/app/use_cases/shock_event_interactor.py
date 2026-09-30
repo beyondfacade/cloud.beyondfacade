@@ -25,6 +25,7 @@ def _to_dto(entity: ShockEvent) -> ShockEventDto:
             IndustryImpactDto(industry_id=i.industry_id, severity=i.severity)
             for i in entity.industry_impacts
         ],
+        category=entity.category,
     )
 
 
@@ -54,3 +55,6 @@ class ShockEventInteractor(ShockEventUseCase):
 
     def list_events(self, industry_id: str | None, limit: int) -> list[ShockEventDto]:
         return [_to_dto(e) for e in self._repository.list_events(industry_id, limit)]
+
+    def register(self, event: ShockEvent) -> tuple[int, int]:
+        return self._repository.upsert([event])

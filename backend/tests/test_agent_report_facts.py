@@ -7,6 +7,7 @@ from datetime import datetime
 import pytest
 
 from apps.agent.app.ports.output.agent_port import (
+    EventAnalogFactsPort,
     FundingFactsPort,
     RegionFactsPort,
     VerdictFactsPort,
@@ -141,12 +142,57 @@ def _collector(region=None, verdict=None, funding=None, news=None) -> ReportFact
     )
 
 
-def test_열두_키를_빠짐없이_모은다():
+def test_열세_키를_빠짐없이_모은다():
     """프론트 시각 자료가 키 하나에 하나씩 달린다 — 키가 빠지면 그림이 사라진다 (설계서 §5)."""
     facts = _collector().collect("1168064000", "korean_food", 50_000_000)
 
     assert list(facts) == list(FACTS_KEYS)
-    assert len(FACTS_KEYS) == 12
+    assert len(FACTS_KEYS) == 13
+
+
+class FakeAnalogFacts(EventAnalogFactsPort):
+    def __init__(self, failing: bool = False) -> None:
+        self._failing = failing
+        self.calls: list[tuple[str, str | None]] = []
+
+    def analogs(self, industry_id: str, question: str | None) -> dict:
+        self.calls.append((industry_id, question))
+        if self._failing:
+            raise RuntimeError("흐름 조회 실패")
+        return {"available": True, "analogs": [{"event_id": "outbreak-covid19-20200120"}]}
+
+
+def test_유사_사례는_업종과_질문으로_조회한다():
+    analog = FakeAnalogFacts()
+    collector = ReportFactsCollector(
+        region_facts=FakeRegionFacts(),
+        verdict_facts=FakeVerdictFacts(),
+        funding_facts=FakeFundingFacts(),
+        news_search=FakeNewsSearch(),
+        analog_facts=analog,
+    )
+    facts = collector.collect("1168064000", "cafe", None, "바이러스가 돌면?")
+
+    assert analog.calls == [("cafe", "바이러스가 돌면?")]
+    assert facts["analogs"]["analogs"][0]["event_id"] == "outbreak-covid19-20200120"
+
+
+def test_유사_사례_조회가_실패해도_나머지는_뜬다():
+    collector = ReportFactsCollector(
+        region_facts=FakeRegionFacts(),
+        verdict_facts=FakeVerdictFacts(),
+        funding_facts=FakeFundingFacts(),
+        news_search=FakeNewsSearch(),
+        analog_facts=FakeAnalogFacts(failing=True),
+    )
+    facts = collector.collect("1168064000", "cafe", None)
+
+    assert facts["analogs"]["available"] is False
+    assert facts["verdict"]["available"] is True
+
+
+def test_유사_사례_포트가_없으면_자료_없음이다():
+    assert _collector().collect("1168064000", "cafe", None)["analogs"]["available"] is False
 
 
 def test_지역_키는_코드와_이름_업종명을_함께_싣는다():

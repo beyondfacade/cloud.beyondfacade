@@ -16,6 +16,7 @@ _FIELDS = (
     "source",
     "source_url",
     "description",
+    "category",
 )
 
 

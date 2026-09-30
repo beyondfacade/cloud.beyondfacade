@@ -14,6 +14,10 @@ class ShockEventRepositoryPort(ABC):
     def list_events(self, industry_id: str | None, limit: int) -> list[ShockEvent]:
         """시행일 오름차순 limit건 — industry_id가 있으면 영향 업종으로 필터."""
 
+    @abstractmethod
+    def list_categorized(self) -> list[ShockEvent]:
+        """유형(category)이 붙은 이벤트 전부 — 유사 사례 비교의 후보."""
+
 
 class ShockEventSourcePort(ABC):
     """충격 원천 — 거리두기 API·시드 파일 등 어떤 소스든 같은 계약으로 들어온다."""

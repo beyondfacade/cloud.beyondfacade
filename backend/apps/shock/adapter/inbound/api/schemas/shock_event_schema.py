@@ -19,3 +19,4 @@ class ShockEventResponse(BaseModel):
     source_url: str | None = None
     description: str | None = None
     industry_impacts: list[IndustryImpactResponse] = []
+    category: str | None = None

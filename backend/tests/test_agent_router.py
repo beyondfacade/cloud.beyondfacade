@@ -117,7 +117,7 @@ def test_facts_프레임이_열두_키를_그대로_싣는다():
     frame = [line for line in body.splitlines() if line.startswith("data: ")][1]
     payload = json.loads(frame[len("data: ") :])
     assert payload["type"] == "facts"
-    # 프론트 계약은 중첩이다 — {type:"facts", facts:{…12키}} (설계서 §4-1)
+    # 프론트 계약은 중첩이다 — {type:"facts", facts:{…13키}} (설계서 §4-1)
     assert set(payload) == {"type", "facts"}
     assert set(payload["facts"]) == set(FACTS_KEYS)
     assert payload["facts"]["region"]["name"] == "역삼1동"

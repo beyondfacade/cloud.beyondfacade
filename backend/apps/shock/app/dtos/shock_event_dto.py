@@ -20,3 +20,4 @@ class ShockEventDto:
     source_url: str | None = None
     description: str | None = None
     industry_impacts: list[IndustryImpactDto] = field(default_factory=list)
+    category: str | None = None
