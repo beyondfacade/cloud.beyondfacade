@@ -3,6 +3,8 @@ import path from "node:path";
 import type { FeatureCollection, MultiPolygon } from "geojson";
 import type {
   AgentEvent,
+  EventAnalogs,
+  IndustryMove,
   ReportFacts,
   ReportSection,
   CategoryRow,
@@ -255,6 +257,53 @@ export function convenienceSummaryOf(regionCode: string): ConvenienceRegionSumma
 }
 
 /** 고정 시연 입력의 사실 선수집 → 문장 스트리밍. 실 API의 이벤트 순서·스키마를 미러한다. */
+/** 유사 사례 시연 표본 — 창·라벨 구조는 GET /shocks/analogs 계약과 같다. 수치는 시연용이다. */
+function eventAnalogsDemo(industryId: string, industryName: string): EventAnalogs {
+  const move = (id: string, name: string, excess: number): IndustryMove => ({
+    industry_id: id, industry_name: name, openings: 1500, closings: 1100,
+    openings_yoy_pct: Math.round(excess * 50) / 10, closings_yoy_pct: 3.6, stock_change_pct: 1.2, excess_pct: excess,
+  });
+  const target = (excess: number) => move(industryId, industryName, excess);
+  return {
+    industry_id: industryId, months: 3, years: 1, as_of: "2026-08",
+    categories: [
+      { category: "pandemic", label: "감염병·방역", reason: "question" },
+      { category: "minimum_wage", label: "최저임금", reason: "current" },
+    ],
+    current_events: [{
+      event_id: "min-wage-2026", name: "최저임금 인상 — 2026년 시급 10,320원(+2.9%)", category: "minimum_wage", category_label: "최저임금",
+      start_date: "2026-01-01", end_date: "2026-12-31", duration_months: 11, description: null, source: "고용노동부 최저임금 고시", current: true,
+      windows: [
+        { kind: "immediate", label: "직후 3개월", start_month: "2026-01", end_month: "2026-03", target: target(0.6),
+          strongest: [move("pc_bang", "PC방", 0.9), move("pub", "호프·주점", 0.8)], weakest: [move("gym", "헬스장", -1.3), move("karaoke", "노래방", -0.2)] },
+        { kind: "recent", label: "최근 3개월", start_month: "2026-06", end_month: "2026-08", target: target(0.3),
+          strongest: [move("billiard", "당구장", 1.5)], weakest: [move("gym", "헬스장", -2.4), move("western_food", "양식", -1.3)] },
+      ],
+    }],
+    analogs: [{
+      event_id: "outbreak-covid19-20200120", name: "코로나19 국내 유행과 방역 조치", category: "pandemic", category_label: "감염병·방역",
+      start_date: "2020-01-20", end_date: "2022-04-17", duration_months: 27, description: null, source: "보건복지부·중앙재난안전대책본부 보도자료", current: false,
+      windows: [
+        { kind: "immediate", label: "직후 3개월", start_month: "2020-01", end_month: "2020-03", target: target(-0.8),
+          strongest: [move("chinese_food", "중식", 0.8), move("pub", "호프·주점", 0.7), move("korean_food", "한식", 0.6)],
+          weakest: [move("japanese_food", "일식", -0.7), move("pc_bang", "PC방", -0.6)] },
+        { kind: "late", label: "1년 차 마지막 3개월", start_month: "2020-10", end_month: "2020-12", target: target(-1.4),
+          strongest: [move("gym", "헬스장", 0.9), move("japanese_food", "일식", 0.8)], weakest: [move("billiard", "당구장", -9.1), move("pc_bang", "PC방", -1.5)] },
+      ],
+    }],
+    outlooks: [{
+      category: "pandemic", label: "감염병·방역", analog_count: 1, target_trend: "weak",
+      recommended: [{ industry_id: "chinese_food", industry_name: "중식" }, { industry_id: "gym", industry_name: "헬스장" }],
+      avoid: [{ industry_id: "pc_bang", industry_name: "PC방" }],
+      typical_duration_months: 27,
+    }],
+    caveats: [
+      "12월에는 행정 정리로 폐업이 몰린다 — 10~12월이 걸린 창은 변동폭이 크게 나올 수 있다.",
+      "2020~2022년 폐업은 재난지원금·손실보상으로 지연되어 실제보다 적게 잡혔을 수 있다.",
+    ],
+  };
+}
+
 export function agentEventScript(): AgentEvent[] {
   const regionCode = "1168064000";
   const industryId = "cafe";
@@ -285,6 +334,7 @@ export function agentEventScript(): AgentEvent[] {
     // 아직 별도 픽스처가 없는 도구 응답은 작은 결정적 표본으로 제공한다.
     population: { region_code: regionCode, resident_total: profile.resident_total },
     shocks: [{ event_id: "mock-shock-1", name: "원두 가격 상승", start_date: "2026-09-01", industry_specific: true, summary: "원가 변동에 따른 마진 영향을 확인하세요.", grade: "signal" }],
+    analogs: eventAnalogsDemo(industryId, INDUSTRY_LABELS[industryId]),
     news,
     funding_candidates: fundingCandidatesOf(null).map((candidate) => ({
       program_id: candidate.program_id, title: candidate.title, org: candidate.org,
@@ -312,6 +362,10 @@ export function agentEventScript(): AgentEvent[] {
     { section: "reasons", sentences: [
       "### 왜 안 되나\n\n점포 수와 폐업률의 연도별 변화를 함께 살펴보세요. ",
       "원두 원가 변동도 마진에 영향을 줄 수 있습니다.",
+    ] },
+    { section: "analogs", sentences: [
+      "### 유사 사례\n\n코로나19 유행 직후 3개월 동안 카페는 평소보다 점포가 덜 늘어 약세 업종에 들었습니다. ",
+      "그 상황은 약 27개월 이어졌으니, 지금은 카페 창업을 서두르기보다 중식·헬스장처럼 사례에서 강세였던 업종을 먼저 검토하세요.",
     ] },
     { section: "conditions", sentences: [
       "### 그래도 한다면\n\n유동인구와 매출 시간대가 맞는지 확인하세요. ",

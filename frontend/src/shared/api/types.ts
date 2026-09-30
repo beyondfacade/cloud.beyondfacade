@@ -1,6 +1,6 @@
 export type AgentName = "orchestrator" | "facts" | "writer" | "market" | "shock" | "funding";
 
-export type ReportSection = "verdict" | "reasons" | "conditions" | "alternatives" | "funding";
+export type ReportSection = "verdict" | "reasons" | "analogs" | "conditions" | "alternatives" | "funding";
 
 export type AgentEvent =
   | { type: "agent_status"; agent: AgentName; status: "running" | "done" | "error" }
@@ -30,9 +30,70 @@ export interface ReportFacts {
   // 화면이 쓰지 않는 인구·뉴스는 도구 응답을 그대로 보존한다.
   population: Record<string, unknown> | UnavailableFact;
   shocks: ReportShock[] | UnavailableFact;
+  // v0.40.0 이전에 저장된 리포트에는 없다.
+  analogs?: EventAnalogs | UnavailableFact;
   news: Array<Record<string, unknown>> | UnavailableFact;
   funding_candidates: ReportFundingCandidate[] | UnavailableFact;
   budget: number | null;
+}
+
+/** 기간 창 하나의 업종 변동 — 증감률은 %, excess_pct는 전년 같은 창 대비 점포수 증감 차(%p). */
+export interface IndustryMove {
+  industry_id: string;
+  industry_name: string;
+  openings: number;
+  closings: number;
+  openings_yoy_pct: number | null;
+  closings_yoy_pct: number | null;
+  stock_change_pct: number | null;
+  excess_pct: number | null;
+}
+
+export interface WindowImpact {
+  kind: "immediate" | "late" | "recent";
+  label: string;
+  start_month: string;
+  end_month: string;
+  target: IndustryMove | null;
+  strongest: IndustryMove[];
+  weakest: IndustryMove[];
+}
+
+export interface EventImpact {
+  event_id: string;
+  name: string;
+  category: string;
+  category_label: string;
+  start_date: string;
+  end_date: string | null;
+  duration_months: number | null;
+  description: string | null;
+  source: string;
+  current: boolean;
+  windows: WindowImpact[];
+}
+
+/** 유형별 과거 사례 집계 — recommended는 여러 창에서 거듭 강세였던 업종, avoid는 거듭 약세였던 업종. */
+export interface CategoryOutlook {
+  category: string;
+  label: string;
+  analog_count: number;
+  target_trend: "weak" | "strong" | "mixed" | "unknown";
+  recommended: { industry_id: string; industry_name: string }[];
+  avoid: { industry_id: string; industry_name: string }[];
+  typical_duration_months: number | null;
+}
+
+export interface EventAnalogs {
+  industry_id: string;
+  months: number;
+  years: number;
+  as_of: string;
+  categories: { category: string; label: string; reason: "question" | "current" }[];
+  current_events: EventImpact[];
+  analogs: EventImpact[];
+  outlooks?: CategoryOutlook[];
+  caveats: string[];
 }
 
 /** 리포트 카드가 사용하는 필드만 좁힌다. 도구별 ID·대상 필드 차이와 누락을 허용한다. */

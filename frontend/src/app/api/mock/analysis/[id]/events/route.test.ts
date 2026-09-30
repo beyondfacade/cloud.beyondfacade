@@ -42,7 +42,7 @@ it("SSE는 사실 수집 후 작성하고 작성과 오케스트레이터 완료
   ]);
 });
 
-it("SSE 사실은 계약의 12개 키와 기존 결정적 픽스처를 담는다", async () => {
+it("SSE 사실은 계약의 13개 키와 기존 결정적 픽스처를 담는다", async () => {
   const events = await readEvents();
   const event = events.find((e) => e.type === "facts");
   expect(event).toBeDefined();
@@ -50,7 +50,7 @@ it("SSE 사실은 계약의 12개 키와 기존 결정적 픽스처를 담는다
   const facts = event.facts;
   expect(Object.keys(facts).sort()).toEqual([
     "region", "verdict", "alternatives", "profile", "hour_gap", "commerce_change",
-    "metrics_history", "population", "shocks", "news", "funding_candidates", "budget",
+    "metrics_history", "population", "shocks", "analogs", "news", "funding_candidates", "budget",
   ].sort());
   if (!("code" in facts.region)) throw new Error("시연 지역 없음");
   const { code, industry_id } = facts.region;
@@ -101,10 +101,27 @@ it("SSE 연도별 이력은 2019년부터 최신까지 기존 지표와 개폐�
   }
 });
 
-it("SSE 문장 조각은 같은 섹션에 반복되고 이어 붙이면 다섯 제목과 본문이 완성된다", async () => {
+it("SSE 유사 사례는 창별 변동폭과 해석 주의사항을 계약 키로 제공한다", async () => {
+  const event = (await readEvents()).find((e) => e.type === "facts");
+  const analogs = event?.facts.analogs;
+  if (!analogs || "available" in analogs) throw new Error("유사 사례 없음");
+  expect(analogs.categories.map((c) => c.reason)).toEqual(["question", "current"]);
+  expect(analogs.current_events.every((e) => e.current)).toBe(true);
+  expect(analogs.analogs.length).toBeGreaterThan(0);
+  for (const impact of [...analogs.current_events, ...analogs.analogs]) {
+    for (const window of impact.windows) {
+      expect(window.label).toMatch(/개월$/);
+      expect(window.start_month <= window.end_month).toBe(true);
+      expect(window.target?.industry_id).toBe("cafe");
+    }
+  }
+  expect(analogs.caveats.length).toBeGreaterThan(0);
+});
+
+it("SSE 문장 조각은 같은 섹션에 반복되고 이어 붙이면 여섯 제목과 본문이 완성된다", async () => {
   const deltas = (await readEvents()).filter((e) => e.type === "report_delta");
   const sections = [
-    ["verdict", "판정"], ["reasons", "왜 안 되나"], ["conditions", "그래도 한다면"],
+    ["verdict", "판정"], ["reasons", "왜 안 되나"], ["analogs", "유사 사례"], ["conditions", "그래도 한다면"],
     ["alternatives", "대안 동네·업종"], ["funding", "대안 업종 지원사업"],
   ] as const;
   expect([...new Set(deltas.map((e) => e.section))]).toEqual(sections.map(([section]) => section));

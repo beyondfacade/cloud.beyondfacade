@@ -2,6 +2,29 @@
 
 > 2026-09-23 T0-2 병합에서 v0.14.x 충돌로 우리 쪽 4항목(랜딩·E2E·동네 프로필·영업 지속 개월)을 v0.15.0·v0.15.1·v0.16.0·v0.17.0으로 재번호했다. 해당 커밋 메시지의 번호는 병합 전 번호다.
 
+## [v0.40.0] - 2026-09-30
+
+### Added
+- 리포트 **유사 사례** 섹션(판정 이유 다음, 6개 섹션). 시각화 `AnalogCases`:
+  - 비교 유형 칩("감염병·방역 · 질문 속 상황", "최저임금 · 진행 중 이벤트").
+  - 유형별 사례 종합 카드 — 사례 수, 내 업종 추세("평소보다 약했어요"), 보통 지속 기간, 거듭 강세(`var(--ok)`)·거듭 약세(`var(--danger)`) 업종 칩.
+  - 이벤트 카드(이름·유형·기간·"진행 중") 안에 창별("직후 3개월", "1년 차 마지막 3개월", "최근 3개월") 평소 대비 변동폭 양방향 막대. 강세·약세·내 업종을 변동폭 순으로 한 번씩, 내 업종은 굵게.
+  - 해석 주의사항, 비교할 이벤트가 없을 때·사실 실패 시 안내.
+- 타입 `EventAnalogs`·`EventImpact`·`WindowImpact`·`IndustryMove`·`CategoryOutlook`, `ReportFacts.analogs`, `ReportSection`에 `analogs`.
+- mock 분석 스트림에 analogs 사실·섹션, 계약 테스트(13키·6섹션), 컴포넌트 테스트 5개.
+
+## [v0.39.0] - 2026-09-30
+
+### Added
+- 보안 감사팀 **블랙리스트** 탭(이전 "IP 차단"): 대상 IP·디바이스를 골라 차단을 추가하고(IP는 `createIpBlock`, 디바이스는 `createAccessRule` deny), "차단 중인 IP"·"차단 중인 디바이스" 표에서 해제한다.
+- **화이트리스트** 탭: IP·대역(CIDR)·디바이스를 메모·기간과 함께 추가·삭제한다. "내 디바이스 넣기"로 지금 브라우저의 디바이스 ID를 채우고, 지금 디바이스의 브라우저·ID·화이트리스트 여부를 보여 준다. 예외 규칙(자동 차단·로그인 제한 제외, 수동 차단은 그대로)을 안내한다. 일반 회원은 보기만 한다.
+- 이벤트 표에 **디바이스** 열(브라우저·OS 요약과 22자 ID, 마우스를 올리면 User-Agent 원문).
+- API `fetchAccessRules`·`createAccessRule`·`deleteAccessRule`·`fetchCurrentDevice`, 타입 `AccessRule`·`AccessRuleCreate`·`CurrentDevice`·`RulePolicy`·`RuleTarget`, `AccessEvent.device_id`·`user_agent`, 감사 동작 `access_rule.create`("목록 추가")·`access_rule.delete`("목록 삭제"), `deviceLabel`(User-Agent → "Chrome · macOS").
+- mock `GET/POST /api/mock/admin/security/access-rules`, `DELETE …/[id]`, `GET …/current-device`와 계약 테스트, 컴포넌트 테스트 4개.
+
+### Changed
+- 차단 폼·표를 `access-list-panels.tsx`로 옮겼다(`useSecurityMutations` 포함).
+
 ## [v0.38.0] - 2026-09-30
 
 ### Added

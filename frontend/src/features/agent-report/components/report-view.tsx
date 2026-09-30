@@ -6,10 +6,11 @@ import type { AgentState } from "../lib/agent-events";
 import { ReportVisuals } from "./report-visuals";
 import styles from "./analysis-workspace.module.css";
 
-const SECTION_ORDER: ReportSection[] = ["verdict", "reasons", "conditions", "alternatives", "funding"];
+const SECTION_ORDER: ReportSection[] = ["verdict", "reasons", "analogs", "conditions", "alternatives", "funding"];
 const SECTION_LABEL: Record<ReportSection, string> = {
   verdict: "판정",
   reasons: "왜 안 되나",
+  analogs: "유사 사례",
   conditions: "그래도 한다면",
   alternatives: "대안 동네·업종",
   funding: "대안 업종 지원사업",

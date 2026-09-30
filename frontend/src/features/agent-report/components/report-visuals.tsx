@@ -9,6 +9,7 @@ import { TimeBlockBars } from "./charts/time-block-bars";
 import { HourGapChart } from "./charts/hour-gap-chart";
 import { AlternativesCards } from "./charts/alternatives-cards";
 import { FundingCards } from "./charts/funding-cards";
+import { AnalogCases } from "./charts/analog-cases";
 
 function ShockList({ shocks }: { shocks?: ReportFacts["shocks"] }) {
   if (!Array.isArray(shocks)) return <p className="text-sm text-[var(--text-secondary)]">자료 없음</p>;
@@ -40,6 +41,7 @@ const VISUALS = {
     <StayingPower commerceChange={facts.commerce_change} />
     <ShockList shocks={facts.shocks} />
   </>,
+  analogs: (facts: ReportFacts) => <AnalogCases analogs={facts.analogs} />,
   conditions: (facts: ReportFacts) => <>
     <TimeBlockBars profile={facts.profile} />
     <HourGapChart hourGap={facts.hour_gap} industryName={facts.region?.industry_name} />
