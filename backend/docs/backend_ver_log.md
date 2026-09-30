@@ -1,5 +1,18 @@
 # Backend Version Log
 
+## [v0.60.0] - 2026-09-30
+
+### Added
+- **창업 지원 정보 `GET /funding/support?region=&industry=`** — 리포트 하단 "창업 지원·대출 정보" 화면용. 후보 공고(서울·전국 ∩ 소상공인·창업 대상, 미만료)를 세 묶음으로 나눈다(`domain/services/support_guide.py`, LLM 없음).
+  - 대출·보증(`loans`): 금융 분야 공고. 우리 구 공고를 앞에 둔다. 최대 6건.
+  - 우리 구 전용(`district`): 동 코드 앞 5자리로 찾은 자치구 이름이 제목·태그·소관기관에 있는 공고. 최대 6건.
+  - 창업·경영(`others`): 나머지. 업종 낱말(`INDUSTRY_KEYWORDS`)이 제목·태그·지원대상에 있는 공고를 앞에 둔다. 최대 8건.
+  - 공고마다 `district_match`·`industry_match` 표시. `why`는 후보 규칙 그대로 둔다(화면이 표시를 따로 단다).
+  - `rates`: 기준금리·시설자금대출 금리 최신월(ECOS, shock BC `interest_rate`를 읽는 `LatestRatesGateway`).
+- **다른 구 전용 공고는 뺀다** — 구청 공고도 소관기관이 `서울특별시`로 오고 구 이름은 제목·태그에만 있다(2026-09-30 실측: 은평구 청년식당·관악구 원스톱 지원). 제목은 한글 낱말 첫머리에서만 찾아 "집중구역"의 "중구" 같은 오탐을 막는다. 구를 모르면 구 전용 공고를 모두 뺀다.
+- 업종 낱말은 업소를 가리키는 말까지 붙여 쓴다 — 실측에서 "미용기기"·"헬스케어"(27건)가 미용실·헬스장으로 잡혔다.
+- `SeoulDistrictNamesGateway`가 코드→이름 조회(`DistrictNameLookupPort`)도 맡는다.
+
 ## [v0.59.0] - 2026-09-30
 
 ### Added

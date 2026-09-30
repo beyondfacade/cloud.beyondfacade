@@ -41,3 +41,33 @@ class FundingCandidateListDto:
     industry_id: str | None = None
     external_funding_need: int | None = None
     stage: str | None = None
+
+
+@dataclass
+class RateDto:
+    """금리 최신값 1건 — `rate_type`은 ECOS 계열(base 기준금리 · loan_facility 시설자금대출)."""
+
+    rate_type: str
+    period: str  # YYYYMM
+    rate_pct: float
+
+
+@dataclass
+class SupportItemDto:
+    program: FundingProgramDto
+    why: str
+    district_match: bool
+    industry_match: bool
+
+
+@dataclass
+class SupportGuideDto:
+    """창업 지원 정보 — 대출·보증 / 우리 구 전용 / 창업·경영 세 묶음 + 금리 참고값."""
+
+    region_code: str | None
+    district_name: str | None
+    industry_id: str | None
+    loans: list[SupportItemDto]
+    district: list[SupportItemDto]
+    others: list[SupportItemDto]
+    rates: list[RateDto]

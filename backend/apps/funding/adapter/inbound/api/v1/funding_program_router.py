@@ -4,10 +4,12 @@ from fastapi.responses import JSONResponse
 from apps.funding.adapter.inbound.api.schemas.funding_program_schema import (
     FundingCandidateListResponse,
     FundingProgramResponse,
+    SupportGuideResponse,
 )
 from apps.funding.adapter.inbound.mappers.funding_program_mapper import (
     to_candidate_list_response,
     to_response,
+    to_support_guide_response,
 )
 from apps.funding.app.ports.input.funding_program_use_case import FundingProgramUseCase
 from apps.funding.dependencies.funding_program_dependencies import (
@@ -59,3 +61,16 @@ def list_candidates(
     공고에 업종·한도가 구조화돼 있지 않다.
     """
     return to_candidate_list_response(use_case.list_candidates(industry, need, stage))
+
+
+@router.get("/support", response_model=SupportGuideResponse)
+def support_guide(
+    region: str | None = None,
+    industry: str | None = None,
+    use_case: FundingProgramUseCase = Depends(get_funding_program_use_case),
+) -> SupportGuideResponse:
+    """창업 지원 정보 — 동(`region`)의 자치구 전용 공고, 대출·보증, 업종 관련 창업·경영 공고와 금리.
+
+    모르는 동이면 구 묶음만 비고 나머지는 그대로 돌려준다. 자격 확정이 아니다.
+    """
+    return to_support_guide_response(use_case.support_guide(region, industry))

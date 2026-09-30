@@ -3,6 +3,7 @@
 from abc import ABC, abstractmethod
 from datetime import date
 
+from apps.funding.app.dtos.funding_program_dto import RateDto
 from apps.funding.domain.entities.funding_program_entity import FundingProgram
 
 
@@ -36,3 +37,19 @@ class SeoulDistrictNamesPort(ABC):
     @abstractmethod
     def names(self) -> frozenset[str]:
         """`district` 마스터의 서울 자치구 25개 이름."""
+
+
+class DistrictNameLookupPort(ABC):
+    """자치구 코드(행정동 코드 앞 5자리) → 이름."""
+
+    @abstractmethod
+    def name_of(self, district_code: str) -> str | None:
+        """모르는 코드면 None."""
+
+
+class LatestRatesPort(ABC):
+    """지원 정보 화면의 금리 참고값 — 기준금리·시설자금대출 금리 최신월."""
+
+    @abstractmethod
+    def latest(self) -> list[RateDto]:
+        """계열마다 최신 1건. 적재 전이면 빈 목록."""

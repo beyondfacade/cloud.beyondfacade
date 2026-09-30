@@ -6,6 +6,7 @@ from datetime import date
 from apps.funding.app.dtos.funding_program_dto import (
     FundingCandidateListDto,
     FundingProgramDto,
+    SupportGuideDto,
 )
 
 
@@ -37,3 +38,7 @@ class FundingProgramUseCase(ABC):
 
         자격 확정이 아니다. `industry_id`·`external_funding_need`는 되돌려주기만 한다.
         """
+
+    @abstractmethod
+    def support_guide(self, region_code: str | None, industry_id: str | None) -> SupportGuideDto:
+        """창업 지원 정보 — 동의 자치구·업종 기준 세 묶음 + 금리 참고값. 자격 확정이 아니다."""
