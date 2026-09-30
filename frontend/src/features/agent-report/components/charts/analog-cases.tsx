@@ -216,11 +216,6 @@ function CompareHint({ hints }: { hints: NonNullable<EventAnalogs["hints"]> }) {
   );
 }
 
-function scopeLabel(scope: EventAnalogs["scope"]): string {
-  if (scope?.level !== "district") return "서울 전체";
-  return `내 업종은 ${scope.name}, 비교 업종은 ${scope.comparison_name}`;
-}
-
 export function AnalogCases({ analogs }: { analogs?: EventAnalogs | UnavailableFact }) {
   const data = availableFact(analogs);
   if (!data) return <p className="text-sm text-[var(--text-secondary)]">자료 없음</p>;
@@ -229,7 +224,7 @@ export function AnalogCases({ analogs }: { analogs?: EventAnalogs | UnavailableF
     <section aria-label="유사 사례 변동폭" className="flex flex-col gap-4">
       <div className="flex flex-col gap-1">
         <h3 className="text-sm font-semibold text-[var(--text-primary)]">비슷한 일이 있었을 때 업종 변동폭</h3>
-        <p className="text-xs text-[var(--text-secondary)]">{scopeLabel(data.scope)} 점포수 증감, 이벤트 직전 1년의 같은 분기 대비 %p · 칸 색은 분기별 강세·약세, 이름 앞 점은 사례에서 거듭 강세·약세 · 기준 {data.as_of}</p>
+        <p className="text-xs text-[var(--text-secondary)]">서울 전체 점포수 증감, 이벤트 직전 1년의 같은 분기 대비 %p · 칸 색은 분기별 강세·약세, 이름 앞 점은 사례에서 거듭 강세·약세 · 기준 {data.as_of}</p>
       </div>
       {data.categories.length > 0 && (
         <ul className="flex flex-wrap gap-2">
