@@ -3,6 +3,7 @@ from datetime import date
 
 from apps.shock.app.dtos.event_analog_dto import (
     AnalogCategoryDto,
+    AnalogHintDto,
     CategoryOutlookDto,
     EventAnalogReportDto,
     EventImpactDto,
@@ -25,7 +26,7 @@ from apps.shock.domain.services.event_analog import (
     trend_counts,
     weak_streak,
 )
-from apps.shock.domain.services.event_category_hints import categories_in
+from apps.shock.domain.services.event_category_hints import HINT_KEYWORDS, categories_in
 from apps.shock.domain.services.event_window import add_months, month_of
 from apps.shock.domain.value_objects.event_category import CATEGORY_LABELS, EventCategory
 
@@ -85,6 +86,14 @@ def _outlook(outlook: CategoryOutlook) -> CategoryOutlookDto:
         avoid=[IndustryRefDto(i, name) for i, name in outlook.avoid],
         typical_duration_months=outlook.typical_duration_months,
     )
+
+
+def _hints(compared: set[str]) -> list[AnalogHintDto]:
+    return [
+        AnalogHintDto(category, CATEGORY_LABELS[category], keyword)
+        for category, keyword in HINT_KEYWORDS.items()
+        if category not in compared
+    ]
 
 
 class EventAnalogInteractor(EventAnalogUseCase):
@@ -177,4 +186,5 @@ class EventAnalogInteractor(EventAnalogUseCase):
             analogs=[to_dto(i) for i in analog_impacts],
             outlooks=[_outlook(o) for o in outlooks.values()],
             caveats=list(_CAVEATS),
+            hints=_hints({c.category for c in categories}),
         )

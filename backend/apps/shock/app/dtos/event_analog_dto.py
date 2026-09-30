@@ -47,6 +47,13 @@ class AnalogCategoryDto:
 
 
 @dataclass
+class AnalogHintDto:
+    category: str
+    label: str
+    keyword: str  # 질문에 넣으면 이 유형도 비교하는 대표 단서
+
+
+@dataclass
 class IndustryRefDto:
     industry_id: str
     industry_name: str
@@ -72,3 +79,4 @@ class EventAnalogReportDto:
     analogs: list[EventImpactDto] = field(default_factory=list)
     outlooks: list[CategoryOutlookDto] = field(default_factory=list)
     caveats: list[str] = field(default_factory=list)
+    hints: list[AnalogHintDto] = field(default_factory=list)  # 이번에 비교하지 않은 유형 — 화면 안내용

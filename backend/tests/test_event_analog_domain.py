@@ -17,7 +17,7 @@ from apps.shock.domain.services.event_analog import (
     trend_counts,
     weak_streak,
 )
-from apps.shock.domain.services.event_category_hints import categories_in
+from apps.shock.domain.services.event_category_hints import HINT_KEYWORDS, categories_in
 from apps.shock.domain.services.event_window import Quarter, Window, event_quarters
 from apps.shock.domain.services.industry_flows import IndustryFlows, WindowChange
 from apps.shock.domain.value_objects.event_category import CATEGORY_YEARS, EventCategory
@@ -325,6 +325,12 @@ def test_질문에서_여러_유형을_순서대로_알아본다():
 def test_질문이_없거나_단서가_없으면_유형도_없다():
     assert categories_in(None) == []
     assert categories_in("역삼동 카페 괜찮아?") == []
+
+
+def test_유형마다_안내용_예시_단어는_그_유형의_단서다():
+    assert [c.value for c in HINT_KEYWORDS] == [c.value for c in EventCategory]
+    for category, keyword in HINT_KEYWORDS.items():
+        assert categories_in(f"{keyword} 상황이면 카페 어때") == [category.value]
 
 
 def test_유형_값은_4종이다():

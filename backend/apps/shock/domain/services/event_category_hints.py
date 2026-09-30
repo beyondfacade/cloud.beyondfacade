@@ -17,6 +17,14 @@ _KEYWORDS: dict[EventCategory, tuple[str, ...]] = {
     EventCategory.RELIEF: ("지원금", "손실보상", "재난지원", "보조금"),
 }
 
+# 비교하지 않은 유형을 "질문에 이 단어를 넣으면 비교한다"고 안내할 때 쓰는 대표 단서
+HINT_KEYWORDS: dict[EventCategory, str] = {
+    EventCategory.PANDEMIC: "코로나",
+    EventCategory.MINIMUM_WAGE: "최저임금",
+    EventCategory.WORK_HOURS: "52시간",
+    EventCategory.RELIEF: "지원금",
+}
+
 
 def categories_in(question: str | None) -> list[str]:
     """질문에 단서가 있는 유형 — EventCategory 선언 순서."""

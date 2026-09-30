@@ -172,6 +172,16 @@ def test_유형_단서도_진행_중_이벤트도_없으면_비어_있다():
     assert report.categories == []
     assert report.analogs == []
     assert report.current_events == []
+    assert [h.category for h in report.hints] == ["pandemic", "minimum_wage", "work_hours", "relief"]
+
+
+def test_비교하지_않은_유형은_질문에_넣을_예시_단어로_안내한다():
+    report = _interactor().analogs("cafe", "새 바이러스가 도는데 카페 창업 괜찮을까")
+    assert [(h.category, h.label, h.keyword) for h in report.hints] == [
+        ("work_hours", "근로시간", "52시간"),
+        ("relief", "지원금·보상", "지원금"),
+    ]
+    assert [h.category for h in _interactor().analogs("cafe", None).hints] == ["pandemic", "work_hours", "relief"]
 
 
 def test_흐름이_없는_업종은_대상_변동폭이_없다():

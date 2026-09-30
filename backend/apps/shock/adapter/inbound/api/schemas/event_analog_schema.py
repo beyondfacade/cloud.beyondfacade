@@ -43,6 +43,12 @@ class AnalogCategoryResponse(BaseModel):
     reason: str
 
 
+class AnalogHintResponse(BaseModel):
+    category: str
+    label: str
+    keyword: str
+
+
 class IndustryRefResponse(BaseModel):
     industry_id: str
     industry_name: str
@@ -66,3 +72,4 @@ class EventAnalogReportResponse(BaseModel):
     analogs: list[EventImpactResponse] = []
     outlooks: list[CategoryOutlookResponse] = []
     caveats: list[str] = []
+    hints: list[AnalogHintResponse] = []
