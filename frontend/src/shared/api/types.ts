@@ -596,3 +596,109 @@ export interface FacilitySnapshot {
     last_run_at: string | null; table: string | null; rows: number | null; latest_data_at: string | null;
   }[];
 }
+
+export interface AccessEventPage {
+  items: AccessEvent[];
+  next_before_id: number | null; // null = 마지막 쪽
+}
+
+export interface SecurityEventFilter {
+  kind: AccessEventKind | null;
+  ip: string;
+  hours: number;
+}
+
+export type AuditAction =
+  | "ip_block.create" | "ip_block.delete" | "probe.run" | "collector.run"
+  | "user.create" | "user.role" | "user.suspend" | "user.reactivate"
+  | "user.password_reset" | "user.sessions_revoke" | "password.change";
+
+export interface AuditEntry {
+  id: number | null;
+  occurred_at: string;
+  action: AuditAction;
+  actor: string;
+  target: string;
+  detail: string;
+  ip: string | null;
+}
+
+export interface AuditPage {
+  items: AuditEntry[];
+  next_before_id: number | null;
+}
+
+export type AdminUserStatus = "all" | "active" | "suspended";
+
+export interface AdminUser {
+  username: string;
+  role: AdminRole;
+  is_active: boolean;
+  created_at: string | null;
+  last_login_at: string | null;
+  active_sessions: number;
+}
+
+export interface AdminUserFilter {
+  q: string;
+  role: AdminRole | null;
+  status: AdminUserStatus;
+}
+
+export interface AdminUserCreate {
+  username: string;
+  role: AdminRole;
+  password: string;
+}
+
+export interface AdminSessionInfo {
+  id: string; // 세션 토큰 해시 앞 12자
+  created_at: string;
+  expires_at: string;
+  ip: string | null;
+  current: boolean;
+}
+
+export interface HostPoint {
+  t: string;
+  cpu_percent: number | null;
+  load1: number | null;
+  memory_percent: number | null;
+  swap_percent: number | null;
+  disk_percent: number | null;
+  gpu_util_percent: number | null;
+  gpu_memory_percent: number | null;
+  gpu_temp_c: number | null;
+}
+
+export interface HostHistory {
+  generated_at: string;
+  hours: number;
+  bucket_seconds: number;
+  points: HostPoint[];
+}
+
+export interface UsageSeries {
+  generated_at: string;
+  hours: number;
+  bucket_hours: number;
+  points: { start: string; analyses: number; tokens: number; ok: number; fallback: number; error: number }[];
+  outcomes: {
+    attempts: number; ok: number; fallback: number; error: number;
+    fallback_rate: number | null; error_rate: number | null;
+  };
+  by_hour: number[]; // 한국 시각 0~23시별 분석 건수
+}
+
+export interface CollectorLog {
+  key: string;
+  log_file: string;
+  lines: string[]; // 서버가 비밀값을 가린 뒤
+  last_run_at: string | null;
+  running: boolean;
+}
+
+export interface CollectorRun {
+  key: string;
+  started_at: string;
+}

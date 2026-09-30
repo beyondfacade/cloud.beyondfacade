@@ -166,6 +166,39 @@ export function Notice({ children }: { children: ReactNode }) {
   );
 }
 
+export function Segment<T extends string | number>({ label, options, value, onChange }: {
+  label: string;
+  options: { value: T; label: string }[];
+  value: T;
+  onChange: (value: T) => void;
+}) {
+  return (
+    <div className={styles.segment} role="group" aria-label={label}>
+      {options.map((o) => (
+        <button key={String(o.value)} type="button" aria-pressed={o.value === value} onClick={() => onChange(o.value)}>{o.label}</button>
+      ))}
+    </div>
+  );
+}
+
+/** 커서 페이지 "더 보기" — 다음 쪽이 없으면 끝 표시. */
+export function LoadMore({ hasMore, loading, onMore, shown }: { hasMore: boolean; loading: boolean; onMore: () => void; shown: number }) {
+  return (
+    <div className={styles.more}>
+      <span className={styles.muted}>{shown}건 표시{hasMore ? "" : " · 끝"}</span>
+      {hasMore && (
+        <button type="button" className={styles.ghostButton} onClick={onMore} disabled={loading}>
+          {loading ? "불러오는 중…" : "더 보기"}
+        </button>
+      )}
+    </div>
+  );
+}
+
+export function errorMessage(error: unknown, fallback: string): string {
+  return error instanceof Error && error.message ? error.message : fallback;
+}
+
 export function RoomError({ error }: { error: unknown }) {
   const message = error instanceof Error ? error.message : "알 수 없는 오류";
   return <Notice>스냅샷을 불러오지 못했습니다 — {message}</Notice>;

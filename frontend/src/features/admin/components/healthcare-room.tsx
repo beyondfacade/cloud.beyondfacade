@@ -2,13 +2,14 @@
 
 import { useMutation } from "@tanstack/react-query";
 import { useState, type FormEvent } from "react";
-import type { HealthcareSnapshot, ProbeKind, ProbeResult, UsageSummary } from "@/shared/api/types";
+import type { HealthcareSnapshot, ProbeKind, ProbeResult, UsageSeries, UsageSummary } from "@/shared/api/types";
 import { industryLabel } from "@/shared/industries";
-import { fetchHealthcareSnapshot, runProbe } from "../api";
+import { fetchHealthcareSnapshot, fetchUsageSeries, runProbe } from "../api";
 import { useAdminMe, useAdminQuery } from "../hooks/use-admin-query";
-import { formatBytes, formatCount, formatDateTime, formatMs, percentOf } from "../lib/format";
+import { formatAxisTime, formatBytes, formatCount, formatDateTime, formatMs, formatRate, percentOf, rateTone } from "../lib/format";
 import { ROOM_BY_KEY } from "../lib/rooms";
-import { Badge, Empty, Notice, RoomError, Section, StatStrip, Tabs, type StatItem } from "./admin-ui";
+import { StackedBars } from "./admin-charts";
+import { Badge, Empty, Notice, RoomError, Section, Segment, StatStrip, Tabs, type StatItem } from "./admin-ui";
 import { RoomHeader } from "./room-header";
 import styles from "./admin.module.css";
 
@@ -101,8 +102,8 @@ function PipelinePanel({ data }: { data: HealthcareSnapshot }) {
 }
 
 const WINDOWS = [
-  { key: "24h", label: "24시간", pick: (d: HealthcareSnapshot) => d.usage_24h },
-  { key: "7d", label: "7일", pick: (d: HealthcareSnapshot) => d.usage_7d },
+  { key: "24h", label: "24시간", hours: 24, pick: (d: HealthcareSnapshot) => d.usage_24h },
+  { key: "7d", label: "7일", hours: 168, pick: (d: HealthcareSnapshot) => d.usage_7d },
 ] as const;
 
 function usageItems(usage: UsageSummary): StatItem[] {
@@ -115,64 +116,115 @@ function usageItems(usage: UsageSummary): StatItem[] {
   ];
 }
 
-function UsagePanel({ data }: { data: HealthcareSnapshot }) {
-  const [windowKey, setWindowKey] = useState<(typeof WINDOWS)[number]["key"]>("24h");
-  const usage = (WINDOWS.find((w) => w.key === windowKey) ?? WINDOWS[0]).pick(data);
+function outcomeItems(outcomes: UsageSeries["outcomes"]): StatItem[] {
+  return [
+    { label: "LLM 시도", value: formatCount(outcomes.attempts), hint: "폴백 재시도 포함" },
+    { label: "성공", value: formatCount(outcomes.ok) },
+    { label: "폴백률", value: formatRate(outcomes.fallback_rate), tone: rateTone(outcomes.fallback_rate), hint: `${formatCount(outcomes.fallback)}회 1차 실패` },
+    { label: "오류율", value: formatRate(outcomes.error_rate), tone: rateTone(outcomes.error_rate), hint: `${formatCount(outcomes.error)}회 전체 실패` },
+  ];
+}
+
+function UsageTrend({ hours }: { hours: number }) {
+  const series = useAdminQuery(["admin", "healthcare", "usage-series", hours], () => fetchUsageSeries(hours), ROOM.pollMs);
+  const data = series.data;
+  if (!data) {
+    return (
+      <div className={styles.afterStats}>
+        {series.isError ? <RoomError error={series.error} /> : <Section title="호출 추이"><Empty>불러오는 중…</Empty></Section>}
+      </div>
+    );
+  }
+  const labels = data.points.map((p) => formatAxisTime(p.start, hours));
   return (
     <>
-      <div className={styles.segment} role="group" aria-label="집계 기간">
-        {WINDOWS.map((w) => (
-          <button key={w.key} type="button" aria-pressed={w.key === windowKey} onClick={() => setWindowKey(w.key)}>{w.label}</button>
-        ))}
+      <div className={styles.afterStats}>
+        <StatStrip label="LLM 호출 결과" items={outcomeItems(data.outcomes)} />
       </div>
+      <div className={`${styles.afterStats} ${styles.grid2}`}>
+        <Section title="호출 추이" aside={<p>{data.bucket_hours}시간 단위</p>}>
+          <StackedBars
+            label="LLM 호출 결과 추이"
+            labels={labels}
+            format={formatCount}
+            series={[
+              { key: "ok", label: "성공", tone: "ok", values: data.points.map((p) => p.ok) },
+              { key: "fallback", label: "폴백", tone: "warn", values: data.points.map((p) => p.fallback) },
+              { key: "error", label: "오류", tone: "danger", values: data.points.map((p) => p.error) },
+            ]}
+          />
+        </Section>
+        <Section title="시간대별 분석" aside={<p>한국 시각 · 기간 합계</p>}>
+          <StackedBars
+            label="시간대별 분석 건수"
+            labels={data.by_hour.map((_, hour) => `${hour}시`)}
+            format={formatCount}
+            series={[{ key: "analyses", label: "분석", tone: "accent", values: data.by_hour }]}
+          />
+        </Section>
+      </div>
+    </>
+  );
+}
+
+function UsagePanel({ data }: { data: HealthcareSnapshot }) {
+  const [windowKey, setWindowKey] = useState<(typeof WINDOWS)[number]["key"]>("24h");
+  const current = WINDOWS.find((w) => w.key === windowKey) ?? WINDOWS[0];
+  const usage = current.pick(data);
+  return (
+    <>
+      <Segment label="집계 기간" options={WINDOWS.map((w) => ({ value: w.key, label: w.label }))} value={windowKey} onChange={setWindowKey} />
       <div className={styles.tabPanel}>
         <StatStrip label={`LLM 사용량 (${windowKey})`} items={usageItems(usage)} />
       </div>
-      <Section title="모델별" flush>
-        {!usage.by_model.length ? (
-          <Empty>이 기간에 기록된 호출이 없습니다.</Empty>
-        ) : (
-          <div className={styles.tableWrap}>
-            <table className={styles.table}>
-              <thead><tr><th>모델</th><th className={styles.num}>호출</th><th className={styles.num}>입력</th><th className={styles.num}>출력</th><th className={styles.num}>평균 지연</th></tr></thead>
-              <tbody>
-                {usage.by_model.map((m) => (
-                  <tr key={m.model}>
-                    <td className={styles.mono}>{m.model}</td>
-                    <td className={styles.num}>{formatCount(m.calls)}</td>
-                    <td className={styles.num}>{formatCount(m.input_tokens)}</td>
-                    <td className={styles.num}>{formatCount(m.output_tokens)}</td>
-                    <td className={styles.num}>{formatMs(m.avg_latency_ms)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </Section>
-      <Section title="최근 분석" flush>
-        {!data.recent_analyses.length ? (
-          <Empty>최근 분석 기록이 없습니다.</Empty>
-        ) : (
-          <div className={styles.tableWrap}>
-            <table className={styles.table}>
-              <thead><tr><th>시각</th><th>행정동</th><th>업종</th><th>모델</th><th className={styles.num}>토큰(입/출)</th><th className={styles.num}>지연</th></tr></thead>
-              <tbody>
-                {data.recent_analyses.map((a) => (
-                  <tr key={a.id}>
-                    <td className={styles.muted}>{formatDateTime(a.created_at)}</td>
-                    <td className={styles.mono}>{a.region_code}</td>
-                    <td>{industryLabel(a.industry)}</td>
-                    <td className={styles.mono}>{a.model}</td>
-                    <td className={styles.num}>{formatCount(a.input_tokens)} / {formatCount(a.output_tokens)}</td>
-                    <td className={styles.num}>{formatMs(a.latency_ms)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </Section>
+      <UsageTrend hours={current.hours} />
+      <div className={styles.afterStats}>
+        <Section title="모델별" flush>
+          {!usage.by_model.length ? (
+            <Empty>이 기간에 기록된 호출이 없습니다.</Empty>
+          ) : (
+            <div className={styles.tableWrap}>
+              <table className={styles.table}>
+                <thead><tr><th>모델</th><th className={styles.num}>호출</th><th className={styles.num}>입력</th><th className={styles.num}>출력</th><th className={styles.num}>평균 지연</th></tr></thead>
+                <tbody>
+                  {usage.by_model.map((m) => (
+                    <tr key={m.model}>
+                      <td className={styles.mono}>{m.model}</td>
+                      <td className={styles.num}>{formatCount(m.calls)}</td>
+                      <td className={styles.num}>{formatCount(m.input_tokens)}</td>
+                      <td className={styles.num}>{formatCount(m.output_tokens)}</td>
+                      <td className={styles.num}>{formatMs(m.avg_latency_ms)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </Section>
+        <Section title="최근 분석" flush>
+          {!data.recent_analyses.length ? (
+            <Empty>최근 분석 기록이 없습니다.</Empty>
+          ) : (
+            <div className={styles.tableWrap}>
+              <table className={styles.table}>
+                <thead><tr><th>시각</th><th>행정동</th><th>업종</th><th>모델</th><th className={styles.num}>토큰(입/출)</th><th className={styles.num}>지연</th></tr></thead>
+                <tbody>
+                  {data.recent_analyses.map((a) => (
+                    <tr key={a.id}>
+                      <td className={styles.muted}>{formatDateTime(a.created_at)}</td>
+                      <td className={styles.mono}>{a.region_code}</td>
+                      <td>{industryLabel(a.industry)}</td>
+                      <td className={styles.mono}>{a.model}</td>
+                      <td className={styles.num}>{formatCount(a.input_tokens)} / {formatCount(a.output_tokens)}</td>
+                      <td className={styles.num}>{formatMs(a.latency_ms)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </Section>
+      </div>
     </>
   );
 }

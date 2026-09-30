@@ -27,3 +27,13 @@ export const apiPost = <T>(path: string, body: unknown, base: string = config.ap
 
 export const apiDelete = <T = void>(path: string) =>
   fetch(`${config.apiBase}${path}`, { method: "DELETE" }).then((r) => handle<T>(r));
+
+const sendJson = (method: "PATCH" | "PUT") => <T>(path: string, body: unknown) =>
+  fetch(`${config.apiBase}${path}`, {
+    method,
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  }).then((r) => handle<T>(r));
+
+export const apiPatch = sendJson("PATCH");
+export const apiPut = sendJson("PUT");

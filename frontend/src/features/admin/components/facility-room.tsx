@@ -1,11 +1,15 @@
 "use client";
 
-import type { FacilitySnapshot } from "@/shared/api/types";
-import { fetchFacilitySnapshot } from "../api";
-import { useAdminQuery } from "../hooks/use-admin-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useEffect, useRef, useState } from "react";
+import type { FacilitySnapshot, HostPoint } from "@/shared/api/types";
+import { fetchCollectorLog, fetchFacilitySnapshot, fetchHostHistory, runCollector } from "../api";
+import { useAdminMe, useAdminQuery } from "../hooks/use-admin-query";
 import { useSessionSeries } from "../hooks/use-session-series";
 import {
   COLLECTOR_STATUS,
+  TREND_WINDOWS,
+  formatAxisTime,
   formatBytes,
   formatCount,
   formatDateTime,
@@ -16,12 +20,16 @@ import {
   usageTone,
 } from "../lib/format";
 import { ROOM_BY_KEY } from "../lib/rooms";
-import { Badge, Empty, Meter, RoomError, Section, Sparkline, StatStrip, Tabs, type StatItem } from "./admin-ui";
+import { TrendChart } from "./admin-charts";
+import { Badge, Empty, errorMessage, Meter, RoomError, Section, Segment, Sparkline, StatStrip, Tabs, type StatItem } from "./admin-ui";
 import { RoomHeader } from "./room-header";
 import styles from "./admin.module.css";
 
 const ROOM = ROOM_BY_KEY.facility;
 const MB = 1024 ** 2;
+/** 표본은 1분 간격 — 그보다 자주 물을 이유가 없다. */
+const HISTORY_POLL_MS = 60_000;
+const LOG_POLL_MS = 5_000;
 
 function hostItems(data: FacilitySnapshot): StatItem[] {
   const down = data.services.filter((s) => !s.ok).length;
@@ -110,32 +118,173 @@ function DashboardPanel({ data, gpuSeries }: { data: FacilitySnapshot; gpuSeries
   );
 }
 
-function CollectorsPanel({ collectors, now }: { collectors: FacilitySnapshot["collectors"]; now: number }) {
+const pct = (v: number | null) => (v == null ? "—" : `${v}%`);
+
+function TrendPanel() {
+  const [hours, setHours] = useState(24);
+  const history = useAdminQuery(["admin", "facility", "history", hours], () => fetchHostHistory(hours), HISTORY_POLL_MS);
+  const points = history.data?.points ?? [];
+  const labels = points.map((p) => formatAxisTime(p.t, hours));
+  const col = (pick: (p: HostPoint) => number | null) => points.map(pick);
+  const hasGpu = points.some((p) => p.gpu_util_percent != null);
+
   return (
-    <Section title="수집기 데이터 신선도" aside={<p>주기의 1.5배를 넘기면 지연</p>} flush>
-      {!collectors.length ? (
-        <Empty>등록된 수집기가 없습니다.</Empty>
+    <>
+      <div className={styles.toolbar}>
+        <Segment label="추세 기간" options={TREND_WINDOWS.map((w) => ({ value: w.hours, label: w.label }))} value={hours} onChange={setHours} />
+        {history.data && <span className={styles.muted}>{Math.round(history.data.bucket_seconds / 60)}분 평균 · {points.length}점</span>}
+      </div>
+      {history.isError ? (
+        <RoomError error={history.error} />
+      ) : !points.length ? (
+        <Section title="호스트 추세">
+          <Empty>{history.isPending ? "불러오는 중…" : "표본이 없습니다 — host-metrics-sampler 크론이 매분 기록합니다."}</Empty>
+        </Section>
       ) : (
-        <div className={styles.tableWrap}>
-          <table className={styles.table}>
-            <thead><tr><th>수집기</th><th>주기</th><th>상태</th><th>마지막 실행</th><th>테이블</th><th className={styles.num}>행</th><th>최신 데이터</th></tr></thead>
-            <tbody>
-              {collectors.map((c) => (
-                <tr key={c.key}>
-                  <td>{c.label}<br /><span className={`${styles.muted} ${styles.mono}`}>{c.key}</span></td>
-                  <td className={styles.muted}>{c.schedule}</td>
-                  <td><Badge tone={COLLECTOR_STATUS[c.status].tone} dot>{COLLECTOR_STATUS[c.status].label}</Badge></td>
-                  <td>{formatRelative(c.last_run_at, now)}</td>
-                  <td className={styles.mono}>{c.table ?? "—"}</td>
-                  <td className={styles.num}>{formatCount(c.rows)}</td>
-                  <td className={styles.muted}>{formatDateTime(c.latest_data_at)}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        <div className={styles.grid2}>
+          <Section title="호스트 자원" aside={<p>백분율 · 8일 보존</p>}>
+            <TrendChart
+              label="CPU·메모리·디스크 사용률" labels={labels} max={100} format={pct}
+              series={[
+                { key: "cpu", label: "CPU", tone: "accent", values: col((p) => p.cpu_percent) },
+                { key: "memory", label: "메모리", tone: "warn", values: col((p) => p.memory_percent) },
+                { key: "disk", label: "디스크", tone: "muted", values: col((p) => p.disk_percent) },
+                { key: "swap", label: "스왑", tone: "muted", dashed: true, values: col((p) => p.swap_percent) },
+              ]}
+            />
+            <TrendChart
+              label="부하 평균(1분)" labels={labels} format={(v) => (v == null ? "—" : v.toFixed(2))}
+              series={[{ key: "load1", label: "load1", tone: "accent", values: col((p) => p.load1) }]}
+            />
+          </Section>
+          <Section title="GPU">
+            {!hasGpu ? <Empty>기록된 GPU 표본이 없습니다.</Empty> : (
+              <>
+                <TrendChart
+                  label="GPU 사용률·VRAM" labels={labels} max={100} format={pct}
+                  series={[
+                    { key: "util", label: "사용률", tone: "accent", values: col((p) => p.gpu_util_percent) },
+                    { key: "vram", label: "VRAM", tone: "warn", values: col((p) => p.gpu_memory_percent) },
+                  ]}
+                />
+                <TrendChart
+                  label="GPU 온도" labels={labels} format={(v) => (v == null ? "—" : `${v}℃`)}
+                  series={[{ key: "temp", label: "온도", tone: "danger", values: col((p) => p.gpu_temp_c) }]}
+                />
+              </>
+            )}
+          </Section>
         </div>
       )}
+    </>
+  );
+}
+
+const LOG_LINE_OPTIONS = [100, 200, 500, 1_000];
+
+function CollectorLogSection({ collector, onClose }: { collector: FacilitySnapshot["collectors"][number]; onClose: () => void }) {
+  const queryClient = useQueryClient();
+  const [lines, setLines] = useState(200);
+  const log = useAdminQuery(
+    ["admin", "facility", "collector-log", collector.key, lines],
+    () => fetchCollectorLog(collector.key, lines),
+    LOG_POLL_MS,
+  );
+  const run = useMutation({
+    mutationFn: () => runCollector(collector.key),
+    onSuccess: () => void queryClient.invalidateQueries({ queryKey: ["admin", "facility"] }),
+  });
+  const running = log.data?.running ?? false;
+  const logBox = useRef<HTMLPreElement>(null);
+  useEffect(() => {
+    if (logBox.current) logBox.current.scrollTop = logBox.current.scrollHeight;
+  }, [log.data]);
+
+  return (
+    <Section
+      title={`${collector.label} 로그`}
+      aside={(
+        <div className={styles.form}>
+          {running && <Badge tone="warn" dot>실행 중</Badge>}
+          <label className={styles.field}>
+            <span className="sr-only">줄 수</span>
+            <select className={styles.select} value={lines} onChange={(e) => setLines(Number(e.target.value))} aria-label="줄 수">
+              {LOG_LINE_OPTIONS.map((n) => <option key={n} value={n}>마지막 {n}줄</option>)}
+            </select>
+          </label>
+          <button type="button" className={styles.primaryButton} onClick={() => run.mutate()} disabled={run.isPending || running}>
+            {run.isPending ? "시작 중…" : "지금 실행"}
+          </button>
+          <button type="button" className={styles.ghostButton} onClick={onClose}>닫기</button>
+        </div>
+      )}
+      flush
+    >
+      {run.isError && <p className={`${styles.formError} ${styles.sectionBody}`} role="alert">{errorMessage(run.error, "실행하지 못했습니다")}</p>}
+      {run.isSuccess && <p className={`${styles.formOk} ${styles.sectionBody}`} role="status">{formatDateTime(run.data.started_at)}에 실행을 시작했습니다.</p>}
+      {log.isError ? (
+        <RoomError error={log.error} />
+      ) : !log.data ? (
+        <Empty>불러오는 중…</Empty>
+      ) : !log.data.lines.length ? (
+        <Empty>로그가 비어 있습니다 ({log.data.log_file}).</Empty>
+      ) : (
+        <pre ref={logBox} className={styles.logBox} aria-label={`${collector.key} 로그`}>{log.data.lines.join("\n")}</pre>
+      )}
     </Section>
+  );
+}
+
+function CollectorsPanel({ collectors, now, canOperate }: { collectors: FacilitySnapshot["collectors"]; now: number; canOperate: boolean }) {
+  const [openKey, setOpenKey] = useState<string | null>(null);
+  const open = collectors.find((c) => c.key === openKey);
+  return (
+    <>
+      <Section
+        title="수집기 데이터 신선도"
+        aside={<p>주기의 1.5배를 넘기면 지연{canOperate ? "" : " · 로그·수동 실행은 운영 관리자 전용"}</p>}
+        flush
+      >
+        {!collectors.length ? (
+          <Empty>등록된 수집기가 없습니다.</Empty>
+        ) : (
+          <div className={styles.tableWrap}>
+            <table className={styles.table}>
+              <thead>
+                <tr>
+                  <th>수집기</th><th>주기</th><th>상태</th><th>마지막 실행</th><th>테이블</th><th className={styles.num}>행</th><th>최신 데이터</th>
+                  {canOperate && <th>도구</th>}
+                </tr>
+              </thead>
+              <tbody>
+                {collectors.map((c) => (
+                  <tr key={c.key} className={c.key === openKey ? styles.rowSelected : undefined}>
+                    <td>{c.label}<br /><span className={`${styles.muted} ${styles.mono}`}>{c.key}</span></td>
+                    <td className={styles.muted}>{c.schedule}</td>
+                    <td><Badge tone={COLLECTOR_STATUS[c.status].tone} dot>{COLLECTOR_STATUS[c.status].label}</Badge></td>
+                    <td>{formatRelative(c.last_run_at, now)}</td>
+                    <td className={styles.mono}>{c.table ?? "—"}</td>
+                    <td className={styles.num}>{formatCount(c.rows)}</td>
+                    <td className={styles.muted}>{formatDateTime(c.latest_data_at)}</td>
+                    {canOperate && (
+                      <td>
+                        <button
+                          type="button" className={styles.ghostButton} aria-label={`${c.label} 로그`}
+                          aria-pressed={c.key === openKey} onClick={() => setOpenKey(c.key === openKey ? null : c.key)}
+                        >
+                          로그·실행
+                        </button>
+                      </td>
+                    )}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </Section>
+      {canOperate && open && <CollectorLogSection key={open.key} collector={open} onClose={() => setOpenKey(null)} />}
+    </>
   );
 }
 
@@ -182,6 +331,8 @@ function DatabasePanel({ database }: { database: FacilitySnapshot["database"] })
 }
 
 export function FacilityRoom() {
+  const me = useAdminMe();
+  const canOperate = me.data?.can_operate ?? false;
   const snapshot = useAdminQuery(["admin", "facility", "snapshot"], fetchFacilitySnapshot, ROOM.pollMs);
   const data = snapshot.data;
   const gpuSeries = useSessionSeries(data?.gpus.map((g) => g.memory_used_mb), snapshot.dataUpdatedAt);
@@ -205,9 +356,10 @@ export function FacilityRoom() {
             label="설비 탭"
             tabs={[
               { key: "dashboard", label: "대시보드", render: () => <DashboardPanel data={data} gpuSeries={gpuSeries} /> },
+              { key: "trends", label: "추세", render: () => <TrendPanel /> },
               {
                 key: "collectors", label: "수집기", count: data.collectors.filter((c) => c.status !== "ok").length || undefined,
-                render: () => <CollectorsPanel collectors={data.collectors} now={now} />,
+                render: () => <CollectorsPanel collectors={data.collectors} now={now} canOperate={canOperate} />,
               },
               { key: "database", label: "데이터베이스", render: () => <DatabasePanel database={data.database} /> },
             ]}

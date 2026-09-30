@@ -24,6 +24,14 @@ const GLYPHS: Record<RoomKey, (size: number) => ReactElement> = {
       <path {...common} d="M10 9.5h.01M10 22.5h.01M15 9.5h7M15 22.5h7" />
     </svg>
   ),
+  users: (size) => (
+    <svg width={size} height={size} viewBox="0 0 32 32" aria-hidden="true">
+      <circle {...common} cx="12.5" cy="11" r="4.5" />
+      <path {...common} d="M4.5 26c.6-4.6 3.8-7.5 8-7.5s7.4 2.9 8 7.5" />
+      <circle {...common} cx="22.5" cy="12.5" r="3.5" />
+      <path {...common} d="M21.5 18.6c3.4.2 5.6 2.6 6 6" />
+    </svg>
+  ),
 };
 
 export function RoomGlyph({ room, size = 32 }: { room: RoomKey; size?: number }) {

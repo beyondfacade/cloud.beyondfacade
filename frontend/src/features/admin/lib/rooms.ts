@@ -1,4 +1,4 @@
-export type RoomKey = "security" | "healthcare" | "facility";
+export type RoomKey = "security" | "healthcare" | "facility" | "users";
 
 export interface Room {
   key: RoomKey;
@@ -29,6 +29,12 @@ export const ROOMS: Room[] = [
     title: "설비실", titleEn: "Facility",
     subtitle: "호스트·GPU·데이터베이스 자원과 수집기별 데이터 신선도를 점검합니다.",
     pollMs: 10_000,
+  },
+  {
+    key: "users", href: "/admin/users", badge: "PEOPLE",
+    title: "인사팀", titleEn: "People",
+    subtitle: "관리자 계정의 역할과 접속 상태를 관리하고 비밀번호·세션을 정리합니다.",
+    pollMs: 30_000,
   },
 ];
 

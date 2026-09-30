@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
 import {
   BLOCK_TTL_OPTIONS,
+  EVENT_WINDOWS,
+  TREND_WINDOWS,
+  formatAxisTime,
+  formatRate,
+  rateTone,
   formatBytes,
   formatCount,
   formatDateTime,
@@ -55,6 +60,25 @@ it("사용률은 80% 주의·90% 위험, 분모가 없으면 계산하지 않는
   expect(usageTone(80)).toBe("warn");
   expect(usageTone(95)).toBe("danger");
   expect(usageTone(null)).toBe("neutral");
+});
+
+it("비율은 한 자리 백분율, 5% 주의·20% 위험", () => {
+  expect(formatRate(0.0417)).toBe("4.2%");
+  expect(formatRate(null)).toBe("—");
+  expect(rateTone(0.049)).toBe("ok");
+  expect(rateTone(0.05)).toBe("warn");
+  expect(rateTone(0.2)).toBe("danger");
+  expect(rateTone(null)).toBe("neutral");
+});
+
+it("차트 눈금은 하루 이하면 서울 시:분, 넘으면 월.일", () => {
+  expect(formatAxisTime("2026-09-29T03:05:00Z", 24)).toBe("12:05");
+  expect(formatAxisTime("2026-09-29T03:05:00Z", 168)).toMatch(/09\.\s?29/);
+});
+
+it("검색·추세 기간 선택지는 백엔드 허용 범위 안이다", () => {
+  expect(EVENT_WINDOWS.every((w) => w.hours >= 1 && w.hours <= 2_160)).toBe(true);
+  expect(TREND_WINDOWS.map((w) => w.hours)).toEqual([1, 6, 24, 168]);
 });
 
 it("차단 기간은 백엔드 허용 범위 안이고 무기한은 null", () => {

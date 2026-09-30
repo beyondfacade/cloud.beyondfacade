@@ -8,11 +8,10 @@ import { ADMIN_LOGIN_PATH } from "@/shared/admin-gate";
 import { ThemeToggle } from "@/shared/ui/theme-toggle";
 import { logoutAdmin } from "../api";
 import { useAdminMe } from "../hooks/use-admin-query";
+import { ROLE } from "../lib/format";
 import { ROOMS } from "../lib/rooms";
 import { RoomGlyph } from "./room-glyph";
 import styles from "./admin.module.css";
-
-const ROLE_LABEL = { viewer: "조회", operator: "운영" } as const;
 
 export function AdminShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
@@ -51,10 +50,15 @@ export function AdminShell({ children }: { children: ReactNode }) {
           </nav>
           <div className={styles.barSide}>
             {me.data && (
-              <span className={styles.who}>
+              <Link
+                href={`/admin/users?user=${encodeURIComponent(me.data.username)}`}
+                prefetch={false}
+                className={styles.who}
+                title="내 계정 — 비밀번호·세션"
+              >
                 <span>{me.data.username}</span>
-                <span className={styles.role} data-role={me.data.role}>{ROLE_LABEL[me.data.role]}</span>
-              </span>
+                <span className={styles.role} data-role={me.data.role}>{ROLE[me.data.role].label}</span>
+              </Link>
             )}
             <ThemeToggle />
             <button

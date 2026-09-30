@@ -2,12 +2,20 @@
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState, type FormEvent } from "react";
-import type { IpBlock, IpBlockCreate, SecurityAlert, SecurityOverview } from "@/shared/api/types";
-import { createIpBlock, deleteIpBlock, fetchIpBlocks, fetchSecurityOverview } from "../api";
-import { useAdminMe, useAdminQuery } from "../hooks/use-admin-query";
-import { BLOCK_TTL_OPTIONS, EVENT_KIND, SEVERITY, formatCount, formatDateTime } from "../lib/format";
+import type {
+  AccessEventKind,
+  AuditAction,
+  IpBlock,
+  IpBlockCreate,
+  SecurityAlert,
+  SecurityEventFilter,
+  SecurityOverview,
+} from "@/shared/api/types";
+import { createIpBlock, deleteIpBlock, fetchAuditPage, fetchIpBlocks, fetchSecurityEvents, fetchSecurityOverview } from "../api";
+import { useAdminMe, useAdminPages, useAdminQuery } from "../hooks/use-admin-query";
+import { AUDIT_ACTION, BLOCK_TTL_OPTIONS, EVENT_KIND, EVENT_WINDOWS, SEVERITY, formatCount, formatDateTime } from "../lib/format";
 import { ROOM_BY_KEY } from "../lib/rooms";
-import { Badge, Empty, Notice, RoomError, Section, StatStrip, Tabs, type StatItem } from "./admin-ui";
+import { Badge, Empty, LoadMore, Notice, RoomError, Section, Segment, StatStrip, Tabs, type StatItem } from "./admin-ui";
 import { RoomHeader } from "./room-header";
 import styles from "./admin.module.css";
 
@@ -80,33 +88,122 @@ function AlertsPanel({ alerts, canOperate, onBlock, pendingIp }: {
   );
 }
 
-function EventsPanel({ events }: { events: SecurityOverview["recent_events"] }) {
+const EVENT_KINDS = Object.entries(EVENT_KIND) as [AccessEventKind, (typeof EVENT_KIND)[AccessEventKind]][];
+const AUDIT_ACTIONS = Object.entries(AUDIT_ACTION) as [AuditAction, (typeof AUDIT_ACTION)[AuditAction]][];
+
+function EventsPanel() {
+  const [filter, setFilter] = useState<SecurityEventFilter>({ kind: null, ip: "", hours: 24 });
+  const [ipDraft, setIpDraft] = useState("");
+  const pages = useAdminPages(["admin", "security", "events", filter], (before) => fetchSecurityEvents(filter, before));
+  const byIp = (ip: string) => { setIpDraft(ip); setFilter({ ...filter, ip }); };
+
+  function submit(event: FormEvent) {
+    event.preventDefault();
+    setFilter({ ...filter, ip: ipDraft.trim() });
+  }
+
   return (
-    <Section title="최근 접근 이벤트" aside={<p>최근 50건</p>} flush>
-      {!events.length ? (
-        <Empty>기록된 이벤트가 없습니다.</Empty>
-      ) : (
-        <div className={styles.tableWrap}>
-          <table className={styles.table}>
-            <thead>
-              <tr><th>시각</th><th>종류</th><th>IP</th><th>요청</th><th className={styles.num}>상태</th><th>계정</th></tr>
-            </thead>
-            <tbody>
-              {events.map((event, index) => (
-                <tr key={event.id ?? `${event.occurred_at}-${index}`}>
-                  <td className={styles.muted}>{formatDateTime(event.occurred_at)}</td>
-                  <td><Badge tone={EVENT_KIND[event.kind].tone}>{EVENT_KIND[event.kind].label}</Badge></td>
-                  <td className={styles.mono}>{event.ip ?? "—"}</td>
-                  <td className={styles.mono}>{event.method} {event.path}</td>
-                  <td className={styles.num}>{event.status_code}</td>
-                  <td>{event.username ?? <span className={styles.muted}>—</span>}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
-    </Section>
+    <>
+      <form className={`${styles.form} ${styles.filters}`} onSubmit={submit} aria-label="이벤트 검색">
+        <label className={styles.field}>
+          종류
+          <select
+            className={styles.select} value={filter.kind ?? ""}
+            onChange={(e) => setFilter({ ...filter, kind: (e.target.value || null) as AccessEventKind | null })}
+          >
+            <option value="">전체</option>
+            {EVENT_KINDS.map(([kind, k]) => <option key={kind} value={kind}>{k.label}</option>)}
+          </select>
+        </label>
+        <label className={styles.field}>
+          IP
+          <input className={styles.input} value={ipDraft} onChange={(e) => setIpDraft(e.target.value)} placeholder="정확히 일치" />
+        </label>
+        <button type="submit" className={styles.ghostButton}>검색</button>
+        {filter.ip && <button type="button" className={styles.ghostButton} onClick={() => byIp("")}>IP 해제</button>}
+        <Segment label="검색 기간" options={EVENT_WINDOWS.map((w) => ({ value: w.hours, label: w.label }))} value={filter.hours} onChange={(hours) => setFilter({ ...filter, hours })} />
+      </form>
+      <Section title="접근 이벤트" aside={<p>최신순 · 보존 90일</p>} flush>
+        {pages.isError ? (
+          <RoomError error={pages.error} />
+        ) : !pages.items.length ? (
+          <Empty>{pages.isPending ? "불러오는 중…" : "조건에 맞는 이벤트가 없습니다."}</Empty>
+        ) : (
+          <>
+            <div className={styles.tableWrap}>
+              <table className={styles.table}>
+                <thead>
+                  <tr><th>시각</th><th>종류</th><th>IP</th><th>요청</th><th className={styles.num}>상태</th><th>계정</th></tr>
+                </thead>
+                <tbody>
+                  {pages.items.map((event, index) => (
+                    <tr key={event.id ?? `${event.occurred_at}-${index}`}>
+                      <td className={styles.muted}>{formatDateTime(event.occurred_at)}</td>
+                      <td><Badge tone={EVENT_KIND[event.kind].tone}>{EVENT_KIND[event.kind].label}</Badge></td>
+                      <td className={styles.mono}>
+                        {event.ip ? (
+                          <button type="button" className={styles.linkButton} onClick={() => byIp(event.ip ?? "")} title="이 IP만 보기">{event.ip}</button>
+                        ) : "—"}
+                      </td>
+                      <td className={styles.mono}>{event.method} {event.path}</td>
+                      <td className={styles.num}>{event.status_code}</td>
+                      <td>{event.username ?? <span className={styles.muted}>—</span>}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <LoadMore hasMore={pages.hasNextPage} loading={pages.isFetchingNextPage} onMore={() => void pages.fetchNextPage()} shown={pages.items.length} />
+          </>
+        )}
+      </Section>
+    </>
+  );
+}
+
+function AuditPanel() {
+  const [action, setAction] = useState<AuditAction | null>(null);
+  const pages = useAdminPages(["admin", "security", "audit", action], (before) => fetchAuditPage(action, before));
+  return (
+    <>
+      <div className={`${styles.form} ${styles.filters}`}>
+        <label className={styles.field}>
+          행위
+          <select className={styles.select} value={action ?? ""} onChange={(e) => setAction((e.target.value || null) as AuditAction | null)}>
+            <option value="">전체</option>
+            {AUDIT_ACTIONS.map(([key, a]) => <option key={key} value={key}>{a.label}</option>)}
+          </select>
+        </label>
+      </div>
+      <Section title="관리자 감사 로그" aside={<p>누가 무엇을 바꿨는지 · 보존 365일</p>} flush>
+        {pages.isError ? (
+          <RoomError error={pages.error} />
+        ) : !pages.items.length ? (
+          <Empty>{pages.isPending ? "불러오는 중…" : "기록된 관리자 행위가 없습니다."}</Empty>
+        ) : (
+          <>
+            <div className={styles.tableWrap}>
+              <table className={styles.table}>
+                <thead><tr><th>시각</th><th>행위</th><th>처리자</th><th>대상</th><th>상세</th><th>IP</th></tr></thead>
+                <tbody>
+                  {pages.items.map((entry, index) => (
+                    <tr key={entry.id ?? `${entry.occurred_at}-${index}`}>
+                      <td className={styles.muted}>{formatDateTime(entry.occurred_at)}</td>
+                      <td><Badge tone={AUDIT_ACTION[entry.action].tone}>{AUDIT_ACTION[entry.action].label}</Badge></td>
+                      <td>{entry.actor}</td>
+                      <td className={styles.mono}>{entry.target}</td>
+                      <td className={styles.muted}>{entry.detail || "—"}</td>
+                      <td className={styles.mono}>{entry.ip ?? "—"}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <LoadMore hasMore={pages.hasNextPage} loading={pages.isFetchingNextPage} onMore={() => void pages.fetchNextPage()} shown={pages.items.length} />
+          </>
+        )}
+      </Section>
+    </>
   );
 }
 
@@ -248,11 +345,12 @@ export function SecurityRoom() {
                   />
                 ),
               },
-              { key: "events", label: "이벤트", count: data.recent_events.length, render: () => <EventsPanel events={data.recent_events} /> },
+              { key: "events", label: "이벤트", render: () => <EventsPanel /> },
               {
                 key: "blocks", label: "IP 차단", count: blocks.data?.length,
                 render: () => <BlocksPanel blocks={blocks.data} canOperate={canOperate} mutations={mutations} />,
               },
+              { key: "audit", label: "감사 로그", render: () => <AuditPanel /> },
             ]}
           />
         </>

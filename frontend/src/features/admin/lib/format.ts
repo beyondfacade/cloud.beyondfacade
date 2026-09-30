@@ -1,4 +1,4 @@
-import type { AccessEventKind, AlertSeverity, CollectorStatus } from "@/shared/api/types";
+import type { AccessEventKind, AdminRole, AlertSeverity, AuditAction, CollectorStatus } from "@/shared/api/types";
 
 export type Tone = "ok" | "warn" | "danger" | "neutral";
 
@@ -77,6 +77,29 @@ export function formatClock(epochMs: number): string {
   return SEOUL_CLOCK.format(new Date(epochMs));
 }
 
+const SEOUL_HOUR_MINUTE = new Intl.DateTimeFormat("ko-KR", {
+  timeZone: "Asia/Seoul", hour: "2-digit", minute: "2-digit", hour12: false,
+});
+const SEOUL_MONTH_DAY = new Intl.DateTimeFormat("ko-KR", { timeZone: "Asia/Seoul", month: "2-digit", day: "2-digit" });
+
+/** 차트 축 눈금 — 하루 이하 창은 시:분, 그보다 길면 월.일. */
+export function formatAxisTime(iso: string, windowHours: number): string {
+  return (windowHours <= 24 ? SEOUL_HOUR_MINUTE : SEOUL_MONTH_DAY).format(new Date(iso));
+}
+
+/** 0~1 비율 → 백분율 한 자리. */
+export function formatRate(rate: number | null | undefined): string {
+  return rate == null ? DASH : `${Math.round(rate * 1_000) / 10}%`;
+}
+
+/** 오류율·폴백률 경보 — 5% 이상 주의, 20% 이상 위험. */
+export function rateTone(rate: number | null | undefined): Tone {
+  if (rate == null) return "neutral";
+  if (rate >= 0.2) return "danger";
+  if (rate >= 0.05) return "warn";
+  return "ok";
+}
+
 export const SEVERITY: Record<AlertSeverity, { label: string; tone: Tone }> = {
   critical: { label: "심각", tone: "danger" },
   high: { label: "높음", tone: "danger" },
@@ -98,6 +121,40 @@ export const COLLECTOR_STATUS: Record<CollectorStatus, { label: string; tone: To
   late: { label: "지연", tone: "warn" },
   missing: { label: "기록 없음", tone: "danger" },
 };
+
+export const ROLE: Record<AdminRole, { label: string; tone: Tone }> = {
+  viewer: { label: "조회", tone: "neutral" },
+  operator: { label: "운영", tone: "ok" },
+};
+
+export const AUDIT_ACTION: Record<AuditAction, { label: string; tone: Tone }> = {
+  "ip_block.create": { label: "IP 차단", tone: "warn" },
+  "ip_block.delete": { label: "차단 해제", tone: "neutral" },
+  "probe.run": { label: "프로브 실행", tone: "neutral" },
+  "collector.run": { label: "수집기 실행", tone: "neutral" },
+  "user.create": { label: "계정 생성", tone: "ok" },
+  "user.role": { label: "역할 변경", tone: "warn" },
+  "user.suspend": { label: "접속 정지", tone: "danger" },
+  "user.reactivate": { label: "정지 해제", tone: "ok" },
+  "user.password_reset": { label: "비밀번호 재설정", tone: "warn" },
+  "user.sessions_revoke": { label: "세션 종료", tone: "warn" },
+  "password.change": { label: "내 비밀번호 변경", tone: "neutral" },
+};
+
+/** 보안 이벤트 검색 기간 — 백엔드 보존 기간(90일) 안. */
+export const EVENT_WINDOWS: { label: string; hours: number }[] = [
+  { label: "24시간", hours: 24 },
+  { label: "7일", hours: 168 },
+  { label: "30일", hours: 720 },
+];
+
+/** 설비 추세 창 — 표본은 8일 보존. */
+export const TREND_WINDOWS: { label: string; hours: number }[] = [
+  { label: "1시간", hours: 1 },
+  { label: "6시간", hours: 6 },
+  { label: "24시간", hours: 24 },
+  { label: "7일", hours: 168 },
+];
 
 /** 차단 기간 선택지 — null은 무기한. 백엔드 허용 범위 1~43200분. */
 export const BLOCK_TTL_OPTIONS: { label: string; minutes: number | null }[] = [

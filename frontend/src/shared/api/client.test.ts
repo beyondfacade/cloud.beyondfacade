@@ -1,5 +1,5 @@
 import { afterEach, expect, it, vi } from "vitest";
-import { apiDelete, apiGet, apiPost, ApiError } from "./client";
+import { apiDelete, apiGet, apiPatch, apiPost, apiPut, ApiError } from "./client";
 
 afterEach(() => vi.restoreAllMocks());
 
@@ -27,6 +27,15 @@ it("DELETE는 메서드를 실어 보내고 에러 바디를 ApiError로 던진�
   vi.stubGlobal("fetch", fetchMock);
   await expect(apiDelete("/x/1")).rejects.toMatchObject({ code: "IP_BLOCK_NOT_FOUND" });
   expect(fetchMock.mock.calls[0][1]).toMatchObject({ method: "DELETE" });
+});
+
+it("PATCH와 PUT은 메서드와 JSON 본문을 실어 보낸다", async () => {
+  const fetchMock = vi.fn().mockImplementation(() => Promise.resolve(new Response(JSON.stringify({ ok: 1 }), { status: 200 })));
+  vi.stubGlobal("fetch", fetchMock);
+  await apiPatch("/x", { role: "viewer" });
+  await apiPut("/x", { password: "p" });
+  expect(fetchMock.mock.calls[0][1]).toMatchObject({ method: "PATCH", body: JSON.stringify({ role: "viewer" }) });
+  expect(fetchMock.mock.calls[1][1]).toMatchObject({ method: "PUT" });
 });
 
 it("선택적 요청 신호가 GET과 POST의 실제 fetch를 중단한다", async () => {
