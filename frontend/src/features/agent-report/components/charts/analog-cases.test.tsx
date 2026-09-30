@@ -92,6 +92,16 @@ it("드문 유형은 사례 직전과 최근 4분기의 업종 상태를 견주�
   expect(condition()).toBeNull();
 });
 
+it("내 업종을 자치구로 셌으면 설명에 내 업종과 비교 업종의 범위를 따로 적는다", () => {
+  const scope = { level: "district" as const, name: "관악구", target_stock: 1362, min_stock: 1000, comparison_name: "서울 전체" };
+  const { rerender } = render(<AnalogCases analogs={{ ...eventAnalogs(), scope }} />);
+  expect(screen.getByText(/^내 업종은 관악구, 비교 업종은 서울 전체 점포수 증감/)).toBeInTheDocument();
+  rerender(<AnalogCases analogs={{ ...eventAnalogs(), scope: { ...scope, level: "seoul", name: "서울 전체" } }} />);
+  expect(screen.getByText(/^서울 전체 점포수 증감/)).toBeInTheDocument();
+  rerender(<AnalogCases analogs={eventAnalogs()} />);
+  expect(screen.getByText(/^서울 전체 점포수 증감/)).toBeInTheDocument();
+});
+
 it("해석 주의사항을 함께 적는다", () => {
   render(<AnalogCases analogs={eventAnalogs()} />);
   expect(screen.getByText(/12월에는 행정 정리로 폐업이 몰린다/)).toBeInTheDocument();

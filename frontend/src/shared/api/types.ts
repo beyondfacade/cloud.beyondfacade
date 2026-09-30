@@ -114,9 +114,19 @@ export interface ConditionCompare {
   recent: PeriodCondition;
 }
 
+/** 내 업종 흐름을 센 범위 — 자치구 점포가 min_stock 이상이면 그 구, 아니면 서울 전체. 비교 업종은 늘 comparison_name */
+export interface AnalogScope {
+  level: "district" | "seoul";
+  name: string;
+  target_stock: number;
+  min_stock: number;
+  comparison_name: string;
+}
+
 export interface EventAnalogs {
   industry_id: string;
   as_of: string;
+  scope?: AnalogScope | null;
   categories: { category: string; label: string; reason: "question" | "current" }[];
   current_events: EventImpact[];
   analogs: EventImpact[];
