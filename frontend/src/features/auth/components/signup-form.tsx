@@ -43,7 +43,6 @@ export function SignupForm() {
   return (
     <form className={styles.form} onSubmit={onSubmit} aria-label="회원가입">
       <h1>회원가입</h1>
-      <p className={styles.lead}>가입하면 일반 등급으로 바로 이용할 수 있습니다.</p>
       <div className={styles.field}>
         <label htmlFor="signup-username">아이디</label>
         <input
