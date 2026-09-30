@@ -177,12 +177,10 @@ def test_같은_IP에서_한_시간에_5번을_넘게_가입하면_429():
     assert _count("select count(*) from access_event where kind = 'signup'") == 5
 
 
-def test_일반_회원을_관리자로_올리면_쓰기가_열린다():
+def test_일반_회원을_CLI로_관리자로_올리면_쓰기가_열린다():
     client = TestClient(app, client=IP)
     _signup(client)
-    ops = TestClient(app, client=("198.51.100.41", 50000))
-    ops.post("/admin/auth/login", json={"username": "ops", "password": PASSWORD})
-    assert ops.patch("/admin/users/kim/role", json={"role": "operator"}).status_code == 200
+    get_admin_user_use_case().set_role("kim", "operator")
     assert client.get("/admin/auth/me").json() == {"username": "kim", "role": "operator", "can_operate": True}
 
 
@@ -307,13 +305,14 @@ def test_구글_전용_계정은_비밀번호로_로그인할_수_없다(google)
     assert response.status_code == 401
 
 
-def test_구글_전용_계정의_비밀번호_변경은_이유를_알려준다(google):
+def test_구글_전용_계정은_현재_비밀번호_없이_비밀번호를_처음_설정하고_그_비밀번호로도_들어온다(google):
     client = TestClient(app, client=IP)
     _google_login(client, google, _identity())
-    response = client.post("/admin/auth/password", json={"current_password": "x", "new_password": PASSWORD})
-    assert response.status_code == 400
-    assert response.json()["error"]["code"] == "WRONG_PASSWORD"
-    assert "구글" in response.json()["error"]["message"]
+    assert client.post("/admin/auth/password", json={"new_password": PASSWORD}).status_code == 204
+    assert client.get("/admin/auth/me").status_code == 200
+    login = TestClient(app, client=IP).post("/admin/auth/login", json={"username": "lee.young.news", "password": PASSWORD})
+    assert login.status_code == 200
+    assert _count("select count(*) from admin_audit where action = 'password.change' and detail = '처음 설정'") == 1
 
 
 # ── CLI ────────────────────────────────────────────────

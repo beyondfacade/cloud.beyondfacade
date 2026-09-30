@@ -1,4 +1,4 @@
-"""인사팀 — 관리자 계정 목록·생성·역할·정지·비밀번호·세션 API (실제 테스트 DB)."""
+"""인사팀 — 회원 목록·정지·세션 API와 내 비밀번호 변경 (실제 테스트 DB)."""
 
 import pytest
 from fastapi.testclient import TestClient
@@ -58,7 +58,7 @@ def test_계정_목록은_활성_세션_수와_마지막_로그인을_담는다(
 
 def test_계정_목록은_검색어_역할_상태로_거른다():
     ops = _client("ops")
-    ops.post("/admin/users", json={"username": "ops.lee", "role": "operator", "password": NEW_PASSWORD})
+    get_admin_user_use_case().upsert("ops.lee", NEW_PASSWORD, "operator")
     ops.patch("/admin/users/viewer/status", json={"active": False})
     names = lambda params: [item["username"] for item in ops.get("/admin/users", params=params).json()["items"]]  # noqa: E731
     assert names({"q": "OPS"}) == ["ops", "ops.lee"]
@@ -67,56 +67,24 @@ def test_계정_목록은_검색어_역할_상태로_거른다():
     assert names({"status": "active", "role": "operator"}) == ["ops", "ops.lee"]
 
 
-def test_조회_관리자도_목록은_보지만_계정을_만들_수는_없다():
+def test_일반_회원도_목록은_보지만_남의_계정을_정지할_수는_없다():
     viewer = _client("viewer", ip=VIEWER_IP)
     assert viewer.get("/admin/users").status_code == 200
-    response = viewer.post("/admin/users", json={"username": "new.one", "role": "viewer", "password": NEW_PASSWORD})
-    assert response.status_code == 403
+    assert viewer.patch("/admin/users/ops/status", json={"active": False}).status_code == 403
 
 
-def test_운영_관리자는_계정을_만들고_감사에_남는다():
+def test_자기_계정은_정지할_수_없다():
     ops = _client("ops")
-    response = ops.post("/admin/users", json={"username": "new.one", "role": "viewer", "password": NEW_PASSWORD})
-    assert response.status_code == 201
-    assert response.json()["username"] == "new.one"
-    assert _client("new.one", ip=VIEWER_IP, password=NEW_PASSWORD).get("/admin/auth/me").json()["role"] == "viewer"
-    assert "user.create" in _actions()
-
-
-def test_계정_생성은_중복_이름_잘못된_이름_짧은_비밀번호를_거절한다():
-    ops = _client("ops")
-    taken = ops.post("/admin/users", json={"username": "viewer", "role": "viewer", "password": NEW_PASSWORD})
-    assert (taken.status_code, taken.json()["error"]["code"]) == (409, "USERNAME_TAKEN")
-    bad = ops.post("/admin/users", json={"username": "Bad Name", "role": "viewer", "password": NEW_PASSWORD})
-    assert (bad.status_code, bad.json()["error"]["code"]) == (400, "INVALID_USERNAME")
-    weak = ops.post("/admin/users", json={"username": "short.pw", "role": "viewer", "password": "short"})
-    assert (weak.status_code, weak.json()["error"]["code"]) == (400, "WEAK_PASSWORD")
-
-
-def test_역할을_바꾸면_다음_요청부터_권한이_바뀐다():
-    ops = _client("ops")
-    viewer = _client("viewer", ip=VIEWER_IP)
-    response = ops.patch("/admin/users/viewer/role", json={"role": "operator"})
-    assert response.json()["role"] == "operator"
-    assert viewer.get("/admin/auth/me").json()["can_operate"] is True
-    assert "user.role" in _actions()
-
-
-def test_자기_역할과_상태는_바꿀_수_없다():
-    ops = _client("ops")
-    ops.post("/admin/users", json={"username": "ops2", "role": "operator", "password": NEW_PASSWORD})
-    role = ops.patch("/admin/users/ops/role", json={"role": "viewer"})
-    assert (role.status_code, role.json()["error"]["code"]) == (400, "SELF_CHANGE")
+    get_admin_user_use_case().upsert("ops2", NEW_PASSWORD, "operator")
     status = ops.patch("/admin/users/ops/status", json={"active": False})
-    assert status.json()["error"]["code"] == "SELF_CHANGE"
+    assert (status.status_code, status.json()["error"]["code"]) == (400, "SELF_CHANGE")
 
 
-def test_강등된_운영자는_곧바로_운영_권한을_잃는다():
+def test_CLI로_강등된_관리자는_곧바로_쓰기_권한을_잃는다():
     ops = _client("ops")
-    ops.post("/admin/users", json={"username": "ops2", "role": "operator", "password": NEW_PASSWORD})
-    ops2 = _client("ops2", ip=VIEWER_IP, password=NEW_PASSWORD)
-    assert ops2.patch("/admin/users/ops/role", json={"role": "viewer"}).status_code == 200
-    assert ops.patch("/admin/users/ops2/role", json={"role": "viewer"}).status_code == 403
+    get_admin_user_use_case().upsert("ops2", NEW_PASSWORD, "operator")
+    get_admin_user_use_case().set_role("ops", "viewer")
+    assert ops.patch("/admin/users/ops2/status", json={"active": False}).status_code == 403
 
 
 def test_정지하면_그_계정의_세션이_끊기고_로그인도_막힌다():
@@ -136,17 +104,8 @@ def test_정지하면_그_계정의_세션이_끊기고_로그인도_막힌다()
 
 def test_없는_계정은_404다():
     ops = _client("ops")
-    response = ops.patch("/admin/users/ghost/role", json={"role": "viewer"})
+    response = ops.patch("/admin/users/ghost/status", json={"active": False})
     assert (response.status_code, response.json()["error"]["code"]) == (404, "ADMIN_USER_NOT_FOUND")
-
-
-def test_비밀번호를_재설정하면_기존_세션이_끊기고_새_비밀번호로만_들어온다():
-    ops = _client("ops")
-    viewer = _client("viewer", ip=VIEWER_IP)
-    assert ops.put("/admin/users/viewer/password", json={"password": NEW_PASSWORD}).status_code == 204
-    assert viewer.get("/admin/auth/me").status_code == 401
-    _client("viewer", ip=VIEWER_IP, password=NEW_PASSWORD)
-    assert "user.password_reset" in _actions()
 
 
 def test_세션_목록은_본인_또는_운영자만_보고_현재_세션을_표시한다():

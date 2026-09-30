@@ -14,8 +14,12 @@ class SignupRequest(BaseModel):
 
 
 class PasswordChangeRequest(BaseModel):
-    current_password: str = Field(min_length=1, max_length=512)
+    current_password: str = Field("", max_length=512)  # 구글 전용 계정이 처음 설정할 때만 비운다
     new_password: str = Field(min_length=1, max_length=512)
+
+
+class UsernameChangeRequest(BaseModel):
+    username: str = Field(min_length=1, max_length=64)  # 형식 규칙은 도메인이 판정해 INVALID_USERNAME으로 답한다
 
 
 class AdminMeResponse(BaseModel):

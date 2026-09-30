@@ -15,6 +15,7 @@ from apps.admin.adapter.inbound.api.schemas.admin_session_schema import (
     LoginRequest,
     PasswordChangeRequest,
     SignupRequest,
+    UsernameChangeRequest,
 )
 from apps.admin.adapter.inbound.api.session_cookie import (
     SESSION_COOKIE,
@@ -143,3 +144,13 @@ def change_password(
         body.new_password,
         client_ip_from_scope(request.scope),
     )
+
+
+@router.patch("/username", response_model=AdminMeResponse)
+def change_username(
+    body: UsernameChangeRequest,
+    request: Request,
+    principal: AdminPrincipalDto = Depends(require_admin),
+    use_case: AdminSessionUseCase = Depends(get_admin_session_use_case),
+) -> AdminMeResponse:
+    return to_me_response(use_case.change_username(principal, body.username, client_ip_from_scope(request.scope)))

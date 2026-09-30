@@ -1,4 +1,4 @@
-"""관리자 계정 생성·비밀번호 재설정 — 가입 화면이 없으므로 계정은 이 CLI로만 만든다.
+"""계정 생성·비밀번호 재설정 — 화면에서는 남의 계정을 만들거나 비밀번호를 바꿀 수 없어 이 CLI로만 한다.
 
     python -m apps.admin.adapter.inbound.cli.create_admin_user --username ops --role operator
 

@@ -10,13 +10,15 @@ class AuditAction(StrEnum):
     IP_BLOCK_DELETE = "ip_block.delete"
     PROBE_RUN = "probe.run"
     COLLECTOR_RUN = "collector.run"
+    # 화면에서 남의 계정 생성·등급·비밀번호를 바꾸던 조치 — 지금은 막혔지만 지난 기록을 읽고 거를 수 있게 남긴다
     USER_CREATE = "user.create"
     USER_ROLE = "user.role"
+    USER_PASSWORD_RESET = "user.password_reset"
     USER_SUSPEND = "user.suspend"
     USER_REACTIVATE = "user.reactivate"
-    USER_PASSWORD_RESET = "user.password_reset"
     USER_SESSIONS_REVOKE = "user.sessions_revoke"
     PASSWORD_CHANGE = "password.change"
+    USERNAME_CHANGE = "username.change"
 
 
 @dataclass

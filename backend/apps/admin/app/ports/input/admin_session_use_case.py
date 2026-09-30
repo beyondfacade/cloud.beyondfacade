@@ -44,4 +44,9 @@ class AdminSessionUseCase(ABC):
     def change_password(
         self, principal: AdminPrincipalDto, token: str, current_password: str, new_password: str, ip: str | None
     ) -> None:
-        """현재 비밀번호가 틀리면 WrongPassword, 규칙 위반은 WeakPassword. 성공하면 지금 세션만 남기고 끊는다."""
+        """현재 비밀번호가 틀리면 WrongPassword, 규칙 위반은 WeakPassword. 성공하면 지금 세션만 남기고 끊는다.
+        비밀번호가 없는 구글 전용 계정은 현재 비밀번호 없이 처음 설정한다."""
+
+    @abstractmethod
+    def change_username(self, principal: AdminPrincipalDto, username: str, ip: str | None) -> AdminPrincipalDto:
+        """내 계정명을 바꾼다 — 세션은 유지. InvalidUsername·UsernameTaken, 지금과 같으면 그대로 돌려준다."""

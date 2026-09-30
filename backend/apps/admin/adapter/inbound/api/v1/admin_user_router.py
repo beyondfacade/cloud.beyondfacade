@@ -1,4 +1,4 @@
-"""인사팀 — 관리자 계정 목록·생성·역할·정지·비밀번호 재설정·세션."""
+"""인사팀 — 회원 목록·정지·세션. 남의 등급·비밀번호는 화면에서 바꾸지 않는다(등급은 CLI, 비밀번호는 본인만)."""
 
 from typing import Literal
 
@@ -6,11 +6,8 @@ from fastapi import APIRouter, Depends, Query, Request
 
 from apps.admin.adapter.inbound.api.client_ip import client_ip_from_scope
 from apps.admin.adapter.inbound.api.schemas.admin_user_schema import (
-    AdminPasswordResetRequest,
-    AdminRoleRequest,
     AdminSessionListResponse,
     AdminStatusRequest,
-    AdminUserCreateRequest,
     AdminUserListResponse,
     AdminUserResponse,
     RevokedSessionsResponse,
@@ -45,28 +42,6 @@ def list_users(
     return to_user_list_response(use_case.list_users(q, role, status))
 
 
-@router.post("", response_model=AdminUserResponse, status_code=201)
-def create(
-    body: AdminUserCreateRequest,
-    request: Request,
-    principal: AdminPrincipalDto = Depends(require_operator),
-    use_case: AdminUserUseCase = Depends(get_admin_user_use_case),
-) -> AdminUserResponse:
-    ip = client_ip_from_scope(request.scope)
-    return to_user_response(use_case.create(principal, body.username, body.role, body.password, ip))
-
-
-@router.patch("/{username}/role", response_model=AdminUserResponse)
-def change_role(
-    username: str,
-    body: AdminRoleRequest,
-    request: Request,
-    principal: AdminPrincipalDto = Depends(require_operator),
-    use_case: AdminUserUseCase = Depends(get_admin_user_use_case),
-) -> AdminUserResponse:
-    return to_user_response(use_case.change_role(principal, username, body.role, client_ip_from_scope(request.scope)))
-
-
 @router.patch("/{username}/status", response_model=AdminUserResponse)
 def set_status(
     username: str,
@@ -76,17 +51,6 @@ def set_status(
     use_case: AdminUserUseCase = Depends(get_admin_user_use_case),
 ) -> AdminUserResponse:
     return to_user_response(use_case.set_active(principal, username, body.active, client_ip_from_scope(request.scope)))
-
-
-@router.put("/{username}/password", status_code=204)
-def reset_password(
-    username: str,
-    body: AdminPasswordResetRequest,
-    request: Request,
-    principal: AdminPrincipalDto = Depends(require_operator),
-    use_case: AdminUserUseCase = Depends(get_admin_user_use_case),
-) -> None:
-    use_case.reset_password(principal, username, body.password, client_ip_from_scope(request.scope))
 
 
 @router.get("/{username}/sessions", response_model=AdminSessionListResponse)

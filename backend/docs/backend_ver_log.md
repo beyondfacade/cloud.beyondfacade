@@ -1,5 +1,20 @@
 # Backend Version Log
 
+## [v0.50.0] - 2026-09-30
+
+### Added
+- **내 계정명 변경** `PATCH /admin/auth/username`(`{username}` → AdminMe). 일반·관리자 모두 쓸 수 있고 지금 세션은 그대로 유지된다. 규칙 위반은 400 `INVALID_USERNAME`, 이미 있는 이름은 409 `USERNAME_TAKEN`, 같은 이름이면 아무것도 바꾸지 않는다. 감사 `username.change`(대상은 새 이름, 상세 `이전 → 새`).
+- **구글 전용 계정의 비밀번호 처음 설정** — `POST /admin/auth/password`에서 비밀번호가 없는 계정은 `current_password`를 비워 보내면 설정된다(감사 상세 "처음 설정"). 비밀번호가 있는 계정은 여전히 현재 비밀번호를 확인한다(빈 값은 400 `WRONG_PASSWORD`).
+- 테스트: `test_self_account.py`(남의 등급·비밀번호 변경 불가, 계정명 변경 흐름·거절), 구글 전용 계정 첫 설정.
+
+### Removed
+- 인사팀에서 남의 계정을 바꾸는 API를 없앴다: `POST /admin/users`(계정 생성), `PATCH /admin/users/{username}/role`(등급), `PUT /admin/users/{username}/password`(비밀번호 재설정). 이제 405/404를 돌려준다. 등급은 CLI `set_admin_role`, 테스트용 계정 생성·재설정은 CLI `create_admin_user`로만 한다. 정지·재개와 세션 종료는 관리자에게 그대로 남는다.
+
+### Changed
+- 사용자 저장소 `save`가 id가 있으면 id로 행을 찾는다 — 계정명을 바꿔도 같은 행을 갱신한다.
+- 자기 계정 정지 거절 문구: "내 계정은 여기서 정지할 수 없습니다."
+- 테스트 `conftest.py`가 `ADMIN_COOKIE_SECURE=false`와 빈 구글 키를 고정한다 — 로컬 `.env` 값에 테스트가 흔들리지 않는다.
+
 ## [v0.49.0] - 2026-09-30
 
 ### Added

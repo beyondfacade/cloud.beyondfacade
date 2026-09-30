@@ -1,4 +1,4 @@
-"""Driving Port — 회원 계정 관리 (인사팀 화면 + CLI)."""
+"""Driving Port — 회원 계정 관리 (인사팀 화면 + CLI). 등급·비밀번호를 남이 바꾸는 길은 CLI뿐이다."""
 
 from abc import ABC, abstractmethod
 
@@ -24,22 +24,8 @@ class AdminUserUseCase(ABC):
         """q는 계정명·이메일 부분 일치(대소문자 무시), status는 all | active | suspended."""
 
     @abstractmethod
-    def create(
-        self, actor: AdminPrincipalDto, username: str, role: str, password: str, ip: str | None
-    ) -> AdminUserDto:
-        """InvalidUsername·WeakPassword·UsernameTaken."""
-
-    @abstractmethod
-    def change_role(self, actor: AdminPrincipalDto, username: str, role: str, ip: str | None) -> AdminUserDto:
-        """자기 등급은 SelfChange, 활성 관리자가 0명이 되면 LastOperator."""
-
-    @abstractmethod
     def set_active(self, actor: AdminPrincipalDto, username: str, active: bool, ip: str | None) -> AdminUserDto:
-        """정지하면 그 계정의 세션을 모두 끊는다. 자기 자신은 SelfChange."""
-
-    @abstractmethod
-    def reset_password(self, actor: AdminPrincipalDto, username: str, password: str, ip: str | None) -> None:
-        """남의 비밀번호를 새로 정하고 기존 세션을 끊는다. 내 비밀번호는 현재 비밀번호 확인을 거치는 쪽으로."""
+        """정지하면 그 계정의 세션을 모두 끊는다. 자기 자신은 SelfChange, 활성 관리자가 0명이 되면 LastOperator."""
 
     @abstractmethod
     def sessions(

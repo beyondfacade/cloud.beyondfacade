@@ -23,6 +23,10 @@ _TEST_DB_SUFFIX = "_test"
 _dev_url = make_url(get_settings().database_url)
 _test_url = _dev_url.set(database=f"{_dev_url.database}{_TEST_DB_SUFFIX}")
 os.environ["DATABASE_URL"] = _test_url.render_as_string(hide_password=False)
+# TestClient는 http라 Secure 쿠키를 돌려보내지 않고, 구글은 테스트마다 가짜로 주입한다 — 개발 .env 값에 흔들리지 않게 고정
+os.environ["ADMIN_COOKIE_SECURE"] = "false"
+for _key in ("GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET"):
+    os.environ[_key] = ""
 get_settings.cache_clear()
 
 

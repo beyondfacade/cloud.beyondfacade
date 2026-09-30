@@ -34,9 +34,9 @@ class SqlAlchemyAdminUserRepository(AdminUserRepositoryPort):
 
     def save(self, user: AdminUser) -> AdminUser:
         with session_scope() as session:
-            orm = session.execute(
-                select(AdminUserOrm).where(AdminUserOrm.username == user.username)
-            ).scalar_one_or_none()
+            # 저장된 계정은 id로 찾아야 계정명을 바꿔도 같은 행을 고친다
+            key = AdminUserOrm.id == user.id if user.id is not None else AdminUserOrm.username == user.username
+            orm = session.execute(select(AdminUserOrm).where(key)).scalar_one_or_none()
             if orm is None:
                 orm = AdminUserOrm()
                 session.add(orm)

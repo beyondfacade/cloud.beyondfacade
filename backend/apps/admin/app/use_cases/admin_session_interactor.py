@@ -163,18 +163,35 @@ class AdminSessionInteractor(AdminSessionUseCase):
     def change_password(
         self, principal: AdminPrincipalDto, token: str, current_password: str, new_password: str, ip: str | None
     ) -> None:
-        user = self._users.get_by_id(principal.id)
-        if user is None:
-            raise Unauthenticated("로그인이 필요합니다.")
-        if user.password_hash is None:
-            raise WrongPassword("구글로 가입한 계정은 비밀번호가 없습니다. 관리자에게 비밀번호 설정을 요청하세요.")
-        if not verify_password(current_password, user.password_hash):
+        user = self._current_user(principal)
+        first_time = user.password_hash is None
+        if not first_time and not verify_password(current_password, user.password_hash):
             raise WrongPassword("현재 비밀번호가 올바르지 않습니다.")
         if problem := password_problem(new_password):
             raise WeakPassword(problem)
         self._users.save(replace(user, password_hash=hash_password(new_password)))
         self._sessions.delete_for_user(user.id, hash_token(token))
-        self._audit.add(audit_entry(self._clock(), principal, AuditAction.PASSWORD_CHANGE, user.username, ip=ip))
+        detail = "처음 설정" if first_time else ""
+        self._audit.add(audit_entry(self._clock(), principal, AuditAction.PASSWORD_CHANGE, user.username, detail, ip))
+
+    def change_username(self, principal: AdminPrincipalDto, username: str, ip: str | None) -> AdminPrincipalDto:
+        user = self._current_user(principal)
+        if username == user.username:
+            return to_principal(user)
+        if problem := username_problem(username):
+            raise InvalidUsername(problem)
+        if self._users.get_by_username(username) is not None:
+            raise UsernameTaken(f"이미 있는 계정명입니다: {username}")
+        saved = self._users.save(replace(user, username=username))
+        detail = f"{user.username} → {username}"
+        self._audit.add(audit_entry(self._clock(), principal, AuditAction.USERNAME_CHANGE, username, detail, ip))
+        return to_principal(saved)
+
+    def _current_user(self, principal: AdminPrincipalDto) -> AdminUser:
+        user = self._users.get_by_id(principal.id)
+        if user is None:
+            raise Unauthenticated("로그인이 필요합니다.")
+        return user
 
     def _find_for_login(self, login_id: str) -> AdminUser | None:
         """계정명 규칙에는 @가 없어 이메일과 겹치지 않는다."""

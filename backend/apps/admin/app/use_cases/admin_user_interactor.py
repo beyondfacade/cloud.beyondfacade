@@ -10,7 +10,6 @@ from apps.admin.app.errors import (
     InvalidUsername,
     LastOperator,
     SelfChange,
-    UsernameTaken,
     WeakPassword,
 )
 from apps.admin.app.ports.input.admin_user_use_case import AdminUserUseCase
@@ -84,29 +83,6 @@ class AdminUserInteractor(AdminUserUseCase):
             and (wanted_role is None or user.role is wanted_role)
         ]
 
-    def create(
-        self, actor: AdminPrincipalDto, username: str, role: str, password: str, ip: str | None
-    ) -> AdminUserDto:
-        if problem := username_problem(username):
-            raise InvalidUsername(problem)
-        _check_password(password)
-        if self._users.get_by_username(username) is not None:
-            raise UsernameTaken(f"이미 있는 계정명입니다: {username}")
-        user = self._users.save(
-            AdminUser(username=username, password_hash=hash_password(password), role=AdminRole(role))
-        )
-        self._record(actor, AuditAction.USER_CREATE, username, f"역할 {role}", ip)
-        return self._to_dto(user, {})
-
-    def change_role(self, actor: AdminPrincipalDto, username: str, role: str, ip: str | None) -> AdminUserDto:
-        user = self._target(actor, username)
-        new_role = AdminRole(role)
-        if leaves_no_active_operator(self._users.list_all(), username, new_role, user.is_active):
-            raise LastOperator("활성 관리자가 한 명은 남아 있어야 합니다.")
-        saved = self._users.save(replace(user, role=new_role))
-        self._record(actor, AuditAction.USER_ROLE, username, f"{user.role.value} → {new_role.value}", ip)
-        return self._to_dto(saved, self._sessions.count_active_by_user(self._clock()))
-
     def set_active(self, actor: AdminPrincipalDto, username: str, active: bool, ip: str | None) -> AdminUserDto:
         user = self._target(actor, username)
         if leaves_no_active_operator(self._users.list_all(), username, user.role, active):
@@ -116,13 +92,6 @@ class AdminUserInteractor(AdminUserUseCase):
             self._sessions.delete_for_user(user.id)
         self._record(actor, _ACTIVE_ACTION[active], username, "", ip)
         return self._to_dto(saved, self._sessions.count_active_by_user(self._clock()))
-
-    def reset_password(self, actor: AdminPrincipalDto, username: str, password: str, ip: str | None) -> None:
-        user = self._target(actor, username)
-        _check_password(password)
-        self._users.save(replace(user, password_hash=hash_password(password)))
-        self._sessions.delete_for_user(user.id)
-        self._record(actor, AuditAction.USER_PASSWORD_RESET, username, "", ip)
 
     def sessions(
         self, actor: AdminPrincipalDto, username: str, current_token: str | None
@@ -159,7 +128,7 @@ class AdminUserInteractor(AdminUserUseCase):
         """남의 계정을 바꾸는 조치 — 내 계정은 잠금 사고를 막으려 이 경로로 못 바꾼다."""
         user = self._get(username)
         if user.id == actor.id:
-            raise SelfChange("내 계정의 등급·상태·비밀번호는 여기서 바꿀 수 없습니다.")
+            raise SelfChange("내 계정은 여기서 정지할 수 없습니다.")
         return user
 
     def _self_or_operator(self, actor: AdminPrincipalDto, username: str) -> AdminUser:
