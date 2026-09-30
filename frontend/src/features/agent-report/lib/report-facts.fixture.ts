@@ -45,6 +45,10 @@ export function eventAnalogs(): EventAnalogs {
       typical_duration_months: 17,
     }],
     caveats: ["12월에는 행정 정리로 폐업이 몰린다 — 12월이 든 분기는 한 번씩 크게 튈 수 있어 판단은 분기 과반으로 한다."],
+    hints: [
+      { category: "work_hours", label: "근로시간", keyword: "52시간" },
+      { category: "relief", label: "지원금·보상", keyword: "지원금" },
+    ],
   };
 }
 

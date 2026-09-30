@@ -318,6 +318,10 @@ function eventAnalogsDemo(industryId: string, industryName: string): EventAnalog
       "12월에는 행정 정리로 폐업이 몰린다 — 12월이 든 분기는 한 번씩 크게 튈 수 있어 판단은 분기 과반으로 한다.",
       "2020~2022년 폐업은 재난지원금·손실보상으로 지연되어 실제보다 적게 잡혔을 수 있다.",
     ],
+    hints: [
+      { category: "work_hours", label: "근로시간", keyword: "52시간" },
+      { category: "relief", label: "지원금·보상", keyword: "지원금" },
+    ],
   };
 }
 

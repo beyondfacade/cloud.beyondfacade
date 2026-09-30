@@ -158,6 +158,15 @@ function EventCard({ event }: { event: EventImpact }) {
   );
 }
 
+function CompareHint({ hints }: { hints: NonNullable<EventAnalogs["hints"]> }) {
+  if (hints.length === 0) return null;
+  return (
+    <p role="note" aria-label="다른 상황 비교 안내" className="text-xs text-[var(--text-secondary)]">
+      {hints.map((h) => h.label).join(", ")} 사례는 질문에 {hints.map((h) => `"${h.keyword}"`).join(", ")} 같은 단어를 넣으면 함께 비교합니다.
+    </p>
+  );
+}
+
 export function AnalogCases({ analogs }: { analogs?: EventAnalogs | UnavailableFact }) {
   const data = availableFact(analogs);
   if (!data) return <p className="text-sm text-[var(--text-secondary)]">자료 없음</p>;
@@ -183,6 +192,7 @@ export function AnalogCases({ analogs }: { analogs?: EventAnalogs | UnavailableF
           {data.caveats.map((caveat) => <li key={caveat}>{caveat}</li>)}
         </ul>
       )}
+      <CompareHint hints={data.hints ?? []} />
     </section>
   );
 }

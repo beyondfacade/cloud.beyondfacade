@@ -66,6 +66,15 @@ it("해석 주의사항을 함께 적는다", () => {
   expect(screen.getByText(/12월에는 행정 정리로 폐업이 몰린다/)).toBeInTheDocument();
 });
 
+it("비교하지 않은 유형은 질문에 넣을 예시 단어로 안내하고, 없으면 안내하지 않는다", () => {
+  const { rerender } = render(<AnalogCases analogs={eventAnalogs()} />);
+  expect(screen.getByRole("note", { name: "다른 상황 비교 안내" })).toHaveTextContent(
+    "근로시간, 지원금·보상 사례는 질문에 \"52시간\", \"지원금\" 같은 단어를 넣으면 함께 비교합니다.",
+  );
+  rerender(<AnalogCases analogs={{ ...eventAnalogs(), hints: [] }} />);
+  expect(screen.queryByRole("note", { name: "다른 상황 비교 안내" })).toBeNull();
+});
+
 it("비교할 이벤트가 없으면 그렇게 쓰고, 실패한 사실은 자료 없음이다", () => {
   const { rerender } = render(<AnalogCases analogs={{ ...eventAnalogs(), categories: [], current_events: [], analogs: [] }} />);
   expect(screen.getByText("비교할 이벤트가 없습니다.")).toBeInTheDocument();

@@ -94,6 +94,8 @@ export interface EventAnalogs {
   analogs: EventImpact[];
   outlooks?: CategoryOutlook[];
   caveats: string[];
+  /** 이번에 비교하지 않은 유형 — 질문에 keyword를 넣으면 함께 비교한다 */
+  hints?: { category: string; label: string; keyword: string }[];
 }
 
 /** 리포트 카드가 사용하는 필드만 좁힌다. 도구별 ID·대상 필드 차이와 누락을 허용한다. */
