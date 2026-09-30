@@ -10,6 +10,11 @@ SITUATIONS = {
     "relief": "지원금이 풀렸던 시기에",
 }
 
+# 유사 사례는 서울 전체 흐름이다 — 리포트가 동 이야기라 범위를 적지 않으면 동의 수치로 읽힌다.
+# 동·자치구는 쓰지 않는다: 2026-09-30 실측에서 점포 1,000곳 넘는 구도 아무 일 없던 분기의 60~90%가
+# 강세·약세로 잡혔고(서울 전체 한식 34%), 서울 전체와 판정이 같은 비율은 22~41%였다.
+AREA = "서울 전체"
+
 # 전 업종과의 차이가 이 안(%p)이면 "비슷하게", 폐업률 차이가 이 안(%p)이면 "비슷했습니다"
 _SAME_BAND = 0.5
 
@@ -27,7 +32,7 @@ def _has_final_consonant(word: str) -> bool:
 
 
 def recommended_sentence(outlook: dict, area: str | None = None) -> str | None:
-    """`area`는 비교 업종을 센 범위("서울 전체") — 내 업종 범위와 다를 수 있어 적는다."""
+    """`area`는 업종을 센 범위("서울 전체")."""
     situation = SITUATIONS.get(outlook.get("category") or "")
     names = [i["industry_name"] for i in outlook.get("recommended") or []]
     if not situation or not names:
@@ -169,9 +174,7 @@ def with_sentences(analogs: dict) -> dict:
     """사례·유형 종합·뉴스마다 LLM이 그대로 옮길 완성 문장을 붙인 사본 (원본은 그대로, 없는 목록은 두고)."""
     if analogs.get("available") is False:
         return analogs
-    scope = analogs.get("scope") or {}
-    # 내 업종 흐름을 센 범위를 주어에 붙인다 — "관악구 카페는"
-    industry_name = " ".join(filter(None, [scope.get("name"), _industry_name(analogs)]))
+    industry_name = f"{AREA} {_industry_name(analogs)}"
     current = analogs.get("current_events") or []
     events = [*current, *(analogs.get("analogs") or [])]
     names = _display_names(events)
@@ -202,7 +205,7 @@ def with_sentences(analogs: dict) -> dict:
         "outlooks": [
             {
                 **o,
-                "recommended_sentence": recommended_sentence(o, scope.get("comparison_name")),
+                "recommended_sentence": recommended_sentence(o, AREA),
                 "condition_sentence": compare(o),
             }
             for o in analogs.get("outlooks") or []

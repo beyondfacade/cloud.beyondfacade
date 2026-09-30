@@ -115,21 +115,9 @@ class CategoryOutlookDto:
 
 
 @dataclass
-class AnalogScopeDto:
-    """내 업종 흐름을 센 범위 — 자치구 점포가 `min_stock` 이상이면 그 구, 아니면 서울 전체. 비교 업종은 늘 서울 전체."""
-
-    level: str  # district | seoul
-    name: str  # "관악구" | "서울 전체"
-    target_stock: int
-    min_stock: int
-    comparison_name: str
-
-
-@dataclass
 class EventAnalogReportDto:
     industry_id: str
     as_of: str  # 마지막 완결 달 YYYY-MM
-    scope: AnalogScopeDto | None = None
     categories: list[AnalogCategoryDto] = field(default_factory=list)
     current_events: list[EventImpactDto] = field(default_factory=list)
     analogs: list[EventImpactDto] = field(default_factory=list)

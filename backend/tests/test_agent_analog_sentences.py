@@ -116,36 +116,25 @@ def test_사례_이름은_짧은_구분어를_괄호로_남기고_같은_이름�
     assert sentences[3].startswith("코로나19 국내 유행과 방역 조치 이후 12분기")
 
 
-def test_계산_범위가_있으면_내_업종_문장에_범위를_붙이고_비교_업종은_서울_전체라고_쓴다():
+def test_유사_사례_문장은_동의_수치로_읽히지_않게_서울_전체라고_쓴다():
     condition = _condition("weaker", _period(7.1, 5.8, 14.0), _period(-1.1, -0.1, 20.1))
     analogs = {
-        "scope": {"level": "district", "name": "관악구", "comparison_name": "서울 전체"},
         "current_events": [_event("최저임금 인상 — 2026년", 2, 0, 0, current=True)],
         "analogs": [_event("메르스 유행", 12, 0, 3)],
         "outlooks": [{"category": "pandemic", "recommended": _refs("양식"), "condition": condition}],
     }
     enriched = with_sentences(analogs)
     assert enriched["current_events"][0]["summary_sentence"] == (
-        "최저임금 인상(2026년) 이후 지금까지 2분기 동안 관악구 카페는 평소와 비슷했습니다."
+        "최저임금 인상(2026년) 이후 지금까지 2분기 동안 서울 전체 카페는 평소와 비슷했습니다."
     )
     assert enriched["analogs"][0]["summary_sentence"] == (
-        "메르스 유행 이후 12분기 중 관악구 카페가 평소보다 강했던 분기는 3분기였습니다."
+        "메르스 유행 이후 12분기 중 서울 전체 카페가 평소보다 강했던 분기는 3분기였습니다."
     )
     outlook = enriched["outlooks"][0]
     assert outlook["recommended_sentence"] == (
         "감염병이 유행했던 시기에 서울 전체에서 다른 업종보다 상대적으로 잘 버틴 업종은 양식이었습니다."
     )
-    assert outlook["condition_sentence"].startswith("코로나19 국내 유행과 방역 조치 직전 1년 관악구 카페는 전 업종보다")
-
-
-def test_서울_전체로_계산했으면_내_업종_문장에_서울_전체라고_쓴다():
-    analogs = {
-        "scope": {"level": "seoul", "name": "서울 전체", "comparison_name": "서울 전체"},
-        "analogs": [_event("메르스 유행", 12, 0, 3)],
-    }
-    assert with_sentences(analogs)["analogs"][0]["summary_sentence"] == (
-        "메르스 유행 이후 12분기 중 서울 전체 카페가 평소보다 강했던 분기는 3분기였습니다."
-    )
+    assert outlook["condition_sentence"].startswith("코로나19 국내 유행과 방역 조치 직전 1년 서울 전체 카페는 전 업종보다")
 
 
 def test_사례와_뉴스에도_코드가_만든_문장을_붙인다():

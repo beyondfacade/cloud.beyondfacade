@@ -100,18 +100,9 @@ class CategoryOutlookResponse(BaseModel):
     condition: ConditionCompareResponse | None = None
 
 
-class AnalogScopeResponse(BaseModel):
-    level: str
-    name: str
-    target_stock: int
-    min_stock: int
-    comparison_name: str
-
-
 class EventAnalogReportResponse(BaseModel):
     industry_id: str
     as_of: str
-    scope: AnalogScopeResponse | None = None
     categories: list[AnalogCategoryResponse] = []
     current_events: list[EventImpactResponse] = []
     analogs: list[EventImpactResponse] = []

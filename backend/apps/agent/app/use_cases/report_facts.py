@@ -96,7 +96,7 @@ class ReportFactsCollector:
                 ),
                 "population": pool.submit(self._region_facts.population, region),
                 "shocks": pool.submit(self._shocks, industry),
-                "analogs": pool.submit(self._analogs, industry, question, region),
+                "analogs": pool.submit(self._analogs, industry, question),
                 "funding_candidates": pool.submit(self._funding, industry, region),
                 # 뉴스 질의는 동 이름·업종명을 쓴다 — 워커가 region future를 기다리므로 **맨 뒤**에
                 # 넣는다. 앞선 항목이 워커를 다 채워도 region은 이미 실행 중이라 굶지 않는다.
@@ -133,10 +133,10 @@ class ReportFactsCollector:
             for event in self._region_facts.shocks(None, _SHOCK_LIMIT)
         ]
 
-    def _analogs(self, industry: str, question: str | None, region: str) -> dict:
+    def _analogs(self, industry: str, question: str | None) -> dict:
         if self._analog_facts is None:
             return {"available": False, "reason": "유사 사례 조회가 연결되지 않았습니다"}
-        return with_sentences(self._analog_facts.analogs(industry, question, region))
+        return with_sentences(self._analog_facts.analogs(industry, question))
 
     def _funding(self, industry: str, region: str) -> list[dict]:
         """공고 목록만 남긴다 — 프론트 계약은 배열이다 (설계서 §3-1). 다른 구 전용 공고는 빠져 온다.
