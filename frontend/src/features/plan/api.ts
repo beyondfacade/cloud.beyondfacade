@@ -20,15 +20,18 @@ export function fetchFinancePrefill(regionCode: string, industryId: string): Pro
   return apiGet<FinancePrefill>(`/finance/prefill?${params.toString()}`);
 }
 
-/** 후보 공고 — 지역·대상·마감으로 거른 상위 8건. 업종·금액은 필터에 쓰이지 않고 문장용으로 되돌아온다. */
+/** 후보 공고 — 지역·대상·마감으로 거른 상위 8건. 업종·금액은 필터에 쓰이지 않고 문장용으로 되돌아온다.
+ *  동(regionCode)을 주면 다른 구 전용 공고는 빠진다. */
 export function fetchFundingCandidates(
   industryId: string | null,
   need: number | null,
   stage: string,
+  regionCode: string | null = null,
 ): Promise<FundingCandidateList> {
   const params = new URLSearchParams({ stage });
   if (industryId) params.set("industry", industryId);
   if (need != null) params.set("need", String(need));
+  if (regionCode) params.set("region", regionCode);
   return apiGet<FundingCandidateList>(`/funding/candidates?${params.toString()}`);
 }
 

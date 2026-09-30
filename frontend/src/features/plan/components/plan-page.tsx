@@ -69,8 +69,8 @@ export function PlanPage() {
   const stage = draft.profile.business_registered === true ? "registered" : "pre";
 
   const candidates = useQuery({
-    queryKey: ["funding-candidates", industry, need, stage],
-    queryFn: () => fetchFundingCandidates(industry, need, stage),
+    queryKey: ["funding-candidates", industry, need, stage, region],
+    queryFn: () => fetchFundingCandidates(industry, need, stage, region),
     enabled: prepOpen && canPrep,
   });
 
