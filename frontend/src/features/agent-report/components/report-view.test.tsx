@@ -31,7 +31,7 @@ it("범위 물결표(50~299인)가 두 번 나와도 취소선으로 읽지 않�
   expect([...container.querySelectorAll("del")].map((d) => d.textContent)).toEqual(["취소"]);
 });
 
-it("유사 사례 본문은 근거 표기마다 문단을, 문장마다 줄을 나눠 보여 준다", () => {
+it("유사 사례 본문은 근거 표기마다 문단을, 표기 뒤와 문장마다 줄을 나눠 보여 준다", () => {
   const state = applyAgentEvent(initialAgentState(), {
     type: "report_delta",
     section: "analogs",
@@ -40,10 +40,10 @@ it("유사 사례 본문은 근거 표기마다 문단을, 문장마다 줄을 �
   const { container } = render(<ReportView state={state} />);
   const paragraphs = [...container.querySelectorAll(".report-markdown p")];
   expect(paragraphs.map((p) => p.textContent)).toEqual([
-    "[확인된 사실] 카페는 약했습니다.\n메르스 때도 약세였습니다.",
-    "[참고 신호] 최근 30일 조치 소식은 없습니다.",
+    "[확인된 사실]\n카페는 약했습니다.\n메르스 때도 약세였습니다.",
+    "[참고 신호]\n최근 30일 조치 소식은 없습니다.",
   ]);
-  expect(paragraphs[0].querySelectorAll("br")).toHaveLength(1);
+  expect(paragraphs[0].querySelectorAll("br")).toHaveLength(2);
 });
 
 const SECTIONS = [

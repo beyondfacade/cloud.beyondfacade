@@ -1,7 +1,8 @@
-/** 근거 표기([확인된 사실]·[참고 신호]) 단위 문단 + 문장 단위 줄바꿈. LLM이 나눈 줄은 믿지 않고 다시 짠다. */
+/** 근거 표기([확인된 사실]·[참고 신호]) 단위 문단 + 표기 뒤·문장 단위 줄바꿈. LLM이 나눈 줄은 믿지 않고 다시 짠다. */
 
 const GRADE_TAG = /\[(?:확인된 사실|참고 신호)\]/;
 const BEFORE_GRADE_TAG = /(?=\[(?:확인된 사실|참고 신호)\])/;
+const AFTER_LEADING_TAG = /^(\[(?:확인된 사실|참고 신호)\])\s*/;
 // 한글 뒤 마침표만 문장 끝으로 본다 — "2.9%"·"10,320원" 같은 숫자 안 마침표는 자르지 않는다
 const SENTENCE_END = /(?<=[가-힣][.!?])\s+/;
 const LEADING_HEADING = /^(#{1,6}\s.*\n+)?([\s\S]*)$/;
@@ -16,6 +17,6 @@ export function gradedParagraphs(markdown: string): string {
     .split(BEFORE_GRADE_TAG)
     .map((paragraph) => paragraph.trim())
     .filter(Boolean)
-    .map((paragraph) => paragraph.split(SENTENCE_END).join(HARD_BREAK));
+    .map((paragraph) => paragraph.split(SENTENCE_END).join(HARD_BREAK).replace(AFTER_LEADING_TAG, `$1${HARD_BREAK}`));
   return heading + paragraphs.join("\n\n");
 }
