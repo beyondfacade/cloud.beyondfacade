@@ -21,6 +21,7 @@ def myself(
 def analogs(
     industry: str,
     question: str | None = None,
+    region: str | None = None,
     use_case: EventAnalogUseCase = Depends(get_event_analog_use_case),
 ) -> EventAnalogReportResponse:
-    return to_response(use_case.analogs(industry, question))
+    return to_response(use_case.analogs(industry, question, region))

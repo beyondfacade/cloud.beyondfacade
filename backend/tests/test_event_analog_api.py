@@ -10,6 +10,9 @@ from apps.news.domain.entities.news_article_entity import NewsArticle
 from apps.shock.adapter.outbound.gateways.caching_recent_news_gateway import (
     CachingRecentNewsGateway,
 )
+from apps.shock.adapter.outbound.gateways.caching_district_flow_gateway import (
+    CachingDistrictFlowGateway,
+)
 from apps.shock.adapter.outbound.gateways.caching_store_flow_gateway import (
     CachingStoreFlowGateway,
 )
@@ -20,10 +23,11 @@ from apps.shock.adapter.outbound.orms.shock_event_orm import ShockEventOrm
 from apps.shock.adapter.outbound.repositories.shock_event_repository import (
     SqlAlchemyShockEventRepository,
 )
-from apps.shock.app.ports.output.event_analog_port import RecentNewsPort, StoreFlowPort
+from apps.shock.app.ports.output.event_analog_port import DistrictFlowPort, RecentNewsPort, StoreFlowPort
 from apps.shock.app.ports.output.shock_event_port import ShockEventRepositoryPort
 from apps.shock.app.use_cases.event_analog_interactor import EventAnalogInteractor
 from apps.shock.app.use_cases.shock_event_interactor import ShockEventInteractor
+from apps.shock.dependencies.event_analog_dependencies import get_event_analog_use_case
 from apps.shock.domain.entities.shock_event_entity import ShockEvent
 from apps.shock.domain.services.industry_flows import IndustryFlows
 from apps.shock.domain.value_objects.event_category import EventCategory
@@ -250,6 +254,71 @@ def test_흐름이_없는_업종은_대상_변동폭이_없다():
     assert all(e.target_weak_quarters == 0 for e in report.analogs)
 
 
+class FakeDistricts(DistrictFlowPort):
+    """관악구(11620)는 카페 점포가 기준 이상이고 2020년 폐업 급증이 없다. 종로구(11110)는 카페 300곳."""
+
+    def __init__(self) -> None:
+        self.calls: list[str] = []
+
+    def district_flows(self, district_code: str) -> list[IndustryFlows]:
+        self.calls.append(district_code)
+        if district_code == "11620":
+            return [_flows("cafe", "카페", 10, 8), _flows("pc_bang", "PC방", 3, 1), _flows("pub", "호프·주점", 2, 2)]
+        if district_code == "11110":
+            return [IndustryFlows("cafe", "카페", {date(2012, 12, 1): 300}, {})]
+        return []
+
+    def district_name(self, district_code: str) -> str | None:
+        return {"11620": "관악구", "11110": "종로구"}.get(district_code)
+
+
+def _scoped(region: str | None, districts: FakeDistricts | None = None):
+    interactor = EventAnalogInteractor(
+        events=FakeEvents(_EVENTS), flows=FakeFlows(), today=lambda: TODAY, districts=districts or FakeDistricts()
+    )
+    return interactor.analogs("cafe", "코로나", region)
+
+
+def _covid_of(report):
+    return next(e for e in report.analogs if e.event_id == "covid")
+
+
+def test_구의_내_업종_점포가_충분하면_내_업종_흐름은_그_구로_계산한다():
+    seoul, district = _scoped(None), _scoped("1162052500")
+    assert (district.scope.level, district.scope.name) == ("district", "관악구")
+    assert district.scope.comparison_name == "서울 전체"
+    # 서울 가짜 흐름은 2020년 폐업 급증으로 1년 차가 약세, 관악구는 급증이 없어 평소와 비슷
+    assert _covid_of(seoul).target_weak_quarters == 4
+    assert _covid_of(district).target_weak_quarters == 0
+
+
+def test_구로_계산해도_비교_업종의_흐름과_순위는_서울_전체다():
+    seoul, district = _scoped(None), _scoped("1162052500")
+    series = lambda report: {s.industry_id: s.values for s in _covid_of(report).series}  # noqa: E731
+    assert series(district)["pc_bang"] == series(seoul)["pc_bang"]
+    assert series(district)["cafe"] != series(seoul)["cafe"]
+    assert [o.recommended for o in district.outlooks] == [o.recommended for o in seoul.outlooks]
+
+
+def test_구로_계산하면_직전_비교는_그_구의_전_업종과_견준다():
+    pandemic = lambda report: next(o for o in report.outlooks if o.category == "pandemic")  # noqa: E731
+    assert pandemic(_scoped(None)).condition.before.industry_count == 2
+    assert pandemic(_scoped("1162052500")).condition.before.industry_count == 3
+
+
+def test_구의_내_업종_점포가_모자라면_서울_전체로_계산한다():
+    seoul, small = _scoped(None), _scoped("1111051500")
+    assert (small.scope.level, small.scope.name) == ("seoul", "서울 전체")
+    assert _covid_of(small).series == _covid_of(seoul).series
+
+
+def test_지역이_없으면_구_흐름을_찾지_않고_서울_전체로_계산한다():
+    districts = FakeDistricts()
+    report = _scoped(None, districts)
+    assert (report.scope.level, report.scope.name) == ("seoul", "서울 전체")
+    assert districts.calls == []
+
+
 def test_이벤트를_유형과_함께_등록한다():
     events = FakeEvents([])
     interactor = ShockEventInteractor(repository=events)
@@ -271,6 +340,25 @@ def test_흐름은_유효_시간_안에는_다시_조회하지_않는다():
     clock[0] += timedelta(hours=2)
     proxy.monthly_flows()
     assert inner.calls == 2
+
+
+def test_구_흐름은_구마다_유효_시간_안에는_다시_조회하지_않는다():
+    inner = FakeDistricts()
+    clock = [datetime(2026, 9, 30, 9)]
+    proxy = CachingDistrictFlowGateway(inner, ttl=timedelta(hours=6), now=lambda: clock[0])
+    proxy.district_flows("11620")
+    proxy.district_flows("11620")
+    proxy.district_flows("11110")
+    assert inner.calls == ["11620", "11110"]
+    clock[0] += timedelta(hours=7)
+    proxy.district_flows("11620")
+    assert inner.calls == ["11620", "11110", "11620"]
+
+
+def test_구_이름은_캐시_프록시를_거쳐도_그대로다():
+    proxy = CachingDistrictFlowGateway(FakeDistricts())
+    assert proxy.district_name("11620") == "관악구"
+    assert proxy.district_name("99999") is None
 
 
 def test_조치_기사는_단어마다_유효_시간_안에는_다시_찾지_않는다():
@@ -306,6 +394,24 @@ def test_유사_사례_myself_배선():
     body = response.json()
     assert body["industry_id"] == "myself"
     assert body["analogs"][0]["quarters"][0]["label"]
+
+
+def test_유사_사례_라우터는_지역을_넘기고_범위를_응답한다():
+    districts = FakeDistricts()
+    app.dependency_overrides[get_event_analog_use_case] = lambda: EventAnalogInteractor(
+        events=FakeEvents(_EVENTS), flows=FakeFlows(), today=lambda: TODAY, districts=districts
+    )
+    try:
+        response = TestClient(app).get(
+            "/shocks/analogs", params={"industry": "cafe", "question": "코로나", "region": "1162052500"}
+        )
+    finally:
+        app.dependency_overrides.pop(get_event_analog_use_case, None)
+    assert response.status_code == 200
+    scope = response.json()["scope"]
+    assert (scope["level"], scope["name"], scope["comparison_name"]) == ("district", "관악구", "서울 전체")
+    assert scope["target_stock"] >= scope["min_stock"] == 1000
+    assert districts.calls == ["11620"]
 
 
 # ── 시드 유형 ──────────────────────────────────────────────────────────

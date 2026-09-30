@@ -7,11 +7,14 @@ from apps.news.adapter.outbound.gateways.naver_news_gateway import NaverNewsGate
 from apps.shock.adapter.outbound.gateways.caching_recent_news_gateway import (
     CachingRecentNewsGateway,
 )
+from apps.shock.adapter.outbound.gateways.caching_district_flow_gateway import (
+    CachingDistrictFlowGateway,
+)
 from apps.shock.adapter.outbound.gateways.caching_store_flow_gateway import (
     CachingStoreFlowGateway,
 )
 from apps.shock.adapter.outbound.gateways.recent_news_gateway import RecentNewsGateway
-from apps.shock.adapter.outbound.gateways.store_flow_gateway import StoreFlowGateway
+from apps.shock.adapter.outbound.gateways.store_flow_gateway import DistrictFlowGateway, StoreFlowGateway
 from apps.shock.adapter.outbound.repositories.shock_event_repository import (
     SqlAlchemyShockEventRepository,
 )
@@ -19,8 +22,11 @@ from apps.shock.app.ports.input.event_analog_use_case import EventAnalogUseCase
 from apps.shock.app.use_cases.event_analog_interactor import EventAnalogInteractor
 
 _FLOWS = CachingStoreFlowGateway(StoreFlowGateway())
+_DISTRICTS = CachingDistrictFlowGateway(DistrictFlowGateway())
 _NEWS = CachingRecentNewsGateway(RecentNewsGateway(NaverNewsGateway()))
 
 
 def get_event_analog_use_case() -> EventAnalogUseCase:
-    return EventAnalogInteractor(events=SqlAlchemyShockEventRepository(), flows=_FLOWS, news=_NEWS)
+    return EventAnalogInteractor(
+        events=SqlAlchemyShockEventRepository(), flows=_FLOWS, news=_NEWS, districts=_DISTRICTS
+    )

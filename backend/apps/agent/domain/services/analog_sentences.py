@@ -26,13 +26,15 @@ def _has_final_consonant(word: str) -> bool:
     return "가" <= last <= "힣" and (ord(last) - 0xAC00) % 28 != 0
 
 
-def recommended_sentence(outlook: dict) -> str | None:
+def recommended_sentence(outlook: dict, area: str | None = None) -> str | None:
+    """`area`는 비교 업종을 센 범위("서울 전체") — 내 업종 범위와 다를 수 있어 적는다."""
     situation = SITUATIONS.get(outlook.get("category") or "")
     names = [i["industry_name"] for i in outlook.get("recommended") or []]
     if not situation or not names:
         return None
     ending = "이었습니다" if _has_final_consonant(names[-1]) else "였습니다"
-    return f"{situation} 다른 업종보다 상대적으로 잘 버틴 업종은 {', '.join(names)}{ending}."
+    where = f" {area}에서" if area else ""
+    return f"{situation}{where} 다른 업종보다 상대적으로 잘 버틴 업종은 {', '.join(names)}{ending}."
 
 
 def _growth(period: dict) -> str:
@@ -167,7 +169,9 @@ def with_sentences(analogs: dict) -> dict:
     """사례·유형 종합·뉴스마다 LLM이 그대로 옮길 완성 문장을 붙인 사본 (원본은 그대로, 없는 목록은 두고)."""
     if analogs.get("available") is False:
         return analogs
-    industry_name = _industry_name(analogs)
+    scope = analogs.get("scope") or {}
+    # 내 업종 흐름을 센 범위를 주어에 붙인다 — "관악구 카페는"
+    industry_name = " ".join(filter(None, [scope.get("name"), _industry_name(analogs)]))
     current = analogs.get("current_events") or []
     events = [*current, *(analogs.get("analogs") or [])]
     names = _display_names(events)
@@ -196,7 +200,11 @@ def with_sentences(analogs: dict) -> dict:
             for i, (e, n) in enumerate(zip(events[len(current):], names[len(current):]))
         ],
         "outlooks": [
-            {**o, "recommended_sentence": recommended_sentence(o), "condition_sentence": compare(o)}
+            {
+                **o,
+                "recommended_sentence": recommended_sentence(o, scope.get("comparison_name")),
+                "condition_sentence": compare(o),
+            }
             for o in analogs.get("outlooks") or []
         ],
         "recent_news": [{**r, "sentence": news_sentence(r)} for r in analogs.get("recent_news") or []],

@@ -12,6 +12,18 @@ class StoreFlowPort(ABC):
         """비교 가능한 업종마다 전 기간 월별 개업·폐업 수."""
 
 
+class DistrictFlowPort(ABC):
+    """자치구 하나의 업종별 월 개폐업 — 내 업종 흐름을 구 단위로 볼 때 쓴다."""
+
+    @abstractmethod
+    def district_flows(self, district_code: str) -> list[IndustryFlows]:
+        """그 구의 비교 가능한 업종마다 전 기간 월별 개업·폐업 수."""
+
+    @abstractmethod
+    def district_name(self, district_code: str) -> str | None:
+        """구 이름 — 모르는 코드면 None."""
+
+
 class RecentNewsPort(ABC):
     @abstractmethod
     def latest(self, keyword: str) -> list[NewsHeadline]:

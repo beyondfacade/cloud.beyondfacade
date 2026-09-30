@@ -153,10 +153,10 @@ def test_열세_키를_빠짐없이_모은다():
 class FakeAnalogFacts(EventAnalogFactsPort):
     def __init__(self, failing: bool = False) -> None:
         self._failing = failing
-        self.calls: list[tuple[str, str | None]] = []
+        self.calls: list[tuple[str, str | None, str | None]] = []
 
-    def analogs(self, industry_id: str, question: str | None) -> dict:
-        self.calls.append((industry_id, question))
+    def analogs(self, industry_id: str, question: str | None, region_code: str | None = None) -> dict:
+        self.calls.append((industry_id, question, region_code))
         if self._failing:
             raise RuntimeError("흐름 조회 실패")
         return {
@@ -166,7 +166,7 @@ class FakeAnalogFacts(EventAnalogFactsPort):
         }
 
 
-def test_유사_사례는_업종과_질문으로_조회한다():
+def test_유사_사례는_업종과_질문과_동으로_조회한다():
     analog = FakeAnalogFacts()
     collector = ReportFactsCollector(
         region_facts=FakeRegionFacts(),
@@ -177,7 +177,7 @@ def test_유사_사례는_업종과_질문으로_조회한다():
     )
     facts = collector.collect("1168064000", "cafe", None, "바이러스가 돌면?")
 
-    assert analog.calls == [("cafe", "바이러스가 돌면?")]
+    assert analog.calls == [("cafe", "바이러스가 돌면?", "1168064000")]
     assert facts["analogs"]["analogs"][0]["event_id"] == "outbreak-covid19-20200120"
     # LLM이 옮길 고정 문장을 코드가 붙인다
     assert facts["analogs"]["outlooks"][0]["recommended_sentence"] == (

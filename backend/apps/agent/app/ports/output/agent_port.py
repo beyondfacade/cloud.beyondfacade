@@ -143,8 +143,11 @@ class EventAnalogFactsPort(ABC):
     """
 
     @abstractmethod
-    def analogs(self, industry_id: str, question: str | None) -> dict:
-        """유형·진행 중 이벤트·지난 사례(창별 대상 업종 변동폭·강세/약세 업종)·해석 주의사항."""
+    def analogs(self, industry_id: str, question: str | None, region_code: str | None = None) -> dict:
+        """유형·진행 중 이벤트·지난 사례(창별 대상 업종 변동폭·강세/약세 업종)·해석 주의사항·계산 범위.
+
+        `region_code`(동)의 자치구에 내 업종 점포가 충분하면 내 업종 흐름을 그 구로 센다.
+        """
 
 
 class FinanceFactsPort(ABC):

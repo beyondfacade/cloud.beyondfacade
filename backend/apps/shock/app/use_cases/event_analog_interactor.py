@@ -5,6 +5,7 @@ from datetime import date, timedelta
 from apps.shock.app.dtos.event_analog_dto import (
     AnalogCategoryDto,
     AnalogHintDto,
+    AnalogScopeDto,
     CategoryOutlookDto,
     ConditionCompareDto,
     EventAnalogReportDto,
@@ -17,9 +18,15 @@ from apps.shock.app.dtos.event_analog_dto import (
     RecentNewsDto,
 )
 from apps.shock.app.ports.input.event_analog_use_case import EventAnalogUseCase
-from apps.shock.app.ports.output.event_analog_port import RecentNewsPort, StoreFlowPort
+from apps.shock.app.ports.output.event_analog_port import DistrictFlowPort, RecentNewsPort, StoreFlowPort
 from apps.shock.app.ports.output.shock_event_port import ShockEventRepositoryPort
 from apps.shock.domain.entities.shock_event_entity import ShockEvent
+from apps.shock.domain.services.analog_scope import (
+    SCOPE_DISTRICT,
+    AnalogScope,
+    choose_scope,
+    with_local_target,
+)
 from apps.shock.domain.services.event_analog import (
     CategoryOutlook,
     EventImpact,
@@ -48,8 +55,11 @@ from apps.shock.domain.value_objects.event_category import (
 
 LOGGER = logging.getLogger("beyondfacade.shock.analogs")
 
+_DISTRICT_CODE_LENGTH = 5  # 행정동 코드 앞 5자리 = 자치구 코드
+
 _CAVEATS = [
-    "서울 전체 인허가 기준이다 — 학원·어린이집·편의점·치킨·부동산중개는 흐름을 비교할 수 없어 뺐다.",
+    "인허가 기준이다 — 내 업종은 자치구 점포가 1,000곳 이상이면 그 구, 아니면 서울 전체로 세고, 비교 업종은 늘 "
+    "서울 전체로 센다. 학원·어린이집·편의점·치킨·부동산중개는 흐름을 비교할 수 없어 뺐다.",
     "12월에는 행정 정리로 폐업이 몰린다 — 12월이 든 분기는 한 번씩 크게 튈 수 있어 판단은 분기 과반으로 한다.",
     "2020~2022년 폐업은 재난지원금·손실보상으로 지연되어 실제보다 적게 잡혔을 수 있다.",
     "변동폭은 이벤트 직전 1년의 같은 분기 대비다 — 비교 기간(최저임금·지원금 그 해 4분기, 감염병·근로시간 "
@@ -156,11 +166,23 @@ class EventAnalogInteractor(EventAnalogUseCase):
         flows: StoreFlowPort,
         today: Callable[[], date] = date.today,
         news: RecentNewsPort | None = None,
+        districts: DistrictFlowPort | None = None,
     ) -> None:
         self._events = events
         self._flows = flows
         self._today = today
         self._news = news
+        self._districts = districts
+
+    def _scope(
+        self, region_code: str | None, industry_id: str, seoul: list[IndustryFlows], today: date
+    ) -> tuple[AnalogScope, list[IndustryFlows]]:
+        """(범위, 그 범위의 흐름) — 구 흐름은 비교할 사례가 있고 지역·구 조회가 다 있을 때만 읽는다."""
+        code = region_code[:_DISTRICT_CODE_LENGTH] if region_code else None
+        local = self._districts.district_flows(code) if seoul and code and self._districts else []
+        name = self._districts.district_name(code) if local else None
+        scope = choose_scope(seoul, local, industry_id, name, month_of(today))
+        return scope, local if scope.level == SCOPE_DISTRICT else seoul
 
     def _recent_news(self, category: AnalogCategoryDto, today: date) -> RecentNewsDto:
         """뉴스 검색이 실패해도 유사 사례는 나간다 — 확인하지 못했다고만 싣는다."""
@@ -203,7 +225,9 @@ class EventAnalogInteractor(EventAnalogUseCase):
             ],
         )
 
-    def analogs(self, industry_id: str, question: str | None) -> EventAnalogReportDto:
+    def analogs(
+        self, industry_id: str, question: str | None, region_code: str | None = None
+    ) -> EventAnalogReportDto:
         today = self._today()
         events = self._events.list_categorized()
         current = [e for e in events if is_current(e, today)]
@@ -217,9 +241,19 @@ class EventAnalogInteractor(EventAnalogUseCase):
         unconfirmed = [c for c in categories if c.reason == "question" and c.category not in running]
         flows = self._flows.monthly_flows() if current or analogs else []
         names = {f.industry_id: f.industry_name for f in flows}
+        scope, scoped_flows = self._scope(region_code, industry_id, flows, today)
+        local_target = (
+            [f for f in scoped_flows if f.industry_id == industry_id] if scope.level == SCOPE_DISTRICT else []
+        )
+
+        def impact_of(event: ShockEvent) -> EventImpact:
+            impact = event_impact(event, flows, industry_id, today)
+            if not local_target:
+                return impact
+            return with_local_target(impact, event_impact(event, local_target, industry_id, today), industry_id)
 
         def impacts(chosen: list[ShockEvent]) -> list[EventImpact]:
-            return [event_impact(e, flows, industry_id, today) for e in chosen]
+            return [impact_of(e) for e in chosen]
 
         analog_impacts = impacts(analogs)
         outlooks = {
@@ -256,10 +290,20 @@ class EventAnalogInteractor(EventAnalogUseCase):
         return EventAnalogReportDto(
             industry_id=industry_id,
             as_of=_month(add_months(month_of(today), -1)),
+            scope=AnalogScopeDto(
+                level=scope.level,
+                name=scope.name,
+                target_stock=scope.target_stock,
+                min_stock=scope.min_stock,
+                comparison_name=scope.comparison_name,
+            ),
             categories=categories,
             current_events=[to_dto(i) for i in impacts(current)],
             analogs=[to_dto(i) for i in analog_impacts],
-            outlooks=[_outlook(o, _condition(o.category, analog_impacts, flows, industry_id, today)) for o in outlooks.values()],
+            outlooks=[
+                _outlook(o, _condition(o.category, analog_impacts, scoped_flows, industry_id, today))
+                for o in outlooks.values()
+            ],
             caveats=list(_CAVEATS),
             hints=_hints({c.category for c in categories}),
             recent_news=[self._recent_news(c, today) for c in unconfirmed] if self._news else [],

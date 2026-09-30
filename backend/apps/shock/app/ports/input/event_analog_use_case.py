@@ -11,5 +11,10 @@ class EventAnalogUseCase(ABC):
         """배선 검증용 — 하드코딩 데이터 왕복 (CLAUDE.md §12)."""
 
     @abstractmethod
-    def analogs(self, industry_id: str, question: str | None) -> EventAnalogReportDto:
-        """진행 중 이벤트와 질문 속 유형의 지난 사례 — 유형의 비교 기간 동안 분기마다 업종 변동폭."""
+    def analogs(
+        self, industry_id: str, question: str | None, region_code: str | None = None
+    ) -> EventAnalogReportDto:
+        """진행 중 이벤트와 질문 속 유형의 지난 사례 — 유형의 비교 기간 동안 분기마다 업종 변동폭.
+
+        `region_code`(동)가 있으면 그 자치구의 내 업종 점포가 충분할 때 내 업종 흐름을 구로 센다.
+        """
