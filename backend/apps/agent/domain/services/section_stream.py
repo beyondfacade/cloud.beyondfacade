@@ -28,10 +28,18 @@ _PARTIAL_MARKER = re.compile(r"\[(?:S(?:E(?:C(?:T(?:I(?:O(?:N(?::\w*)?)?)?)?)?)?
 _TRAILING_SPACE = re.compile(r"\s+$")
 
 
-class SectionSplitter:
-    """텍스트 조각을 먹여 `(섹션, 조각)` 목록을 받는다. 남은 꼬리는 `flush()`로 비운다."""
+# 문단 사이 빈 줄 — 꼬리 공백은 다음 글자와 함께 나가므로 빈 줄은 늘 한 조각 안에 통째로 온다.
+_PARAGRAPH_BREAK = re.compile(r"[ \t]*\n\s*\n\s*")
 
-    def __init__(self) -> None:
+
+class SectionSplitter:
+    """텍스트 조각을 먹여 `(섹션, 조각)` 목록을 받는다. 남은 꼬리는 `flush()`로 비운다.
+
+    `single_paragraph` 섹션은 문단 사이 빈 줄을 줄바꿈 하나로 바꿔 한 문단으로 잇는다.
+    """
+
+    def __init__(self, single_paragraph: Iterable[str] = ()) -> None:
+        self._single_paragraph = frozenset(single_paragraph)
         self._buffer = ""
         self._section: str | None = None
         self._section_started = False  # 현재 섹션의 첫 조각인지 (왼쪽 공백 제거용)
@@ -81,6 +89,8 @@ class SectionSplitter:
         if not self._section_started and self._reopened:
             text = "\n\n" + text  # 다시 열린 섹션이 앞 본문에 붙지 않게 한 번만 띄운다
             self._reopened = False
+        if self._section in self._single_paragraph:
+            text = _PARAGRAPH_BREAK.sub("\n", text)
         self._section_started = True
         return [(self._section, text)]
 

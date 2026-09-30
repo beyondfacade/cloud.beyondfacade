@@ -328,6 +328,11 @@ def test_질문에서_여러_유형을_순서대로_알아본다():
     assert categories_in("거리두기에 최저임금까지 오르면 어때") == ["pandemic", "minimum_wage"]
 
 
+def test_주4일제도_근로시간_단서다():
+    assert categories_in("주4일제가 도입되면 카페 어때") == ["work_hours"]
+    assert categories_in("주 4일 근무가 되면") == ["work_hours"]
+
+
 def test_질문이_없거나_단서가_없으면_유형도_없다():
     assert categories_in(None) == []
     assert categories_in("역삼동 카페 괜찮아?") == []

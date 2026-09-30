@@ -84,6 +84,23 @@ def test_마커가_아닌_대괄호는_붙들지_않고_흘린다():
     assert chunks == [("reasons", "[확인된 사실] 폐업률 12%.")]
 
 
+def test_한_문단_섹션은_문단_사이_빈_줄을_줄바꿈_하나로_잇는다():
+    """유사 사례는 한 문단 계약이다 — LLM이 유형마다 문단을 나눠도 한 문단으로 보인다
+    (마크다운에서 줄바꿈 하나는 같은 문단). 다른 섹션의 문단은 건드리지 않는다."""
+    splitter = SectionSplitter(single_paragraph=("analogs",))
+
+    chunks = _feed_all(splitter, [
+        "[SECTION:analogs]감염병은 약했다.\n",  # 빈 줄이 조각 경계에 걸친다
+        "\n[참고 신호] 소식 없음.\n\n",
+        "근로시간도 약했다.[SECTION:conditions]가.\n\n나.",
+        "[SECTION:analogs]덧붙임.",  # 다시 열린 섹션도 같은 문단으로
+    ])
+
+    assert concat_sections(chunks) == (
+        "감염병은 약했다.\n[참고 신호] 소식 없음.\n근로시간도 약했다.\n덧붙임.\n\n가.\n\n나."
+    )
+
+
 def test_sections_seen은_처음_나온_순서를_기억한다():
     splitter = SectionSplitter()
 

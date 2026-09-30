@@ -85,12 +85,10 @@ def _recent_news_line(recent: dict) -> str:
     label = recent.get("label")
     if not recent.get("checked"):
         return f"\n{label} 최근 소식은 확인하지 못했다."
-    subject = f"\n{label} 최근 {recent.get('days')}일 {'·'.join(recent.get('keywords') or [])} 기사"
-    headlines = recent.get("headlines") or []
-    if not recent.get("article_count") or not headlines:
+    subject = f"\n{label} 최근 {recent.get('days')}일 {'·'.join(recent.get('keywords') or [])} 관련 뉴스"
+    if not recent.get("article_count"):
         return f"{subject} 없음."
-    latest = headlines[0]
-    return f"{subject} {recent['article_count']}건 — 최신: {latest.get('title')} ({latest.get('published_at')})."
+    return f"{subject} {recent['article_count']}건."
 
 
 _TREND_LABELS = {

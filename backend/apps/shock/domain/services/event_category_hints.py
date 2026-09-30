@@ -13,7 +13,7 @@ _KEYWORDS: dict[EventCategory, tuple[str, ...]] = {
         "방역", "확진", "집합금지", "독감", "호흡기",
     ),
     EventCategory.MINIMUM_WAGE: ("최저임금", "최저 임금", "최저시급", "시급 인상", "인건비"),
-    EventCategory.WORK_HOURS: ("52시간", "근로시간", "노동시간", "근무시간 단축"),
+    EventCategory.WORK_HOURS: ("52시간", "근로시간", "노동시간", "근무시간 단축", "주4일", "주 4일"),
     EventCategory.RELIEF: ("지원금", "손실보상", "재난지원", "보조금"),
 }
 

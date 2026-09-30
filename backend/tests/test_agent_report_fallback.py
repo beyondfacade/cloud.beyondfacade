@@ -165,11 +165,12 @@ def test_유사_사례_폴백은_질문_속_유형의_최근_조치_소식을_�
         }
 
     quiet = analogs_markdown({**_ANALOGS, "recent_news": [recent(True, 0, [])]})
-    assert "감염병·방역 최근 30일 집합금지·영업제한·거리두기 격상 기사 없음." in quiet
+    assert "감염병·방역 최근 30일 집합금지·영업제한·거리두기 격상 관련 뉴스 없음." in quiet
     active = analogs_markdown({**_ANALOGS, "recent_news": [
         recent(True, 2, [{"title": "집합금지 명령 발동", "published_at": "2026-09-25", "url": "u1"}])
     ]})
-    assert "감염병·방역 최근 30일 집합금지·영업제한·거리두기 격상 기사 2건 — 최신: 집합금지 명령 발동 (2026-09-25)." in active
+    assert "감염병·방역 최근 30일 집합금지·영업제한·거리두기 격상 관련 뉴스 2건." in active
+    assert "집합금지 명령 발동" not in active  # 제목은 옮기지 않는다
     down = analogs_markdown({**_ANALOGS, "recent_news": [recent(False, 0, [])]})
     assert "감염병·방역 최근 소식은 확인하지 못했다." in down
 
