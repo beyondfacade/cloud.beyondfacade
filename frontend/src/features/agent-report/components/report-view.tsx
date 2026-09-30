@@ -1,10 +1,13 @@
-import ReactMarkdown from "react-markdown";
+import ReactMarkdown, { type Options } from "react-markdown";
 import remarkGfm from "remark-gfm";
 import type { ReportSection } from "@/shared/api/types";
 import { GradeBadge } from "@/shared/ui/grade-badge";
 import type { AgentState } from "../lib/agent-events";
 import { ReportVisuals } from "./report-visuals";
 import styles from "./analysis-workspace.module.css";
+
+// 본문엔 "50~299인"처럼 범위 물결표가 흔하다 — 물결표 하나짜리 취소선을 끄지 않으면 두 범위 사이가 그어진다
+const REMARK_PLUGINS: Options["remarkPlugins"] = [[remarkGfm, { singleTilde: false }]];
 
 const SECTION_ORDER: ReportSection[] = ["verdict", "reasons", "analogs", "conditions", "alternatives", "funding"];
 const SECTION_LABEL: Record<ReportSection, string> = {
@@ -78,7 +81,7 @@ export function ReportView({ state }: ReportViewProps) {
               <ReportVisuals facts={state.facts} section={section} />
             </>}
             {state.sections[section] ? <div className={`${styles.markdown} report-markdown`}>
-              <ReactMarkdown remarkPlugins={[remarkGfm]}>{state.facts
+              <ReactMarkdown remarkPlugins={REMARK_PLUGINS}>{state.facts
                 ? state.sections[section].replace(new RegExp(`^(#{1,6}\\s+)?${SECTION_LABEL[section]}\\s*(\\n|$)`), "")
                 : state.sections[section]}</ReactMarkdown>
             </div> : <div role="status" aria-label="본문 작성 중" className="h-4 w-3/4 animate-pulse rounded bg-[var(--bg-raised)] motion-reduce:animate-none" />}

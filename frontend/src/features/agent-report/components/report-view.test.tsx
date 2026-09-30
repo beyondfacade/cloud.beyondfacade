@@ -20,6 +20,17 @@ it("일부 리포트 수신 후 오류가 나면 내용을 유지하며 작성 �
   expect(screen.getByText("수신한 상권 분석 내용입니다.")).toBeInTheDocument();
 });
 
+it("범위 물결표(50~299인)가 두 번 나와도 취소선으로 읽지 않는다", () => {
+  const state = applyAgentEvent(initialAgentState(), {
+    type: "report_delta",
+    section: "analogs",
+    markdown: "주 52시간제(50~299인 사업장)와 5~49인 사업장 시행 시기. ~~취소~~",
+  });
+  const { container } = render(<ReportView state={state} />);
+  expect(screen.getByText(/50~299인 사업장\)와 5~49인 사업장 시행 시기\./)).toBeInTheDocument();
+  expect([...container.querySelectorAll("del")].map((d) => d.textContent)).toEqual(["취소"]);
+});
+
 const SECTIONS = [
   ["verdict", "판정"], ["reasons", "왜 안 되나"], ["analogs", "유사 사례"], ["conditions", "그래도 한다면"],
   ["alternatives", "대안 동네·업종"], ["funding", "대안 업종 지원사업"],
