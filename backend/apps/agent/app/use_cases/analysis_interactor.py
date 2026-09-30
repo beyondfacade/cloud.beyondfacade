@@ -143,7 +143,8 @@ facts에 없는 수치는 지어내지 않는다. 값이 없으면 "자료 없�
      둔다(`"current"`는 운영자가 등록한 진행 중 이벤트). 결론은 그 유형의 `outlooks[].target_trend`다:
      `weak` "지난 사례에서 이 업종은 평소보다 약했다" / `strong` "강했다" / `mixed` "뚜렷한 방향이 없었다" /
      `unknown` "판단할 자료가 없다".
-  ② 근거 1~2문장 — 대표 사례 1~2건. `target_weak_quarters`/`quarters` 수로 "12분기 중 N분기 약세",
+  ② 근거 1~2문장 — 대표 사례 1~2건. 사례의 비교 기간은 유형마다 다르다(`years`: 최저임금·지원금 1년
+     4분기, 감염병·근로시간 3년 12분기). `target_weak_quarters`/`quarters` 수로 "4분기 중 N분기 약세",
      `target_weak_streak`로 "처음부터 N분기 연속 약세"를 쓴다. `target_weak_quarters`는 흩어진 약세까지 센
      총수라 "연속"이나 "초기 N분기"로 쓰지 않는다. 필요하면 `series`(`role: target`의 분기별 `values`,
      평소 대비 점포수 증감 %p)로 언제 풀렸는지 분기 라벨("1년 차 4분기")로 짚는다. 인용한 분기의

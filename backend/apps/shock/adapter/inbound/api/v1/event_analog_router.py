@@ -1,5 +1,4 @@
 from fastapi import APIRouter, Depends
-from fastapi.responses import JSONResponse
 
 from apps.shock.adapter.inbound.api.schemas.event_analog_schema import (
     EventAnalogReportResponse,
@@ -21,14 +20,7 @@ def myself(
 @router.get("", response_model=EventAnalogReportResponse)
 def analogs(
     industry: str,
-    years: int = 3,
     question: str | None = None,
     use_case: EventAnalogUseCase = Depends(get_event_analog_use_case),
-) -> EventAnalogReportResponse | JSONResponse:
-    try:
-        return to_response(use_case.analogs(industry, question, years))
-    except ValueError as error:
-        return JSONResponse(
-            status_code=400,
-            content={"error": {"code": "INVALID_WINDOW", "message": str(error)}},
-        )
+) -> EventAnalogReportResponse:
+    return to_response(use_case.analogs(industry, question))

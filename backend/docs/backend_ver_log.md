@@ -1,5 +1,12 @@
 # Backend Version Log
 
+## [v0.54.1] - 2026-09-30
+
+### Changed
+- **유형마다 비교 기간** — `CATEGORY_YEARS`(value object): 최저임금·지원금은 그 해 4분기(1년), 감염병·근로시간은 3년 12분기. 해마다 새로 정해지는 최저임금이 다음 해 인상과 겹치지 않는다. 진행 중 판정(`is_current`)도 유형의 비교 기간을 쓴다.
+- API `GET /shocks/analogs`에서 `years` 인자와 400 `INVALID_WINDOW`를 뺐다. 사례마다 `years`(비교 기간)를 싣고, 리포트 응답의 전역 `years`는 뺐다.
+- 프롬프트·해석 주의사항을 유형별 기간("4분기 중 N분기 약세")에 맞췄다.
+
 ## [v0.54.0] - 2026-09-30
 
 ### Changed

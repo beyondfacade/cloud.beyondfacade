@@ -26,14 +26,15 @@ from apps.shock.domain.services.event_analog import (
     weak_streak,
 )
 from apps.shock.domain.services.event_category_hints import categories_in
-from apps.shock.domain.services.event_window import add_months, check_years, month_of
+from apps.shock.domain.services.event_window import add_months, month_of
 from apps.shock.domain.value_objects.event_category import CATEGORY_LABELS, EventCategory
 
 _CAVEATS = [
     "서울 전체 인허가 기준이다 — 학원·어린이집·편의점·치킨·부동산중개는 흐름을 비교할 수 없어 뺐다.",
     "12월에는 행정 정리로 폐업이 몰린다 — 12월이 든 분기는 한 번씩 크게 튈 수 있어 판단은 분기 과반으로 한다.",
     "2020~2022년 폐업은 재난지원금·손실보상으로 지연되어 실제보다 적게 잡혔을 수 있다.",
-    "변동폭은 이벤트 직전 1년의 같은 분기 대비다 — 3년 사이 겹친 다른 정책도 섞이므로 "
+    "변동폭은 이벤트 직전 1년의 같은 분기 대비다 — 비교 기간(최저임금·지원금 그 해 4분기, 감염병·근로시간 "
+    "3년 12분기)에 겹친 다른 정책도 섞이므로 "
     "이벤트만의 효과로 단정하지 않는다.",
 ]
 
@@ -100,7 +101,6 @@ class EventAnalogInteractor(EventAnalogUseCase):
     def myself(self) -> EventAnalogReportDto:
         return EventAnalogReportDto(
             industry_id="myself",
-            years=3,
             as_of="2026-08",
             categories=[AnalogCategoryDto(EventCategory.PANDEMIC, CATEGORY_LABELS[EventCategory.PANDEMIC], "question")],
             analogs=[
@@ -115,27 +115,27 @@ class EventAnalogInteractor(EventAnalogUseCase):
                     description=None,
                     source="beyondfacade",
                     current=False,
+                    years=3,
                     quarters=[QuarterDto(1, "1년 차 1분기", "2020-01", "2020-03")],
                     series=[IndustrySeriesDto("myself", "배선 검증", "target", [None])],
                 )
             ],
         )
 
-    def analogs(self, industry_id: str, question: str | None, years: int) -> EventAnalogReportDto:
-        check_years(years)
+    def analogs(self, industry_id: str, question: str | None) -> EventAnalogReportDto:
         today = self._today()
         events = self._events.list_categorized()
-        current = [e for e in events if is_current(e, today, years)]
+        current = [e for e in events if is_current(e, today)]
         categories = [AnalogCategoryDto(c, CATEGORY_LABELS[c], "question") for c in categories_in(question)]
         for event in current:
             if all(c.category != event.category for c in categories):
                 categories.append(AnalogCategoryDto(event.category, CATEGORY_LABELS[event.category], "current"))
-        analogs = select_analogs(events, [c.category for c in categories], today, years)
+        analogs = select_analogs(events, [c.category for c in categories], today)
         flows = self._flows.monthly_flows() if current or analogs else []
         names = {f.industry_id: f.industry_name for f in flows}
 
         def impacts(chosen: list[ShockEvent]) -> list[EventImpact]:
-            return [event_impact(e, flows, industry_id, today, years) for e in chosen]
+            return [event_impact(e, flows, industry_id, today) for e in chosen]
 
         analog_impacts = impacts(analogs)
         outlooks = {
@@ -161,6 +161,7 @@ class EventAnalogInteractor(EventAnalogUseCase):
                 description=event.description,
                 source=event.source,
                 current=impact.current,
+                years=impact.years,
                 quarters=[_quarter(q, event, events) for q in impact.quarters],
                 series=_series(impact, industry_id, outlooks.get(event.category or ""), names),
                 target_weak_quarters=weak,
@@ -170,7 +171,6 @@ class EventAnalogInteractor(EventAnalogUseCase):
 
         return EventAnalogReportDto(
             industry_id=industry_id,
-            years=years,
             as_of=_month(add_months(month_of(today), -1)),
             categories=categories,
             current_events=[to_dto(i) for i in impacts(current)],

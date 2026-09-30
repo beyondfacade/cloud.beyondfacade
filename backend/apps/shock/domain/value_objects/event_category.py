@@ -20,3 +20,12 @@ CATEGORY_LABELS: dict[str, str] = {
     EventCategory.WORK_HOURS: "근로시간",
     EventCategory.RELIEF: "지원금·보상",
 }
+
+# 비교 기간(년, 분기는 ×4) — 해마다 새로 정해지는 최저임금·한 번 지급하는 지원금은 그 해만 본다
+# (다음 해 이벤트와 겹치지 않게). 드문 충격인 감염병과 한 번 바뀌면 이어지는 근로시간 제도는 3년.
+CATEGORY_YEARS: dict[str, int] = {
+    EventCategory.PANDEMIC: 3,
+    EventCategory.MINIMUM_WAGE: 1,
+    EventCategory.WORK_HOURS: 3,
+    EventCategory.RELIEF: 1,
+}
