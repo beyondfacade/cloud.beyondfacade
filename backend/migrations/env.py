@@ -19,6 +19,10 @@ from core.matrix.grid_keymaker_secret_manager import get_settings
 from core.matrix.grid_oracle_database_manager import OrmBase
 
 # autogenerate 대상 — 모든 BC의 ORM 모듈을 여기 등록한다 (import만 하면 metadata에 잡힌다)
+import apps.admin.adapter.outbound.orms.access_event_orm  # noqa: F401
+import apps.admin.adapter.outbound.orms.admin_session_orm  # noqa: F401
+import apps.admin.adapter.outbound.orms.admin_user_orm  # noqa: F401
+import apps.admin.adapter.outbound.orms.ip_block_orm  # noqa: F401
 import apps.childcare.adapter.outbound.orms.childcare_center_orm  # noqa: F401
 import apps.childcare.adapter.outbound.orms.childcare_center_stat_orm  # noqa: F401
 import apps.commerce.adapter.outbound.orms.region_commerce_sales_breakdown_orm  # noqa: F401

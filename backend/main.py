@@ -2,6 +2,12 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
 
+from apps.admin.adapter.inbound.api.error_handlers import admin_error_handler
+from apps.admin.adapter.inbound.api.v1.access_event_router import router as access_event_router
+from apps.admin.adapter.inbound.api.v1.admin_session_router import router as admin_session_router
+from apps.admin.adapter.inbound.api.v1.ip_block_router import router as ip_block_router
+from apps.admin.adapter.inbound.middleware.security_middleware import SecurityMiddleware
+from apps.admin.app.errors import AdminError
 from apps.childcare.adapter.inbound.api.v1.childcare_center_router import (
     router as childcare_center_router,
 )
@@ -31,6 +37,8 @@ from apps.neighborhood.adapter.inbound.api.v1.region_commerce_change_router impo
     router as commerce_change_router,
 )
 from apps.news.adapter.inbound.api.v1.news_article_router import router as news_router
+from apps.ops.adapter.inbound.api.v1.facility_router import router as facility_router
+from apps.ops.adapter.inbound.api.v1.healthcare_router import router as healthcare_router
 from apps.shock.adapter.inbound.api.v1.shock_event_router import router as shock_router
 from apps.store.adapter.inbound.api.v1.store_router import router as store_router
 from apps.verdict.adapter.inbound.api.v1.region_industry_verdict_router import (
@@ -38,6 +46,8 @@ from apps.verdict.adapter.inbound.api.v1.region_industry_verdict_router import (
 )
 
 app = FastAPI(title="beyondfacade backend")
+app.add_exception_handler(AdminError, admin_error_handler)
+app.add_middleware(SecurityMiddleware)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://localhost:3200", "http://127.0.0.1:3200"],
@@ -45,6 +55,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 app.add_middleware(GZipMiddleware, minimum_size=1024)  # /regions/geojson 등 대형 응답 압축
+app.include_router(admin_session_router)
+app.include_router(access_event_router)
+app.include_router(ip_block_router)
+app.include_router(healthcare_router)
+app.include_router(facility_router)
 app.include_router(analysis_router)
 app.include_router(childcare_center_router)
 app.include_router(childcare_center_stat_router)

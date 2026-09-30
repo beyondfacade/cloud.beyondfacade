@@ -1,5 +1,17 @@
 # Backend Version Log
 
+## [v0.47.0] - 2026-09-30
+
+### Added
+- **admin BC — 관리자 계정·세션** — 테이블 `admin_user`·`admin_session`·`access_event`·`ip_block`(마이그레이션 `f4a5b6c7d8e9`). 역할 `viewer`(조회)·`operator`(운영) 2단계. 비밀번호는 scrypt(`scrypt$n$r$p$salt$hash`), 세션 토큰은 원문을 httpOnly 쿠키 `metabole_admin`에만 두고 DB에는 sha256만 저장(TTL 12시간). 설정 `admin_cookie_secure`(기본 False, 배포 시 True).
+- **인증 라우터** `/admin/auth` — `GET /myself`·`POST /login`(쿠키 발급)·`POST /logout`(204)·`GET /me`. 로그인 제한: 같은 IP의 실패가 10분에 10회를 넘으면 429 `TOO_MANY_ATTEMPTS`. 없는 계정도 더미 해시로 검증해 응답 시간을 맞춘다. 가드 `require_admin`(401 `UNAUTHENTICATED`)·`require_operator`(403 `FORBIDDEN_ROLE`). 에러 본문은 `{error:{code,message}}`.
+- **보안 감사 API** `/admin/security` — `GET /overview`: 최근 24시간 요약, 알림, 최근 이벤트 50건. 알림 규칙은 Strategy로 구현했다. 브루트포스 로그인(15분 창, 5회 high·10회 critical), 스캐너 경로(1시간 창, 3회 medium), 5xx 폭주(15분 창, 5회 high), 차단 IP 재시도(1시간 창, 5회 low). `/admin/security/ip-blocks`: GET(조회), POST(운영자 전용, TTL 1~43200분 또는 무기한, 호출자 자신의 IP는 차단 금지 `SELF_BLOCK`), `DELETE /{ip}`(운영자 전용).
+- **`SecurityMiddleware`**(순수 ASGI) — 차단된 IP가 `/admin*`에 접근하면 403 `IP_BLOCKED`를 돌려주고 `blocked_request`로 기록한다. 응답 코드를 보고 5xx와 스캐너 경로 탐색(.env·.git·wp-·.php 등)도 기록한다. 기록이 실패해도 요청은 깨지지 않는다. X-Forwarded-For는 사설망·루프백 프록시에서 온 요청일 때만 믿는다(명시 목록 — `ipaddress.is_private`는 TEST-NET 대역도 사설로 판정한다).
+- CLI `python -m apps.admin.adapter.inbound.cli.create_admin_user --username X --role operator` — 비밀번호는 getpass로 두 번 입력받거나 env `ADMIN_PASSWORD`에서 읽는다(12자 이상). 같은 username이면 업서트한다.
+- **ops BC — 헬스케어 API** `/admin/healthcare` — `GET /snapshot`: LLM 체인(1차 Gemini·폴백 Ollama 가용성), 필수 로컬 모델(설치·적재), Ollama `/api/tags`·`/api/ps`, `llm_usage` 24시간·7일 집계(모델별, p50·p95), 최근 분석, RAG 출처별 청크·임베딩 모델. `POST /probe`(운영자 전용): `rag`는 검색 상위 5건, `llm`은 도구 없이 한 턴 호출한다. 프로브는 dict 레지스트리에 둔다.
+- **ops BC — 설비 API** `/admin/facility` — `GET /snapshot`: `/proc` 기반 호스트 지표(CPU·메모리·스왑·부하·가동 시간·디스크), `nvidia-smi` GPU, Postgres(버전·크기·연결·alembic 리비전·pgvector·큰 테이블), 서비스 점검(postgres·ollama), 수집기 7종의 신선도. 판정: 주기 × 1.5 이내면 ok, 넘으면 late, 실행 기록이 없으면 missing. 근거는 로그 mtime과 테이블 최신 시각이다. GPU·Ollama가 없어도 빈 값으로 응답한다.
+- 테스트: admin 도메인 14 · API 14, ops 도메인 5 · API 12(가짜 Ollama transport·가짜 /proc·가짜 GPU·에코 프로브).
+
 ## [v0.46.0] - 2026-09-29
 
 ### Added

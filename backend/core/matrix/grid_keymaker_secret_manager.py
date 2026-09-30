@@ -34,6 +34,7 @@ class Settings(BaseSettings):
     childcare_api_key: str = ""  # 어린이집정보공개포털 운영계정 키 (일 1,000회)
     sgis_service_id: str = ""  # SGIS consumer_key (토큰 4h)
     sgis_security_key: str = ""  # SGIS consumer_secret
+    admin_cookie_secure: bool = False  # 관리자 세션 쿠키 Secure — HTTPS 배포에서는 true
 
 
 @lru_cache
