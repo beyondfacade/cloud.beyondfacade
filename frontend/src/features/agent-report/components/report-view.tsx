@@ -3,6 +3,7 @@ import remarkGfm from "remark-gfm";
 import type { ReportSection } from "@/shared/api/types";
 import { GradeBadge } from "@/shared/ui/grade-badge";
 import type { AgentState } from "../lib/agent-events";
+import { gradedParagraphs } from "../lib/graded-paragraphs";
 import { ReportVisuals } from "./report-visuals";
 import styles from "./analysis-workspace.module.css";
 
@@ -18,6 +19,19 @@ const SECTION_LABEL: Record<ReportSection, string> = {
   alternatives: "대안 동네·업종",
   funding: "대안 업종 지원사업",
 };
+
+// 섹션별 본문 모양 — 유사 사례는 근거 표기 단위 문단·문장 단위 줄로 다시 짠다
+const SECTION_FORMAT: Partial<Record<ReportSection, (markdown: string) => string>> = {
+  analogs: gradedParagraphs,
+};
+
+/** 사실 그림이 제목을 이미 달았으면 본문 앞머리의 같은 제목 줄을 뗀다. */
+function sectionBody(state: AgentState, section: ReportSection): string {
+  const markdown = state.sections[section] ?? "";
+  return state.facts
+    ? markdown.replace(new RegExp(`^(#{1,6}\\s+)?${SECTION_LABEL[section]}\\s*(\\n|$)`), "")
+    : markdown;
+}
 
 interface Citation {
   title: string;
@@ -81,9 +95,7 @@ export function ReportView({ state }: ReportViewProps) {
               <ReportVisuals facts={state.facts} section={section} />
             </>}
             {state.sections[section] ? <div className={`${styles.markdown} report-markdown`}>
-              <ReactMarkdown remarkPlugins={REMARK_PLUGINS}>{state.facts
-                ? state.sections[section].replace(new RegExp(`^(#{1,6}\\s+)?${SECTION_LABEL[section]}\\s*(\\n|$)`), "")
-                : state.sections[section]}</ReactMarkdown>
+              <ReactMarkdown remarkPlugins={REMARK_PLUGINS}>{SECTION_FORMAT[section]?.(sectionBody(state, section)) ?? sectionBody(state, section)}</ReactMarkdown>
             </div> : <div role="status" aria-label="본문 작성 중" className="h-4 w-3/4 animate-pulse rounded bg-[var(--bg-raised)] motion-reduce:animate-none" />}
           </section>
         ))}
