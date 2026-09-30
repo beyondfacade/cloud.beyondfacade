@@ -159,7 +159,11 @@ class FakeAnalogFacts(EventAnalogFactsPort):
         self.calls.append((industry_id, question))
         if self._failing:
             raise RuntimeError("흐름 조회 실패")
-        return {"available": True, "analogs": [{"event_id": "outbreak-covid19-20200120"}]}
+        return {
+            "available": True,
+            "analogs": [{"event_id": "outbreak-covid19-20200120", "series": [{"role": "target", "industry_name": "카페"}]}],
+            "outlooks": [{"category": "work_hours", "recommended": [{"industry_id": "gym", "industry_name": "헬스장"}]}],
+        }
 
 
 def test_유사_사례는_업종과_질문으로_조회한다():
@@ -175,6 +179,10 @@ def test_유사_사례는_업종과_질문으로_조회한다():
 
     assert analog.calls == [("cafe", "바이러스가 돌면?")]
     assert facts["analogs"]["analogs"][0]["event_id"] == "outbreak-covid19-20200120"
+    # LLM이 옮길 고정 문장을 코드가 붙인다
+    assert facts["analogs"]["outlooks"][0]["recommended_sentence"] == (
+        "근로시간이 줄었던 시기에 다른 업종보다 상대적으로 잘 버틴 업종은 헬스장이었습니다."
+    )
 
 
 def test_유사_사례_조회가_실패해도_나머지는_뜬다():

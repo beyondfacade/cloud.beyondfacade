@@ -22,6 +22,7 @@ from apps.agent.app.ports.output.agent_port import (
     VerdictFactsPort,
 )
 from apps.agent.app.use_cases.agent_tools import hit_to_dict
+from apps.agent.domain.services.analog_sentences import with_sentences
 from apps.rag.app.ports.input.rag_use_case import RagSearchUseCase
 
 LOGGER = logging.getLogger("beyondfacade.agent.facts")
@@ -135,7 +136,7 @@ class ReportFactsCollector:
     def _analogs(self, industry: str, question: str | None) -> dict:
         if self._analog_facts is None:
             return {"available": False, "reason": "유사 사례 조회가 연결되지 않았습니다"}
-        return self._analog_facts.analogs(industry, question)
+        return with_sentences(self._analog_facts.analogs(industry, question))
 
     def _funding(self, industry: str) -> list[dict]:
         """공고 목록만 남긴다 — 프론트 계약은 배열이다 (설계서 §3-1).
