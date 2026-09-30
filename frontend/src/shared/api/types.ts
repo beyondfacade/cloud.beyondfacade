@@ -73,6 +73,9 @@ export interface EventImpact {
   target_strong_quarters: number;
   /** 1분기부터 끊기지 않고 약세였던 분기 수. */
   target_weak_streak: number;
+  /** 리포트 본문이 그대로 옮기는 코드 문장 (리포트 사실에만 있다). */
+  summary_sentence?: string | null;
+  overlap_sentence?: string | null;
 }
 
 /** 유형별 과거 사례 집계 — recommended는 여러 분기에서 거듭 강세였던 업종, avoid는 거듭 약세였던 업종. */
@@ -86,6 +89,9 @@ export interface CategoryOutlook {
   typical_duration_months: number | null;
   /** 드문 유형만 — 가장 최근 사례 직전 4분기 vs 최근 4분기의 업종 상태 (이벤트 효과 아님). */
   condition?: ConditionCompare | null;
+  /** 리포트 본문이 그대로 옮기는 코드 문장 (리포트 사실에만 있다). */
+  recommended_sentence?: string | null;
+  condition_sentence?: string | null;
 }
 
 export interface PeriodCondition {
@@ -131,6 +137,8 @@ export interface RecentNews {
   checked: boolean;
   article_count: number;
   headlines: { title: string; published_at: string; url: string }[];
+  /** 리포트 본문이 그대로 옮기는 코드 문장 (리포트 사실에만 있다). */
+  sentence?: string;
 }
 
 /** 리포트 카드가 사용하는 필드만 좁힌다. 도구별 ID·대상 필드 차이와 누락을 허용한다. */
