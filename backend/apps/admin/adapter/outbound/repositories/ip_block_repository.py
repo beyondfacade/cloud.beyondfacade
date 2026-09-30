@@ -35,3 +35,9 @@ class SqlAlchemyIpBlockRepository(IpBlockRepositoryPort):
     def delete(self, ip: str) -> bool:
         with session_scope() as session:
             return session.execute(delete(IpBlockOrm).where(IpBlockOrm.ip == ip)).rowcount > 0
+
+    def delete_expired(self, now: datetime) -> int:
+        with session_scope() as session:
+            return session.execute(
+                delete(IpBlockOrm).where(IpBlockOrm.expires_at.is_not(None), IpBlockOrm.expires_at <= now)
+            ).rowcount

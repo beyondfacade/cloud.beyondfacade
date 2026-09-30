@@ -14,6 +14,11 @@ class AccessEventResponse(BaseModel):
     username: str | None
 
 
+class AccessEventPageResponse(BaseModel):
+    items: list[AccessEventResponse]
+    next_before_id: int | None
+
+
 class SecurityAlertResponse(BaseModel):
     rule: str
     severity: str

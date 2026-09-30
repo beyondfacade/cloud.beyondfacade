@@ -5,6 +5,7 @@ from datetime import UTC, datetime, timedelta
 
 from apps.admin.app.dtos.access_event_dto import (
     AccessEventDto,
+    AccessEventPageDto,
     SecurityAlertDto,
     SecurityOverviewDto,
     SecuritySummaryDto,
@@ -74,3 +75,11 @@ class AccessEventInteractor(AccessEventUseCase):
             alerts=[SecurityAlertDto(**asdict(alert)) for alert in alerts],
             recent_events=[_to_event_dto(event) for event in events[:_RECENT_EVENTS]],
         )
+
+    def events(
+        self, kind: AccessEventKind | None, ip: str | None, hours: int, before_id: int | None, limit: int
+    ) -> AccessEventPageDto:
+        since = self._clock() - timedelta(hours=hours)
+        rows = self._events.search(kind, ip, since, before_id, limit + 1)  # 한 건 더 읽어 다음 쪽 유무를 안다
+        items = [_to_event_dto(event) for event in rows[:limit]]
+        return AccessEventPageDto(items=items, next_before_id=items[-1].id if len(rows) > limit else None)

@@ -10,6 +10,7 @@ from apps.ops.app.dtos.healthcare_dto import (
     RagStatsDto,
     RecentAnalysisDto,
 )
+from apps.ops.domain.services.usage_series import LlmCallRecord, TimedUsage
 from apps.ops.domain.services.usage_stats import LlmUsageRecord
 
 
@@ -35,6 +36,15 @@ class LlmUsagePort(ABC):
 
     @abstractmethod
     def recent_analyses(self, limit: int) -> list[RecentAnalysisDto]: ...
+
+    @abstractmethod
+    def timed_since(self, since: datetime) -> list[TimedUsage]:
+        """분석 1건당 (시각, 입력+출력 토큰) — 시계열용."""
+
+
+class LlmCallPort(ABC):
+    @abstractmethod
+    def records_since(self, since: datetime) -> list[LlmCallRecord]: ...
 
 
 class RagStatsPort(ABC):

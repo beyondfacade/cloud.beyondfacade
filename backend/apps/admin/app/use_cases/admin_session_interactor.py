@@ -1,16 +1,21 @@
 from collections.abc import Callable
+from dataclasses import replace
 from datetime import UTC, datetime
 from functools import cache
 
 from apps.admin.app.dtos.admin_session_dto import AdminPrincipalDto, LoginResultDto
-from apps.admin.app.errors import InvalidCredentials, LoginThrottled
+from apps.admin.app.errors import InvalidCredentials, LoginThrottled, Unauthenticated, WeakPassword, WrongPassword
 from apps.admin.app.ports.input.admin_session_use_case import AdminSessionUseCase
 from apps.admin.app.ports.output.access_event_port import AccessEventRepositoryPort
+from apps.admin.app.ports.output.admin_audit_port import AdminAuditRepositoryPort
 from apps.admin.app.ports.output.admin_session_port import AdminSessionRepositoryPort
 from apps.admin.app.ports.output.admin_user_port import AdminUserRepositoryPort
+from apps.admin.app.use_cases.audit_trail import audit_entry
 from apps.admin.domain.entities.access_event_entity import AccessEvent, AccessEventKind
+from apps.admin.domain.entities.admin_audit_entity import AuditAction
 from apps.admin.domain.entities.admin_session_entity import AdminSession
 from apps.admin.domain.entities.admin_user_entity import AdminUser
+from apps.admin.domain.services.account_policy import password_problem
 from apps.admin.domain.services.login_policy import THROTTLE_LIMIT, THROTTLE_WINDOW
 from apps.admin.domain.services.password_hasher import hash_password, verify_password
 from apps.admin.domain.services.session_token import SESSION_TTL, hash_token, new_session_token
@@ -34,11 +39,13 @@ class AdminSessionInteractor(AdminSessionUseCase):
         users: AdminUserRepositoryPort,
         sessions: AdminSessionRepositoryPort,
         events: AccessEventRepositoryPort,
+        audit: AdminAuditRepositoryPort,
         clock: Callable[[], datetime] = lambda: datetime.now(UTC),
     ) -> None:
         self._users = users
         self._sessions = sessions
         self._events = events
+        self._audit = audit
         self._clock = clock
 
     def myself(self) -> AdminPrincipalDto:
@@ -76,6 +83,20 @@ class AdminSessionInteractor(AdminSessionUseCase):
         if user is None or not user.is_active:
             return None
         return to_principal(user)
+
+    def change_password(
+        self, principal: AdminPrincipalDto, token: str, current_password: str, new_password: str, ip: str | None
+    ) -> None:
+        user = self._users.get_by_id(principal.id)
+        if user is None:
+            raise Unauthenticated("관리자 로그인이 필요합니다.")
+        if not verify_password(current_password, user.password_hash):
+            raise WrongPassword("현재 비밀번호가 올바르지 않습니다.")
+        if problem := password_problem(new_password):
+            raise WeakPassword(problem)
+        self._users.save(replace(user, password_hash=hash_password(new_password)))
+        self._sessions.delete_for_user(user.id, hash_token(token))
+        self._audit.add(audit_entry(self._clock(), principal, AuditAction.PASSWORD_CHANGE, user.username, ip=ip))
 
     def _record(
         self, kind: AccessEventKind, ip: str | None, status: int, username: str, user_id: int | None, now: datetime

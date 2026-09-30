@@ -1,7 +1,11 @@
 from fastapi import APIRouter, Depends, Request, Response
 
 from apps.admin.adapter.inbound.api.client_ip import client_ip_from_scope
-from apps.admin.adapter.inbound.api.schemas.admin_session_schema import AdminMeResponse, LoginRequest
+from apps.admin.adapter.inbound.api.schemas.admin_session_schema import (
+    AdminMeResponse,
+    LoginRequest,
+    PasswordChangeRequest,
+)
 from apps.admin.adapter.inbound.api.session_cookie import (
     SESSION_COOKIE,
     clear_session_cookie,
@@ -48,3 +52,19 @@ def logout(
 @router.get("/me", response_model=AdminMeResponse)
 def me(principal: AdminPrincipalDto = Depends(require_admin)) -> AdminMeResponse:
     return to_me_response(principal)
+
+
+@router.post("/password", status_code=204)
+def change_password(
+    body: PasswordChangeRequest,
+    request: Request,
+    principal: AdminPrincipalDto = Depends(require_admin),
+    use_case: AdminSessionUseCase = Depends(get_admin_session_use_case),
+) -> None:
+    use_case.change_password(
+        principal,
+        request.cookies.get(SESSION_COOKIE, ""),
+        body.current_password,
+        body.new_password,
+        client_ip_from_scope(request.scope),
+    )

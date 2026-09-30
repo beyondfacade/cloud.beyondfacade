@@ -32,6 +32,11 @@ def block(
     return to_response(dto)
 
 
-@router.delete("/{ip}", status_code=204, dependencies=[Depends(require_operator)])
-def unblock(ip: str, use_case: IpBlockUseCase = Depends(get_ip_block_use_case)) -> None:
-    use_case.unblock(ip)
+@router.delete("/{ip}", status_code=204)
+def unblock(
+    ip: str,
+    request: Request,
+    principal: AdminPrincipalDto = Depends(require_operator),
+    use_case: IpBlockUseCase = Depends(get_ip_block_use_case),
+) -> None:
+    use_case.unblock(ip, principal, client_ip_from_scope(request.scope))

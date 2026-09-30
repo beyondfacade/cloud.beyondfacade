@@ -35,3 +35,33 @@ class SelfBlock(AdminError):
 
 class IpBlockNotFound(AdminError):
     code = "IP_BLOCK_NOT_FOUND"
+
+
+class AdminUserNotFound(AdminError):
+    code = "ADMIN_USER_NOT_FOUND"
+
+
+class UsernameTaken(AdminError):
+    code = "USERNAME_TAKEN"
+
+
+class InvalidUsername(AdminError, ValueError):
+    code = "INVALID_USERNAME"
+
+
+class WeakPassword(AdminError, ValueError):
+    code = "WEAK_PASSWORD"
+
+
+class WrongPassword(AdminError):
+    """현재 비밀번호 확인 실패 — 401이 아니다(프론트가 세션 만료로 오인해 로그인으로 보내지 않게)."""
+
+    code = "WRONG_PASSWORD"
+
+
+class SelfChange(AdminError):
+    code = "SELF_CHANGE"
+
+
+class LastOperator(AdminError):
+    code = "LAST_OPERATOR"

@@ -14,7 +14,9 @@ gemma4:12b 50% · gemini-2.5-flash 90%, 평균 소요 39.9s · 17.4s였다. 그 
 """
 
 import logging
+import time
 from collections.abc import Callable, Iterator
+from datetime import UTC, datetime
 
 from apps.agent.app.ports.output.agent_port import (
     LLMGatewayPort,
@@ -22,6 +24,8 @@ from apps.agent.app.ports.output.agent_port import (
     LLMToolSpec,
     LLMTurn,
 )
+from apps.agent.app.ports.output.llm_call_port import LlmCallRecorderPort
+from apps.agent.domain.entities.llm_call_entity import LlmCall, LlmCallOutcome
 
 LOGGER = logging.getLogger("beyondfacade.agent.llm")
 
@@ -33,9 +37,11 @@ class FallbackLLMAdapter(LLMGatewayPort):
         self,
         primary: Callable[[], LLMGatewayPort],
         secondary: Callable[[], LLMGatewayPort],
+        recorder: LlmCallRecorderPort | None = None,
     ) -> None:
         self._primary_factory = primary
         self._secondary_factory = secondary
+        self._recorder = recorder
         self._primary: LLMGatewayPort | None = None
         self._secondary: LLMGatewayPort | None = None
         self._primary_unavailable = False  # 생성 실패(키 없음)는 턴마다 재시도하지 않는다
@@ -45,21 +51,30 @@ class FallbackLLMAdapter(LLMGatewayPort):
     def chat(self, messages: list[dict], tools: list[LLMToolSpec]) -> LLMTurn:
         primary = self._resolve_primary()
         if primary is not None:
+            started = time.perf_counter()
             try:
                 turn = primary.chat(messages, tools)
             except Exception as error:
                 # 호출 실패는 매 턴 다시 시도한다 — 쿼터·일시 장애는 회복될 수 있다
+                self._record(primary.model_name, LlmCallOutcome.FALLBACK, started, error)
                 LOGGER.warning(
                     "primary LLM(%s) 호출 실패 — secondary로 폴백한다: %s",
                     primary.model_name,
                     type(error).__name__,
                 )
             else:
+                self._record(primary.model_name, LlmCallOutcome.OK, started)
                 self.model_name = primary.model_name
                 return turn
 
         secondary = self._resolve_secondary()
-        turn = secondary.chat(messages, tools)
+        started = time.perf_counter()
+        try:
+            turn = secondary.chat(messages, tools)
+        except Exception as error:
+            self._record(secondary.model_name, LlmCallOutcome.ERROR, started, error)
+            raise
+        self._record(secondary.model_name, LlmCallOutcome.OK, started)
         self.model_name = secondary.model_name
         return turn
 
@@ -68,6 +83,7 @@ class FallbackLLMAdapter(LLMGatewayPort):
         primary = self._resolve_primary()
         if primary is not None:
             wrote = False
+            started = time.perf_counter()
             try:
                 self.model_name = primary.model_name
                 for event in primary.stream(messages, tools):
@@ -75,18 +91,46 @@ class FallbackLLMAdapter(LLMGatewayPort):
                     yield event
             except Exception as error:
                 if wrote:
+                    self._record(primary.model_name, LlmCallOutcome.ERROR, started, error)
                     raise  # 이미 화면에 나간 글이 있다 — 호출부가 폴백 섹션으로 마무리한다
+                self._record(primary.model_name, LlmCallOutcome.FALLBACK, started, error)
                 LOGGER.warning(
                     "primary LLM(%s) 스트림이 첫 조각 전에 실패 — secondary로 폴백한다: %s",
                     primary.model_name,
                     type(error).__name__,
                 )
             else:
+                self._record(primary.model_name, LlmCallOutcome.OK, started)
                 return
 
         secondary = self._resolve_secondary()
         self.model_name = secondary.model_name
-        yield from secondary.stream(messages, tools)
+        started = time.perf_counter()
+        try:
+            yield from secondary.stream(messages, tools)
+        except Exception as error:
+            self._record(secondary.model_name, LlmCallOutcome.ERROR, started, error)
+            raise
+        self._record(secondary.model_name, LlmCallOutcome.OK, started)
+
+    def _record(
+        self, model: str, outcome: LlmCallOutcome, started: float, error: Exception | None = None
+    ) -> None:
+        """관측용 기록 — 기록 저장소가 죽어도 분석 호출은 계속 간다."""
+        if self._recorder is None:
+            return
+        try:
+            self._recorder.record(
+                LlmCall(
+                    occurred_at=datetime.now(UTC),
+                    model=model,
+                    outcome=outcome,
+                    latency_ms=round((time.perf_counter() - started) * 1000),
+                    error_kind=type(error).__name__ if error else None,
+                )
+            )
+        except Exception as record_error:
+            LOGGER.warning("LLM 호출 결과 기록 실패: %s", type(record_error).__name__)
 
     def _resolve_primary(self) -> LLMGatewayPort | None:
         """생성이 한 번 실패하면(키 없음 등) 이후 턴에서는 만들지 않는다."""

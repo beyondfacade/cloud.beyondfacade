@@ -36,3 +36,8 @@ class SqlAlchemyAdminUserRepository(AdminUserRepositoryPort):
     def touch_login(self, user_id: int, at: datetime) -> None:
         with session_scope() as session:
             session.execute(update(AdminUserOrm).where(AdminUserOrm.id == user_id).values(last_login_at=at))
+
+    def list_all(self) -> list[AdminUser]:
+        with session_scope() as session:
+            rows = session.execute(select(AdminUserOrm).order_by(AdminUserOrm.username)).scalars()
+            return [to_entity(orm) for orm in rows]

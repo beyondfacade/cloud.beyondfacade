@@ -9,7 +9,9 @@ from fastapi.testclient import TestClient
 from sqlalchemy import text
 
 from apps.admin.dependencies.admin_dependencies import get_admin_user_use_case
+from apps.ops.adapter.outbound.gateways.admin_audit_gateway import AdminAuditGateway
 from apps.ops.adapter.outbound.gateways.collector_log_gateway import CollectorLogGateway
+from apps.ops.adapter.outbound.gateways.llm_call_gateway import LlmCallGateway
 from apps.ops.adapter.outbound.gateways.llm_chain_gateway import LlmChainGateway
 from apps.ops.adapter.outbound.gateways.llm_usage_gateway import LlmUsageGateway
 from apps.ops.adapter.outbound.gateways.nvidia_smi_gateway import parse_nvidia_smi
@@ -70,7 +72,7 @@ def fakes(tmp_path: Path, ollama: OllamaStatusGateway):
     (tmp_path / "logs" / "news-poller.log").write_text("ok\n")
     app.dependency_overrides[get_healthcare_use_case] = lambda: HealthcareInteractor(
         ollama=ollama, chain=LlmChainGateway(), usage=LlmUsageGateway(), rag=RagStatsGateway(),
-        probes={"llm": _EchoProbe(), "rag": _EchoProbe()},
+        probes={"llm": _EchoProbe(), "rag": _EchoProbe()}, calls=LlmCallGateway(), audit=AdminAuditGateway(),
     )
     app.dependency_overrides[get_facility_use_case] = lambda: FacilityInteractor(
         host=ProcHostGateway(proc_root=_fake_proc(tmp_path)), gpus=_OneGpu(), database=PostgresStatusGateway(),
@@ -143,6 +145,9 @@ def test_프로브는_운영_관리자만_실행한다():
     response = _client("ops").post("/admin/healthcare/probe", json=payload)
     assert response.status_code == 200
     assert response.json()["output"] == "안녕"
+    with session_scope() as session:
+        row = session.execute(text("select action, actor_username, target from admin_audit")).one()
+    assert tuple(row) == ("probe.run", "ops", "llm")
 
 
 def test_모르는_프로브_종류는_422():

@@ -20,3 +20,9 @@ class AdminSessionUseCase(ABC):
     @abstractmethod
     def authenticate(self, token: str) -> AdminPrincipalDto | None:
         """쿠키 토큰 → 관리자. 만료·비활성·없는 세션이면 None."""
+
+    @abstractmethod
+    def change_password(
+        self, principal: AdminPrincipalDto, token: str, current_password: str, new_password: str, ip: str | None
+    ) -> None:
+        """현재 비밀번호가 틀리면 WrongPassword, 규칙 위반은 WeakPassword. 성공하면 지금 세션만 남기고 끊는다."""

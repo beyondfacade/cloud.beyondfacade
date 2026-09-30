@@ -21,7 +21,7 @@ class IpBlockUseCase(ABC):
         """형식이 틀린 IP는 InvalidIp, 자기 IP 차단은 SelfBlock. 이미 차단된 IP는 사유·만료 갱신."""
 
     @abstractmethod
-    def unblock(self, ip: str) -> None:
+    def unblock(self, ip: str, actor: AdminPrincipalDto, actor_ip: str | None) -> None:
         """없는 IP면 IpBlockNotFound."""
 
     @abstractmethod

@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from sqlalchemy import func, select
+from sqlalchemy import delete, func, select
 
 from apps.admin.adapter.outbound.orm_mappers.access_event_orm_mapper import to_entity, to_orm
 from apps.admin.adapter.outbound.orms.access_event_orm import AccessEventOrm
@@ -35,3 +35,25 @@ class SqlAlchemyAccessEventRepository(AccessEventRepositoryPort):
                     AccessEventOrm.occurred_at >= since,
                 )
             ).scalar_one()
+
+    def search(
+        self, kind: AccessEventKind | None, ip: str | None, since: datetime, before_id: int | None, limit: int
+    ) -> list[AccessEvent]:
+        query = (
+            select(AccessEventOrm)
+            .where(AccessEventOrm.occurred_at >= since)
+            .order_by(AccessEventOrm.id.desc())
+            .limit(limit)
+        )
+        if kind is not None:
+            query = query.where(AccessEventOrm.kind == kind.value)
+        if ip is not None:
+            query = query.where(AccessEventOrm.ip == ip)
+        if before_id is not None:
+            query = query.where(AccessEventOrm.id < before_id)
+        with session_scope() as session:
+            return [to_entity(orm) for orm in session.execute(query).scalars()]
+
+    def delete_before(self, cutoff: datetime) -> int:
+        with session_scope() as session:
+            return session.execute(delete(AccessEventOrm).where(AccessEventOrm.occurred_at < cutoff)).rowcount

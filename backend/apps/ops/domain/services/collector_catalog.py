@@ -25,7 +25,10 @@ COLLECTORS: tuple[Collector, ...] = (
     Collector("interest-rate-collector", "금리·임대동향", "매주 월 05:20", timedelta(weeks=1), "interest-rate-collector.log", "interest_rate"),
     Collector("childcare-collector", "어린이집", "매주 월 05:30", timedelta(weeks=1), "childcare-collector.log", "childcare_center"),
     Collector("convenience-collector", "편의점", "매주 월 05:40", timedelta(weeks=1), "convenience-collector.log", "convenience_store"),
+    Collector("host-metrics-sampler", "설비 지표 표본", "매분", timedelta(minutes=1), "host-metrics-sampler.log", "host_metric_sample", "sampled_at"),
+    Collector("admin-housekeeping", "관리자 기록 정리", "매일 03:30", timedelta(days=1), "admin-housekeeping.log"),
 )
+COLLECTOR_BY_KEY: dict[str, Collector] = {collector.key: collector for collector in COLLECTORS}
 
 
 def collector_status(last_run_at: datetime | None, interval: timedelta, now: datetime) -> str:

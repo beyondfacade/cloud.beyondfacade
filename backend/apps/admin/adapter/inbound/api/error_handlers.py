@@ -3,13 +3,20 @@ from fastapi.responses import JSONResponse
 
 from apps.admin.app.errors import (
     AdminError,
+    AdminUserNotFound,
     ForbiddenRole,
     InvalidCredentials,
     InvalidIp,
+    InvalidUsername,
     IpBlockNotFound,
+    LastOperator,
     LoginThrottled,
     SelfBlock,
+    SelfChange,
     Unauthenticated,
+    UsernameTaken,
+    WeakPassword,
+    WrongPassword,
 )
 
 _STATUS: dict[type[AdminError], int] = {
@@ -17,8 +24,15 @@ _STATUS: dict[type[AdminError], int] = {
     Unauthenticated: 401,
     ForbiddenRole: 403,
     IpBlockNotFound: 404,
+    AdminUserNotFound: 404,
+    UsernameTaken: 409,
+    LastOperator: 409,
     InvalidIp: 400,
+    InvalidUsername: 400,
+    WeakPassword: 400,
+    WrongPassword: 400,
     SelfBlock: 400,
+    SelfChange: 400,
     LoginThrottled: 429,
 }
 

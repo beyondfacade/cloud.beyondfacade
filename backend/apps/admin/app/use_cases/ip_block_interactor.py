@@ -6,8 +6,11 @@ from apps.admin.app.dtos.admin_session_dto import AdminPrincipalDto
 from apps.admin.app.dtos.ip_block_dto import IpBlockDto
 from apps.admin.app.errors import InvalidIp, IpBlockNotFound, SelfBlock
 from apps.admin.app.ports.input.ip_block_use_case import IpBlockUseCase
+from apps.admin.app.ports.output.admin_audit_port import AdminAuditRepositoryPort
 from apps.admin.app.ports.output.admin_user_port import AdminUserRepositoryPort
 from apps.admin.app.ports.output.ip_block_port import IpBlockRepositoryPort
+from apps.admin.app.use_cases.audit_trail import audit_entry
+from apps.admin.domain.entities.admin_audit_entity import AuditAction
 from apps.admin.domain.entities.ip_block_entity import IpBlock
 
 
@@ -16,10 +19,12 @@ class IpBlockInteractor(IpBlockUseCase):
         self,
         ip_blocks: IpBlockRepositoryPort,
         users: AdminUserRepositoryPort,
+        audit: AdminAuditRepositoryPort,
         clock: Callable[[], datetime] = lambda: datetime.now(UTC),
     ) -> None:
         self._ip_blocks = ip_blocks
         self._users = users
+        self._audit = audit
         self._clock = clock
 
     def myself(self) -> IpBlockDto:
@@ -49,11 +54,16 @@ class IpBlockInteractor(IpBlockUseCase):
             created_by=actor.id,
         )
         self._ip_blocks.save(block)
+        term = f"{ttl_minutes}분" if ttl_minutes else "무기한"
+        self._audit.add(
+            audit_entry(now, actor, AuditAction.IP_BLOCK_CREATE, normalized, f"{block.reason} · {term}", actor_ip)
+        )
         return self._to_dto(block)
 
-    def unblock(self, ip: str) -> None:
+    def unblock(self, ip: str, actor: AdminPrincipalDto, actor_ip: str | None) -> None:
         if not self._ip_blocks.delete(ip):
             raise IpBlockNotFound(f"차단 목록에 없는 IP입니다: {ip}")
+        self._audit.add(audit_entry(self._clock(), actor, AuditAction.IP_BLOCK_DELETE, ip, ip=actor_ip))
 
     def is_blocked(self, ip: str | None) -> bool:
         if ip is None:

@@ -17,3 +17,7 @@ class AdminUserRepositoryPort(ABC):
 
     @abstractmethod
     def touch_login(self, user_id: int, at: datetime) -> None: ...
+
+    @abstractmethod
+    def list_all(self) -> list[AdminUser]:
+        """계정명순 — 관리자 계정은 수십 개를 넘지 않아 전부 읽는다."""

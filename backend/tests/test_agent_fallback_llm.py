@@ -10,6 +10,8 @@ from apps.agent.app.ports.output.agent_port import (
     LLMTurn,
     LLMUsage,
 )
+from apps.agent.app.ports.output.llm_call_port import LlmCallRecorderPort
+from apps.agent.domain.entities.llm_call_entity import LlmCall, LlmCallOutcome
 
 
 class FakeLLM(LLMGatewayPort):
@@ -185,6 +187,87 @@ def test_키가_없으면_스트림도_바로_secondary로_간다():
 
     assert [event.text for event in events if event.kind == "text"] == ["gemma4:12b 응답"]
     assert adapter.model_name == "gemma4:12b"
+
+
+# --- 호출 결과 기록 (헬스케어실 폴백률·오류율의 원천) ---
+
+
+class MemoryRecorder(LlmCallRecorderPort):
+    def __init__(self, fail: bool = False) -> None:
+        self.calls: list[LlmCall] = []
+        self._fail = fail
+
+    def record(self, call: LlmCall) -> None:
+        if self._fail:
+            raise RuntimeError("DB 끊김")
+        self.calls.append(call)
+
+
+def _recorded(primary, secondary, recorder) -> FallbackLLMAdapter:
+    return FallbackLLMAdapter(primary=lambda: primary, secondary=lambda: secondary, recorder=recorder)
+
+
+def test_primary_성공은_ok_한_건으로_남는다():
+    recorder = MemoryRecorder()
+    _recorded(FakeLLM("gemini-2.5-flash"), FakeLLM("gemma4:12b"), recorder).chat([], [])
+    assert [(c.model, c.outcome) for c in recorder.calls] == [("gemini-2.5-flash", LlmCallOutcome.OK)]
+    assert recorder.calls[0].latency_ms >= 0
+
+
+def test_primary_실패는_fallback과_secondary_ok로_남고_예외_종류만_기록한다():
+    recorder = MemoryRecorder()
+    primary = FakeLLM("gemini-2.5-flash", error=RuntimeError("key=AIza-secret 429"))
+    _recorded(primary, FakeLLM("gemma4:12b"), recorder).chat([], [])
+    assert [(c.model, c.outcome, c.error_kind) for c in recorder.calls] == [
+        ("gemini-2.5-flash", LlmCallOutcome.FALLBACK, "RuntimeError"),
+        ("gemma4:12b", LlmCallOutcome.OK, None),
+    ]
+
+
+def test_둘_다_실패하면_마지막은_error로_남고_예외가_올라간다():
+    recorder = MemoryRecorder()
+    adapter = _recorded(FakeLLM("g", error=RuntimeError("a")), FakeLLM("l", error=TimeoutError("b")), recorder)
+    with pytest.raises(TimeoutError):
+        adapter.chat([], [])
+    assert [c.outcome for c in recorder.calls] == [LlmCallOutcome.FALLBACK, LlmCallOutcome.ERROR]
+    assert recorder.calls[-1].error_kind == "TimeoutError"
+
+
+def test_기록이_실패해도_LLM_호출은_성공한다():
+    turn = _recorded(FakeLLM("gemini-2.5-flash"), FakeLLM("gemma4:12b"), MemoryRecorder(fail=True)).chat([], [])
+    assert turn.text == "gemini-2.5-flash 응답"
+
+
+def test_스트림도_끝까지_받으면_ok_첫_조각_전_실패는_fallback으로_남는다():
+    recorder = MemoryRecorder()
+    primary = FakeLLM("gemini-2.5-flash", error=RuntimeError("x"))
+    list(_recorded(primary, FakeLLM("gemma4:12b"), recorder).stream([], []))
+    assert [(c.model, c.outcome) for c in recorder.calls] == [
+        ("gemini-2.5-flash", LlmCallOutcome.FALLBACK),
+        ("gemma4:12b", LlmCallOutcome.OK),
+    ]
+
+
+def test_스트림이_쓰다가_끊기면_error로_남는다():
+    recorder = MemoryRecorder()
+    primary = FakeLLM("gemini-2.5-flash", error=RuntimeError("끊김"), after=1)
+    with pytest.raises(RuntimeError):
+        list(_recorded(primary, FakeLLM("gemma4:12b"), recorder).stream([], []))
+    assert [c.outcome for c in recorder.calls] == [LlmCallOutcome.ERROR]
+
+
+def test_llm_call_event_테이블에_기록된다():
+    from sqlalchemy import text
+
+    from apps.agent.adapter.outbound.repositories.llm_call_repository import SqlAlchemyLlmCallRecorder
+    from core.matrix.grid_oracle_database_manager import session_scope
+
+    with session_scope() as session:
+        session.execute(text("truncate llm_call_event"))
+    _recorded(FakeLLM("g", error=ValueError("x")), FakeLLM("l"), SqlAlchemyLlmCallRecorder()).chat([], [])
+    with session_scope() as session:
+        rows = session.execute(text("select model, outcome, error_kind from llm_call_event order by id")).all()
+    assert [tuple(row) for row in rows] == [("g", "fallback", "ValueError"), ("l", "ok", None)]
 
 
 # --- Composition Root 배선 (설계 결정: 기본이 hybrid) ---

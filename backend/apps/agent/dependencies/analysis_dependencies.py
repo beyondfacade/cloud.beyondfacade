@@ -16,6 +16,7 @@ from apps.agent.adapter.outbound.llm.ollama_llm_adapter import OllamaLLMAdapter
 from apps.agent.adapter.outbound.repositories.analysis_repository import (
     SqlAlchemyAnalysisRepository,
 )
+from apps.agent.adapter.outbound.repositories.llm_call_repository import SqlAlchemyLlmCallRecorder
 from apps.agent.app.ports.input.analysis_use_case import AnalysisUseCase
 from apps.agent.app.ports.output.agent_port import LLMGatewayPort
 from apps.agent.app.use_cases.agent_tools import build_tools
@@ -35,7 +36,7 @@ def _hybrid() -> LLMGatewayPort:
     GeminiLLMAdapter는 키가 없으면 **생성 시점에** ValueError를 던진다. 폴백 어댑터가 그
     예외를 잡는 것이 곧 키 유무 판정이다 — 키 값을 읽지도 남기지도 않는다.
     """
-    return FallbackLLMAdapter(primary=GeminiLLMAdapter, secondary=_local)
+    return FallbackLLMAdapter(primary=GeminiLLMAdapter, secondary=_local, recorder=SqlAlchemyLlmCallRecorder())
 
 
 _LLM_REGISTRY: dict[str, Callable[[], LLMGatewayPort]] = {

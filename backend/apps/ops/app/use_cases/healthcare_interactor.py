@@ -9,17 +9,22 @@ from apps.ops.app.dtos.healthcare_dto import (
     ProbeResultDto,
     RequiredModelDto,
 )
+from apps.ops.app.dtos.ops_history_dto import OpsActorDto, UsageSeriesDto
 from apps.ops.app.ports.input.healthcare_use_case import HealthcareUseCase, UnknownProbeKind
 from apps.ops.app.ports.output.healthcare_port import (
+    LlmCallPort,
     LlmChainPort,
     LlmUsagePort,
     OllamaStatusPort,
     ProbePort,
     RagStatsPort,
 )
+from apps.ops.app.ports.output.ops_audit_port import OpsAuditPort
+from apps.ops.domain.services.usage_series import BUCKET_HOURS, build_series, hour_of_day, summarize_calls
 from apps.ops.domain.services.usage_stats import summarize_usage
 
 _RECENT_ANALYSES = 10
+PROBE_RUN_ACTION = "probe.run"
 
 
 def _has_model(names: list[str], wanted: str) -> bool:
@@ -36,6 +41,8 @@ class HealthcareInteractor(HealthcareUseCase):
         usage: LlmUsagePort,
         rag: RagStatsPort,
         probes: dict[str, ProbePort],
+        calls: LlmCallPort,
+        audit: OpsAuditPort,
         clock: Callable[[], datetime] = lambda: datetime.now(UTC),
     ) -> None:
         self._ollama = ollama
@@ -43,6 +50,8 @@ class HealthcareInteractor(HealthcareUseCase):
         self._usage = usage
         self._rag = rag
         self._probes = probes
+        self._calls = calls
+        self._audit = audit
         self._clock = clock
 
     def myself(self) -> LlmRouteDto:
@@ -64,11 +73,27 @@ class HealthcareInteractor(HealthcareUseCase):
             rag=self._rag.read(),
         )
 
-    def probe(self, kind: str, message: str) -> ProbeResultDto:
+    def probe(self, kind: str, message: str, actor: OpsActorDto) -> ProbeResultDto:
         probe = self._probes.get(kind)
         if probe is None:
             raise UnknownProbeKind(f"지원하지 않는 프로브: {kind}")
-        return probe.run(message)
+        result = probe.run(message)
+        self._audit.record(actor, PROBE_RUN_ACTION, kind, f"{'성공' if result.ok else '실패'} · {result.latency_ms}ms")
+        return result
+
+    def usage_series(self, hours: int) -> UsageSeriesDto:
+        now = self._clock()
+        since = now - timedelta(hours=hours)
+        usage = self._usage.timed_since(since)
+        calls = self._calls.records_since(since)
+        return UsageSeriesDto(
+            generated_at=now,
+            hours=hours,
+            bucket_hours=BUCKET_HOURS[hours],
+            points=build_series(usage, calls, now, hours),
+            outcomes=summarize_calls(calls),
+            by_hour=hour_of_day([row.at for row in usage]),
+        )
 
     def _required_models(self, ollama: OllamaStatusDto) -> list[RequiredModelDto]:
         installed = [m.name for m in ollama.models]

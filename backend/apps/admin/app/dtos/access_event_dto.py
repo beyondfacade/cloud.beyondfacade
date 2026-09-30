@@ -15,6 +15,12 @@ class AccessEventDto:
 
 
 @dataclass(frozen=True)
+class AccessEventPageDto:
+    items: list[AccessEventDto] = field(default_factory=list)
+    next_before_id: int | None = None  # None이면 마지막 쪽
+
+
+@dataclass(frozen=True)
 class SecurityAlertDto:
     rule: str
     severity: str

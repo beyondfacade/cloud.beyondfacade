@@ -5,6 +5,7 @@ import time
 from apps.agent.adapter.outbound.llm.fallback_llm_adapter import FallbackLLMAdapter
 from apps.agent.adapter.outbound.llm.gemini_llm_adapter import GeminiLLMAdapter
 from apps.agent.adapter.outbound.llm.ollama_llm_adapter import OllamaLLMAdapter
+from apps.agent.adapter.outbound.repositories.llm_call_repository import SqlAlchemyLlmCallRecorder
 from apps.ops.adapter.outbound.gateways.llm_chain_gateway import FALLBACK_MODEL
 from apps.ops.app.dtos.healthcare_dto import ProbeHitDto, ProbeResultDto
 from apps.ops.app.ports.output.healthcare_port import ProbePort
@@ -49,7 +50,11 @@ class LlmProbe(ProbePort):
 
     def run(self, message: str) -> ProbeResultDto:
         started = time.perf_counter()
-        llm = FallbackLLMAdapter(primary=GeminiLLMAdapter, secondary=lambda: OllamaLLMAdapter(model=FALLBACK_MODEL))
+        llm = FallbackLLMAdapter(
+            primary=GeminiLLMAdapter,
+            secondary=lambda: OllamaLLMAdapter(model=FALLBACK_MODEL),
+            recorder=SqlAlchemyLlmCallRecorder(),
+        )
         try:
             turn = llm.chat([{"role": "user", "content": message}], tools=[])
         except Exception as error:

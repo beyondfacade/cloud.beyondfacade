@@ -1,5 +1,22 @@
 # Backend Version Log
 
+## [v0.48.0] - 2026-09-30
+
+### Added
+- **관리자 감사 로그** — 테이블 `admin_audit`(마이그레이션 `a6b7c8d9e0f1`). 행위(`AuditAction`)는 IP 차단·해제, 프로브 실행, 수집기 실행, 계정 생성·역할·정지·정지 해제·비밀번호 재설정·세션 종료, 내 비밀번호 변경이다. 행위마다 처리자·대상·상세·IP를 남긴다. 조회는 `GET /admin/security/audit?action=&before_id=&limit=`(id 커서, limit ≤ 200)이다.
+- **인사팀 API** `/admin/users` — `GET ""`(검색 q, 역할, 상태 all·active·suspended, 조회 관리자도 가능), `POST ""`(201), `PATCH /{u}/role`, `PATCH /{u}/status`, `PUT /{u}/password`(204), `GET·DELETE /{u}/sessions`. 변경은 운영 관리자 전용이다. 세션 조회·종료는 본인이거나 운영 관리자만 할 수 있다. 규칙: 본인 계정의 역할·상태·비밀번호 재설정은 막고(400 `SELF_CHANGE`), 마지막 활성 운영 관리자는 강등·정지할 수 없다(409 `LAST_OPERATOR`). 아이디는 `^[a-z0-9][a-z0-9._-]{2,31}$`, 비밀번호는 12~256자다. 정지하거나 비밀번호를 재설정하면 그 계정의 세션을 모두 끊는다. 본인 세션 종료는 지금 세션을 남긴다.
+- **내 비밀번호 변경** `POST /admin/auth/password`(204) — 현재 비밀번호가 틀리면 400 `WRONG_PASSWORD`를 돌려준다. 바꾸면 지금 세션을 뺀 나머지를 끊는다.
+- **보안 이벤트 검색** `GET /admin/security/events?kind=&ip=&hours=1..2160&before_id=&limit=` — 최신순 id 커서 페이지(`next_before_id`).
+- **보존 정리 CLI** `python -m apps.admin.adapter.inbound.cli.admin_housekeeping`(`scripts/admin-housekeeping.sh`, 매일 03:30) — 접근 이벤트는 90일, 감사 로그는 365일이 지나면 지운다. 만료 세션과 만료 IP 차단(무기한 제외)도 함께 지운다.
+- **호스트 지표 이력** — 테이블 `host_metric_sample`(마이그레이션 `5e8a3c1d9f27`). CLI `sample_host_metrics`(`scripts/host-metrics-sampler.sh`, 매분)는 CPU·부하·메모리·스왑·디스크·GPU 사용률·VRAM·온도를 1분 표본으로 쌓고 8일 지난 표본을 지운다. `GET /admin/facility/history?hours=1|6|24|168`은 최대 240점을 `date_bin` 평균으로 돌려준다.
+- **LLM 호출 결과 기록** — 테이블 `llm_call_event`. `FallbackLlmAdapter`가 시도마다 ok·fallback·error와 지연을 기록한다(recorder 주입은 선택이고, 기록이 실패해도 호출은 깨지지 않는다). `GET /admin/healthcare/usage-series?hours=24|168`은 분석 건수·토큰·결과별 호출 시계열(1시간·6시간 칸), 폴백률·오류율, 한국 시각 시간대별 분석 건수를 돌려준다.
+- **수집기 도구**(운영 관리자 전용) — `GET /admin/facility/collectors/{key}/log?lines=10..1000`은 로그 끝 256KB에서 줄을 읽는다. bearer 토큰, key=value 형태의 비밀값, URL 계정, Google API 키는 가려서 준다. `POST /admin/facility/collectors/{key}/run`(202)은 `scripts/{key}.sh`를 분리 프로세스로 띄우고, 이미 돌고 있으면 409 `COLLECTOR_RUNNING`을 돌려준다. 없는 수집기면 404 `UNKNOWN_COLLECTOR`다. 수집기 카탈로그에 `host-metrics-sampler`·`admin-housekeeping`을 더했다.
+- 테스트: admin 보강 13 · 인사팀 API 18, ops 이력 도메인 9 · API 11, 폴백 기록 추가.
+
+### Changed
+- IP 차단 해제(`DELETE /admin/security/ip-blocks/{ip}`)와 프로브 실행이 감사 로그를 남긴다. 차단 해제 가드를 `require_operator`로 맞췄다.
+- 숫자 선택지 쿼리(`hours` 등)는 `Literal[int]` 대신 `one_of` 검증기를 쓴다. 쿼리 문자열 "168"이 422로 떨어지던 문제다.
+
 ## [v0.47.0] - 2026-09-30
 
 ### Added
