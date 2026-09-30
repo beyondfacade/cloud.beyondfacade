@@ -77,6 +77,21 @@ it("진행 중 이벤트가 없는 유형은 사례 종합에 최근 조치 소�
   expect(outlook()).toHaveTextContent("최근 소식은 확인하지 못했어요");
 });
 
+it("드문 유형은 사례 직전과 최근 4분기의 업종 상태를 견주고, 비교가 없으면 적지 않는다", () => {
+  const data = eventAnalogs();
+  const { rerender } = render(<AnalogCases analogs={data} />);
+  const condition = () => within(screen.getByRole("article", { name: "감염병·방역 사례 종합" })).queryByRole("note", { name: "사례 직전 대비 지금" });
+  expect(condition()).toHaveTextContent(
+    "코로나19 국내 유행과 방역 조치 직전 4분기 대비 최근 4분기: 점포 +7.1% → -1.1% (전 업종 대비 +5.8%p → -0.1%p) · 폐업률 14.0% → 20.1%",
+  );
+  expect(within(condition()!).getByText("그때보다 약한 상태")).toHaveStyle({ color: "var(--danger)" });
+  const outlook = { ...data.outlooks![0], condition: { ...data.outlooks![0].condition!, direction: "stronger" as const } };
+  rerender(<AnalogCases analogs={{ ...data, outlooks: [outlook] }} />);
+  expect(within(condition()!).getByText("그때보다 강한 상태")).toHaveStyle({ color: "var(--ok)" });
+  rerender(<AnalogCases analogs={{ ...data, outlooks: [{ ...outlook, condition: null }] }} />);
+  expect(condition()).toBeNull();
+});
+
 it("해석 주의사항을 함께 적는다", () => {
   render(<AnalogCases analogs={eventAnalogs()} />);
   expect(screen.getByText(/12월에는 행정 정리로 폐업이 몰린다/)).toBeInTheDocument();

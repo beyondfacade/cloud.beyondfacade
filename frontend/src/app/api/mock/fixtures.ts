@@ -313,6 +313,11 @@ function eventAnalogsDemo(industryId: string, industryName: string): EventAnalog
       ],
       avoid: [{ industry_id: "pub", industry_name: "호프·주점" }, { industry_id: "korean_food", industry_name: "한식" }],
       typical_duration_months: 27,
+      condition: {
+        event_id: "outbreak-covid19-20200120", event_name: "코로나19 국내 유행과 방역 조치", direction: "weaker",
+        before: { start_month: "2019-01", end_month: "2019-12", growth_pct: 7.1, all_growth_pct: 1.3, excess_pct: 5.8, closure_rate_pct: 14.0, rank: 1, industry_count: 12 },
+        recent: { start_month: "2025-09", end_month: "2026-08", growth_pct: -1.1, all_growth_pct: -1.1, excess_pct: -0.1, closure_rate_pct: 20.1, rank: 6, industry_count: 12 },
+      },
     }],
     caveats: [
       "12월에는 행정 정리로 폐업이 몰린다 — 12월이 든 분기는 한 번씩 크게 튈 수 있어 판단은 분기 과반으로 한다.",

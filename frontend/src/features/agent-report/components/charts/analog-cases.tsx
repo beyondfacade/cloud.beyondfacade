@@ -1,5 +1,5 @@
 import type {
-  AnalogQuarter, CategoryOutlook, EventAnalogs, EventImpact, IndustrySeries, RecentNews, UnavailableFact,
+  AnalogQuarter, CategoryOutlook, ConditionCompare, EventAnalogs, EventImpact, IndustrySeries, RecentNews, UnavailableFact,
 } from "@/shared/api/types";
 import { availableFact } from "../../lib/available-fact";
 
@@ -142,6 +142,30 @@ function RecentNewsLine({ recent }: { recent: RecentNews }) {
   );
 }
 
+function formatPct(value: number): string {
+  return `${value > 0 ? "+" : ""}${value.toFixed(1)}%`;
+}
+
+const DIRECTION: Record<ConditionCompare["direction"], { label: string; color: string }> = {
+  weaker: { label: "그때보다 약한 상태", color: "var(--danger)" },
+  stronger: { label: "그때보다 강한 상태", color: "var(--ok)" },
+  similar: { label: "그때와 비슷한 상태", color: "var(--text-secondary)" },
+};
+
+function ConditionLine({ condition }: { condition: ConditionCompare }) {
+  const { before, recent } = condition;
+  const direction = DIRECTION[condition.direction];
+  return (
+    <p role="note" aria-label="사례 직전 대비 지금" className="text-xs text-[var(--text-secondary)]">
+      <span title={`${before.start_month}~${before.end_month} 대비 ${recent.start_month}~${recent.end_month} · 그 사이 여러 변화가 섞인 비교로 이벤트 효과가 아니에요`}>
+        {condition.event_name} 직전 4분기 대비 최근 4분기: 점포 {formatPct(before.growth_pct)} → {formatPct(recent.growth_pct)}
+        {" "}(전 업종 대비 {formatPp(before.excess_pct)} → {formatPp(recent.excess_pct)}) · 폐업률 {before.closure_rate_pct.toFixed(1)}% → {recent.closure_rate_pct.toFixed(1)}%
+      </span>
+      {" — "}<span className="font-medium" style={{ color: direction.color }}>{direction.label}</span>
+    </p>
+  );
+}
+
 function OutlookCard({ outlook, recent }: { outlook: CategoryOutlook; recent?: RecentNews }) {
   const duration = outlook.typical_duration_months !== null ? ` · 보통 약 ${outlook.typical_duration_months}개월 이어짐` : "";
   return (
@@ -150,6 +174,7 @@ function OutlookCard({ outlook, recent }: { outlook: CategoryOutlook; recent?: R
         <span className="font-medium">{outlook.label}</span> 사례 {outlook.analog_count}건 — {TREND_LABEL[outlook.target_trend]}
         <span className="text-xs text-[var(--text-secondary)]">{duration}</span>
       </p>
+      {outlook.condition && <ConditionLine condition={outlook.condition} />}
       {recent && <RecentNewsLine recent={recent} />}
       <IndustryChips label="거듭 강세" industries={outlook.recommended} color="var(--ok)" />
       <IndustryChips label="거듭 약세" industries={outlook.avoid} color="var(--danger)" />

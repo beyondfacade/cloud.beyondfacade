@@ -84,6 +84,28 @@ export interface CategoryOutlook {
   recommended: { industry_id: string; industry_name: string }[];
   avoid: { industry_id: string; industry_name: string }[];
   typical_duration_months: number | null;
+  /** 드문 유형만 — 가장 최근 사례 직전 4분기 vs 최근 4분기의 업종 상태 (이벤트 효과 아님). */
+  condition?: ConditionCompare | null;
+}
+
+export interface PeriodCondition {
+  start_month: string;
+  end_month: string;
+  growth_pct: number;
+  all_growth_pct: number;
+  /** 대상 − 전 업종 점포수 증감률 (%p). */
+  excess_pct: number;
+  closure_rate_pct: number;
+  rank: number;
+  industry_count: number;
+}
+
+export interface ConditionCompare {
+  event_id: string;
+  event_name: string;
+  direction: "weaker" | "stronger" | "similar";
+  before: PeriodCondition;
+  recent: PeriodCondition;
 }
 
 export interface EventAnalogs {
