@@ -7,11 +7,20 @@ from apps.admin.app.dtos.ip_block_dto import IpBlockDto
 from apps.admin.app.errors import InvalidIp, IpBlockNotFound, SelfBlock
 from apps.admin.app.ports.input.ip_block_use_case import IpBlockUseCase
 from apps.admin.app.ports.output.admin_audit_port import AdminAuditRepositoryPort
+from apps.admin.app.ports.output.access_event_port import AccessEventRepositoryPort
 from apps.admin.app.ports.output.admin_user_port import AdminUserRepositoryPort
 from apps.admin.app.ports.output.ip_block_port import IpBlockRepositoryPort
+from apps.admin.app.ports.output.security_setting_port import SecuritySettingRepositoryPort
 from apps.admin.app.use_cases.audit_trail import audit_entry
-from apps.admin.domain.entities.admin_audit_entity import AuditAction
+from apps.admin.domain.entities.admin_audit_entity import AdminAudit, AuditAction
 from apps.admin.domain.entities.ip_block_entity import IpBlock
+from apps.admin.domain.entities.security_setting_entity import AUTO_DEFENSE
+from apps.admin.domain.services.auto_block_rules import (
+    AUTO_BLOCK_ACTOR,
+    AUTO_BLOCK_RULES,
+    auto_block_exempt,
+    is_auto_block,
+)
 
 
 class IpBlockInteractor(IpBlockUseCase):
@@ -20,11 +29,15 @@ class IpBlockInteractor(IpBlockUseCase):
         ip_blocks: IpBlockRepositoryPort,
         users: AdminUserRepositoryPort,
         audit: AdminAuditRepositoryPort,
+        events: AccessEventRepositoryPort,
+        settings: SecuritySettingRepositoryPort,
         clock: Callable[[], datetime] = lambda: datetime.now(UTC),
     ) -> None:
         self._ip_blocks = ip_blocks
         self._users = users
         self._audit = audit
+        self._events = events
+        self._settings = settings
         self._clock = clock
 
     def myself(self) -> IpBlockDto:
@@ -71,6 +84,31 @@ class IpBlockInteractor(IpBlockUseCase):
         block = self._ip_blocks.get(ip)
         return block is not None and block.is_active(self._clock())
 
+    def enforce_auto_defense(self, ip: str | None) -> IpBlockDto | None:
+        if auto_block_exempt(ip) or not self._settings.get(AUTO_DEFENSE).enabled:
+            return None
+        now = self._clock()
+        previous = self._ip_blocks.get(ip)
+        if previous is not None and previous.is_active(now):
+            return None
+        repeat = previous is not None and is_auto_block(previous)
+        for rule in AUTO_BLOCK_RULES:
+            count = sum(self._events.count(kind, ip, now - rule.window) for kind in rule.kinds)
+            if count < rule.threshold:
+                continue
+            term = rule.repeat_block if repeat else rule.block
+            block = IpBlock(ip=ip, reason=rule.reason(count, repeat), created_at=now, expires_at=now + term)
+            self._ip_blocks.save(block)
+            minutes = int(term.total_seconds() // 60)
+            self._audit.add(
+                AdminAudit(
+                    occurred_at=now, action=AuditAction.IP_BLOCK_AUTO, actor_username=AUTO_BLOCK_ACTOR,
+                    target=ip, detail=f"{block.reason} · {minutes}분",
+                )
+            )
+            return self._to_dto(block)
+        return None
+
     def _to_dto(self, block: IpBlock) -> IpBlockDto:
         actor = self._users.get_by_id(block.created_by) if block.created_by else None
         return IpBlockDto(
@@ -78,5 +116,5 @@ class IpBlockInteractor(IpBlockUseCase):
             reason=block.reason,
             created_at=block.created_at,
             expires_at=block.expires_at,
-            created_by=actor.username if actor else None,
+            created_by=actor.username if actor else AUTO_BLOCK_ACTOR if is_auto_block(block) else None,
         )

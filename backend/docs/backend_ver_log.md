@@ -1,5 +1,25 @@
 # Backend Version Log
 
+## [v0.51.0] - 2026-09-30
+
+### Added
+- **자동 방어(자동 IP 차단)** — `SecurityMiddleware`가 `/admin` POST의 401·429 응답과 스캐너 경로 응답 뒤에 규칙을 검사하고, 임계치에 닿은 IP를 기한부로 차단한다. 규칙(`domain/services/auto_block_rules.py`):
+  - 로그인 실패: 같은 IP의 `login_failed`+`login_throttled`가 15분 안에 10회 → 1시간 차단. 자동 차단이 풀린 뒤 다시 걸리면 24시간.
+  - 취약점 스캐너 경로 탐색: 1시간 안에 5회 → 24시간 차단, 다시 걸리면 7일.
+  - 차단 사유는 `자동 차단 · {규칙} {횟수}회[ · 재차단]`, 처리자는 "자동 방어"(`created_by` 없음)로 남는다. 감사 `ip_block.auto`.
+  - 루프백·주소 없는 요청은 차단하지 않는다. 이미 걸린 차단(수동 무기한 포함)은 덮어쓰지 않는다. 판정이 실패해도 요청 응답은 그대로 나간다(로그만 남김).
+- **자동 방어 스위치** — 테이블 `security_setting`(마이그레이션 `9c4e2a7b1d35`). 행이 없으면 기본값 켜짐. API `/admin/security/settings`: `GET /myself`, `GET /auto-defense`(로그인 필요, 상태·변경자·규칙 목록), `PUT /auto-defense`(`{enabled}`, 관리자만, 감사 `auto_defense.toggle` 상세 "켬"/"끔"). 꺼져 있으면 새 자동 차단만 멈추고, 기존 차단과 IP당 10분 10회 로그인 제한(429)은 그대로다.
+- 테스트: `test_auto_defense.py`(도메인 규칙, 스위치 권한·감사, 임계치 경계, 끔 상태, 스캐너, 루프백 예외, 수동 차단 보존, 재차단 기간).
+
+### Changed
+- `test_admin_api`의 10회 실패 뒤 429 테스트는 자동 방어를 끈 상태에서 검사한다. 켜져 있으면 10번째 실패에서 403 `IP_BLOCKED`가 먼저 난다.
+
+### 배포 메모
+- 차단은 IP 기준이므로 클라이언트 IP가 정확해야 한다. `client_ip.py`는 사설·루프백 peer가 보낸 `X-Forwarded-For`의 마지막 값을 쓴다. Next 프록시는 받은 XFF를 덧붙이지 않고 그대로 넘기므로, 배포 때는 Next 앞에 XFF를 **덧붙이는** 리버스 프록시(nginx `proxy_add_x_forwarded_for`, Cloudflare 등)를 둬야 한다. 그렇지 않으면 공격자가 XFF를 위조해 남의 IP를 차단시키거나 차단을 피할 수 있다.
+- HTTPS로 배포하면 `ADMIN_COOKIE_SECURE=true`로 되돌린다(로컬 `.env`의 false는 사파리 http 테스트용).
+- 차단 범위는 `/admin/*`다. 여러 IP로 나눠 들어오는 분산 공격은 IP별 규칙에 걸리지 않으므로 보안 감사팀 알림(`alert_rules`)으로 지켜본다.
+- 관리자 본인 IP가 잘못 막히면 다른 IP의 관리자가 IP 차단 탭에서 해제한다. 전원 막혔으면 1시간(재차단은 24시간) 뒤 풀리거나 DB에서 `ip_block` 행을 지운다.
+
 ## [v0.50.0] - 2026-09-30
 
 ### Added

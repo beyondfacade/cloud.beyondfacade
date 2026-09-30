@@ -8,6 +8,8 @@ class AuditAction(StrEnum):
 
     IP_BLOCK_CREATE = "ip_block.create"
     IP_BLOCK_DELETE = "ip_block.delete"
+    IP_BLOCK_AUTO = "ip_block.auto"  # 자동 방어가 만든 차단 — 처리자는 "자동 방어"
+    AUTO_DEFENSE_TOGGLE = "auto_defense.toggle"
     PROBE_RUN = "probe.run"
     COLLECTOR_RUN = "collector.run"
     # 화면에서 남의 계정 생성·등급·비밀번호를 바꾸던 조치 — 지금은 막혔지만 지난 기록을 읽고 거를 수 있게 남긴다

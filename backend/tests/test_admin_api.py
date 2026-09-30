@@ -5,8 +5,10 @@ from fastapi.testclient import TestClient
 from sqlalchemy import text
 
 from apps.admin.adapter.inbound.api.client_ip import resolve_client_ip
+from apps.admin.adapter.outbound.repositories.security_setting_repository import SqlAlchemySecuritySettingRepository
 from apps.admin.dependencies.admin_dependencies import get_admin_user_use_case
 from apps.admin.domain.entities.access_event_entity import AccessEventKind
+from apps.admin.domain.entities.security_setting_entity import AUTO_DEFENSE, SecuritySetting
 from apps.admin.domain.services.response_classifier import response_event_kind
 from core.matrix.grid_oracle_database_manager import session_scope
 from main import app
@@ -19,7 +21,9 @@ PASSWORD = "correct-horse-battery"
 @pytest.fixture(autouse=True)
 def clean_admin_tables():
     with session_scope() as session:
-        session.execute(text("truncate access_event, ip_block, admin_session, admin_user restart identity cascade"))
+        session.execute(
+            text("truncate access_event, ip_block, admin_session, security_setting, admin_user restart identity cascade")
+        )
     use_case = get_admin_user_use_case()
     use_case.upsert("ops", PASSWORD, "operator")
     use_case.upsert("viewer", PASSWORD, "viewer")
@@ -77,7 +81,8 @@ def test_틀린_비밀번호는_401이고_실패_이벤트가_남는다():
     assert _count_events("login_failed") == 1
 
 
-def test_같은_IP_실패_10회_뒤에는_맞는_비밀번호도_429():
+def test_자동_방어를_끄면_같은_IP_실패_10회_뒤에는_맞는_비밀번호도_429():
+    SqlAlchemySecuritySettingRepository().save(SecuritySetting(key=AUTO_DEFENSE, enabled=False))
     client = TestClient(app, client=ATTACKER)
     for _ in range(10):
         _login(client, "ops", "wrong-password")

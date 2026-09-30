@@ -26,3 +26,8 @@ class IpBlockUseCase(ABC):
 
     @abstractmethod
     def is_blocked(self, ip: str | None) -> bool: ...
+
+    @abstractmethod
+    def enforce_auto_defense(self, ip: str | None) -> IpBlockDto | None:
+        """자동 방어가 켜져 있고 규칙 임계치에 닿았으면 그 IP를 기한부로 차단한다. 차단했으면 그 차단을 돌려준다.
+        루프백·이미 차단 중인 IP는 건드리지 않는다."""
