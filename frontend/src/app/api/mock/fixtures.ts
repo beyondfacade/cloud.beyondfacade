@@ -3,8 +3,8 @@ import path from "node:path";
 import type { FeatureCollection, MultiPolygon } from "geojson";
 import type {
   AgentEvent,
+  AnalogQuarter,
   EventAnalogs,
-  IndustryMove,
   ReportFacts,
   ReportSection,
   CategoryRow,
@@ -257,15 +257,22 @@ export function convenienceSummaryOf(regionCode: string): ConvenienceRegionSumma
 }
 
 /** 고정 시연 입력의 사실 선수집 → 문장 스트리밍. 실 API의 이벤트 순서·스키마를 미러한다. */
-/** 유사 사례 시연 표본 — 창·라벨 구조는 GET /shocks/analogs 계약과 같다. 수치는 시연용이다. */
+/** 이벤트 달부터 3개월씩 count개 분기 — 라벨·달은 GET /shocks/analogs 계약과 같다. */
+function demoQuarters(year: number, month: number, count: number, overlaps: Record<number, string[]> = {}): AnalogQuarter[] {
+  const ym = (offset: number) => {
+    const index = year * 12 + month - 1 + offset;
+    return `${Math.floor(index / 12)}-${String((index % 12) + 1).padStart(2, "0")}`;
+  };
+  return Array.from({ length: count }, (_, i) => ({
+    quarter: i + 1, label: `${Math.floor(i / 4) + 1}년 차 ${(i % 4) + 1}분기`,
+    start_month: ym(i * 3), end_month: ym(i * 3 + 2), overlaps: overlaps[i + 1] ?? [],
+  }));
+}
+
+/** 유사 사례 시연 표본 — 분기·업종 흐름 구조는 GET /shocks/analogs 계약과 같다. 수치는 시연용이다. */
 function eventAnalogsDemo(industryId: string, industryName: string): EventAnalogs {
-  const move = (id: string, name: string, excess: number): IndustryMove => ({
-    industry_id: id, industry_name: name, openings: 1500, closings: 1100,
-    openings_yoy_pct: Math.round(excess * 50) / 10, closings_yoy_pct: 3.6, stock_change_pct: 1.2, excess_pct: excess,
-  });
-  const target = (excess: number) => move(industryId, industryName, excess);
   return {
-    industry_id: industryId, months: 3, years: 1, as_of: "2026-08",
+    industry_id: industryId, years: 3, as_of: "2026-08",
     categories: [
       { category: "pandemic", label: "감염병·방역", reason: "question" },
       { category: "minimum_wage", label: "최저임금", reason: "current" },
@@ -273,32 +280,42 @@ function eventAnalogsDemo(industryId: string, industryName: string): EventAnalog
     current_events: [{
       event_id: "min-wage-2026", name: "최저임금 인상 — 2026년 시급 10,320원(+2.9%)", category: "minimum_wage", category_label: "최저임금",
       start_date: "2026-01-01", end_date: "2026-12-31", duration_months: 11, description: null, source: "고용노동부 최저임금 고시", current: true,
-      windows: [
-        { kind: "immediate", label: "직후 3개월", start_month: "2026-01", end_month: "2026-03", target: target(0.6),
-          strongest: [move("pc_bang", "PC방", 0.9), move("pub", "호프·주점", 0.8)], weakest: [move("gym", "헬스장", -1.3), move("karaoke", "노래방", -0.2)] },
-        { kind: "recent", label: "최근 3개월", start_month: "2026-06", end_month: "2026-08", target: target(0.3),
-          strongest: [move("billiard", "당구장", 1.5)], weakest: [move("gym", "헬스장", -2.4), move("western_food", "양식", -1.3)] },
+      quarters: demoQuarters(2026, 1, 2),
+      series: [
+        { industry_id: industryId, industry_name: industryName, role: "target", values: [0.6, 0.5] },
+        { industry_id: "pc_bang", industry_name: "PC방", role: "recommended", values: [0.9, 0.0] },
+        { industry_id: "gym", industry_name: "헬스장", role: "avoid", values: [-1.3, -1.5] },
       ],
+      target_weak_quarters: 0, target_strong_quarters: 2, target_weak_streak: 0,
     }],
     analogs: [{
       event_id: "outbreak-covid19-20200120", name: "코로나19 국내 유행과 방역 조치", category: "pandemic", category_label: "감염병·방역",
       start_date: "2020-01-20", end_date: "2022-04-17", duration_months: 27, description: null, source: "보건복지부·중앙재난안전대책본부 보도자료", current: false,
-      windows: [
-        { kind: "immediate", label: "직후 3개월", start_month: "2020-01", end_month: "2020-03", target: target(-0.8),
-          strongest: [move("chinese_food", "중식", 0.8), move("pub", "호프·주점", 0.7), move("korean_food", "한식", 0.6)],
-          weakest: [move("japanese_food", "일식", -0.7), move("pc_bang", "PC방", -0.6)] },
-        { kind: "late", label: "1년 차 마지막 3개월", start_month: "2020-10", end_month: "2020-12", target: target(-1.4),
-          strongest: [move("gym", "헬스장", 0.9), move("japanese_food", "일식", 0.8)], weakest: [move("billiard", "당구장", -9.1), move("pc_bang", "PC방", -1.5)] },
+      quarters: demoQuarters(2020, 1, 12, {
+        1: ["최저임금 인상 — 2020년", "주 52시간제 시행 — 50~299인 사업장"], 2: ["1차 긴급재난지원금 지급 (전 국민)"],
+        5: ["최저임금 인상 — 2021년"], 8: ["소상공인 손실보상제 시행"], 9: ["최저임금 인상 — 2022년"],
+      }),
+      series: [
+        { industry_id: industryId, industry_name: industryName, role: "target", values: [-0.8, -1.1, -0.6, -1.4, -0.7, -1.4, -0.9, -0.4, -1.2, -1.6, -1.2, -1.7] },
+        { industry_id: "western_food", industry_name: "양식", role: "recommended", values: [0.6, 0.6, 1.2, 0.4, 2.5, 0.9, 1.2, -0.2, 1.1, 0.4, 0.5, -0.3] },
+        { industry_id: "gym", industry_name: "헬스장", role: "recommended", values: [-0.6, -0.2, 1.3, 0.9, -4.5, 1.8, 1.2, 1.2, 2.2, 1.6, 1.4, 1.5] },
+        { industry_id: "japanese_food", industry_name: "일식", role: "recommended", values: [-0.7, -0.9, 0.4, 0.8, 0.5, 1.7, 0.7, 0.8, 0.2, 0.6, 0.2, 0.6] },
+        { industry_id: "pub", industry_name: "호프·주점", role: "avoid", values: [0.7, 0.6, -0.3, -0.8, 1.1, -1.3, -1.0, -0.9, 0.2, -0.3, -0.4, -1.1] },
+        { industry_id: "korean_food", industry_name: "한식", role: "avoid", values: [0.6, 0.9, 0.2, -0.2, 0.8, -0.1, -0.5, -0.5, 0.6, 0.1, -0.5, -0.6] },
       ],
+      target_weak_quarters: 12, target_strong_quarters: 0, target_weak_streak: 12,
     }],
     outlooks: [{
       category: "pandemic", label: "감염병·방역", analog_count: 1, target_trend: "weak",
-      recommended: [{ industry_id: "chinese_food", industry_name: "중식" }, { industry_id: "gym", industry_name: "헬스장" }],
-      avoid: [{ industry_id: "pc_bang", industry_name: "PC방" }],
+      recommended: [
+        { industry_id: "western_food", industry_name: "양식" }, { industry_id: "gym", industry_name: "헬스장" },
+        { industry_id: "japanese_food", industry_name: "일식" },
+      ],
+      avoid: [{ industry_id: "pub", industry_name: "호프·주점" }, { industry_id: "korean_food", industry_name: "한식" }],
       typical_duration_months: 27,
     }],
     caveats: [
-      "12월에는 행정 정리로 폐업이 몰린다 — 10~12월이 걸린 창은 변동폭이 크게 나올 수 있다.",
+      "12월에는 행정 정리로 폐업이 몰린다 — 12월이 든 분기는 한 번씩 크게 튈 수 있어 판단은 분기 과반으로 한다.",
       "2020~2022년 폐업은 재난지원금·손실보상으로 지연되어 실제보다 적게 잡혔을 수 있다.",
     ],
   };
@@ -364,8 +381,8 @@ export function agentEventScript(): AgentEvent[] {
       "원두 원가 변동도 마진에 영향을 줄 수 있습니다.",
     ] },
     { section: "analogs", sentences: [
-      "### 유사 사례\n\n코로나19 유행 직후 3개월 동안 카페는 평소보다 점포가 덜 늘어 약세 업종에 들었습니다. ",
-      "그 상황은 약 27개월 이어졌으니, 지금은 카페 창업을 서두르기보다 중식·헬스장처럼 사례에서 강세였던 업종을 먼저 검토하세요.",
+      "### 유사 사례\n\n코로나19 유행 뒤 3년 12분기 내내 카페는 평소보다 점포가 덜 늘었습니다. ",
+      "비슷한 상황이 오면 약세가 길게 이어질 수 있으니, 지금은 카페 창업을 서두르기보다 양식·헬스장·일식처럼 사례에서 거듭 강세였던 업종을 먼저 검토하세요.",
     ] },
     { section: "conditions", sentences: [
       "### 그래도 한다면\n\n유동인구와 매출 시간대가 맞는지 확인하세요. ",

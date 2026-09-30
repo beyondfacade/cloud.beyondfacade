@@ -101,7 +101,7 @@ it("SSE 연도별 이력은 2019년부터 최신까지 기존 지표와 개폐�
   }
 });
 
-it("SSE 유사 사례는 창별 변동폭과 해석 주의사항을 계약 키로 제공한다", async () => {
+it("SSE 유사 사례는 분기별 업종 흐름과 해석 주의사항을 계약 키로 제공한다", async () => {
   const event = (await readEvents()).find((e) => e.type === "facts");
   const analogs = event?.facts.analogs;
   if (!analogs || "available" in analogs) throw new Error("유사 사례 없음");
@@ -109,11 +109,15 @@ it("SSE 유사 사례는 창별 변동폭과 해석 주의사항을 계약 키�
   expect(analogs.current_events.every((e) => e.current)).toBe(true);
   expect(analogs.analogs.length).toBeGreaterThan(0);
   for (const impact of [...analogs.current_events, ...analogs.analogs]) {
-    for (const window of impact.windows) {
-      expect(window.label).toMatch(/개월$/);
-      expect(window.start_month <= window.end_month).toBe(true);
-      expect(window.target?.industry_id).toBe("cafe");
-    }
+    expect(impact.quarters.length).toBeLessThanOrEqual(12);
+    impact.quarters.forEach((q, index) => {
+      expect(q.quarter).toBe(index + 1);
+      expect(q.label).toMatch(/^[1-3]년 차 [1-4]분기$/);
+      expect(q.start_month <= q.end_month).toBe(true);
+    });
+    expect(impact.series[0]).toMatchObject({ industry_id: "cafe", role: "target" });
+    for (const series of impact.series) expect(series.values).toHaveLength(impact.quarters.length);
+    expect(impact.target_weak_quarters + impact.target_strong_quarters).toBeLessThanOrEqual(impact.quarters.length);
   }
   expect(analogs.caveats.length).toBeGreaterThan(0);
 });

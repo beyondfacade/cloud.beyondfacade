@@ -1,4 +1,4 @@
-import type { CategoryOutlook, EventAnalogs, EventImpact, IndustryMove, UnavailableFact, WindowImpact } from "@/shared/api/types";
+import type { AnalogQuarter, CategoryOutlook, EventAnalogs, EventImpact, IndustrySeries, UnavailableFact } from "@/shared/api/types";
 import { availableFact } from "../../lib/available-fact";
 
 const REASON_LABEL: Record<EventAnalogs["categories"][number]["reason"], string> = {
@@ -10,44 +10,90 @@ function formatPp(value: number): string {
   return `${value > 0 ? "+" : ""}${value.toFixed(1)}%p`;
 }
 
-/** 강세·약세·내 업종을 한 줄로 모아 변동폭 순으로 — 같은 업종이 두 번 나오지 않게. */
-function windowRows(window: WindowImpact): { move: IndustryMove & { excess_pct: number }; mine: boolean }[] {
-  const byId = new Map<string, IndustryMove>();
-  for (const move of [...window.strongest, ...window.weakest, ...(window.target ? [window.target] : [])]) byId.set(move.industry_id, move);
-  return [...byId.values()]
-    .filter((move): move is IndustryMove & { excess_pct: number } => move.excess_pct !== null)
-    .sort((a, b) => b.excess_pct - a.excess_pct)
-    .map((move) => ({ move, mine: move.industry_id === window.target?.industry_id }));
+// 평소 대비 ±0.3%p 밖만 강세·약세로 칠한다 (백엔드 TREND_BAND와 같다)
+const TREND_BAND = 0.3;
+// 이 크기(%p)부터 가장 진하게 — 한 분기만 튀는 값이 나머지를 흐리게 만들지 않도록 상한을 둔다
+const FULL_TONE = 2;
+
+const ROLE_LABEL: Record<IndustrySeries["role"], string> = {
+  target: "내 업종",
+  recommended: "거듭 강세",
+  avoid: "거듭 약세",
+};
+
+const ROLE_COLOR: Record<IndustrySeries["role"], string> = {
+  target: "var(--text-primary)",
+  recommended: "var(--ok)",
+  avoid: "var(--danger)",
+};
+
+function tone(value: number | null): "none" | "weak" | "strong" | "flat" {
+  if (value === null) return "none";
+  if (value <= -TREND_BAND) return "weak";
+  if (value >= TREND_BAND) return "strong";
+  return "flat";
 }
 
-function WindowBars({ window }: { window: WindowImpact }) {
-  const rows = windowRows(window);
-  const max = Math.max(0.1, ...rows.map(({ move }) => Math.abs(move.excess_pct)));
-  const title = `${window.label} ${window.start_month}~${window.end_month}`;
+function cellColor(value: number | null): string {
+  const t = tone(value);
+  if (t === "none") return "transparent";
+  if (t === "flat") return "var(--bg-raised)";
+  const strength = Math.round(25 + (Math.min(Math.abs(value as number), FULL_TONE) / FULL_TONE) * 75);
+  return `color-mix(in srgb, ${t === "strong" ? "var(--ok)" : "var(--danger)"} ${strength}%, transparent)`;
+}
+
+function QuarterGrid({ event }: { event: EventImpact }) {
+  const years = [...new Set(event.quarters.map((q) => Math.ceil(q.quarter / 4)))];
   return (
-    <div role="group" aria-label={title} className="flex flex-col gap-2">
-      <p className="text-xs text-[var(--text-secondary)]">{window.label} <span className="tabular-nums">{window.start_month}~{window.end_month}</span></p>
-      {rows.length === 0 ? <p className="text-sm text-[var(--text-secondary)]">자료 없음</p> : (
-        <ul className="flex flex-col gap-1.5">
-          {rows.map(({ move, mine }) => {
-            const width = (Math.abs(move.excess_pct) / max) * 50;
-            const positive = move.excess_pct >= 0;
-            return (
-              <li key={move.industry_id} aria-label={`${move.industry_name} ${formatPp(move.excess_pct)}${mine ? " (내 업종)" : ""}`}
-                className="grid grid-cols-[5.5rem_1fr_3.5rem] items-center gap-2 text-xs">
-                <span className={mine ? "font-semibold text-[var(--text-primary)]" : "text-[var(--text-secondary)]"}>{move.industry_name}</span>
-                <span className="relative h-2 rounded bg-[var(--bg-raised)]">
-                  <span aria-hidden className="absolute inset-y-[-2px] left-1/2 border-l border-[var(--border)]" />
-                  <span data-testid="bar" className="absolute inset-y-0 rounded"
-                    style={{ left: positive ? "50%" : `${50 - width}%`, width: `${width}%`, backgroundColor: positive ? "var(--ok)" : "var(--danger)" }} />
-                </span>
-                <span className={`text-right tabular-nums ${mine ? "font-semibold text-[var(--text-primary)]" : "text-[var(--text-secondary)]"}`}>{formatPp(move.excess_pct)}</span>
-              </li>
-            );
-          })}
-        </ul>
-      )}
-    </div>
+    <table aria-label={`${event.name} 분기별 변동폭`} className="w-full table-fixed border-separate border-spacing-0.5 text-xs">
+      <colgroup>
+        <col className="w-28" />
+        {event.quarters.map((q) => <col key={q.quarter} />)}
+      </colgroup>
+      <thead>
+        <tr>
+          <th scope="col" className="sr-only">업종</th>
+          {years.map((year) => (
+            <th key={year} scope="colgroup" colSpan={event.quarters.filter((q) => Math.ceil(q.quarter / 4) === year).length}
+              className="border-b border-[var(--border)] pb-0.5 text-center font-normal text-[var(--text-secondary)]">
+              {year}년 차
+            </th>
+          ))}
+        </tr>
+      </thead>
+      <tbody>
+        {event.series.map((series) => (
+          <tr key={`${series.role}-${series.industry_id}`}>
+            <th scope="row" className="truncate pr-1 text-left font-normal">
+              <span aria-hidden="true" className="mr-1 inline-block h-2 w-2 rounded-full align-middle" style={{ backgroundColor: ROLE_COLOR[series.role] }} />
+              <span className={series.role === "target" ? "font-semibold text-[var(--text-primary)]" : "text-[var(--text-secondary)]"}>{series.industry_name}</span>
+              <span className="sr-only"> ({ROLE_LABEL[series.role]})</span>
+            </th>
+            {event.quarters.map((q, index) => {
+              const value = series.values[index] ?? null;
+              const text = `${q.label} ${value === null ? "자료 없음" : formatPp(value)}`;
+              return (
+                <td key={q.quarter} title={text} data-tone={tone(value)}
+                  className={`h-5 rounded-sm ${value === null ? "border border-dashed border-[var(--border)]" : ""}`}
+                  style={{ backgroundColor: cellColor(value) }}>
+                  <span className="sr-only">{text}</span>
+                </td>
+              );
+            })}
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  );
+}
+
+function Overlaps({ quarters }: { quarters: AnalogQuarter[] }) {
+  const overlapping = quarters.filter((q) => q.overlaps.length > 0);
+  if (overlapping.length === 0) return null;
+  return (
+    <ul aria-label="겹친 이벤트" className="flex flex-col gap-0.5 text-xs text-[var(--text-secondary)]">
+      {overlapping.map((q) => <li key={q.quarter}>{q.label} — {q.overlaps.join(", ")}</li>)}
+    </ul>
   );
 }
 
@@ -94,9 +140,16 @@ function EventCard({ event }: { event: EventImpact }) {
         <span className="rounded-full bg-[var(--bg-raised)] px-2 py-0.5 text-xs text-[var(--text-secondary)]">{event.category_label}</span>
         <span className="ml-auto text-xs tabular-nums text-[var(--text-secondary)]">{period}</span>
       </header>
-      <div className="grid gap-4 md:grid-cols-2">
-        {event.windows.map((window) => <WindowBars key={window.kind} window={window} />)}
-      </div>
+      {event.quarters.length === 0 ? <p className="text-sm text-[var(--text-secondary)]">아직 끝난 분기가 없습니다.</p> : (
+        <>
+          <p className="text-xs text-[var(--text-secondary)]">
+            내 업종 {event.quarters.length}분기 중 약세 {event.target_weak_quarters} · 강세 {event.target_strong_quarters}
+            {event.target_weak_streak > 0 && ` · 처음부터 ${event.target_weak_streak}분기 연속 약세`}
+          </p>
+          <QuarterGrid event={event} />
+          <Overlaps quarters={event.quarters} />
+        </>
+      )}
     </article>
   );
 }
@@ -109,7 +162,7 @@ export function AnalogCases({ analogs }: { analogs?: EventAnalogs | UnavailableF
     <section aria-label="유사 사례 변동폭" className="flex flex-col gap-4">
       <div className="flex flex-col gap-1">
         <h3 className="text-sm font-semibold text-[var(--text-primary)]">비슷한 일이 있었을 때 업종 변동폭</h3>
-        <p className="text-xs text-[var(--text-secondary)]">서울 전체 점포수 증감, 전년 같은 달 대비 %p · 기준 {data.as_of}</p>
+        <p className="text-xs text-[var(--text-secondary)]">서울 전체 점포수 증감, 이벤트 직전 1년의 같은 분기 대비 %p · 칸 색은 분기별 강세·약세, 이름 앞 점은 사례에서 거듭 강세·약세 · 기준 {data.as_of}</p>
       </div>
       {data.categories.length > 0 && (
         <ul className="flex flex-wrap gap-2">

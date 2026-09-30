@@ -1,13 +1,21 @@
-import type { EventAnalogs, IndustryMove, ReportFacts } from "@/shared/api/types";
+import type { AnalogQuarter, EventAnalogs, ReportFacts } from "@/shared/api/types";
 
-function move(industry_id: string, industry_name: string, excess_pct: number | null): IndustryMove {
-  return { industry_id, industry_name, openings: 100, closings: 80, openings_yoy_pct: 1, closings_yoy_pct: 2, stock_change_pct: 0.5, excess_pct };
+/** 이벤트 달부터 3개월씩 count개 분기. overlaps는 분기 번호(1부터) → 겹친 이벤트 이름. */
+export function analogQuarters(year: number, month: number, count: number, overlaps: Record<number, string[]> = {}): AnalogQuarter[] {
+  const ym = (offset: number) => {
+    const index = year * 12 + month - 1 + offset;
+    return `${Math.floor(index / 12)}-${String((index % 12) + 1).padStart(2, "0")}`;
+  };
+  return Array.from({ length: count }, (_, i) => ({
+    quarter: i + 1, label: `${Math.floor(i / 4) + 1}년 차 ${(i % 4) + 1}분기`,
+    start_month: ym(i * 3), end_month: ym(i * 3 + 2), overlaps: overlaps[i + 1] ?? [],
+  }));
 }
 
-/** 유사 사례 표본 — 진행 중 1건 + 지난 사례 1건. */
+/** 유사 사례 표본 — 진행 중 1건(2분기) + 지난 사례 1건(12분기). */
 export function eventAnalogs(): EventAnalogs {
   return {
-    industry_id: "cafe", months: 3, years: 1, as_of: "2026-08",
+    industry_id: "cafe", years: 3, as_of: "2026-08",
     categories: [
       { category: "pandemic", label: "감염병·방역", reason: "question" },
       { category: "minimum_wage", label: "최저임금", reason: "current" },
@@ -15,17 +23,20 @@ export function eventAnalogs(): EventAnalogs {
     current_events: [{
       event_id: "min-wage-2026", name: "최저임금 인상 — 2026년", category: "minimum_wage", category_label: "최저임금",
       start_date: "2026-01-01", end_date: "2026-12-31", duration_months: 11, description: null, source: "고용노동부", current: true,
-      windows: [{ kind: "immediate", label: "직후 3개월", start_month: "2026-01", end_month: "2026-03", target: move("cafe", "카페", 0.6), strongest: [move("pc_bang", "PC방", 0.9)], weakest: [move("gym", "헬스장", -1.3)] }],
+      quarters: analogQuarters(2026, 1, 2),
+      series: [{ industry_id: "cafe", industry_name: "카페", role: "target", values: [0.6, 0.5] }],
+      target_weak_quarters: 0, target_strong_quarters: 2, target_weak_streak: 0,
     }],
     analogs: [{
       event_id: "outbreak-covid19-20200120", name: "코로나19 국내 유행과 방역 조치", category: "pandemic", category_label: "감염병·방역",
       start_date: "2020-01-20", end_date: "2022-04-17", duration_months: 27, description: null, source: "보건복지부", current: false,
-      windows: [
-        { kind: "immediate", label: "직후 3개월", start_month: "2020-01", end_month: "2020-03", target: move("cafe", "카페", -0.8),
-          strongest: [move("chinese_food", "중식", 0.8), move("pub", "호프·주점", 0.7)], weakest: [move("cafe", "카페", -0.8), move("pc_bang", "PC방", -0.6)] },
-        { kind: "late", label: "1년 차 마지막 3개월", start_month: "2020-10", end_month: "2020-12", target: move("cafe", "카페", -1.4),
-          strongest: [move("gym", "헬스장", 0.9)], weakest: [move("billiard", "당구장", -9.1)] },
+      quarters: analogQuarters(2020, 1, 12, { 2: ["1차 긴급재난지원금 지급"], 8: ["소상공인 손실보상제 시행"] }),
+      series: [
+        { industry_id: "cafe", industry_name: "카페", role: "target", values: [-0.8, -1.1, -0.6, -1.4, -0.7, -1.4, -0.9, -0.4, -1.2, -1.6, -1.2, -1.7] },
+        { industry_id: "western_food", industry_name: "양식", role: "recommended", values: [0.6, 0.6, 1.2, 0.4, 2.5, 0.9, 1.2, -0.2, 1.1, 0.4, 0.5, null] },
+        { industry_id: "pc_bang", industry_name: "PC방", role: "avoid", values: [-0.6, -1.2, -1.7, -1.5, -2.4, 0.4, 0.4, -1.1, -6.5, 0.1, 0.0, -1.0] },
       ],
+      target_weak_quarters: 12, target_strong_quarters: 0, target_weak_streak: 12,
     }],
     outlooks: [{
       category: "pandemic", label: "감염병·방역", analog_count: 2, target_trend: "weak",
@@ -33,7 +44,7 @@ export function eventAnalogs(): EventAnalogs {
       avoid: [{ industry_id: "pc_bang", industry_name: "PC방" }],
       typical_duration_months: 17,
     }],
-    caveats: ["12월에는 행정 정리로 폐업이 몰린다 — 10~12월이 걸린 창은 변동폭이 크게 나올 수 있다."],
+    caveats: ["12월에는 행정 정리로 폐업이 몰린다 — 12월이 든 분기는 한 번씩 크게 튈 수 있어 판단은 분기 과반으로 한다."],
   };
 }
 

@@ -37,26 +37,21 @@ export interface ReportFacts {
   budget: number | null;
 }
 
-/** 기간 창 하나의 업종 변동 — 증감률은 %, excess_pct는 전년 같은 창 대비 점포수 증감 차(%p). */
-export interface IndustryMove {
-  industry_id: string;
-  industry_name: string;
-  openings: number;
-  closings: number;
-  openings_yoy_pct: number | null;
-  closings_yoy_pct: number | null;
-  stock_change_pct: number | null;
-  excess_pct: number | null;
-}
-
-export interface WindowImpact {
-  kind: "immediate" | "late" | "recent";
+/** 이벤트 기준 분기(1분기 = 이벤트 달부터 3개월). overlaps는 그 분기에 시작한 다른 유형 이벤트 이름. */
+export interface AnalogQuarter {
+  quarter: number;
   label: string;
   start_month: string;
   end_month: string;
-  target: IndustryMove | null;
-  strongest: IndustryMove[];
-  weakest: IndustryMove[];
+  overlaps: string[];
+}
+
+/** 업종 하나의 분기별 평소 대비 점포수 증감(%p) — 기준은 이벤트 직전 1년의 같은 분기. */
+export interface IndustrySeries {
+  industry_id: string;
+  industry_name: string;
+  role: "target" | "recommended" | "avoid";
+  values: (number | null)[];
 }
 
 export interface EventImpact {
@@ -70,10 +65,15 @@ export interface EventImpact {
   description: string | null;
   source: string;
   current: boolean;
-  windows: WindowImpact[];
+  quarters: AnalogQuarter[];
+  series: IndustrySeries[];
+  target_weak_quarters: number;
+  target_strong_quarters: number;
+  /** 1분기부터 끊기지 않고 약세였던 분기 수. */
+  target_weak_streak: number;
 }
 
-/** 유형별 과거 사례 집계 — recommended는 여러 창에서 거듭 강세였던 업종, avoid는 거듭 약세였던 업종. */
+/** 유형별 과거 사례 집계 — recommended는 여러 분기에서 거듭 강세였던 업종, avoid는 거듭 약세였던 업종. */
 export interface CategoryOutlook {
   category: string;
   label: string;
@@ -86,7 +86,6 @@ export interface CategoryOutlook {
 
 export interface EventAnalogs {
   industry_id: string;
-  months: number;
   years: number;
   as_of: string;
   categories: { category: string; label: string; reason: "question" | "current" }[];
