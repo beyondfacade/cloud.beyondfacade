@@ -99,6 +99,27 @@ it("사실 조회 실패와 필드 누락을 각 그림 자리의 자료 없음�
   expect(screen.getAllByText("자료 없음")).toHaveLength(11);
 });
 
+it("리포트가 끝나면 하단에 창업 지원 정보와 다른 창업 알아보기 버튼을 동네·업종·예산과 함께 보여 준다", () => {
+  const facts = { ...reportFacts(), budget: 50_000_000 };
+  render(<ReportView state={{ ...initialAgentState(), facts, done: true }} />);
+  const nav = screen.getByRole("navigation", { name: "다음 단계" });
+  expect(nav).toBeInTheDocument();
+  expect(screen.getByRole("link", { name: /창업 지원·대출 정보 보기/ })).toHaveAttribute("href", "/support?region=1168064000&industry=cafe&budget=50000000");
+  expect(screen.getByRole("link", { name: /다른 창업 알아보기/ })).toHaveAttribute("href", "/map?region=1168064000&industry=cafe&budget=50000000");
+});
+
+it("예산이 없으면 버튼 주소에서 예산을 뺀다", () => {
+  render(<ReportView state={{ ...initialAgentState(), facts: reportFacts(), done: true }} />);
+  expect(screen.getByRole("link", { name: /창업 지원·대출 정보 보기/ })).toHaveAttribute("href", "/support?region=1168064000&industry=cafe");
+});
+
+it("리포트가 끝나기 전이나 사실이 없으면 하단 버튼을 보여 주지 않는다", () => {
+  const { rerender } = render(<ReportView state={{ ...initialAgentState(), facts: reportFacts() }} />);
+  expect(screen.queryByRole("navigation", { name: "다음 단계" })).toBeNull();
+  rerender(<ReportView state={{ ...initialAgentState(), done: true, sections: { verdict: "판정" } }} />);
+  expect(screen.queryByRole("navigation", { name: "다음 단계" })).toBeNull();
+});
+
 it("사실 섹션 제목과 같은 마크다운 제목은 중복하지 않고 본문을 유지한다", () => {
   render(<ReportView state={{ ...initialAgentState(), facts: reportFacts(), sections: { verdict: "## 판정\n\n첫 해석입니다." } }} />);
   expect(screen.getAllByRole("heading", { name: "판정", exact: true })).toHaveLength(1);

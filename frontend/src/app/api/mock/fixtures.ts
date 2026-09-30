@@ -11,6 +11,8 @@ import type {
   ChildcareCenter,
   FinancePrefill,
   FundingCandidate,
+  SupportGuide,
+  SupportItem,
   PlanQuestion,
   ChildcareRegionSummary,
   ConvenienceRegionSummary,
@@ -820,6 +822,29 @@ export function fundingCandidatesOf(stage: string | null): FundingCandidate[] {
       is_expired: false,
       why: seed.why,
     }));
+}
+
+/** 창업 지원 정보 — 실 API처럼 금융은 대출 묶음, 구 이름이 든 공고는 구 묶음, 나머지는 창업·경영 묶음. */
+export function supportGuideOf(regionCode: string | null, industryId: string | null): SupportGuide {
+  const districtName = regionCode ? SEOUL_DISTRICTS[districtOf(regionCode)] ?? null : null;
+  const items: SupportItem[] = fundingCandidatesOf(null).map((c) => ({ ...c, district_match: false, industry_match: false }));
+  const districtItems: SupportItem[] = districtName ? [
+    { ...items[1], program_id: "mock-district-1", title: `[서울] ${districtName} 2026년 소상공인 원스톱 지원사업`, why: "서울 · 소상공인 · 경영", district_match: true },
+    { ...items[1], program_id: "mock-district-2", title: `[서울] ${districtName} 2026년 소규모 자영업자 간판 설치 지원`, why: "서울 · 소상공인 · 경영", district_match: true },
+  ] : [];
+  const others = items.filter((c) => c.field_category !== "금융").map((c, i) => (i === 0 && industryId ? { ...c, industry_match: true } : c));
+  return {
+    region_code: regionCode,
+    district_name: districtName,
+    industry_id: industryId,
+    loans: items.filter((c) => c.field_category === "금융"),
+    district: districtItems,
+    others,
+    rates: [
+      { rate_type: "base", period: "202608", rate_pct: 3.0 },
+      { rate_type: "loan_facility", period: "202608", rate_pct: 4.05 },
+    ],
+  };
 }
 
 /** 확인할 질문 초안 — 실 API(§4 규칙 목록)의 발화 조건을 흉내 낸다. 금액은 만원 단위 문장. */

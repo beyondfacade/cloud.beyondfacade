@@ -446,6 +446,30 @@ export interface FundingCandidateList {
   stage: string | null;
 }
 
+/** 창업 지원 정보의 공고 1건 — 후보 공고 + 우리 구 전용·업종 관련 표시. */
+export interface SupportItem extends FundingCandidate {
+  district_match: boolean;
+  industry_match: boolean;
+}
+
+/** 금리 참고값 — `rate_type`은 base(기준금리) · loan_facility(시설자금대출), `period`는 YYYYMM. */
+export interface RateReference {
+  rate_type: string;
+  period: string;
+  rate_pct: number;
+}
+
+/** 창업 지원 정보 (GET /funding/support). 구를 모르면 `district_name`이 null이고 `district`가 빈다. */
+export interface SupportGuide {
+  region_code: string | null;
+  district_name: string | null;
+  industry_id: string | null;
+  loans: SupportItem[];
+  district: SupportItem[];
+  others: SupportItem[];
+  rates: RateReference[];
+}
+
 /** 확인할 질문 초안 (POST /finance/questions). 서버는 초안을 줄 뿐 — 사용자가 편집·삭제·추가한다. */
 export type PlanQuestionKind = "gap" | "assumption" | "procedure";
 
