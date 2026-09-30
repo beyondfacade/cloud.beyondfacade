@@ -33,15 +33,9 @@ export const ROOMS: Room[] = [
   {
     key: "users", href: "/admin/users", badge: "PEOPLE",
     title: "인사팀", titleEn: "People",
-    subtitle: "관리자 계정의 역할과 접속 상태를 관리하고 비밀번호·세션을 정리합니다.",
+    subtitle: "회원 계정의 등급과 접속 상태를 관리하고 비밀번호·세션을 정리합니다.",
     pollMs: 30_000,
   },
 ];
 
 export const ROOM_BY_KEY = Object.fromEntries(ROOMS.map((room) => [room.key, room])) as Record<RoomKey, Room>;
-
-/** 로그인 후 돌아갈 곳 — 외부 URL·프로토콜 상대 경로(//)는 허브로 돌린다(오픈 리다이렉트 방지). */
-export function safeAdminNext(next: string | null | undefined): string {
-  if (!next || !next.startsWith("/admin") || next.startsWith("//") || next.startsWith("/admin/login")) return "/admin";
-  return next;
-}

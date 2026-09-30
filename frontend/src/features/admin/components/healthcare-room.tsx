@@ -317,7 +317,7 @@ function ProbePanel({ canOperate }: { canOperate: boolean }) {
   const current = PROBE_KINDS.find((k) => k.key === kind) ?? PROBE_KINDS[0];
 
   if (!canOperate) {
-    return <Notice>프로브는 실제 LLM·임베딩 호출 비용이 들어 운영 관리자만 실행할 수 있습니다.</Notice>;
+    return <Notice>프로브는 실제 LLM·임베딩 호출 비용이 들어 관리자만 실행할 수 있습니다.</Notice>;
   }
 
   function submit(event: FormEvent) {

@@ -34,6 +34,6 @@ export function facilityStatus(snapshot: FacilitySnapshot): DoorStatus {
 export function usersStatus(users: AdminUser[]): DoorStatus {
   const operators = users.filter((u) => u.is_active && u.role === "operator").length;
   const suspended = users.filter((u) => !u.is_active).length;
-  if (operators <= 1) return { tone: "warn", label: `활성 운영 관리자 ${operators}명` };
+  if (operators <= 1) return { tone: "warn", label: `활성 관리자 ${operators}명` };
   return { tone: suspended ? "neutral" : "ok", label: `계정 ${users.length}개${suspended ? ` · 정지 ${suspended}` : ""}` };
 }

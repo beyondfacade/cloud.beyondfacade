@@ -36,6 +36,7 @@
 .brandMark { display: grid; place-items: center; width: 39px; height: 39px; border-radius: 12px 12px 12px 3px; font-family: Georgia, serif; font-size: 29px; font-weight: 600; padding-bottom: 3px; }
 .brandCaption { display: block; margin-top: 2px; font-size: 10px; font-weight: 500; letter-spacing: .5px; }
 .navigation { display: flex; align-items: center; gap: 30px; font-size: 13px; font-weight: 550; }
+.navigation > * { flex-shrink: 0; white-space: nowrap; }
 .headerExplore { display: flex; align-items: center; gap: 24px; border-bottom: 1px solid var(--landing-ink); padding-block: 7px; }
 .headerExplore span { font-size: 21px; }
 
@@ -160,8 +161,11 @@
   .footerBrand span { margin-left: 13px; }
   .footer > span:nth-child(2) { font-size: 8px; }
 }
-@media (max-width: 380px) {
+@media (max-width: 560px) {
   .navigation { gap: 10px; }
+  .headerExplore { display: none; }
+}
+@media (max-width: 380px) {
   .hero h1 { font-size: 37px; }
   .heroActions { gap: 13px; }
   .primaryLink { gap: 23px; padding-inline: 16px; }

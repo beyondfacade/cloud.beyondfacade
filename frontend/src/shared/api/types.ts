@@ -453,6 +453,17 @@ export interface AdminMe {
   can_operate: boolean;
 }
 
+/** 공개 가입 — 가입하면 일반(viewer)으로 바로 로그인된다. */
+export interface SignupRequest {
+  username: string;
+  email: string;
+  password: string;
+}
+
+export interface AuthProviders {
+  google: boolean;
+}
+
 export type AlertSeverity = "critical" | "high" | "medium" | "low";
 
 export interface SecurityAlert {
@@ -467,7 +478,7 @@ export interface SecurityAlert {
 }
 
 export type AccessEventKind =
-  | "login_failed" | "login_succeeded" | "login_throttled"
+  | "login_failed" | "login_succeeded" | "login_throttled" | "signup"
   | "scanner_probe" | "server_error" | "blocked_request";
 
 export interface AccessEvent {
@@ -637,6 +648,9 @@ export interface AdminUser {
   created_at: string | null;
   last_login_at: string | null;
   active_sessions: number;
+  email: string | null;
+  has_password: boolean;
+  has_google: boolean;
 }
 
 export interface AdminUserFilter {

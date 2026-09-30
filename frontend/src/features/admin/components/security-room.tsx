@@ -265,7 +265,7 @@ function BlocksPanel({ blocks, canOperate, mutations }: {
           <BlockForm onSubmit={(body) => block.mutate(body)} isPending={block.isPending} error={block.error} />
         </Section>
       ) : (
-        <Notice>조회 관리자는 차단 목록을 볼 수만 있습니다. 차단·해제는 운영 관리자 권한이 필요합니다.</Notice>
+        <Notice>일반 회원은 차단 목록을 볼 수만 있습니다. 차단·해제는 관리자 권한이 필요합니다.</Notice>
       )}
       <Section title="차단 중인 IP" aside={<p>차단 IP는 /admin 경로 접근이 거부됩니다</p>} flush>
         {!blocks?.length ? (

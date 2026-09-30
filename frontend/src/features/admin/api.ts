@@ -36,10 +36,6 @@ function query(params: Record<string, string | number | null | undefined>): stri
 const userPath = (username: string) => `/admin/users/${encodeURIComponent(username)}`;
 
 /** 세션은 httpOnly 쿠키 — 같은 origin 요청이라 fetch가 자동으로 싣는다. 토큰은 JS에 노출되지 않는다. */
-export function loginAdmin(username: string, password: string): Promise<AdminMe> {
-  return apiPost<AdminMe>("/admin/auth/login", { username, password });
-}
-
 export function logoutAdmin(): Promise<void> {
   return apiPost<void>("/admin/auth/logout", {});
 }

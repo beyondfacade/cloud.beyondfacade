@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { AccountMenu } from "@/shared/ui/account-menu";
 import { ThemeToggle } from "@/shared/ui/theme-toggle";
 import styles from "./landing-page.module.css";
 
@@ -24,6 +25,7 @@ export function LandingPage({ hero }: LandingPageProps = {}) {
         </Link>
         <nav className={styles.navigation} aria-label="주요 메뉴">
           <a href="#about" className={styles.aboutLink}>메타볼레 소개</a>
+          <AccountMenu />
           <ThemeToggle />
           <Link href="/map" prefetch={false} className={styles.headerExplore}>지도 열기 <Arrow diagonal /></Link>
         </nav>

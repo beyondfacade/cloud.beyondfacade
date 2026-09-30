@@ -27,7 +27,7 @@ it("서비스 장애가 수집 지연보다 우선한다", () => {
   expect(facilityStatus(allOk)).toEqual({ tone: "ok", label: "설비 정상" });
 });
 
-it("활성 운영 관리자가 한 명뿐이면 인사팀 문에 주의를 띄운다", () => {
+it("활성 관리자가 한 명뿐이면 인사팀 문에 주의를 띄운다", () => {
   const users = [...accounts.values()].map((a) => a.user);
   expect(usersStatus(users).label).toBe("계정 4개 · 정지 1");
   expect(usersStatus(users.filter((u) => u.username !== "lee.ops")).tone).toBe("warn");

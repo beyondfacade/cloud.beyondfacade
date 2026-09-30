@@ -6,6 +6,7 @@ vi.mock("next/navigation", async (importOriginal) => ({
   ...(await importOriginal<typeof import("next/navigation")>()),
   useRouter: () => ({ push: vi.fn(), replace: vi.fn() }),
 }));
+vi.mock("@/shared/ui/account-menu", () => ({ AccountMenu: () => null }));
 
 it("이전 지도 주소의 선택값을 보존하여 지도 경로로 이동한다", async () => {
   const result = Promise.resolve().then(() => Home({ searchParams: Promise.resolve({

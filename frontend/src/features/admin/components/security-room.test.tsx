@@ -28,13 +28,13 @@ it("요약 지표와 심각도 배지가 붙은 알림을 보여준다", async (
   expect(screen.getByText("심각")).toBeInTheDocument();
 });
 
-it("조회 관리자에게는 차단 버튼 대신 권한 안내를 보여준다", async () => {
+it("일반 회원에게는 차단 버튼 대신 권한 안내를 보여준다", async () => {
   vi.spyOn(api, "fetchAdminMe").mockResolvedValue(VIEWER);
   renderWithQuery(<SecurityRoom />);
   await screen.findByText("관리자 로그인 실패 12회 (15분)");
   expect(screen.queryByRole("button", { name: "24시간 차단" })).not.toBeInTheDocument();
   await userEvent.click(screen.getByRole("tab", { name: /IP 차단/ }));
-  expect(screen.getByRole("note")).toHaveTextContent("운영 관리자 권한");
+  expect(screen.getByRole("note")).toHaveTextContent("관리자 권한");
   expect(screen.queryByRole("button", { name: "해제" })).not.toBeInTheDocument();
 });
 

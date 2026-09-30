@@ -42,8 +42,8 @@ function summaryItems(everyone: AdminUser[], shown: number): StatItem[] {
     { label: "전체 계정", value: formatCount(everyone.length) },
     { label: "접속 정지", value: `${formatCount(suspended)}명`, tone: suspended ? "warn" : "ok" },
     {
-      label: "활성 운영 관리자", value: formatCount(operators), tone: operators <= 1 ? "warn" : undefined,
-      hint: operators <= 1 ? "마지막 운영 관리자는 강등·정지할 수 없습니다" : undefined,
+      label: "활성 관리자", value: formatCount(operators), tone: operators <= 1 ? "warn" : undefined,
+      hint: operators <= 1 ? "마지막 관리자는 강등·정지할 수 없습니다" : undefined,
     },
     { label: "활성 세션", value: formatCount(everyone.reduce((sum, u) => sum + u.active_sessions, 0)) },
   ];
@@ -52,6 +52,10 @@ function summaryItems(everyone: AdminUser[], shown: number): StatItem[] {
 function useInvalidateUsers() {
   const queryClient = useQueryClient();
   return () => queryClient.invalidateQueries({ queryKey: USERS_KEY });
+}
+
+function loginMethods(user: AdminUser): string {
+  return [user.has_password && "비밀번호", user.has_google && "구글"].filter(Boolean).join(" · ") || "—";
 }
 
 function passwordProblem(password: string): string | null {
@@ -85,7 +89,7 @@ function CreateUserForm({ onCreated }: { onCreated: (username: string) => void }
           <input className={styles.input} value={username} onChange={(e) => setUsername(e.target.value)} autoComplete="off" maxLength={32} />
         </label>
         <label className={styles.field}>
-          역할
+          등급
           <select className={styles.select} value={role} onChange={(e) => setRole(e.target.value as AdminRole)}>
             {ROLE_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
           </select>
@@ -109,9 +113,9 @@ function RoleBlock({ user }: { user: AdminUser }) {
   const change = useMutation({ mutationFn: (role: AdminRole) => changeAdminRole(user.username, role), onSuccess: () => void invalidate() });
   return (
     <div className={styles.panelBlock}>
-      <h3>역할</h3>
-      <Segment label="역할 변경" options={ROLE_OPTIONS} value={user.role} onChange={(role) => role !== user.role && change.mutate(role)} />
-      {change.isError && <p className={styles.formError} role="alert">{errorMessage(change.error, "역할을 바꾸지 못했습니다")}</p>}
+      <h3>등급</h3>
+      <Segment label="등급 변경" options={ROLE_OPTIONS} value={user.role} onChange={(role) => role !== user.role && change.mutate(role)} />
+      {change.isError && <p className={styles.formError} role="alert">{errorMessage(change.error, "등급을 바꾸지 못했습니다")}</p>}
     </div>
   );
 }
@@ -273,15 +277,19 @@ function UserPanel({ user, me, now, onClose }: { user: AdminUser; me: AdminMe; n
         aside={<button type="button" className={styles.ghostButton} onClick={onClose}>닫기</button>}
       >
         <dl className={styles.kv}>
-          <dt>역할</dt><dd><Badge tone={ROLE[user.role].tone}>{ROLE[user.role].label}</Badge></dd>
+          <dt>등급</dt><dd><Badge tone={ROLE[user.role].tone}>{ROLE[user.role].label}</Badge></dd>
+          <dt>이메일</dt><dd>{user.email ?? "—"}</dd>
+          <dt>가입 방식</dt><dd>{loginMethods(user)}</dd>
           <dt>상태</dt><dd><Badge tone={user.is_active ? "ok" : "danger"} dot>{user.is_active ? "활성" : "정지"}</Badge></dd>
           <dt>마지막 로그인</dt><dd>{formatRelative(user.last_login_at, now)}</dd>
           <dt>생성</dt><dd>{formatDateTime(user.created_at)}</dd>
         </dl>
         {isSelf ? (
           <>
-            <div className={styles.panelBlock}><Notice>본인 계정의 역할·상태는 바꿀 수 없습니다. 다른 운영 관리자에게 요청하세요.</Notice></div>
-            <MyPasswordBlock />
+            <div className={styles.panelBlock}><Notice>본인 계정의 등급·상태는 바꿀 수 없습니다. 다른 관리자에게 요청하세요.</Notice></div>
+            {user.has_password ? <MyPasswordBlock /> : (
+              <div className={styles.panelBlock}><Notice>구글로 가입한 계정이라 비밀번호가 없습니다. 구글 로그인으로 들어오세요.</Notice></div>
+            )}
             <SessionsBlock user={user} isSelf />
           </>
         ) : me.can_operate ? (
@@ -292,7 +300,7 @@ function UserPanel({ user, me, now, onClose }: { user: AdminUser; me: AdminMe; n
             <SessionsBlock user={user} isSelf={false} />
           </>
         ) : (
-          <div className={styles.panelBlock}><Notice>계정 변경과 세션 관리는 운영 관리자 권한이 필요합니다.</Notice></div>
+          <div className={styles.panelBlock}><Notice>계정 변경과 세션 관리는 관리자 권한이 필요합니다.</Notice></div>
         )}
       </Section>
     </div>
@@ -310,7 +318,7 @@ function UserTable({ users, me, selected, now, onSelect }: {
   return (
     <div className={styles.tableWrap}>
       <table className={styles.table}>
-        <thead><tr><th>계정</th><th>역할</th><th>상태</th><th className={styles.num}>세션</th><th>마지막 로그인</th><th>생성</th></tr></thead>
+        <thead><tr><th>계정</th><th>이메일</th><th>가입 방식</th><th>등급</th><th>상태</th><th className={styles.num}>세션</th><th>마지막 로그인</th><th>생성</th></tr></thead>
         <tbody>
           {users.map((u) => (
             <tr key={u.username} className={u.username === selected ? styles.rowSelected : undefined}>
@@ -323,6 +331,8 @@ function UserTable({ users, me, selected, now, onSelect }: {
                 </button>
                 {u.username === me && <> <Badge>나</Badge></>}
               </td>
+              <td className={styles.muted}>{u.email ?? "—"}</td>
+              <td className={styles.muted}>{loginMethods(u)}</td>
               <td><Badge tone={ROLE[u.role].tone}>{ROLE[u.role].label}</Badge></td>
               <td><Badge tone={u.is_active ? "ok" : "danger"} dot>{u.is_active ? "활성" : "정지"}</Badge></td>
               <td className={styles.num}>{formatCount(u.active_sessions)}</td>
@@ -361,12 +371,12 @@ function UserListPanel({ me, everyone, now }: { me: AdminMe | undefined; everyon
             <label className={`${styles.field} ${styles.fieldGrow}`}>
               검색
               <input
-                className={styles.input} type="search" value={filter.q} placeholder="아이디 일부"
+                className={styles.input} type="search" value={filter.q} placeholder="아이디·이메일 일부"
                 onChange={(e) => setFilter({ ...filter, q: e.target.value })}
               />
             </label>
             <label className={styles.field}>
-              역할
+              등급
               <select
                 className={styles.select} value={filter.role ?? ""}
                 onChange={(e) => setFilter({ ...filter, role: (e.target.value || null) as AdminRole | null })}

@@ -4,7 +4,8 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import type { ReactNode } from "react";
-import { ADMIN_LOGIN_PATH } from "@/shared/admin-gate";
+import { LOGIN_PATH } from "@/shared/admin-gate";
+import { replaceSession } from "@/shared/auth/session";
 import { ThemeToggle } from "@/shared/ui/theme-toggle";
 import { logoutAdmin } from "../api";
 import { useAdminMe } from "../hooks/use-admin-query";
@@ -21,8 +22,8 @@ export function AdminShell({ children }: { children: ReactNode }) {
   const logout = useMutation({
     mutationFn: logoutAdmin,
     onSettled: () => {
-      queryClient.removeQueries({ queryKey: ["admin"] });
-      router.replace(ADMIN_LOGIN_PATH);
+      replaceSession(queryClient, null);
+      router.replace(LOGIN_PATH);
     },
   });
 

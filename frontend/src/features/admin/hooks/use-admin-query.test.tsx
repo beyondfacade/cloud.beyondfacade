@@ -25,7 +25,7 @@ afterEach(() => {
 it("세션이 만료되면(401) 지금 경로를 next로 실어 로그인으로 보낸다", async () => {
   vi.spyOn(api, "fetchAdminMe").mockRejectedValue(new ApiError("UNAUTHENTICATED", "로그인 필요"));
   renderHook(() => useAdminMe(), { wrapper });
-  await waitFor(() => expect(replace).toHaveBeenCalledWith("/admin/login?next=%2Fadmin%2Fsecurity"));
+  await waitFor(() => expect(replace).toHaveBeenCalledWith("/login?next=%2Fadmin%2Fsecurity"));
 });
 
 it("권한 부족(403) 같은 다른 오류는 로그인으로 보내지 않는다", async () => {

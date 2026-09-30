@@ -242,7 +242,7 @@ function CollectorsPanel({ collectors, now, canOperate }: { collectors: Facility
     <>
       <Section
         title="수집기 데이터 신선도"
-        aside={<p>주기의 1.5배를 넘기면 지연{canOperate ? "" : " · 로그·수동 실행은 운영 관리자 전용"}</p>}
+        aside={<p>주기의 1.5배를 넘기면 지연{canOperate ? "" : " · 로그·수동 실행은 관리자 전용"}</p>}
         flush
       >
         {!collectors.length ? (

@@ -48,11 +48,11 @@ it("사용량 탭은 폴백률·오류율과 시간대별 분석 차트를 보�
   await waitFor(() => expect(api.fetchUsageSeries).toHaveBeenLastCalledWith(168));
 });
 
-it("조회 관리자는 프로브를 실행할 수 없다", async () => {
+it("일반 회원은 프로브를 실행할 수 없다", async () => {
   vi.spyOn(api, "fetchAdminMe").mockResolvedValue({ username: "viewer", role: "viewer", can_operate: false });
   renderWithQuery(<HealthcareRoom />);
   await userEvent.click(await screen.findByRole("tab", { name: "프로브" }));
-  expect(screen.getByRole("note")).toHaveTextContent("운영 관리자만");
+  expect(screen.getByRole("note")).toHaveTextContent("관리자만");
 });
 
 it("운영 관리자는 RAG 프로브를 돌려 점수 순 검색 결과를 본다", async () => {

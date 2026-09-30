@@ -8,28 +8,34 @@ import type {
   ProbeResult,
   SecurityOverview,
 } from "@/shared/api/types";
+import { accounts } from "./admin/users/store";
 
 const SESSION_COOKIE = "metabole_admin";
+/** 계약 테스트가 쓰는 옛 쿠키 값 "operator"는 ops 계정으로 읽는다. */
+const LEGACY_ALIAS: Record<string, string> = { operator: "ops" };
 
-/** mock 세션 쿠키 값 = 역할. username "viewer"만 조회 관리자다. */
+/** mock 세션 쿠키 값 = 계정명. 등급·정지 여부는 mock 회원 목록에서 읽어 등급 변경이 바로 반영된다. */
 export function mockAdminFrom(request: Request): AdminMe | null {
   const cookie = request.headers.get("cookie") ?? "";
   const value = cookie.split(/;\s*/).find((c) => c.startsWith(`${SESSION_COOKIE}=`))?.split("=")[1];
-  if (value !== "viewer" && value !== "operator") return null;
-  return { username: value === "viewer" ? "viewer" : "ops", role: value, can_operate: value === "operator" };
+  if (!value) return null;
+  const account = accounts.get(LEGACY_ALIAS[value] ?? decodeURIComponent(value));
+  if (!account?.user.is_active) return null;
+  const { username, role } = account.user;
+  return { username, role, can_operate: role === "operator" };
 }
 
-export function sessionCookie(role: AdminMe["role"] | null): string {
-  return role
-    ? `${SESSION_COOKIE}=${role}; HttpOnly; Path=/; SameSite=Lax`
+export function sessionCookie(username: string | null): string {
+  return username
+    ? `${SESSION_COOKIE}=${encodeURIComponent(username)}; HttpOnly; Path=/; SameSite=Lax`
     : `${SESSION_COOKIE}=; HttpOnly; Path=/; SameSite=Lax; Max-Age=0`;
 }
 
 export const adminError = (status: number, code: string, message: string) =>
   Response.json({ error: { code, message } }, { status });
 
-export const unauthenticated = () => adminError(401, "UNAUTHENTICATED", "관리자 로그인이 필요합니다.");
-export const forbiddenRole = () => adminError(403, "FORBIDDEN_ROLE", "운영 관리자 권한이 필요합니다.");
+export const unauthenticated = () => adminError(401, "UNAUTHENTICATED", "로그인이 필요합니다.");
+export const forbiddenRole = () => adminError(403, "FORBIDDEN_ROLE", "관리자 권한이 필요합니다.");
 
 const ATTACKER = "203.0.113.10";
 const SCANNER = "198.51.100.7";

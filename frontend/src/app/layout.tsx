@@ -21,8 +21,10 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <script dangerouslySetInnerHTML={{ __html: THEME_BOOT }} />
       </head>
       <body className="bg-[var(--bg-base)] text-[var(--text-primary)] min-h-[100dvh] flex flex-col">
-        <TopBar />
-        <ApiProviders>{children}</ApiProviders>
+        <ApiProviders>
+          <TopBar />
+          {children}
+        </ApiProviders>
       </body>
     </html>
   );

@@ -1,4 +1,5 @@
 import type { AccessEventKind, AdminRole, AlertSeverity, AuditAction, CollectorStatus } from "@/shared/api/types";
+import { GRADE_LABEL } from "@/shared/auth/session";
 
 export type Tone = "ok" | "warn" | "danger" | "neutral";
 
@@ -111,6 +112,7 @@ export const EVENT_KIND: Record<AccessEventKind, { label: string; tone: Tone }> 
   login_failed: { label: "로그인 실패", tone: "warn" },
   login_succeeded: { label: "로그인 성공", tone: "ok" },
   login_throttled: { label: "로그인 제한", tone: "danger" },
+  signup: { label: "회원 가입", tone: "neutral" },
   scanner_probe: { label: "스캐너 탐색", tone: "warn" },
   server_error: { label: "서버 오류", tone: "danger" },
   blocked_request: { label: "차단 요청", tone: "neutral" },
@@ -123,8 +125,8 @@ export const COLLECTOR_STATUS: Record<CollectorStatus, { label: string; tone: To
 };
 
 export const ROLE: Record<AdminRole, { label: string; tone: Tone }> = {
-  viewer: { label: "조회", tone: "neutral" },
-  operator: { label: "운영", tone: "ok" },
+  viewer: { label: GRADE_LABEL.viewer, tone: "neutral" },
+  operator: { label: GRADE_LABEL.operator, tone: "ok" },
 };
 
 export const AUDIT_ACTION: Record<AuditAction, { label: string; tone: Tone }> = {

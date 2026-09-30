@@ -210,20 +210,6 @@
 .door + .door::before { left: 28px; }
 .door:hover::before { transform: scaleX(1); }
 
-/* ── 로그인 ───────────────────────────── */
-.loginPage { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(360px, .9fr); min-height: 100dvh; }
-.loginAside { position: relative; display: flex; flex-direction: column; justify-content: space-between; padding: 44px clamp(28px, 5vw, 72px); overflow: hidden; background: var(--accent); color: var(--accent-fg); }
-.loginAside::after { content: ""; position: absolute; inset: 0; background-image: linear-gradient(color-mix(in srgb, var(--accent-fg) 8%, transparent) 1px, transparent 1px), linear-gradient(90deg, color-mix(in srgb, var(--accent-fg) 8%, transparent) 1px, transparent 1px); background-size: 44px 44px; mask-image: radial-gradient(ellipse 70% 60% at 30% 70%, black, transparent); pointer-events: none; }
-.loginBrand { position: relative; z-index: 1; font: 600 clamp(56px, 9vw, 120px) / .9 Georgia, serif; letter-spacing: -4px; animation: rise .7s cubic-bezier(.2, .7, .2, 1) both; }
-.loginBrand small { display: block; margin-top: 18px; font: 700 12px/1 "Pretendard Variable", sans-serif; letter-spacing: 3px; opacity: .8; }
-.loginTagline { position: relative; z-index: 1; max-width: 36ch; font-size: 14px; line-height: 1.8; opacity: .85; word-break: keep-all; }
-.loginMain { display: flex; align-items: center; justify-content: center; padding: 40px 24px; background: var(--bg-base); }
-.loginForm { display: flex; flex-direction: column; gap: 16px; width: min(360px, 100%); animation: rise .6s .1s cubic-bezier(.2, .7, .2, 1) both; }
-.loginForm h1 { font-size: 26px; font-weight: 720; letter-spacing: -1px; }
-.loginLead { margin-top: -8px; font-size: 13px; color: var(--text-secondary); }
-.loginForm .input { padding: 12px 14px; font-size: 14px; }
-.loginForm .primaryButton { margin-top: 6px; padding: 13px 16px; font-size: 14px; }
-
 @keyframes rise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
 @keyframes fade { from { opacity: 0; } to { opacity: 1; } }
 @keyframes grow { from { transform: scaleX(0); } to { transform: scaleX(1); } }
@@ -251,9 +237,6 @@
   .doors { grid-template-columns: minmax(0, 1fr); }
   .door, .door + .door { padding: 26px 0; border-right: 0; border-bottom: 1px solid var(--border); }
   .door::before, .door + .door::before { left: 0; right: 0; }
-  .loginPage { grid-template-columns: minmax(0, 1fr); }
-  .loginAside { min-height: 240px; padding: 32px 24px; }
-  .loginTagline { display: none; }
   .stat { border-left: 0; border-top: 1px solid var(--border); }
   .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .stat:nth-child(-n + 2) { border-top: 0; }

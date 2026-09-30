@@ -26,7 +26,7 @@ it("목록은 계정명순이고 비밀번호 해시 같은 필드는 없다", a
   const { items } = await (await list()).json();
   expect(items.map((u: { username: string }) => u.username)).toEqual(["kim.analyst", "lee.ops", "ops", "viewer"]);
   expect(Object.keys(items[0]).sort()).toEqual(
-    ["active_sessions", "created_at", "is_active", "last_login_at", "role", "username"],
+    ["active_sessions", "created_at", "email", "has_google", "has_password", "is_active", "last_login_at", "role", "username"],
   );
 });
 

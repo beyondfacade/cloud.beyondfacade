@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { AccountMenu } from "./account-menu";
 import { ThemeToggle } from "./theme-toggle";
 import styles from "./top-bar.module.css";
 
@@ -10,9 +11,12 @@ const TABS = [
   { href: "/analysis", label: "AI 분석" },
 ];
 
+// 첫 화면·관제실·로그인/가입은 자체 헤더를 쓴다
+const OWN_HEADER = ["/admin", "/login", "/signup"];
+
 export function TopBar() {
   const pathname = usePathname();
-  if (pathname === "/" || pathname.startsWith("/admin")) return null;
+  if (pathname === "/" || OWN_HEADER.some((prefix) => pathname.startsWith(prefix))) return null;
 
   return (
     <header className={styles.header}>
@@ -37,7 +41,10 @@ export function TopBar() {
             );
           })}
         </nav>
-        <div className={styles.theme}><ThemeToggle /></div>
+        <div className={styles.side}>
+          <AccountMenu />
+          <div className={styles.theme}><ThemeToggle /></div>
+        </div>
       </div>
     </header>
   );
