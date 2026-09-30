@@ -102,10 +102,6 @@ def test_빈_축은_대안_없음이라고_쓴다():
     assert markdown.count("대안 없음") == 2
 
 
-def _move(name: str, excess: float) -> dict:
-    return {"industry_id": name, "industry_name": name, "excess_pct": excess}
-
-
 _ANALOGS = {
     "industry_id": "cafe",
     "categories": [{"category": "pandemic", "label": "감염병·방역", "reason": "question"}],
@@ -117,29 +113,27 @@ _ANALOGS = {
             "start_date": "2020-01-20",
             "end_date": "2022-04-17",
             "duration_months": 27,
-            "windows": [
-                {
-                    "label": "직후 3개월",
-                    "target": _move("카페", -0.8),
-                    "strongest": [_move("중식", 0.8), _move("한식", 0.6)],
-                    "weakest": [_move("카페", -0.8), _move("PC방", -0.6)],
-                },
-                {"label": "1년 차 마지막 3개월", "target": None, "strongest": [], "weakest": []},
+            "quarters": [{"quarter": i, "label": f"1년 차 {i}분기"} for i in range(1, 5)],
+            "series": [
+                {"industry_id": "cafe", "industry_name": "카페", "role": "target", "values": [-0.8, -1.1, None, 0.4]},
+                {"industry_id": "western_food", "industry_name": "양식", "role": "recommended", "values": [0.6, 0.6, 1.2, 0.4]},
             ],
+            "target_weak_quarters": 2,
+            "target_strong_quarters": 1,
+            "target_weak_streak": 2,
         }
     ],
 }
 
 
-def test_유사_사례_폴백은_사례마다_대상_업종_변동폭과_강세_약세_업종을_옮긴다():
+def test_유사_사례_폴백은_사례마다_내_업종의_분기별_변동과_약세_분기_수를_옮긴다():
     markdown = analogs_markdown(_ANALOGS)
 
     assert markdown.startswith("### 유사 사례")
     assert "코로나19 국내 유행" in markdown
     assert "약 27개월" in markdown
-    assert "직후 3개월 -0.8%p" in markdown
-    assert "강세 중식·한식" in markdown
-    assert "약세 카페·PC방" in markdown
+    assert "카페 평소 대비 4분기 중 약세 2·강세 1분기, 처음부터 2분기 연속 약세" in markdown
+    assert "분기별 -0.8 / -1.1 / - / +0.4%p" in markdown
 
 
 def test_유사_사례_폴백은_유형별_결론과_강세_업종을_덧붙인다():

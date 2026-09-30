@@ -3,25 +3,19 @@ from datetime import date
 from pydantic import BaseModel
 
 
-class IndustryMoveResponse(BaseModel):
-    industry_id: str
-    industry_name: str
-    openings: int
-    closings: int
-    openings_yoy_pct: float | None
-    closings_yoy_pct: float | None
-    stock_change_pct: float | None
-    excess_pct: float | None
-
-
-class WindowImpactResponse(BaseModel):
-    kind: str
+class QuarterResponse(BaseModel):
+    quarter: int
     label: str
     start_month: str
     end_month: str
-    target: IndustryMoveResponse | None
-    strongest: list[IndustryMoveResponse] = []
-    weakest: list[IndustryMoveResponse] = []
+    overlaps: list[str] = []
+
+
+class IndustrySeriesResponse(BaseModel):
+    industry_id: str
+    industry_name: str
+    role: str
+    values: list[float | None] = []
 
 
 class EventImpactResponse(BaseModel):
@@ -35,7 +29,11 @@ class EventImpactResponse(BaseModel):
     description: str | None
     source: str
     current: bool
-    windows: list[WindowImpactResponse] = []
+    quarters: list[QuarterResponse] = []
+    series: list[IndustrySeriesResponse] = []
+    target_weak_quarters: int = 0
+    target_strong_quarters: int = 0
+    target_weak_streak: int = 0
 
 
 class AnalogCategoryResponse(BaseModel):
@@ -61,7 +59,6 @@ class CategoryOutlookResponse(BaseModel):
 
 class EventAnalogReportResponse(BaseModel):
     industry_id: str
-    months: int
     years: int
     as_of: str
     categories: list[AnalogCategoryResponse] = []

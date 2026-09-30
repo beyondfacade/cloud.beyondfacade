@@ -41,13 +41,13 @@ def _event(event_id: str, start: date, category: str | None, end: date | None = 
     )
 
 
-def _flows(industry_id: str, name: str, opens: int, closes: int) -> IndustryFlows:
+def _flows(industry_id: str, name: str, opens: int, closes: int, closes_2020: int | None = None) -> IndustryFlows:
     openings = {date(2012, 12, 1): 1000}
     closings: dict[date, int] = {}
     for year in range(2013, 2027):
         for month in range(1, 13):
             openings[date(year, month, 1)] = opens
-            closings[date(year, month, 1)] = closes
+            closings[date(year, month, 1)] = closes_2020 if year == 2020 and closes_2020 else closes
     return IndustryFlows(industry_id, name, openings, closings)
 
 
@@ -73,7 +73,7 @@ class FakeFlows(StoreFlowPort):
 
     def monthly_flows(self) -> list[IndustryFlows]:
         self.calls += 1
-        return [_flows("cafe", "카페", 10, 8), _flows("pc_bang", "PC방", 3, 1)]
+        return [_flows("cafe", "카페", 10, 8, closes_2020=30), _flows("pc_bang", "PC방", 3, 1)]
 
 
 _EVENTS = [
@@ -82,6 +82,7 @@ _EVENTS = [
     _event("w2025", date(2025, 1, 1), "minimum_wage", date(2025, 12, 31)),
     _event("w2026", date(2026, 1, 1), "minimum_wage", date(2026, 12, 31)),
     _event("distancing-phase", date(2020, 3, 22), None, date(2020, 5, 5)),
+    _event("relief", date(2020, 5, 4), "relief", date(2020, 8, 31)),
 ]
 
 
@@ -93,7 +94,7 @@ def _interactor(events=_EVENTS) -> EventAnalogInteractor:
 
 
 def test_질문의_유형과_진행_중_이벤트_유형의_지난_사례를_함께_돌려준다():
-    report = _interactor().analogs("cafe", "새 바이러스가 도는데 카페 창업 괜찮을까", 3, 1)
+    report = _interactor().analogs("cafe", "새 바이러스가 도는데 카페 창업 괜찮을까", 3)
     assert [c.category for c in report.categories] == ["pandemic", "minimum_wage"]
     assert [c.reason for c in report.categories] == ["question", "current"]
     assert [e.event_id for e in report.current_events] == ["w2026"]
@@ -101,28 +102,45 @@ def test_질문의_유형과_진행_중_이벤트_유형의_지난_사례를_함
     assert report.as_of == "2026-08"
 
 
-def test_사례마다_창_라벨과_기간과_대상_업종_변동폭을_담는다():
-    covid = next(e for e in _interactor().analogs("cafe", "코로나 같은 상황", 3, 1).analogs if e.event_id == "covid")
+def _covid():
+    return next(e for e in _interactor().analogs("cafe", "코로나 같은 상황", 3).analogs if e.event_id == "covid")
+
+
+def test_사례마다_3년_12분기의_라벨과_기간을_담는다():
+    covid = _covid()
     assert covid.category_label == "감염병·방역"
     assert covid.duration_months == 27
-    immediate, late = covid.windows
-    assert (immediate.kind, immediate.label, immediate.start_month, immediate.end_month) == (
-        "immediate", "직후 3개월", "2020-01", "2020-03",
-    )
-    assert (late.label, late.start_month, late.end_month) == ("1년 차 마지막 3개월", "2020-10", "2020-12")
-    assert immediate.target is not None
-    assert immediate.target.industry_name == "카페"
-    assert immediate.target.openings == 30
+    assert len(covid.quarters) == 12
+    first, fourth, last = covid.quarters[0], covid.quarters[3], covid.quarters[11]
+    assert (first.quarter, first.label, first.start_month, first.end_month) == (1, "1년 차 1분기", "2020-01", "2020-03")
+    assert (fourth.label, fourth.start_month, fourth.end_month) == ("1년 차 4분기", "2020-10", "2020-12")
+    assert (last.label, last.start_month, last.end_month) == ("3년 차 4분기", "2022-10", "2022-12")
 
 
-def test_진행_중_이벤트의_두_번째_창은_최근_n개월이다():
-    current = _interactor().analogs("cafe", None, 2, 1).current_events[0]
-    assert [w.label for w in current.windows] == ["직후 2개월", "최근 2개월"]
-    assert current.windows[1].start_month == "2026-07"
+def test_분기에_시작한_다른_유형_이벤트를_함께_적는다():
+    covid = _covid()
+    assert covid.quarters[1].overlaps == ["relief 이름"]  # 2020-04~06에 지원금
+    assert covid.quarters[0].overlaps == []  # 유형 없는 거리두기 국면은 적지 않는다
+
+
+def test_내_업종과_추천_업종의_분기별_흐름과_약세_분기_수를_담는다():
+    covid = _covid()
+    assert [(s.industry_id, s.role) for s in covid.series] == [("cafe", "target"), ("pc_bang", "recommended")]
+    cafe = covid.series[0]
+    assert (cafe.industry_name, len(cafe.values)) == ("카페", 12)
+    # 2020년 한 해 폐업 급증 → 1년 차 네 분기는 약세, 2·3년 차는 평소와 비슷
+    assert all(v <= -0.3 for v in cafe.values[:4])
+    assert (covid.target_weak_quarters, covid.target_strong_quarters) == (4, 0)
+    assert covid.target_weak_streak == 4  # 1분기부터 연속 약세
+
+
+def test_진행_중_이벤트는_끝난_분기까지만_본다():
+    current = _interactor().analogs("cafe", None, 3).current_events[0]
+    assert [q.label for q in current.quarters] == ["1년 차 1분기", "1년 차 2분기"]
 
 
 def test_유형마다_지난_사례의_결론을_싣는다():
-    report = _interactor().analogs("cafe", "코로나", 3, 1)
+    report = _interactor().analogs("cafe", "코로나", 3)
     outlooks = {o.category: o for o in report.outlooks}
     assert list(outlooks) == ["pandemic", "minimum_wage"]
     pandemic = outlooks["pandemic"]
@@ -132,22 +150,23 @@ def test_유형마다_지난_사례의_결론을_싣는다():
 
 
 def test_해석_주의사항을_함께_싣는다():
-    caveats = " ".join(_interactor().analogs("cafe", "코로나", 3, 1).caveats)
+    caveats = " ".join(_interactor().analogs("cafe", "코로나", 3).caveats)
     assert "12월" in caveats  # 연말 폐업 몰림
     assert "지원금" in caveats  # 2020~2022 폐업 지연
     assert "서울 전체" in caveats
 
 
 def test_유형_단서도_진행_중_이벤트도_없으면_비어_있다():
-    report = _interactor(events=_EVENTS[:2]).analogs("cafe", "역삼동 카페 어때", 3, 1)
+    report = _interactor(events=_EVENTS[:2]).analogs("cafe", "역삼동 카페 어때", 3)
     assert report.categories == []
     assert report.analogs == []
     assert report.current_events == []
 
 
 def test_흐름이_없는_업종은_대상_변동폭이_없다():
-    report = _interactor().analogs("academy", "코로나", 3, 1)
-    assert all(w.target is None for e in report.analogs for w in e.windows)
+    report = _interactor().analogs("academy", "코로나", 3)
+    assert all(v is None for e in report.analogs for v in e.series[0].values)
+    assert all(e.target_weak_quarters == 0 for e in report.analogs)
 
 
 def test_이벤트를_유형과_함께_등록한다():
@@ -181,11 +200,11 @@ def test_유사_사례_myself_배선():
     assert response.status_code == 200
     body = response.json()
     assert body["industry_id"] == "myself"
-    assert body["analogs"][0]["windows"][0]["label"]
+    assert body["analogs"][0]["quarters"][0]["label"]
 
 
-def test_n이_범위를_벗어나면_400():
-    response = TestClient(app).get("/shocks/analogs", params={"industry": "cafe", "months": 4})
+def test_비교_연수가_범위를_벗어나면_400():
+    response = TestClient(app).get("/shocks/analogs", params={"industry": "cafe", "years": 4})
     assert response.status_code == 400
     assert response.json()["error"]["code"] == "INVALID_WINDOW"
 

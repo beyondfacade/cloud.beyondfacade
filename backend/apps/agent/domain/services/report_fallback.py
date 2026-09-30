@@ -105,18 +105,18 @@ def _analog_line(event: dict) -> str:
     period = f"{event.get('start_date')}~{event.get('end_date') or '진행 중'}"
     if event.get("duration_months") is not None:
         period += f", 약 {event['duration_months']}개월"
-    windows = event.get("windows") or []
-    measured = [w for w in windows if w.get("target") and w["target"].get("excess_pct") is not None]
     line = f"- **{event.get('name')}** ({period})"
-    if measured:
-        changes = " · ".join(f"{w.get('label')} {w['target']['excess_pct']:+.1f}%p" for w in measured)
-        line += f" — {measured[0]['target']['industry_name']} 평소 대비 {changes}"
-    if windows:
-        first = windows[0]
-        strong = "·".join(m["industry_name"] for m in first.get("strongest") or [])
-        weak = "·".join(m["industry_name"] for m in first.get("weakest") or [])
-        line += f". {first.get('label')} 강세 {strong or '없음'} / 약세 {weak or '없음'}"
-    return line
+    target = next((s for s in event.get("series") or [] if s.get("role") == "target"), None)
+    values = (target or {}).get("values") or []
+    if not any(v is not None for v in values):
+        return line
+    changes = " / ".join("-" if v is None else f"{v:+.1f}" for v in values)
+    streak = event.get("target_weak_streak") or 0
+    return (
+        f"{line} — {target.get('industry_name')} 평소 대비 {len(values)}분기 중 "
+        f"약세 {event.get('target_weak_quarters', 0)}·강세 {event.get('target_strong_quarters', 0)}분기"
+        f"{f', 처음부터 {streak}분기 연속 약세' if streak else ''} (분기별 {changes}%p)"
+    )
 
 
 def _axis(items: list[dict] | None, name_key: str) -> list[str]:

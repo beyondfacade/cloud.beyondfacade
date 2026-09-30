@@ -1,23 +1,17 @@
-"""이벤트 기점의 비교 기간 창 — 월 단위, 끝나지 않은 이번 달은 쓰지 않는다.
+"""이벤트 기점의 분기 — 이벤트가 시작된 달부터 3개월씩, 끝나지 않은 달이 든 분기는 쓰지 않는다.
 
-- 직후 창: 이벤트가 시작된 달부터 n개월.
-- 이벤트 뒤 y년이 지났으면: y년 차의 마지막 n개월(늦은 창) — 충격이 굳었는지 풀렸는지를 본다.
-- 아직 y년이 안 됐으면: 끝난 달 기준 최근 n개월(최근 창) — 지금까지 어디로 흘렀는지를 본다.
-  최근 창이 직후 창과 겹치면 두 번째 창은 없다(같은 달을 두 번 세지 않는다).
+- 분기는 달력 분기가 아니라 이벤트 기준이다(5월에 시작했으면 1분기는 5~7월).
+  1분기가 '직후 3개월', 4분기가 '1년 차 마지막 3개월'이다.
+- 분기마다 **이벤트 직전 1년의 같은 분기**와 견준다. 같은 달끼리라 계절성이 지워지고,
+  2·3년 차도 이벤트에 물든 1년 차가 아니라 이벤트 전과 비교한다.
 """
 
 from dataclasses import dataclass
 from datetime import date
-from enum import StrEnum
 
-MONTHS_RANGE = range(1, 4)
+QUARTER_MONTHS = 3
+QUARTERS_PER_YEAR = 4
 YEARS_RANGE = range(1, 4)
-
-
-class WindowKind(StrEnum):
-    IMMEDIATE = "immediate"
-    LATE = "late"
-    RECENT = "recent"
 
 
 def month_of(day: date) -> date:
@@ -36,7 +30,6 @@ def months_between(start: date, end: date) -> int:
 
 @dataclass(frozen=True)
 class Window:
-    kind: WindowKind
     start: date  # 창 첫 달의 1일
     months: int
 
@@ -46,29 +39,41 @@ class Window:
         return add_months(self.start, self.months)
 
     def shifted(self, count: int) -> "Window":
-        return Window(self.kind, add_months(self.start, count), self.months)
+        return Window(add_months(self.start, count), self.months)
 
 
-def check_window_size(months: int, years: int) -> None:
-    if months not in MONTHS_RANGE or years not in YEARS_RANGE:
-        raise ValueError(
-            f"n개월은 {MONTHS_RANGE.start}~{MONTHS_RANGE.stop - 1}, "
-            f"n년은 {YEARS_RANGE.start}~{YEARS_RANGE.stop - 1} 사이여야 합니다"
-        )
+@dataclass(frozen=True)
+class Quarter:
+    index: int  # 이벤트 기준 0부터
+    window: Window
+
+    @property
+    def year(self) -> int:
+        return self.index // QUARTERS_PER_YEAR + 1
+
+    @property
+    def number(self) -> int:
+        return self.index % QUARTERS_PER_YEAR + 1
+
+    @property
+    def baseline(self) -> Window:
+        """이벤트 직전 1년의 같은 분기."""
+        return self.window.shifted(-12 * self.year)
 
 
-def event_windows(start_date: date, today: date, months: int, years: int) -> list[Window]:
-    check_window_size(months, years)
+def check_years(years: int) -> None:
+    if years not in YEARS_RANGE:
+        raise ValueError(f"비교 연수는 {YEARS_RANGE.start}~{YEARS_RANGE.stop - 1}년 사이여야 합니다")
+
+
+def event_quarters(start_date: date, today: date, years: int) -> list[Quarter]:
+    check_years(years)
     first = month_of(start_date)
     complete_until = month_of(today)  # 이번 달은 아직 집계가 끝나지 않았다
-    available = months_between(first, complete_until)
-    if available <= 0:
-        return []
-    immediate = Window(WindowKind.IMMEDIATE, first, min(months, available))
-    horizon = add_months(first, 12 * years)
-    if horizon <= complete_until:
-        return [immediate, Window(WindowKind.LATE, add_months(horizon, -months), months)]
-    recent = Window(WindowKind.RECENT, add_months(complete_until, -months), months)
-    if recent.start < immediate.end:
-        return [immediate]
-    return [immediate, recent]
+    quarters: list[Quarter] = []
+    for index in range(QUARTERS_PER_YEAR * years):
+        window = Window(add_months(first, QUARTER_MONTHS * index), QUARTER_MONTHS)
+        if window.end > complete_until:
+            break
+        quarters.append(Quarter(index, window))
+    return quarters

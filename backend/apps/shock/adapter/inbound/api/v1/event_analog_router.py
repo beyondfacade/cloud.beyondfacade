@@ -21,13 +21,12 @@ def myself(
 @router.get("", response_model=EventAnalogReportResponse)
 def analogs(
     industry: str,
-    months: int = 3,
-    years: int = 1,
+    years: int = 3,
     question: str | None = None,
     use_case: EventAnalogUseCase = Depends(get_event_analog_use_case),
 ) -> EventAnalogReportResponse | JSONResponse:
     try:
-        return to_response(use_case.analogs(industry, question, months, years))
+        return to_response(use_case.analogs(industry, question, years))
     except ValueError as error:
         return JSONResponse(
             status_code=400,

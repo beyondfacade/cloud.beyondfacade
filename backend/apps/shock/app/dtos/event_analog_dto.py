@@ -3,26 +3,20 @@ from datetime import date
 
 
 @dataclass
-class IndustryMoveDto:
-    industry_id: str
-    industry_name: str
-    openings: int
-    closings: int
-    openings_yoy_pct: float | None
-    closings_yoy_pct: float | None
-    stock_change_pct: float | None
-    excess_pct: float | None
+class QuarterDto:
+    quarter: int  # 이벤트 기준 1부터
+    label: str  # "1년 차 1분기" 등
+    start_month: str  # YYYY-MM
+    end_month: str  # YYYY-MM (포함)
+    overlaps: list[str] = field(default_factory=list)  # 이 분기에 시작한 다른 유형 이벤트 이름
 
 
 @dataclass
-class WindowImpactDto:
-    kind: str  # immediate / late / recent
-    label: str  # "직후 3개월" 등
-    start_month: str  # YYYY-MM
-    end_month: str  # YYYY-MM (포함)
-    target: IndustryMoveDto | None
-    strongest: list[IndustryMoveDto] = field(default_factory=list)
-    weakest: list[IndustryMoveDto] = field(default_factory=list)
+class IndustrySeriesDto:
+    industry_id: str
+    industry_name: str
+    role: str  # target: 내 업종 / recommended: 사례에서 거듭 강세 / avoid: 거듭 약세
+    values: list[float | None] = field(default_factory=list)  # 분기별 평소 대비 점포수 증감(%p)
 
 
 @dataclass
@@ -37,7 +31,11 @@ class EventImpactDto:
     description: str | None
     source: str
     current: bool
-    windows: list[WindowImpactDto] = field(default_factory=list)
+    quarters: list[QuarterDto] = field(default_factory=list)
+    series: list[IndustrySeriesDto] = field(default_factory=list)
+    target_weak_quarters: int = 0  # 내 업종이 평소보다 0.3%p 넘게 줄어든 분기 수 (흩어진 것 포함)
+    target_strong_quarters: int = 0
+    target_weak_streak: int = 0  # 1분기부터 끊기지 않고 약세였던 분기 수
 
 
 @dataclass
@@ -58,7 +56,7 @@ class CategoryOutlookDto:
     category: str
     label: str
     analog_count: int
-    target_trend: str  # weak / strong / mixed / unknown — 대상 업종이 지난 사례에서 어땠나
+    target_trend: str  # weak / strong / mixed / unknown — 대상 업종이 지난 사례 분기 과반에서 어땠나
     recommended: list[IndustryRefDto] = field(default_factory=list)
     avoid: list[IndustryRefDto] = field(default_factory=list)
     typical_duration_months: int | None = None
@@ -67,7 +65,6 @@ class CategoryOutlookDto:
 @dataclass
 class EventAnalogReportDto:
     industry_id: str
-    months: int
     years: int
     as_of: str  # 마지막 완결 달 YYYY-MM
     categories: list[AnalogCategoryDto] = field(default_factory=list)
