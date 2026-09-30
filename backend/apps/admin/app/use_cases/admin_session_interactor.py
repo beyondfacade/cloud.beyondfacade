@@ -23,15 +23,18 @@ from apps.admin.app.errors import (
 )
 from apps.admin.app.ports.input.admin_session_use_case import AdminSessionUseCase
 from apps.admin.app.ports.output.access_event_port import AccessEventRepositoryPort
+from apps.admin.app.ports.output.access_rule_port import AccessRuleRepositoryPort
 from apps.admin.app.ports.output.admin_audit_port import AdminAuditRepositoryPort
 from apps.admin.app.ports.output.admin_session_port import AdminSessionRepositoryPort
 from apps.admin.app.ports.output.admin_user_port import AdminUserRepositoryPort
 from apps.admin.app.ports.output.google_identity_port import GoogleIdentityPort
+from apps.admin.app.use_cases.allow_list import is_allowed
 from apps.admin.app.use_cases.audit_trail import audit_entry
-from apps.admin.domain.entities.access_event_entity import AccessEvent, AccessEventKind
+from apps.admin.domain.entities.access_event_entity import AccessEventKind, client_event
 from apps.admin.domain.entities.admin_audit_entity import AuditAction
 from apps.admin.domain.entities.admin_session_entity import AdminSession
 from apps.admin.domain.entities.admin_user_entity import AdminRole, AdminUser
+from apps.admin.domain.entities.client_entity import Client
 from apps.admin.domain.services.account_policy import (
     email_problem,
     normalize_email,
@@ -67,6 +70,7 @@ class AdminSessionInteractor(AdminSessionUseCase):
         events: AccessEventRepositoryPort,
         audit: AdminAuditRepositoryPort,
         google: GoogleIdentityPort,
+        rules: AccessRuleRepositoryPort,
         clock: Callable[[], datetime] = lambda: datetime.now(UTC),
     ) -> None:
         self._users = users
@@ -74,31 +78,32 @@ class AdminSessionInteractor(AdminSessionUseCase):
         self._events = events
         self._audit = audit
         self._google = google
+        self._rules = rules
         self._clock = clock
 
     def myself(self) -> AdminPrincipalDto:
         return AdminPrincipalDto(id=0, username="myself", role="viewer", can_operate=False)
 
-    def login(self, login_id: str, password: str, ip: str | None) -> LoginResultDto:
+    def login(self, login_id: str, password: str, client: Client) -> LoginResultDto:
         now = self._clock()
-        if self._events.count(AccessEventKind.LOGIN_FAILED, ip, now - THROTTLE_WINDOW) >= THROTTLE_LIMIT:
-            self._record(AccessEventKind.LOGIN_THROTTLED, ip, 429, login_id, None, now)
+        if self._throttled(client, now):
+            self._record(AccessEventKind.LOGIN_THROTTLED, client, 429, login_id, None, now)
             raise LoginThrottled("로그인 실패가 너무 많습니다. 10분 뒤에 다시 시도하세요.")
 
         user = self._find_for_login(login_id)
         stored = user.password_hash if user else None
         password_ok = verify_password(password, stored or _dummy_hash())
         if user is None or stored is None or not user.is_active or not password_ok:
-            self._record(AccessEventKind.LOGIN_FAILED, ip, 401, login_id, None, now)
+            self._record(AccessEventKind.LOGIN_FAILED, client, 401, login_id, None, now)
             raise InvalidCredentials("아이디 또는 비밀번호가 올바르지 않습니다.")
 
-        self._record(AccessEventKind.LOGIN_SUCCEEDED, ip, 200, user.username, user.id, now)
-        return self._issue(user, ip, now)
+        self._record(AccessEventKind.LOGIN_SUCCEEDED, client, 200, user.username, user.id, now)
+        return self._issue(user, client.ip, now)
 
-    def signup(self, username: str, email: str, password: str, ip: str | None) -> LoginResultDto:
+    def signup(self, username: str, email: str, password: str, client: Client) -> LoginResultDto:
         now = self._clock()
-        if self._events.count(AccessEventKind.SIGNUP, ip, now - SIGNUP_WINDOW) >= SIGNUP_LIMIT:
-            self._record(AccessEventKind.LOGIN_THROTTLED, ip, 429, username, None, now, _SIGNUP_PATH)
+        if self._events.count(AccessEventKind.SIGNUP, client.ip, now - SIGNUP_WINDOW) >= SIGNUP_LIMIT:
+            self._record(AccessEventKind.LOGIN_THROTTLED, client, 429, username, None, now, _SIGNUP_PATH)
             raise LoginThrottled("가입이 너무 많습니다. 한 시간 뒤에 다시 시도하세요.")
 
         email = normalize_email(email)
@@ -116,8 +121,8 @@ class AdminSessionInteractor(AdminSessionUseCase):
         user = self._users.save(
             AdminUser(username=username, password_hash=hash_password(password), role=AdminRole.VIEWER, email=email)
         )
-        self._record(AccessEventKind.SIGNUP, ip, 201, username, user.id, now, _SIGNUP_PATH)
-        return self._issue(user, ip, now)
+        self._record(AccessEventKind.SIGNUP, client, 201, username, user.id, now, _SIGNUP_PATH)
+        return self._issue(user, client.ip, now)
 
     def google_enabled(self) -> bool:
         return self._google.is_configured()
@@ -130,7 +135,7 @@ class AdminSessionInteractor(AdminSessionUseCase):
         return GoogleLoginStartDto(url=self._google.authorization_url(state, challenge), state=state, code_verifier=verifier)
 
     def finish_google_login(
-        self, code: str, state: str, expected_state: str | None, code_verifier: str, ip: str | None
+        self, code: str, state: str, expected_state: str | None, code_verifier: str, client: Client
     ) -> LoginResultDto:
         if not state or not expected_state or not secrets.compare_digest(state.encode(), expected_state.encode()):
             raise OAuthStateMismatch("로그인 요청이 만료되었거나 올바르지 않습니다. 다시 시도하세요.")
@@ -141,12 +146,12 @@ class AdminSessionInteractor(AdminSessionUseCase):
             raise GoogleEmailUnverified("구글에서 확인된 이메일이 아닙니다.")
 
         now = self._clock()
-        user = self._users.get_by_google_sub(identity.sub) or self._google_signup(identity, ip, now)
+        user = self._users.get_by_google_sub(identity.sub) or self._google_signup(identity, client, now)
         if not user.is_active:
-            self._record(AccessEventKind.LOGIN_FAILED, ip, 401, user.username, user.id, now, _GOOGLE_PATH, "GET")
+            self._record(AccessEventKind.LOGIN_FAILED, client, 401, user.username, user.id, now, _GOOGLE_PATH, "GET")
             raise InvalidCredentials("이용이 정지된 계정입니다.")
-        self._record(AccessEventKind.LOGIN_SUCCEEDED, ip, 302, user.username, user.id, now, _GOOGLE_PATH, "GET")
-        return self._issue(user, ip, now)
+        self._record(AccessEventKind.LOGIN_SUCCEEDED, client, 302, user.username, user.id, now, _GOOGLE_PATH, "GET")
+        return self._issue(user, client.ip, now)
 
     def logout(self, token: str) -> None:
         self._sessions.delete(hash_token(token))
@@ -199,7 +204,11 @@ class AdminSessionInteractor(AdminSessionUseCase):
             return self._users.get_by_email(normalize_email(login_id))
         return self._users.get_by_username(login_id)
 
-    def _google_signup(self, identity: GoogleIdentityDto, ip: str | None, now: datetime) -> AdminUser:
+    def _throttled(self, client: Client, now: datetime) -> bool:
+        failures = self._events.count(AccessEventKind.LOGIN_FAILED, client.ip, now - THROTTLE_WINDOW)
+        return failures >= THROTTLE_LIMIT and not is_allowed(self._rules, client, now)
+
+    def _google_signup(self, identity: GoogleIdentityDto, client: Client, now: datetime) -> AdminUser:
         email = normalize_email(identity.email)
         if self._users.get_by_email(email) is not None:
             raise EmailTaken("이 이메일로 가입된 계정이 있습니다. 아이디와 비밀번호로 로그인하세요.")
@@ -209,7 +218,7 @@ class AdminSessionInteractor(AdminSessionUseCase):
                 username=username, password_hash=None, role=AdminRole.VIEWER, email=email, google_sub=identity.sub
             )
         )
-        self._record(AccessEventKind.SIGNUP, ip, 302, username, user.id, now, _GOOGLE_PATH, "GET")
+        self._record(AccessEventKind.SIGNUP, client, 302, username, user.id, now, _GOOGLE_PATH, "GET")
         return user
 
     def _issue(self, user: AdminUser, ip: str | None, now: datetime) -> LoginResultDto:
@@ -224,7 +233,7 @@ class AdminSessionInteractor(AdminSessionUseCase):
     def _record(
         self,
         kind: AccessEventKind,
-        ip: str | None,
+        client: Client,
         status: int,
         username: str,
         user_id: int | None,
@@ -232,15 +241,4 @@ class AdminSessionInteractor(AdminSessionUseCase):
         path: str = _LOGIN_PATH,
         method: str = "POST",
     ) -> None:
-        self._events.add(
-            AccessEvent(
-                occurred_at=now,
-                kind=kind,
-                ip=ip,
-                method=method,
-                path=path,
-                status_code=status,
-                username=username[:64],
-                admin_user_id=user_id,
-            )
-        )
+        self._events.add(client_event(now, kind, client, method, path, status, username, user_id))

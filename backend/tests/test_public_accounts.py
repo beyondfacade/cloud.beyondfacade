@@ -12,6 +12,7 @@ from sqlalchemy import text
 
 from apps.admin.adapter.outbound.google.google_identity_adapter import GoogleIdentityAdapter
 from apps.admin.adapter.outbound.repositories.access_event_repository import SqlAlchemyAccessEventRepository
+from apps.admin.adapter.outbound.repositories.access_rule_repository import SqlAlchemyAccessRuleRepository
 from apps.admin.adapter.outbound.repositories.admin_audit_repository import SqlAlchemyAdminAuditRepository
 from apps.admin.adapter.outbound.repositories.admin_session_repository import SqlAlchemyAdminSessionRepository
 from apps.admin.adapter.outbound.repositories.admin_user_repository import SqlAlchemyAdminUserRepository
@@ -56,6 +57,7 @@ def google():
         events=SqlAlchemyAccessEventRepository(),
         audit=SqlAlchemyAdminAuditRepository(),
         google=fake,
+        rules=SqlAlchemyAccessRuleRepository(),
     )
     yield fake
     app.dependency_overrides.clear()

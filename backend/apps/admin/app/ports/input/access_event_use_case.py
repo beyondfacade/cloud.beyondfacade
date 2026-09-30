@@ -4,6 +4,7 @@ from abc import ABC, abstractmethod
 
 from apps.admin.app.dtos.access_event_dto import AccessEventPageDto, SecurityOverviewDto
 from apps.admin.domain.entities.access_event_entity import AccessEventKind
+from apps.admin.domain.entities.client_entity import Client
 
 
 class AccessEventUseCase(ABC):
@@ -12,7 +13,7 @@ class AccessEventUseCase(ABC):
         """배선 검증용 — 하드코딩 데이터 왕복 (CLAUDE.md §12)."""
 
     @abstractmethod
-    def record(self, kind: AccessEventKind, ip: str | None, method: str, path: str, status_code: int) -> None: ...
+    def record(self, kind: AccessEventKind, client: Client, method: str, path: str, status_code: int) -> None: ...
 
     @abstractmethod
     def overview(self) -> SecurityOverviewDto:

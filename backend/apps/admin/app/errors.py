@@ -37,6 +37,18 @@ class IpBlockNotFound(AdminError):
     code = "IP_BLOCK_NOT_FOUND"
 
 
+class InvalidAccessRule(AdminError):
+    code = "INVALID_ACCESS_RULE"
+
+
+class AccessRuleExists(AdminError):
+    code = "ACCESS_RULE_EXISTS"
+
+
+class AccessRuleNotFound(AdminError):
+    code = "ACCESS_RULE_NOT_FOUND"
+
+
 class AdminUserNotFound(AdminError):
     code = "ADMIN_USER_NOT_FOUND"
 

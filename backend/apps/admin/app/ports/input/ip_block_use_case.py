@@ -4,6 +4,7 @@ from abc import ABC, abstractmethod
 
 from apps.admin.app.dtos.admin_session_dto import AdminPrincipalDto
 from apps.admin.app.dtos.ip_block_dto import IpBlockDto
+from apps.admin.domain.entities.client_entity import Client
 
 
 class IpBlockUseCase(ABC):
@@ -25,9 +26,10 @@ class IpBlockUseCase(ABC):
         """없는 IP면 IpBlockNotFound."""
 
     @abstractmethod
-    def is_blocked(self, ip: str | None) -> bool: ...
+    def is_blocked(self, client: Client) -> bool:
+        """IP가 차단 중인지. 자동 차단은 화이트리스트(IP·디바이스)에 걸리면 통과시키고, 수동 차단은 그대로 막는다."""
 
     @abstractmethod
-    def enforce_auto_defense(self, ip: str | None) -> IpBlockDto | None:
+    def enforce_auto_defense(self, client: Client) -> IpBlockDto | None:
         """자동 방어가 켜져 있고 규칙 임계치에 닿았으면 그 IP를 기한부로 차단한다. 차단했으면 그 차단을 돌려준다.
-        루프백·이미 차단 중인 IP는 건드리지 않는다."""
+        루프백·화이트리스트·이미 차단 중인 IP는 건드리지 않는다."""

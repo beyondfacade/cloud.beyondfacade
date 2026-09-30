@@ -13,7 +13,8 @@ from apps.admin.app.dtos.access_event_dto import (
 from apps.admin.app.ports.input.access_event_use_case import AccessEventUseCase
 from apps.admin.app.ports.output.access_event_port import AccessEventRepositoryPort
 from apps.admin.app.ports.output.ip_block_port import IpBlockRepositoryPort
-from apps.admin.domain.entities.access_event_entity import AccessEvent, AccessEventKind
+from apps.admin.domain.entities.access_event_entity import AccessEvent, AccessEventKind, client_event
+from apps.admin.domain.entities.client_entity import Client
 from apps.admin.domain.services.alert_rules import evaluate_alerts
 
 _OVERVIEW_WINDOW = timedelta(hours=24)
@@ -31,6 +32,8 @@ def _to_event_dto(event: AccessEvent) -> AccessEventDto:
         path=event.path,
         status_code=event.status_code,
         username=event.username,
+        device_id=event.device_id,
+        user_agent=event.user_agent,
     )
 
 
@@ -48,12 +51,8 @@ class AccessEventInteractor(AccessEventUseCase):
     def myself(self) -> SecurityOverviewDto:
         return SecurityOverviewDto(generated_at=datetime(2026, 9, 29, tzinfo=UTC), summary=SecuritySummaryDto())
 
-    def record(self, kind: AccessEventKind, ip: str | None, method: str, path: str, status_code: int) -> None:
-        self._events.add(
-            AccessEvent(
-                occurred_at=self._clock(), kind=kind, ip=ip, method=method, path=path[:512], status_code=status_code
-            )
-        )
+    def record(self, kind: AccessEventKind, client: Client, method: str, path: str, status_code: int) -> None:
+        self._events.add(client_event(self._clock(), kind, client, method, path, status_code))
 
     def overview(self) -> SecurityOverviewDto:
         now = self._clock()

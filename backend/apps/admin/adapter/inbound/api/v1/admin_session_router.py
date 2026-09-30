@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, Query, Request, Response
 from fastapi.responses import RedirectResponse
 
 from apps.admin.adapter.inbound.api.client_ip import client_ip_from_scope
+from apps.admin.adapter.inbound.api.device_cookie import client_from_scope
 from apps.admin.adapter.inbound.api.oauth_cookie import (
     OAuthHandshake,
     clear_oauth_cookie,
@@ -53,7 +54,7 @@ def login(
     response: Response,
     use_case: AdminSessionUseCase = Depends(get_admin_session_use_case),
 ) -> AdminMeResponse:
-    result = use_case.login(body.username, body.password, client_ip_from_scope(request.scope))
+    result = use_case.login(body.username, body.password, client_from_scope(request.scope))
     set_session_cookie(response, result.token, result.expires_at)
     return to_me_response(result.principal)
 
@@ -65,7 +66,7 @@ def signup(
     response: Response,
     use_case: AdminSessionUseCase = Depends(get_admin_session_use_case),
 ) -> AdminMeResponse:
-    result = use_case.signup(body.username, body.email, body.password, client_ip_from_scope(request.scope))
+    result = use_case.signup(body.username, body.email, body.password, client_from_scope(request.scope))
     set_session_cookie(response, result.token, result.expires_at)
     return to_me_response(result.principal)
 
@@ -103,7 +104,7 @@ def google_callback(
             state,
             handshake.state if handshake else None,
             handshake.code_verifier if handshake else "",
-            client_ip_from_scope(request.scope),
+            client_from_scope(request.scope),
         )
     except AdminError as error:
         return _login_error(error)

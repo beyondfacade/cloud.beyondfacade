@@ -7,6 +7,7 @@ from apps.admin.adapter.inbound.api.v1.access_event_router import router as acce
 from apps.admin.adapter.inbound.api.v1.admin_audit_router import router as admin_audit_router
 from apps.admin.adapter.inbound.api.v1.admin_session_router import router as admin_session_router
 from apps.admin.adapter.inbound.api.v1.admin_user_router import router as admin_user_router
+from apps.admin.adapter.inbound.api.v1.access_rule_router import router as access_rule_router
 from apps.admin.adapter.inbound.api.v1.ip_block_router import router as ip_block_router
 from apps.admin.adapter.inbound.api.v1.security_setting_router import router as security_setting_router
 from apps.admin.adapter.inbound.middleware.security_middleware import SecurityMiddleware
@@ -66,6 +67,7 @@ app.include_router(access_event_router)
 app.include_router(admin_audit_router)
 app.include_router(ip_block_router)
 app.include_router(security_setting_router)
+app.include_router(access_rule_router)
 app.include_router(admin_user_router)
 app.include_router(healthcare_router)
 app.include_router(facility_router)

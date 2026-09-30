@@ -1,5 +1,25 @@
 # Backend Version Log
 
+## [v0.52.0] - 2026-09-30
+
+### Added
+- **디바이스 식별** — 보안 미들웨어가 관리자 경로(`/admin/*`) 요청에 디바이스 쿠키 `metabole_device`(무작위 22자, httpOnly·lax, 400일, Secure는 `ADMIN_COOKIE_SECURE`)를 없을 때만 발급한다. 첫 요청부터 같은 ID를 쓴다(`scope["state"]`). 인증 수단이 아니라 목록 대상 식별용이다.
+- `access_event`에 `device_id`·`user_agent`(300자) 컬럼을 더했다(마이그레이션 `a3d8f1c5e742`). 로그인·가입·구글 로그인·미들웨어 기록 모두 남기고, 이벤트 API 응답에도 싣는다.
+- **화이트리스트·블랙리스트** — 테이블 `access_rule`(policy `allow`/`deny` × target `ip`/`device`, 메모, 만료, 등록자, `(policy,target,value)` unique). IP 블랙리스트는 기존 `ip_block`이 그대로 맡고, `deny`+`ip`는 400으로 거절한다.
+  - IP 대상은 단일 주소나 CIDR 대역을 받아 정규화한다(`10.1.2.3/8` → `10.0.0.0/8`). IPv4 /8, IPv6 /32보다 넓은 대역은 거절한다. 디바이스 대상은 발급 형식(22자)만 받는다. 대상별 검증·일치는 Strategy(`domain/services/access_rule_targets.py`).
+  - API `/admin/security/access-rules`: `GET /myself`, `GET`(로그인 필요), `GET /current-device`(내 디바이스 ID·브라우저·목록 상태), `POST`(관리자, 201), `DELETE /{id}`(관리자, 204). 오류 `INVALID_ACCESS_RULE`(400)·`ACCESS_RULE_EXISTS`(409)·`ACCESS_RULE_NOT_FOUND`(404), 지금 쓰는 내 디바이스 차단은 `SELF_BLOCK`. 만료된 항목은 같은 값으로 다시 넣으면 그 행을 고쳐 쓴다. 감사 `access_rule.create`·`access_rule.delete`.
+- **적용 규칙**
+  - 블랙리스트 디바이스는 관리자 경로에서 403 `DEVICE_BLOCKED`(IP 차단 검사 다음).
+  - 화이트리스트(IP·대역 또는 디바이스)는 자동 방어가 차단을 만들지 않고, 로그인 10분 10회 실패 제한(429)도 적용하지 않는다.
+  - 같은 IP가 자동 차단돼도 화이트리스트 디바이스는 통과한다. 관리자가 직접 건 IP 차단·디바이스 차단은 화이트리스트여도 막는다.
+- 테스트: `test_access_rules.py` 22개(대상 정규화·일치, 쿠키 발급, 이벤트 기록, 목록 API 권한·검증·중복·재등록·자기 차단, 디바이스 차단, 화이트리스트 예외, 수동 차단 우선).
+
+### Changed
+- `AdminSessionUseCase.login/signup/finish_google_login`, `IpBlockUseCase.is_blocked/enforce_auto_defense`, `AccessEventUseCase.record`가 IP 문자열 대신 `Client`(IP·디바이스·User-Agent)를 받는다. `AdminSessionInteractor`·`IpBlockInteractor`에 `AccessRuleRepositoryPort`를 주입한다.
+
+### 한계
+- 디바이스는 쿠키라서 쿠키를 지우거나 다른 브라우저를 쓰면 새 디바이스가 된다. 블랙리스트 디바이스는 가벼운 차단이고, 끈질긴 상대는 IP 차단과 함께 쓴다. 디바이스 ID는 관리자 화면에만 보이지만, 새어 나가면 화이트리스트 디바이스를 흉내 내 로그인 제한을 피할 수 있다(비밀번호는 여전히 필요).
+
 ## [v0.51.0] - 2026-09-30
 
 ### Added

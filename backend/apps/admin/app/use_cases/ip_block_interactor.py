@@ -6,13 +6,16 @@ from apps.admin.app.dtos.admin_session_dto import AdminPrincipalDto
 from apps.admin.app.dtos.ip_block_dto import IpBlockDto
 from apps.admin.app.errors import InvalidIp, IpBlockNotFound, SelfBlock
 from apps.admin.app.ports.input.ip_block_use_case import IpBlockUseCase
-from apps.admin.app.ports.output.admin_audit_port import AdminAuditRepositoryPort
 from apps.admin.app.ports.output.access_event_port import AccessEventRepositoryPort
+from apps.admin.app.ports.output.access_rule_port import AccessRuleRepositoryPort
+from apps.admin.app.ports.output.admin_audit_port import AdminAuditRepositoryPort
 from apps.admin.app.ports.output.admin_user_port import AdminUserRepositoryPort
 from apps.admin.app.ports.output.ip_block_port import IpBlockRepositoryPort
 from apps.admin.app.ports.output.security_setting_port import SecuritySettingRepositoryPort
+from apps.admin.app.use_cases.allow_list import is_allowed
 from apps.admin.app.use_cases.audit_trail import audit_entry
 from apps.admin.domain.entities.admin_audit_entity import AdminAudit, AuditAction
+from apps.admin.domain.entities.client_entity import Client
 from apps.admin.domain.entities.ip_block_entity import IpBlock
 from apps.admin.domain.entities.security_setting_entity import AUTO_DEFENSE
 from apps.admin.domain.services.auto_block_rules import (
@@ -31,6 +34,7 @@ class IpBlockInteractor(IpBlockUseCase):
         audit: AdminAuditRepositoryPort,
         events: AccessEventRepositoryPort,
         settings: SecuritySettingRepositoryPort,
+        rules: AccessRuleRepositoryPort,
         clock: Callable[[], datetime] = lambda: datetime.now(UTC),
     ) -> None:
         self._ip_blocks = ip_blocks
@@ -38,6 +42,7 @@ class IpBlockInteractor(IpBlockUseCase):
         self._audit = audit
         self._events = events
         self._settings = settings
+        self._rules = rules
         self._clock = clock
 
     def myself(self) -> IpBlockDto:
@@ -78,16 +83,19 @@ class IpBlockInteractor(IpBlockUseCase):
             raise IpBlockNotFound(f"차단 목록에 없는 IP입니다: {ip}")
         self._audit.add(audit_entry(self._clock(), actor, AuditAction.IP_BLOCK_DELETE, ip, ip=actor_ip))
 
-    def is_blocked(self, ip: str | None) -> bool:
-        if ip is None:
+    def is_blocked(self, client: Client) -> bool:
+        if client.ip is None:
             return False
-        block = self._ip_blocks.get(ip)
-        return block is not None and block.is_active(self._clock())
-
-    def enforce_auto_defense(self, ip: str | None) -> IpBlockDto | None:
-        if auto_block_exempt(ip) or not self._settings.get(AUTO_DEFENSE).enabled:
-            return None
         now = self._clock()
+        block = self._ip_blocks.get(client.ip)
+        if block is None or not block.is_active(now):
+            return False
+        return not (is_auto_block(block) and is_allowed(self._rules, client, now))
+
+    def enforce_auto_defense(self, client: Client) -> IpBlockDto | None:
+        ip, now = client.ip, self._clock()
+        if auto_block_exempt(ip) or not self._settings.get(AUTO_DEFENSE).enabled or is_allowed(self._rules, client, now):
+            return None
         previous = self._ip_blocks.get(ip)
         if previous is not None and previous.is_active(now):
             return None

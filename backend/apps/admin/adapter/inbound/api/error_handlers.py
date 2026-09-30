@@ -2,10 +2,13 @@ from fastapi import Request
 from fastapi.responses import JSONResponse
 
 from apps.admin.app.errors import (
+    AccessRuleExists,
+    AccessRuleNotFound,
     AdminError,
     AdminUserNotFound,
     EmailTaken,
     ForbiddenRole,
+    InvalidAccessRule,
     InvalidCredentials,
     InvalidEmail,
     InvalidIp,
@@ -26,11 +29,14 @@ _STATUS: dict[type[AdminError], int] = {
     Unauthenticated: 401,
     ForbiddenRole: 403,
     IpBlockNotFound: 404,
+    AccessRuleNotFound: 404,
     AdminUserNotFound: 404,
+    AccessRuleExists: 409,
     UsernameTaken: 409,
     EmailTaken: 409,
     LastOperator: 409,
     InvalidIp: 400,
+    InvalidAccessRule: 400,
     InvalidUsername: 400,
     InvalidEmail: 400,
     WeakPassword: 400,

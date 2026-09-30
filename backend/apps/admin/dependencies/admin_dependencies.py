@@ -4,12 +4,14 @@ from functools import cache
 
 from apps.admin.adapter.outbound.google.google_identity_adapter import GoogleIdentityAdapter
 from apps.admin.adapter.outbound.repositories.access_event_repository import SqlAlchemyAccessEventRepository
+from apps.admin.adapter.outbound.repositories.access_rule_repository import SqlAlchemyAccessRuleRepository
 from apps.admin.adapter.outbound.repositories.admin_audit_repository import SqlAlchemyAdminAuditRepository
 from apps.admin.adapter.outbound.repositories.admin_session_repository import SqlAlchemyAdminSessionRepository
 from apps.admin.adapter.outbound.repositories.admin_user_repository import SqlAlchemyAdminUserRepository
 from apps.admin.adapter.outbound.repositories.ip_block_repository import SqlAlchemyIpBlockRepository
 from apps.admin.adapter.outbound.repositories.security_setting_repository import SqlAlchemySecuritySettingRepository
 from apps.admin.app.ports.input.access_event_use_case import AccessEventUseCase
+from apps.admin.app.ports.input.access_rule_use_case import AccessRuleUseCase
 from apps.admin.app.ports.input.admin_audit_use_case import AdminAuditUseCase
 from apps.admin.app.ports.input.admin_session_use_case import AdminSessionUseCase
 from apps.admin.app.ports.input.admin_user_use_case import AdminUserUseCase
@@ -17,6 +19,7 @@ from apps.admin.app.ports.input.housekeeping_use_case import HousekeepingUseCase
 from apps.admin.app.ports.input.ip_block_use_case import IpBlockUseCase
 from apps.admin.app.ports.input.security_setting_use_case import SecuritySettingUseCase
 from apps.admin.app.use_cases.access_event_interactor import AccessEventInteractor
+from apps.admin.app.use_cases.access_rule_interactor import AccessRuleInteractor
 from apps.admin.app.use_cases.admin_audit_interactor import AdminAuditInteractor
 from apps.admin.app.use_cases.admin_session_interactor import AdminSessionInteractor
 from apps.admin.app.use_cases.admin_user_interactor import AdminUserInteractor
@@ -43,6 +46,7 @@ def get_admin_session_use_case() -> AdminSessionUseCase:
         events=SqlAlchemyAccessEventRepository(),
         audit=SqlAlchemyAdminAuditRepository(),
         google=_google_identity(),
+        rules=SqlAlchemyAccessRuleRepository(),
     )
 
 
@@ -65,6 +69,15 @@ def get_ip_block_use_case() -> IpBlockUseCase:
         audit=SqlAlchemyAdminAuditRepository(),
         events=SqlAlchemyAccessEventRepository(),
         settings=SqlAlchemySecuritySettingRepository(),
+        rules=SqlAlchemyAccessRuleRepository(),
+    )
+
+
+def get_access_rule_use_case() -> AccessRuleUseCase:
+    return AccessRuleInteractor(
+        rules=SqlAlchemyAccessRuleRepository(),
+        users=SqlAlchemyAdminUserRepository(),
+        audit=SqlAlchemyAdminAuditRepository(),
     )
 
 

@@ -12,6 +12,8 @@ class AccessEventDto:
     path: str
     status_code: int
     username: str | None
+    device_id: str | None
+    user_agent: str | None
 
 
 @dataclass(frozen=True)

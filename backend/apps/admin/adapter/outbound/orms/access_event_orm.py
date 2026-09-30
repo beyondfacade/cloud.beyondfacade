@@ -21,6 +21,8 @@ class AccessEventOrm(OrmBase):
     status_code: Mapped[int]
     username: Mapped[str | None]
     admin_user_id: Mapped[int | None] = mapped_column(ForeignKey("admin_user.id", ondelete="SET NULL"))
+    device_id: Mapped[str | None]
+    user_agent: Mapped[str | None]
 
     __table_args__ = (
         Index("ix_access_event_occurred_at", "occurred_at"),
