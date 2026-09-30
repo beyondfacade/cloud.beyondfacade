@@ -31,7 +31,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
     <div className={styles.shell}>
       <header className={styles.bar}>
         <div className={styles.barInner}>
-          <Link href="/admin" className={styles.brand} aria-label="Metabole 관제실 홈">
+          <Link href="/" className={styles.brand} aria-label="Metabole 첫 화면">
             <span className={styles.mark} aria-hidden="true">m.</span>
             <span className={styles.wordmark}>Metabole<small>CONTROL ROOM</small></span>
           </Link>
