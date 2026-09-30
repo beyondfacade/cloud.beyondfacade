@@ -1,5 +1,8 @@
 """Composition Root (DIP) — admin BC Port에 Adapter를 주입한다."""
 
+from functools import cache
+
+from apps.admin.adapter.outbound.google.google_identity_adapter import GoogleIdentityAdapter
 from apps.admin.adapter.outbound.repositories.access_event_repository import SqlAlchemyAccessEventRepository
 from apps.admin.adapter.outbound.repositories.admin_audit_repository import SqlAlchemyAdminAuditRepository
 from apps.admin.adapter.outbound.repositories.admin_session_repository import SqlAlchemyAdminSessionRepository
@@ -17,6 +20,17 @@ from apps.admin.app.use_cases.admin_session_interactor import AdminSessionIntera
 from apps.admin.app.use_cases.admin_user_interactor import AdminUserInteractor
 from apps.admin.app.use_cases.housekeeping_interactor import HousekeepingInteractor
 from apps.admin.app.use_cases.ip_block_interactor import IpBlockInteractor
+from core.matrix.grid_keymaker_secret_manager import get_settings
+
+
+@cache
+def _google_identity() -> GoogleIdentityAdapter:
+    settings = get_settings()
+    return GoogleIdentityAdapter(
+        client_id=settings.google_client_id,
+        client_secret=settings.google_client_secret,
+        redirect_uri=settings.google_redirect_uri,
+    )
 
 
 def get_admin_session_use_case() -> AdminSessionUseCase:
@@ -25,6 +39,7 @@ def get_admin_session_use_case() -> AdminSessionUseCase:
         sessions=SqlAlchemyAdminSessionRepository(),
         events=SqlAlchemyAccessEventRepository(),
         audit=SqlAlchemyAdminAuditRepository(),
+        google=_google_identity(),
     )
 
 

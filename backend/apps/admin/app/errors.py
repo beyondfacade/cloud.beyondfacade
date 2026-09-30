@@ -65,3 +65,29 @@ class SelfChange(AdminError):
 
 class LastOperator(AdminError):
     code = "LAST_OPERATOR"
+
+
+class InvalidEmail(AdminError, ValueError):
+    code = "INVALID_EMAIL"
+
+
+class EmailTaken(AdminError):
+    """구글 로그인이 비밀번호 계정과 이메일이 겹쳐도 자동으로 잇지 않는다 — 가입 이메일은 확인되지 않은 값이라서."""
+
+    code = "EMAIL_TAKEN"
+
+
+class GoogleNotConfigured(AdminError):
+    code = "GOOGLE_NOT_CONFIGURED"
+
+
+class OAuthStateMismatch(AdminError):
+    code = "OAUTH_STATE_MISMATCH"
+
+
+class GoogleLoginFailed(AdminError):
+    code = "GOOGLE_LOGIN_FAILED"
+
+
+class GoogleEmailUnverified(AdminError):
+    code = "GOOGLE_EMAIL_UNVERIFIED"

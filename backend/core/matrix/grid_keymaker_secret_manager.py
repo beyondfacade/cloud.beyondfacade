@@ -35,6 +35,10 @@ class Settings(BaseSettings):
     sgis_service_id: str = ""  # SGIS consumer_key (토큰 4h)
     sgis_security_key: str = ""  # SGIS consumer_secret
     admin_cookie_secure: bool = False  # 관리자 세션 쿠키 Secure — HTTPS 배포에서는 true
+    google_client_id: str = ""  # 구글 로그인 OAuth 클라이언트 — 둘 중 하나라도 비면 구글 버튼을 숨긴다
+    google_client_secret: str = ""
+    # 구글 콘솔 '승인된 리디렉션 URI'와 글자 하나까지 같아야 한다 — 프론트 origin의 /api/backend 프록시 경유
+    google_redirect_uri: str = "http://localhost:3200/api/backend/admin/auth/google/callback"
 
 
 @lru_cache

@@ -1,4 +1,4 @@
-"""Driving Port — 관리자 계정 관리 (인사팀 화면 + CLI)."""
+"""Driving Port — 회원 계정 관리 (인사팀 화면 + CLI)."""
 
 from abc import ABC, abstractmethod
 
@@ -13,11 +13,15 @@ class AdminUserUseCase(ABC):
 
     @abstractmethod
     def upsert(self, username: str, password: str, role: str) -> AdminPrincipalDto:
-        """CLI 전용 — 없으면 만들고, 있으면 비밀번호·역할을 바꾸고 다시 활성화한다."""
+        """CLI 전용 — 없으면 만들고, 있으면 비밀번호·등급을 바꾸고 다시 활성화한다 (이메일·구글 연결은 유지)."""
+
+    @abstractmethod
+    def set_role(self, username: str, role: str) -> AdminPrincipalDto:
+        """CLI 전용 — 비밀번호 없이 등급만 바꾼다. 구글로 가입한 첫 관리자를 올릴 때. 없는 계정은 AdminUserNotFound."""
 
     @abstractmethod
     def list_users(self, q: str, role: str | None, status: str) -> list[AdminUserDto]:
-        """q는 계정명 부분 일치(대소문자 무시), status는 all | active | suspended."""
+        """q는 계정명·이메일 부분 일치(대소문자 무시), status는 all | active | suspended."""
 
     @abstractmethod
     def create(
@@ -27,7 +31,7 @@ class AdminUserUseCase(ABC):
 
     @abstractmethod
     def change_role(self, actor: AdminPrincipalDto, username: str, role: str, ip: str | None) -> AdminUserDto:
-        """자기 역할은 SelfChange, 활성 운영자가 0명이 되면 LastOperator."""
+        """자기 등급은 SelfChange, 활성 관리자가 0명이 되면 LastOperator."""
 
     @abstractmethod
     def set_active(self, actor: AdminPrincipalDto, username: str, active: bool, ip: str | None) -> AdminUserDto:
@@ -41,7 +45,7 @@ class AdminUserUseCase(ABC):
     def sessions(
         self, actor: AdminPrincipalDto, username: str, current_token: str | None
     ) -> list[AdminSessionInfoDto]:
-        """본인 또는 운영 관리자만 — 아니면 ForbiddenRole."""
+        """본인 또는 관리자만 — 아니면 ForbiddenRole."""
 
     @abstractmethod
     def revoke_sessions(

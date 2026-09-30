@@ -56,15 +56,20 @@ class AdminUserInteractor(AdminUserUseCase):
     def myself(self) -> AdminUserDto:
         return AdminUserDto(
             username="myself", role="viewer", is_active=True, created_at=datetime(2026, 9, 30, tzinfo=UTC),
-            last_login_at=None, active_sessions=0,
+            last_login_at=None, active_sessions=0, email=None, has_password=True, has_google=False,
         )
 
     def upsert(self, username: str, password: str, role: str) -> AdminPrincipalDto:
         if problem := username_problem(username):
             raise InvalidUsername(problem)
         _check_password(password)
-        user = AdminUser(username=username, password_hash=hash_password(password), role=AdminRole(role))
+        fields = {"password_hash": hash_password(password), "role": AdminRole(role), "is_active": True}
+        existing = self._users.get_by_username(username)
+        user = replace(existing, **fields) if existing else AdminUser(username=username, **fields)
         return to_principal(self._users.save(user))
+
+    def set_role(self, username: str, role: str) -> AdminPrincipalDto:
+        return to_principal(self._users.save(replace(self._get(username), role=AdminRole(role))))
 
     def list_users(self, q: str, role: str | None, status: str) -> list[AdminUserDto]:
         needle = q.strip().lower()
@@ -74,7 +79,9 @@ class AdminUserInteractor(AdminUserUseCase):
         return [
             self._to_dto(user, sessions)
             for user in self._users.list_all()
-            if needle in user.username.lower() and keep(user) and (wanted_role is None or user.role is wanted_role)
+            if (needle in user.username.lower() or needle in (user.email or ""))
+            and keep(user)
+            and (wanted_role is None or user.role is wanted_role)
         ]
 
     def create(
@@ -95,7 +102,7 @@ class AdminUserInteractor(AdminUserUseCase):
         user = self._target(actor, username)
         new_role = AdminRole(role)
         if leaves_no_active_operator(self._users.list_all(), username, new_role, user.is_active):
-            raise LastOperator("활성 운영 관리자가 한 명은 남아 있어야 합니다.")
+            raise LastOperator("활성 관리자가 한 명은 남아 있어야 합니다.")
         saved = self._users.save(replace(user, role=new_role))
         self._record(actor, AuditAction.USER_ROLE, username, f"{user.role.value} → {new_role.value}", ip)
         return self._to_dto(saved, self._sessions.count_active_by_user(self._clock()))
@@ -103,7 +110,7 @@ class AdminUserInteractor(AdminUserUseCase):
     def set_active(self, actor: AdminPrincipalDto, username: str, active: bool, ip: str | None) -> AdminUserDto:
         user = self._target(actor, username)
         if leaves_no_active_operator(self._users.list_all(), username, user.role, active):
-            raise LastOperator("활성 운영 관리자가 한 명은 남아 있어야 합니다.")
+            raise LastOperator("활성 관리자가 한 명은 남아 있어야 합니다.")
         saved = self._users.save(replace(user, is_active=active))
         if not active:
             self._sessions.delete_for_user(user.id)
@@ -152,13 +159,13 @@ class AdminUserInteractor(AdminUserUseCase):
         """남의 계정을 바꾸는 조치 — 내 계정은 잠금 사고를 막으려 이 경로로 못 바꾼다."""
         user = self._get(username)
         if user.id == actor.id:
-            raise SelfChange("내 계정의 역할·상태·비밀번호는 여기서 바꿀 수 없습니다.")
+            raise SelfChange("내 계정의 등급·상태·비밀번호는 여기서 바꿀 수 없습니다.")
         return user
 
     def _self_or_operator(self, actor: AdminPrincipalDto, username: str) -> AdminUser:
         user = self._get(username)
         if user.id != actor.id and not actor.can_operate:
-            raise ForbiddenRole("다른 계정의 세션은 운영 관리자만 볼 수 있습니다.")
+            raise ForbiddenRole("다른 계정의 세션은 관리자만 볼 수 있습니다.")
         return user
 
     def _record(self, actor: AdminPrincipalDto, action: AuditAction, target: str, detail: str, ip: str | None) -> None:
@@ -173,4 +180,7 @@ class AdminUserInteractor(AdminUserUseCase):
             created_at=user.created_at,
             last_login_at=user.last_login_at,
             active_sessions=sessions.get(user.id, 0),
+            email=user.email,
+            has_password=user.password_hash is not None,
+            has_google=user.google_sub is not None,
         )

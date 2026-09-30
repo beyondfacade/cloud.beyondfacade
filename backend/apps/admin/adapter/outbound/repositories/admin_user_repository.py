@@ -15,6 +15,18 @@ class SqlAlchemyAdminUserRepository(AdminUserRepositoryPort):
             orm = session.execute(select(AdminUserOrm).where(AdminUserOrm.username == username)).scalar_one_or_none()
             return to_entity(orm) if orm else None
 
+    def get_by_email(self, email: str) -> AdminUser | None:
+        with session_scope() as session:
+            orm = session.execute(select(AdminUserOrm).where(AdminUserOrm.email == email)).scalar_one_or_none()
+            return to_entity(orm) if orm else None
+
+    def get_by_google_sub(self, google_sub: str) -> AdminUser | None:
+        with session_scope() as session:
+            orm = session.execute(
+                select(AdminUserOrm).where(AdminUserOrm.google_sub == google_sub)
+            ).scalar_one_or_none()
+            return to_entity(orm) if orm else None
+
     def get_by_id(self, user_id: int) -> AdminUser | None:
         with session_scope() as session:
             orm = session.get(AdminUserOrm, user_id)

@@ -11,6 +11,8 @@ def to_entity(orm: AdminUserOrm) -> AdminUser:
         password_hash=orm.password_hash,
         role=AdminRole(orm.role),
         is_active=orm.is_active,
+        email=orm.email,
+        google_sub=orm.google_sub,
         created_at=orm.created_at,
         last_login_at=orm.last_login_at,
     )
@@ -21,3 +23,5 @@ def apply_to_orm(entity: AdminUser, orm: AdminUserOrm) -> None:
     orm.password_hash = entity.password_hash
     orm.role = entity.role.value
     orm.is_active = entity.is_active
+    orm.email = entity.email
+    orm.google_sub = entity.google_sub

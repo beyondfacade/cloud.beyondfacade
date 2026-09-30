@@ -1,4 +1,4 @@
-"""관리자 권한 가드 (AOP Before) — 라우터는 Depends(require_admin | require_operator)로만 선언한다."""
+"""등급 가드 (AOP Before) — 읽기는 Depends(require_admin: 로그인한 일반 이상), 쓰기는 Depends(require_operator: 관리자)."""
 
 from fastapi import Depends, Request
 
@@ -16,11 +16,11 @@ def require_admin(
     token = request.cookies.get(SESSION_COOKIE)
     principal = use_case.authenticate(token) if token else None
     if principal is None:
-        raise Unauthenticated("관리자 로그인이 필요합니다.")
+        raise Unauthenticated("로그인이 필요합니다.")
     return principal
 
 
 def require_operator(principal: AdminPrincipalDto = Depends(require_admin)) -> AdminPrincipalDto:
     if not principal.can_operate:
-        raise ForbiddenRole("운영 관리자 권한이 필요합니다.")
+        raise ForbiddenRole("관리자 권한이 필요합니다.")
     return principal

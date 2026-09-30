@@ -7,6 +7,7 @@ class AccessEventKind(StrEnum):
     LOGIN_FAILED = "login_failed"
     LOGIN_SUCCEEDED = "login_succeeded"
     LOGIN_THROTTLED = "login_throttled"
+    SIGNUP = "signup"
     SCANNER_PROBE = "scanner_probe"
     SERVER_ERROR = "server_error"
     BLOCKED_REQUEST = "blocked_request"

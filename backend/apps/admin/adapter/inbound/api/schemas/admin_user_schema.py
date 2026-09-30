@@ -13,6 +13,9 @@ class AdminUserResponse(BaseModel):
     created_at: datetime | None
     last_login_at: datetime | None
     active_sessions: int
+    email: str | None
+    has_password: bool
+    has_google: bool
 
 
 class AdminUserListResponse(BaseModel):

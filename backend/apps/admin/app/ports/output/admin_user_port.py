@@ -9,6 +9,13 @@ class AdminUserRepositoryPort(ABC):
     def get_by_username(self, username: str) -> AdminUser | None: ...
 
     @abstractmethod
+    def get_by_email(self, email: str) -> AdminUser | None:
+        """email은 소문자로 맞춘 값으로 넘긴다."""
+
+    @abstractmethod
+    def get_by_google_sub(self, google_sub: str) -> AdminUser | None: ...
+
+    @abstractmethod
     def get_by_id(self, user_id: int) -> AdminUser | None: ...
 
     @abstractmethod

@@ -1,5 +1,21 @@
 # Backend Version Log
 
+## [v0.49.0] - 2026-09-30
+
+### Added
+- **공개 회원 계정** — `admin_user`에 `email`·`google_sub`(각각 unique)를 더하고 `password_hash`를 nullable로 바꿨다(마이그레이션 `7b1d4e9a2c60`, 다운그레이드는 비밀번호 없는 계정을 먼저 지운다). 등급 표시는 일반(`viewer`, 관리자 페이지 읽기)·관리자(`operator`, 쓰기)이고 내부 값은 그대로다.
+- **회원가입** `POST /admin/auth/signup`(201, 세션 쿠키 발급) — 누구나 가입하면 바로 일반 등급이 된다. 아이디 규칙·비밀번호 12자·이메일 형식(254자)을 검사하고, 중복이면 409 `USERNAME_TAKEN`·`EMAIL_TAKEN`을 돌려준다. 같은 IP 가입은 1시간 5회로 제한한다(429 `TOO_MANY_ATTEMPTS`, `login_throttled` 기록). 가입은 접근 이벤트 `signup`으로 남긴다.
+- **이메일 로그인** — `POST /admin/auth/login`의 아이디 칸에 `@`가 있으면 이메일로 찾는다(대소문자 무시). 비밀번호 없는 구글 전용 계정도 더미 해시로 검증해 응답 시간을 맞춘다.
+- **구글 로그인** — authorization code + state + PKCE(S256). `GET /admin/auth/providers`(`{google}`), `GET /admin/auth/google/start?next=`(핸드셰이크 쿠키 `metabole_oauth` 10분, httpOnly·lax), `GET /admin/auth/google/callback`(성공하면 세션 쿠키를 주고 `next`로 보낸다. 실패하면 `/login?error=CODE`로 보낸다: `GOOGLE_NOT_CONFIGURED`·`OAUTH_STATE_MISMATCH`·`GOOGLE_LOGIN_FAILED`·`GOOGLE_EMAIL_UNVERIFIED`·`EMAIL_TAKEN`). `next`는 내부 경로만 허용한다. ID 토큰은 토큰 엔드포인트에서 TLS로 직접 받으므로 iss·aud·exp·sub만 검증한다. 처음 들어온 구글 계정은 이메일 앞부분으로 아이디를 만들어 일반 등급으로 가입시킨다. 기존 비밀번호 계정과 이메일이 겹치면 자동으로 잇지 않고 `EMAIL_TAKEN`을 돌려준다. 포트 `GoogleIdentityPort`, 어댑터 `GoogleIdentityAdapter`(토큰은 로그에 남기지 않는다).
+- 설정 `GOOGLE_CLIENT_ID`·`GOOGLE_CLIENT_SECRET`·`GOOGLE_REDIRECT_URI`(기본 `http://localhost:3200/api/backend/admin/auth/google/callback`) — 비어 있으면 구글 로그인은 꺼진다.
+- CLI `python -m apps.admin.adapter.inbound.cli.set_admin_role --username X --role operator` — 가입한 회원을 관리자로 지정한다.
+- 테스트: 공개 계정 38(도메인 규칙·가입·이메일 로그인·제한·구글 흐름·어댑터 MockTransport·CLI).
+
+### Changed
+- 인사팀 목록 응답에 `email`·`has_password`·`has_google`을 더했다. 검색은 아이디 또는 이메일에 맞는다. 계정 생성 업서트가 이메일·구글 연결을 지우지 않는다.
+- 구글 전용 계정의 내 비밀번호 변경은 400 `WRONG_PASSWORD`(비밀번호 없음 안내)로 거절한다.
+- 가드·규칙 문구를 등급(일반·관리자) 기준으로 바꿨다: "로그인이 필요합니다.", "관리자 권한이 필요합니다.", "활성 관리자가 한 명은 남아 있어야 합니다." 등.
+
 ## [v0.48.0] - 2026-09-30
 
 ### Added
