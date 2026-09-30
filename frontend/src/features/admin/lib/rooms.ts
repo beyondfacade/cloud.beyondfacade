@@ -33,7 +33,7 @@ export const ROOMS: Room[] = [
   {
     key: "users", href: "/admin/users", badge: "PEOPLE",
     title: "인사팀", titleEn: "People",
-    subtitle: "회원 계정의 등급과 접속 상태를 관리하고 비밀번호·세션을 정리합니다.",
+    subtitle: "회원 목록과 접속 상태·세션을 관리하고, 내 계정명과 비밀번호를 바꿉니다.",
     pollMs: 30_000,
   },
 ];

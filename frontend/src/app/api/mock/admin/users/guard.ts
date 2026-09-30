@@ -24,7 +24,7 @@ export async function operatorOnTarget(request: Request, params: Promise<{ usern
   const account = accounts.get(username);
   if (!account) return { error: adminError(404, "ADMIN_USER_NOT_FOUND", `없는 계정입니다: ${username}`) };
   if (username === me.username) {
-    return { error: adminError(400, "SELF_CHANGE", "내 계정의 등급·상태·비밀번호는 여기서 바꿀 수 없습니다.") };
+    return { error: adminError(400, "SELF_CHANGE", "내 계정은 여기서 정지할 수 없습니다.") };
   }
   return { me: me as AdminMe, account, username };
 }

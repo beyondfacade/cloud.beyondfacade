@@ -4,13 +4,12 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useSearchParams } from "next/navigation";
 import { useDeferredValue, useEffect, useRef, useState, type FormEvent } from "react";
 import type { AdminMe, AdminRole, AdminUser, AdminUserFilter, AdminUserStatus } from "@/shared/api/types";
+import { SESSION_QUERY_KEY } from "@/shared/auth/session";
 import {
-  changeAdminRole,
   changeMyPassword,
-  createAdminUser,
+  changeMyUsername,
   fetchAdminSessions,
   fetchAdminUsers,
-  resetAdminPassword,
   revokeAdminSessions,
   setAdminActive,
 } from "../api";
@@ -24,8 +23,9 @@ import styles from "./admin.module.css";
 const ROOM = ROOM_BY_KEY.users;
 const USERS_KEY = ["admin", "users"] as const;
 const EVERYONE: AdminUserFilter = { q: "", role: null, status: "all" };
-/** 백엔드 account_policy와 같은 하한 — 서버가 최종 판정한다. */
+/** 백엔드 account_policy와 같은 규칙 — 서버가 최종 판정한다. */
 const MIN_PASSWORD = 12;
+const USERNAME = /^[a-z0-9][a-z0-9._-]{2,31}$/;
 
 const STATUS_OPTIONS: { value: AdminUserStatus; label: string }[] = [
   { value: "all", label: "전체" },
@@ -43,7 +43,7 @@ function summaryItems(everyone: AdminUser[], shown: number): StatItem[] {
     { label: "접속 정지", value: `${formatCount(suspended)}명`, tone: suspended ? "warn" : "ok" },
     {
       label: "활성 관리자", value: formatCount(operators), tone: operators <= 1 ? "warn" : undefined,
-      hint: operators <= 1 ? "마지막 관리자는 강등·정지할 수 없습니다" : undefined,
+      hint: operators <= 1 ? "마지막 관리자는 정지할 수 없습니다" : undefined,
     },
     { label: "활성 세션", value: formatCount(everyone.reduce((sum, u) => sum + u.active_sessions, 0)) },
   ];
@@ -62,62 +62,8 @@ function passwordProblem(password: string): string | null {
   return password.length < MIN_PASSWORD ? `비밀번호는 ${MIN_PASSWORD}자 이상이어야 합니다.` : null;
 }
 
-function CreateUserForm({ onCreated }: { onCreated: (username: string) => void }) {
-  const invalidate = useInvalidateUsers();
-  const [username, setUsername] = useState("");
-  const [role, setRole] = useState<AdminRole>("viewer");
-  const [password, setPassword] = useState("");
-  const create = useMutation({
-    mutationFn: () => createAdminUser({ username: username.trim(), role, password }),
-    onSuccess: (user) => {
-      void invalidate();
-      onCreated(user.username);
-    },
-  });
-  const problem = password ? passwordProblem(password) : null;
-
-  function submit(event: FormEvent) {
-    event.preventDefault();
-    if (username.trim() && !passwordProblem(password)) create.mutate();
-  }
-
-  return (
-    <Section title="계정 추가" aside={<p>아이디는 영문 소문자·숫자·._- 3~32자</p>}>
-      <form className={styles.form} onSubmit={submit} aria-label="계정 추가">
-        <label className={styles.field}>
-          아이디
-          <input className={styles.input} value={username} onChange={(e) => setUsername(e.target.value)} autoComplete="off" maxLength={32} />
-        </label>
-        <label className={styles.field}>
-          등급
-          <select className={styles.select} value={role} onChange={(e) => setRole(e.target.value as AdminRole)}>
-            {ROLE_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
-          </select>
-        </label>
-        <label className={`${styles.field} ${styles.fieldGrow}`}>
-          초기 비밀번호
-          <input className={styles.input} type="password" value={password} onChange={(e) => setPassword(e.target.value)} autoComplete="new-password" />
-        </label>
-        <button type="submit" className={styles.primaryButton} disabled={create.isPending || !username.trim() || !!passwordProblem(password)}>
-          {create.isPending ? "만드는 중…" : "계정 만들기"}
-        </button>
-      </form>
-      {problem && <p className={styles.formError}>{problem}</p>}
-      {create.isError && <p className={styles.formError} role="alert">{errorMessage(create.error, "계정을 만들지 못했습니다")}</p>}
-    </Section>
-  );
-}
-
-function RoleBlock({ user }: { user: AdminUser }) {
-  const invalidate = useInvalidateUsers();
-  const change = useMutation({ mutationFn: (role: AdminRole) => changeAdminRole(user.username, role), onSuccess: () => void invalidate() });
-  return (
-    <div className={styles.panelBlock}>
-      <h3>등급</h3>
-      <Segment label="등급 변경" options={ROLE_OPTIONS} value={user.role} onChange={(role) => role !== user.role && change.mutate(role)} />
-      {change.isError && <p className={styles.formError} role="alert">{errorMessage(change.error, "등급을 바꾸지 못했습니다")}</p>}
-    </div>
-  );
+function usernameProblem(username: string): string | null {
+  return USERNAME.test(username) ? null : "계정명은 영문 소문자·숫자로 시작하는 3~32자(소문자·숫자·. _ -)여야 합니다.";
 }
 
 function StatusBlock({ user }: { user: AdminUser }) {
@@ -147,38 +93,6 @@ function StatusBlock({ user }: { user: AdminUser }) {
       )}
       {change.isError && <p className={styles.formError} role="alert">{errorMessage(change.error, "상태를 바꾸지 못했습니다")}</p>}
     </div>
-  );
-}
-
-function ResetPasswordBlock({ user }: { user: AdminUser }) {
-  const invalidate = useInvalidateUsers();
-  const [password, setPassword] = useState("");
-  const reset = useMutation({
-    mutationFn: () => resetAdminPassword(user.username, password),
-    onSuccess: () => { setPassword(""); void invalidate(); },
-  });
-
-  function submit(event: FormEvent) {
-    event.preventDefault();
-    if (!passwordProblem(password)) reset.mutate();
-  }
-
-  return (
-    <form className={styles.panelBlock} onSubmit={submit} aria-label="비밀번호 재설정">
-      <h3>비밀번호 재설정</h3>
-      <div className={styles.form}>
-        <label className={`${styles.field} ${styles.fieldGrow}`}>
-          <span className="sr-only">새 비밀번호</span>
-          <input
-            className={styles.input} type="password" value={password} placeholder={`${MIN_PASSWORD}자 이상`}
-            onChange={(e) => { setPassword(e.target.value); reset.reset(); }} autoComplete="new-password" aria-label="새 비밀번호"
-          />
-        </label>
-        <button type="submit" className={styles.ghostButton} disabled={reset.isPending || !!passwordProblem(password)}>재설정</button>
-      </div>
-      {reset.isSuccess && <p className={styles.formOk} role="status">재설정했습니다 — 기존 세션은 모두 끊겼습니다.</p>}
-      {reset.isError && <p className={styles.formError} role="alert">{errorMessage(reset.error, "재설정하지 못했습니다")}</p>}
-    </form>
   );
 }
 
@@ -221,17 +135,24 @@ function SessionsBlock({ user, isSelf }: { user: AdminUser; isSelf: boolean }) {
   );
 }
 
-function MyPasswordBlock() {
-  const invalidate = useInvalidateUsers();
-  const [current, setCurrent] = useState("");
-  const [next, setNext] = useState("");
-  const [confirm, setConfirm] = useState("");
+function MyUsernameBlock({ user, justRenamed, onRenamed }: { user: AdminUser; justRenamed: boolean; onRenamed: (username: string) => void }) {
+  const queryClient = useQueryClient();
+  const [username, setUsername] = useState(user.username);
+  const next = username.trim();
   const change = useMutation({
-    mutationFn: () => changeMyPassword(current, next),
-    onSuccess: () => { setCurrent(""); setNext(""); setConfirm(""); void invalidate(); },
+    mutationFn: () => changeMyUsername(next),
+    onSuccess: (me) => {
+      queryClient.setQueryData(["admin", "me"], me);
+      queryClient.setQueryData(SESSION_QUERY_KEY, me);
+      // 새 이름으로 패널을 바로 다시 열 수 있게 목록 캐시부터 고친다 — 서버 값은 곧이어 다시 받는다.
+      queryClient.setQueriesData<{ items: AdminUser[] }>({ queryKey: USERS_KEY }, (data) =>
+        data && { items: data.items.map((u) => (u.username === user.username ? { ...u, username: me.username } : u)) });
+      void queryClient.invalidateQueries({ queryKey: USERS_KEY });
+      onRenamed(me.username);
+    },
   });
-  const problem = next ? passwordProblem(next) ?? (confirm && confirm !== next ? "새 비밀번호가 서로 다릅니다." : null) : null;
-  const ready = current && next && confirm === next && !passwordProblem(next);
+  const problem = next && next !== user.username ? usernameProblem(next) : null;
+  const ready = next !== user.username && !usernameProblem(next);
 
   function submit(event: FormEvent) {
     event.preventDefault();
@@ -239,12 +160,57 @@ function MyPasswordBlock() {
   }
 
   return (
-    <form className={`${styles.panelBlock} ${styles.stack}`} onSubmit={submit} aria-label="내 비밀번호 변경">
-      <h3>내 비밀번호 변경</h3>
-      <label className={styles.field}>
-        현재 비밀번호
-        <input className={styles.input} type="password" value={current} onChange={(e) => setCurrent(e.target.value)} autoComplete="current-password" />
-      </label>
+    <form className={styles.panelBlock} onSubmit={submit} aria-label="내 계정명 변경">
+      <h3>내 계정명</h3>
+      <div className={styles.form}>
+        <label className={`${styles.field} ${styles.fieldGrow}`}>
+          <span className="sr-only">새 계정명</span>
+          <input
+            className={styles.input} value={username} maxLength={32} autoComplete="username" aria-label="새 계정명"
+            onChange={(e) => { setUsername(e.target.value); change.reset(); }}
+          />
+        </label>
+        <button type="submit" className={styles.ghostButton} disabled={change.isPending || !ready}>
+          {change.isPending ? "바꾸는 중…" : "계정명 변경"}
+        </button>
+      </div>
+      {problem && <p className={styles.formError}>{problem}</p>}
+      {justRenamed && !change.isError && <p className={styles.formOk} role="status">계정명을 바꿨습니다 — 다음 로그인부터 새 계정명을 쓰세요.</p>}
+      {change.isError && <p className={styles.formError} role="alert">{errorMessage(change.error, "계정명을 바꾸지 못했습니다")}</p>}
+    </form>
+  );
+}
+
+/** 구글로만 가입해 비밀번호가 없으면 현재 비밀번호 없이 처음 설정한다. */
+function MyPasswordBlock({ hasPassword }: { hasPassword: boolean }) {
+  const invalidate = useInvalidateUsers();
+  const [current, setCurrent] = useState("");
+  const [next, setNext] = useState("");
+  const [confirm, setConfirm] = useState("");
+  const change = useMutation({
+    mutationFn: (firstTime: boolean) => changeMyPassword(firstTime ? "" : current, next),
+    onSuccess: () => { setCurrent(""); setNext(""); setConfirm(""); void invalidate(); },
+  });
+  const problem = next ? passwordProblem(next) ?? (confirm && confirm !== next ? "새 비밀번호가 서로 다릅니다." : null) : null;
+  const ready = (!hasPassword || current) && next && confirm === next && !passwordProblem(next);
+  const title = hasPassword ? "내 비밀번호 변경" : "비밀번호 설정";
+
+  function submit(event: FormEvent) {
+    event.preventDefault();
+    if (ready) change.mutate(!hasPassword);
+  }
+
+  return (
+    <form className={`${styles.panelBlock} ${styles.stack}`} onSubmit={submit} aria-label={title}>
+      <h3>{title}</h3>
+      {hasPassword ? (
+        <label className={styles.field}>
+          현재 비밀번호
+          <input className={styles.input} type="password" value={current} onChange={(e) => setCurrent(e.target.value)} autoComplete="current-password" />
+        </label>
+      ) : (
+        <p className={styles.muted}>구글로 가입해 아직 비밀번호가 없습니다. 설정하면 비밀번호로도 로그인할 수 있습니다.</p>
+      )}
       <label className={styles.field}>
         새 비밀번호
         <input className={styles.input} type="password" value={next} onChange={(e) => setNext(e.target.value)} autoComplete="new-password" />
@@ -256,16 +222,27 @@ function MyPasswordBlock() {
       {problem && <p className={styles.formError}>{problem}</p>}
       <div className={styles.form}>
         <button type="submit" className={styles.primaryButton} disabled={change.isPending || !ready}>
-          {change.isPending ? "바꾸는 중…" : "비밀번호 변경"}
+          {change.isPending ? "저장하는 중…" : hasPassword ? "비밀번호 변경" : "비밀번호 설정"}
         </button>
       </div>
-      {change.isSuccess && <p className={styles.formOk} role="status">변경했습니다 — 이 세션을 뺀 나머지 세션은 끊겼습니다.</p>}
+      {change.isSuccess && (
+        <p className={styles.formOk} role="status">
+          {change.variables ? "설정했습니다" : "변경했습니다"} — 이 세션을 뺀 나머지 세션은 끊겼습니다.
+        </p>
+      )}
       {change.isError && <p className={styles.formError} role="alert">{errorMessage(change.error, "변경하지 못했습니다")}</p>}
     </form>
   );
 }
 
-function UserPanel({ user, me, now, onClose }: { user: AdminUser; me: AdminMe; now: number; onClose: () => void }) {
+function UserPanel({ user, me, now, justRenamed, onClose, onRenamed }: {
+  user: AdminUser;
+  me: AdminMe;
+  now: number;
+  justRenamed: boolean;
+  onClose: () => void;
+  onRenamed: (username: string) => void;
+}) {
   const isSelf = user.username === me.username;
   const ref = useRef<HTMLDivElement>(null);
   // 좁은 화면에서는 패널이 표 아래로 내려간다 — 열 때 보이는 곳으로 끌어온다.
@@ -288,21 +265,19 @@ function UserPanel({ user, me, now, onClose }: { user: AdminUser; me: AdminMe; n
         </dl>
         {isSelf ? (
           <>
-            <div className={styles.panelBlock}><Notice>본인 계정의 등급·상태는 바꿀 수 없습니다. 다른 관리자에게 요청하세요.</Notice></div>
-            {user.has_password ? <MyPasswordBlock /> : (
-              <div className={styles.panelBlock}><Notice>구글로 가입한 계정이라 비밀번호가 없습니다. 구글 로그인으로 들어오세요.</Notice></div>
-            )}
+            <div className={styles.panelBlock}><Notice>내 등급과 접속 상태는 여기서 바꿀 수 없습니다.</Notice></div>
+            <MyUsernameBlock user={user} justRenamed={justRenamed} onRenamed={onRenamed} />
+            <MyPasswordBlock hasPassword={user.has_password} />
             <SessionsBlock user={user} isSelf />
           </>
         ) : me.can_operate ? (
           <>
-            <RoleBlock user={user} />
+            <div className={styles.panelBlock}><Notice>다른 회원의 등급과 비밀번호는 바꿀 수 없습니다. 비밀번호는 본인만 바꿉니다.</Notice></div>
             <StatusBlock user={user} />
-            <ResetPasswordBlock user={user} />
             <SessionsBlock user={user} isSelf={false} />
           </>
         ) : (
-          <div className={styles.panelBlock}><Notice>계정 변경과 세션 관리는 관리자 권한이 필요합니다.</Notice></div>
+          <div className={styles.panelBlock}><Notice>접속 정지와 세션 관리는 관리자 권한이 필요합니다.</Notice></div>
         )}
       </Section>
     </div>
@@ -357,7 +332,7 @@ function UserListPanel({ me, everyone, now }: { me: AdminMe | undefined; everyon
     setSelected(param);
   }
   const [filter, setFilter] = useState<AdminUserFilter>(EVERYONE);
-  const [creating, setCreating] = useState(false);
+  const [renamed, setRenamed] = useState<string | null>(null);
   const q = useDeferredValue(filter.q);
   const applied = { ...filter, q };
   const list = useAdminQuery([...USERS_KEY, applied], () => fetchAdminUsers(applied), ROOM.pollMs, { keepPrevious: true });
@@ -389,24 +364,19 @@ function UserListPanel({ me, everyone, now }: { me: AdminMe | undefined; everyon
             </label>
             <Segment label="접속 상태" options={STATUS_OPTIONS} value={filter.status} onChange={(status) => setFilter({ ...filter, status })} />
           </div>
-          {me?.can_operate && (
-            <button type="button" className={styles.primaryButton} onClick={() => setCreating((v) => !v)} aria-expanded={creating}>
-              {creating ? "추가 닫기" : "계정 추가"}
-            </button>
-          )}
         </div>
-        {creating && (
-          <div className={styles.toolbar}>
-            <CreateUserForm onCreated={(username) => { setCreating(false); setSelected(username); }} />
-          </div>
-        )}
         <div className={current ? styles.people : undefined}>
           <Section title="유저 목록" aside={<p>{list.isFetching ? "갱신 중…" : `${formatCount(users.length)}명`}</p>} flush>
             {list.isError ? <RoomError error={list.error} /> : (
-              <UserTable users={users} me={me?.username} selected={selected} now={now} onSelect={setSelected} />
+              <UserTable users={users} me={me?.username} selected={selected} now={now} onSelect={(username) => { setSelected(username); setRenamed(null); }} />
             )}
           </Section>
-          {current && me && <UserPanel key={current.username} user={current} me={me} now={now} onClose={() => setSelected(null)} />}
+          {current && me && (
+            <UserPanel
+              key={current.username} user={current} me={me} now={now} justRenamed={renamed === current.username}
+              onClose={() => setSelected(null)} onRenamed={(username) => { setSelected(username); setRenamed(username); }}
+            />
+          )}
         </div>
       </div>
     </>

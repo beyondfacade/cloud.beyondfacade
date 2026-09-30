@@ -622,7 +622,7 @@ export interface SecurityEventFilter {
 export type AuditAction =
   | "ip_block.create" | "ip_block.delete" | "probe.run" | "collector.run"
   | "user.create" | "user.role" | "user.suspend" | "user.reactivate"
-  | "user.password_reset" | "user.sessions_revoke" | "password.change";
+  | "user.password_reset" | "user.sessions_revoke" | "password.change" | "username.change";
 
 export interface AuditEntry {
   id: number | null;
@@ -657,12 +657,6 @@ export interface AdminUserFilter {
   q: string;
   role: AdminRole | null;
   status: AdminUserStatus;
-}
-
-export interface AdminUserCreate {
-  username: string;
-  role: AdminRole;
-  password: string;
 }
 
 export interface AdminSessionInfo {

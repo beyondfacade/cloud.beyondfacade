@@ -2,6 +2,7 @@ import { screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { accounts, sessionsFor } from "@/app/api/mock/admin/users/store";
+import { ApiError } from "@/shared/api/client";
 import type { AdminMe, AdminUserFilter } from "@/shared/api/types";
 import * as api from "../api";
 import { UsersRoom } from "./users-room";
@@ -19,12 +20,14 @@ const OPERATOR: AdminMe = { username: "ops", role: "operator", can_operate: true
 const USERS = [...accounts.values()].map((a) => a.user);
 
 let listCalls: AdminUserFilter[] = [];
+let users = USERS;
 beforeEach(() => {
   search.value = new URLSearchParams();
   listCalls = [];
+  users = USERS;
   vi.spyOn(api, "fetchAdminUsers").mockImplementation(async (filter) => {
     listCalls.push(filter);
-    const items = USERS.filter((u) => filter.status === "all" || (filter.status === "active") === u.is_active)
+    const items = users.filter((u) => filter.status === "all" || (filter.status === "active") === u.is_active)
       .filter((u) => !filter.role || u.role === filter.role)
       .filter((u) => u.username.includes(filter.q.trim()));
     return { items };
@@ -54,15 +57,18 @@ it("상태 필터를 고르면 서버 필터로 다시 조회한다", async () =
   await waitFor(() => expect(screen.queryByRole("button", { name: "lee.ops" })).not.toBeInTheDocument());
 });
 
-it("관리자는 다른 계정의 등급을 바꾸고, 확인을 거쳐 접속을 정지한다", async () => {
+it("관리자는 남의 등급·비밀번호를 바꿀 수 없고, 확인을 거쳐 접속만 정지한다", async () => {
   vi.spyOn(api, "fetchAdminMe").mockResolvedValue(OPERATOR);
-  const role = vi.spyOn(api, "changeAdminRole").mockResolvedValue({ ...USERS[2], role: "viewer" });
   const status = vi.spyOn(api, "setAdminActive").mockResolvedValue({ ...USERS[2], is_active: false });
   renderWithQuery(<UsersRoom />);
+  expect(await screen.findByLabelText("계정 요약")).toBeInTheDocument();
+  expect(screen.queryByRole("button", { name: "계정 추가" })).not.toBeInTheDocument();
   await userEvent.click(await screen.findByRole("button", { name: "lee.ops" }));
   const panel = screen.getByRole("region", { name: "계정 lee.ops" });
-  await userEvent.click(within(within(panel).getByRole("group", { name: "등급 변경" })).getByRole("button", { name: "일반" }));
-  await waitFor(() => expect(role).toHaveBeenCalledWith("lee.ops", "viewer"));
+  expect(within(panel).getByRole("note")).toHaveTextContent("다른 회원의 등급과 비밀번호는 바꿀 수 없습니다");
+  expect(within(panel).queryByRole("group", { name: "등급 변경" })).not.toBeInTheDocument();
+  expect(within(panel).queryByRole("form", { name: "비밀번호 재설정" })).not.toBeInTheDocument();
+  expect(within(panel).queryByLabelText("새 비밀번호")).not.toBeInTheDocument();
   await userEvent.click(within(panel).getByRole("button", { name: "접속 정지" }));
   expect(status).not.toHaveBeenCalled();
   await userEvent.click(within(panel).getByRole("button", { name: "정지 확인" }));
@@ -92,22 +98,43 @@ it("주소의 ?user=가 본인이면 등급 변경 대신 내 비밀번호 변�
   await waitFor(() => expect(change).toHaveBeenCalledWith("old-password-1", "brand-new-pass-1"));
 });
 
-it("관리자는 12자 이상 초기 비밀번호로 계정을 추가한다", async () => {
-  vi.spyOn(api, "fetchAdminMe").mockResolvedValue(OPERATOR);
-  const create = vi.spyOn(api, "createAdminUser").mockResolvedValue({
-    username: "park.ops", role: "operator", is_active: true, created_at: null, last_login_at: null, active_sessions: 0,
-    email: null, has_password: true, has_google: false,
+it("본인은 계정명을 바꾸고, 패널은 새 이름으로 이어서 열려 있다", async () => {
+  search.value = new URLSearchParams("user=viewer");
+  vi.spyOn(api, "fetchAdminMe").mockResolvedValue(VIEWER);
+  const rename = vi.spyOn(api, "changeMyUsername").mockImplementation(async (username) => {
+    users = users.map((u) => (u.username === "viewer" ? { ...u, username } : u));
+    return { ...VIEWER, username };
   });
   renderWithQuery(<UsersRoom />);
-  await userEvent.click(await screen.findByRole("button", { name: "계정 추가" }));
-  const form = screen.getByRole("form", { name: "계정 추가" });
-  await userEvent.type(within(form).getByLabelText("아이디"), "park.ops");
-  await userEvent.selectOptions(within(form).getByLabelText("등급"), "관리자");
-  await userEvent.type(within(form).getByLabelText("초기 비밀번호"), "short");
-  expect(within(form).getByRole("button", { name: "계정 만들기" })).toBeDisabled();
-  await userEvent.type(within(form).getByLabelText("초기 비밀번호"), "-but-long-now");
-  await userEvent.click(within(form).getByRole("button", { name: "계정 만들기" }));
-  await waitFor(() => expect(create).toHaveBeenCalledWith({ username: "park.ops", role: "operator", password: "short-but-long-now" }));
+  const panel = await screen.findByRole("region", { name: "계정 viewer" });
+  const form = within(panel).getByRole("form", { name: "내 계정명 변경" });
+  const input = within(form).getByLabelText("새 계정명");
+  expect(within(form).getByRole("button", { name: "계정명 변경" })).toBeDisabled();
+
+  await userEvent.clear(input);
+  await userEvent.type(input, "Bad Name");
+  expect(within(form).getByText(/계정명은 영문 소문자/)).toBeInTheDocument();
+  expect(within(form).getByRole("button", { name: "계정명 변경" })).toBeDisabled();
+
+  await userEvent.clear(input);
+  await userEvent.type(input, "viewer.kim");
+  await userEvent.click(within(form).getByRole("button", { name: "계정명 변경" }));
+  await waitFor(() => expect(rename).toHaveBeenCalledWith("viewer.kim"));
+  const renamed = await screen.findByRole("region", { name: "계정 viewer.kim" });
+  expect(within(renamed).getByRole("status")).toHaveTextContent("계정명을 바꿨습니다");
+  expect(screen.getByRole("button", { name: "viewer.kim" }).closest("tr")).toHaveTextContent("나");
+});
+
+it("계정명이 이미 있으면 서버 오류 문구를 보여준다", async () => {
+  search.value = new URLSearchParams("user=viewer");
+  vi.spyOn(api, "fetchAdminMe").mockResolvedValue(VIEWER);
+  vi.spyOn(api, "changeMyUsername").mockRejectedValue(new ApiError("USERNAME_TAKEN", "이미 있는 계정명입니다: ops"));
+  renderWithQuery(<UsersRoom />);
+  const form = within(await screen.findByRole("region", { name: "계정 viewer" })).getByRole("form", { name: "내 계정명 변경" });
+  await userEvent.clear(within(form).getByLabelText("새 계정명"));
+  await userEvent.type(within(form).getByLabelText("새 계정명"), "ops");
+  await userEvent.click(within(form).getByRole("button", { name: "계정명 변경" }));
+  expect(await within(form).findByRole("alert")).toHaveTextContent("이미 있는 계정명입니다: ops");
 });
 
 it("목록은 이메일과 가입 방식을 보여준다", async () => {
@@ -120,13 +147,20 @@ it("목록은 이메일과 가입 방식을 보여준다", async () => {
   expect(within(both).getByText("비밀번호 · 구글")).toBeInTheDocument();
 });
 
-it("구글로만 가입한 본인 계정은 비밀번호 변경 대신 안내를 본다", async () => {
+it("구글로만 가입한 본인 계정은 현재 비밀번호 없이 비밀번호를 처음 설정한다", async () => {
   search.value = new URLSearchParams("user=kim.analyst");
   vi.spyOn(api, "fetchAdminMe").mockResolvedValue({ username: "kim.analyst", role: "viewer", can_operate: false });
+  const change = vi.spyOn(api, "changeMyPassword").mockResolvedValue(undefined);
   renderWithQuery(<UsersRoom />);
   const panel = await screen.findByRole("region", { name: "계정 kim.analyst" });
   expect(within(panel).queryByRole("form", { name: "내 비밀번호 변경" })).not.toBeInTheDocument();
-  expect(within(panel).getByText(/구글로 가입한 계정이라 비밀번호가 없습니다/)).toBeInTheDocument();
+  const form = within(panel).getByRole("form", { name: "비밀번호 설정" });
+  expect(within(form).queryByLabelText("현재 비밀번호")).not.toBeInTheDocument();
+  await userEvent.type(within(form).getByLabelText("새 비밀번호"), "brand-new-pass-1");
+  await userEvent.type(within(form).getByLabelText("새 비밀번호 확인"), "brand-new-pass-1");
+  await userEvent.click(within(form).getByRole("button", { name: "비밀번호 설정" }));
+  await waitFor(() => expect(change).toHaveBeenCalledWith("", "brand-new-pass-1"));
+  expect(await within(form).findByRole("status")).toHaveTextContent("설정했습니다");
 });
 
 it("scrollIntoView가 Promise를 돌려주는 브라우저에서도 패널을 열고 닫을 수 있다", async () => {

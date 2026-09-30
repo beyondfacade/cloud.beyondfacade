@@ -1,11 +1,9 @@
-import { apiDelete, apiGet, apiPatch, apiPost, apiPut } from "@/shared/api/client";
+import { apiDelete, apiGet, apiPatch, apiPost } from "@/shared/api/client";
 import type {
   AccessEventPage,
   AdminMe,
-  AdminRole,
   AdminSessionInfo,
   AdminUser,
-  AdminUserCreate,
   AdminUserFilter,
   AuditAction,
   AuditPage,
@@ -44,8 +42,13 @@ export function fetchAdminMe(): Promise<AdminMe> {
   return apiGet<AdminMe>("/admin/auth/me");
 }
 
+/** 비밀번호가 없는 구글 전용 계정은 currentPassword를 빈 값으로 보내 처음 설정한다. */
 export function changeMyPassword(currentPassword: string, newPassword: string): Promise<void> {
   return apiPost<void>("/admin/auth/password", { current_password: currentPassword, new_password: newPassword });
+}
+
+export function changeMyUsername(username: string): Promise<AdminMe> {
+  return apiPatch<AdminMe>("/admin/auth/username", { username });
 }
 
 export function fetchSecurityOverview(): Promise<SecurityOverview> {
@@ -106,20 +109,8 @@ export function fetchAdminUsers(filter: AdminUserFilter): Promise<{ items: Admin
   return apiGet<{ items: AdminUser[] }>(`/admin/users${query({ q: filter.q.trim(), role: filter.role, status: filter.status })}`);
 }
 
-export function createAdminUser(body: AdminUserCreate): Promise<AdminUser> {
-  return apiPost<AdminUser>("/admin/users", body);
-}
-
-export function changeAdminRole(username: string, role: AdminRole): Promise<AdminUser> {
-  return apiPatch<AdminUser>(`${userPath(username)}/role`, { role });
-}
-
 export function setAdminActive(username: string, active: boolean): Promise<AdminUser> {
   return apiPatch<AdminUser>(`${userPath(username)}/status`, { active });
-}
-
-export function resetAdminPassword(username: string, password: string): Promise<void> {
-  return apiPut<void>(`${userPath(username)}/password`, { password });
 }
 
 export function fetchAdminSessions(username: string): Promise<{ items: AdminSessionInfo[] }> {

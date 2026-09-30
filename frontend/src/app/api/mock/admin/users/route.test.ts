@@ -1,11 +1,10 @@
 import { expect, it } from "vitest";
-import { PUT as resetPassword } from "./[username]/password/route";
-import { PATCH as changeRole } from "./[username]/role/route";
 import { DELETE as revokeSessions, GET as getSessions } from "./[username]/sessions/route";
 import { PATCH as setStatus } from "./[username]/status/route";
-import { GET, POST } from "./route";
+import * as usersRoute from "./route";
 import { auditEntries } from "../security/audit/store";
 
+const { GET } = usersRoute;
 const OPERATOR = { cookie: "metabole_admin=operator" };
 const VIEWER = { cookie: "metabole_admin=viewer" };
 const base = "http://test/api/mock/admin/users";
@@ -36,39 +35,23 @@ it("검색어·역할·상태로 거른다", async () => {
   expect(await names("?status=suspended")).toEqual(["kim.analyst"]);
 });
 
-it("계정 생성은 운영 관리자만, 규칙 위반은 실 API와 같은 코드로 거절한다", async () => {
-  expect((await POST(new Request(base, json("POST", { username: "new.one", role: "viewer", password: "long-enough-pass" }, VIEWER)))).status).toBe(403);
-  const code = async (body: unknown) => (await (await POST(new Request(base, json("POST", body)))).json()).error.code;
-  expect(await code({ username: "Bad Name", role: "viewer", password: "long-enough-pass" })).toBe("INVALID_USERNAME");
-  expect(await code({ username: "short.pw", role: "viewer", password: "short" })).toBe("WEAK_PASSWORD");
-  expect(await code({ username: "viewer", role: "viewer", password: "long-enough-pass" })).toBe("USERNAME_TAKEN");
-  const created = await POST(new Request(base, json("POST", { username: "new.one", role: "viewer", password: "long-enough-pass" })));
-  expect(created.status).toBe(201);
-  expect(auditEntries[0]).toMatchObject({ action: "user.create", target: "new.one" });
+it("실 API처럼 화면에서 계정을 만들 수 없다 — POST 핸들러가 없다", () => {
+  expect("POST" in usersRoute).toBe(false);
 });
 
-it("역할 변경과 정지·재개는 감사에 남고 정지하면 세션이 0이 된다", async () => {
-  const role = await changeRole(new Request(`${base}/viewer/role`, json("PATCH", { role: "operator" })), ctx("viewer"));
-  expect((await role.json()).role).toBe("operator");
+it("정지·재개는 관리자만, 감사에 남고 정지하면 세션이 0이 된다", async () => {
+  expect((await setStatus(new Request(`${base}/viewer/status`, json("PATCH", { active: false }, VIEWER)), ctx("viewer"))).status).toBe(403);
   const suspended = await (await setStatus(new Request(`${base}/viewer/status`, json("PATCH", { active: false })), ctx("viewer"))).json();
   expect([suspended.is_active, suspended.active_sessions]).toEqual([false, 0]);
   await setStatus(new Request(`${base}/viewer/status`, json("PATCH", { active: true })), ctx("viewer"));
-  await changeRole(new Request(`${base}/viewer/role`, json("PATCH", { role: "viewer" })), ctx("viewer"));
-  expect(auditEntries.slice(0, 3).map((e) => e.action)).toEqual(["user.role", "user.reactivate", "user.suspend"]);
+  expect(auditEntries.slice(0, 2).map((e) => e.action)).toEqual(["user.reactivate", "user.suspend"]);
 });
 
-it("자기 계정 변경은 400 SELF_CHANGE, 없는 계정은 404", async () => {
-  const self = await changeRole(new Request(`${base}/ops/role`, json("PATCH", { role: "viewer" })), ctx("ops"));
-  expect((await self.json()).error.code).toBe("SELF_CHANGE");
+it("내 계정 정지는 400 SELF_CHANGE, 없는 계정은 404", async () => {
+  const self = await setStatus(new Request(`${base}/ops/status`, json("PATCH", { active: false })), ctx("ops"));
+  expect((await self.json()).error).toEqual({ code: "SELF_CHANGE", message: "내 계정은 여기서 정지할 수 없습니다." });
   const ghost = await setStatus(new Request(`${base}/ghost/status`, json("PATCH", { active: false })), ctx("ghost"));
   expect(ghost.status).toBe(404);
-});
-
-it("비밀번호 재설정은 204이고 12자 미만은 WEAK_PASSWORD", async () => {
-  const weak = await resetPassword(new Request(`${base}/lee.ops/password`, json("PUT", { password: "short" })), ctx("lee.ops"));
-  expect((await weak.json()).error.code).toBe("WEAK_PASSWORD");
-  const ok = await resetPassword(new Request(`${base}/lee.ops/password`, json("PUT", { password: "brand-new-password" })), ctx("lee.ops"));
-  expect(ok.status).toBe(204);
 });
 
 it("세션은 본인 또는 운영 관리자만 보고, 본인이 끊으면 지금 세션은 남는다", async () => {

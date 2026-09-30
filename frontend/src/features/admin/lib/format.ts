@@ -141,6 +141,7 @@ export const AUDIT_ACTION: Record<AuditAction, { label: string; tone: Tone }> = 
   "user.password_reset": { label: "비밀번호 재설정", tone: "warn" },
   "user.sessions_revoke": { label: "세션 종료", tone: "warn" },
   "password.change": { label: "내 비밀번호 변경", tone: "neutral" },
+  "username.change": { label: "내 계정명 변경", tone: "neutral" },
 };
 
 /** 보안 이벤트 검색 기간 — 백엔드 보존 기간(90일) 안. */
