@@ -1,11 +1,8 @@
 import type { FinanceInput, FinanceResult, PlanProfile, PlanQuestion } from "@/shared/api/types";
 import type { AmountField } from "./form-defaults";
 
-/** 한 탭의 한 계획을 보관한다. 장기 저장이 아니다 — 로그인이 없는데 서버 테이블은 이르다.
- *  대구 `consultation-draft.ts` 이식. v2에서 상담 프로필·질문·본 후보를 더했다. */
-export const DRAFT_KEY = "beyondfacade.plan.v1";
-const VERSION = 2;
-
+/** 화면에 머무는 동안의 한 계획. 저장하지 않는다 — 다시 들어오면 지난 계산 없이 새로 시작한다.
+ *  대구 `consultation-draft.ts` 이식. 상담 프로필·질문·본 후보를 함께 든다. */
 export type PlanKind = "baseline" | "current";
 
 export interface PlanSnapshot {
@@ -21,7 +18,6 @@ export interface PlanScope {
 }
 
 export interface PlanDraft extends PlanScope {
-  version: number;
   /** 최초안 — 첫 성공 계산으로 고정한다. */
   baseline: PlanSnapshot | null;
   /** 현재안 — 이후 계산이 갱신한다. */
@@ -45,16 +41,9 @@ export const EMPTY_PROFILE: PlanProfile = {
   policy_confirmation_status: "unknown",
 };
 
-const AMOUNT_FIELDS: (keyof FinanceInput)[] = [
-  "deposit", "key_money", "interior_cost", "equipment_cost",
-  "monthly_rent", "monthly_payroll", "monthly_insurance",
-  "equity", "desired_loan", "expected_monthly_revenue",
-];
-const RATIO_FIELDS: (keyof FinanceInput)[] = ["cost_ratio", "fee_ratio", "loan_rate"];
-
 export function emptyDraft(scope: PlanScope): PlanDraft {
   return {
-    version: VERSION, region: scope.region, industry: scope.industry,
+    region: scope.region, industry: scope.industry,
     baseline: null, current: null, selected: null, change_reason: "",
     profile: { ...EMPTY_PROFILE }, questions: [], candidates_seen: [],
   };
@@ -97,49 +86,4 @@ export function setQuestions(draft: PlanDraft, questions: PlanQuestion[]): PlanD
 
 export function setCandidatesSeen(draft: PlanDraft, titles: string[]): PlanDraft {
   return { ...draft, candidates_seen: [...titles] };
-}
-
-export function saveDraft(draft: PlanDraft): void {
-  try {
-    sessionStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
-  } catch {
-    // 저장 실패는 계산을 막지 않는다.
-  }
-}
-
-/** 구조·금액·비율을 검증해 복원한다. 어긋나면 null — 다시 입력하도록 안내한다. */
-export function loadDraft(): PlanDraft | null {
-  let raw: string | null;
-  try {
-    raw = sessionStorage.getItem(DRAFT_KEY);
-  } catch {
-    return null;
-  }
-  if (raw === null) return null;
-  try {
-    const parsed = JSON.parse(raw) as PlanDraft;
-    return isValidDraft(parsed) ? parsed : null;
-  } catch {
-    return null;
-  }
-}
-
-function isValidDraft(draft: PlanDraft): boolean {
-  // v1 초안은 버린다 — 구조가 달라 되살리면 화면이 undefined를 만진다.
-  if (draft?.version !== VERSION) return false;
-  if (draft.profile == null || !Array.isArray(draft.questions) || !Array.isArray(draft.candidates_seen)) return false;
-  if (!isValidPlan(draft.baseline) || !isValidPlan(draft.current)) return false;
-  if (draft.selected !== null && draft[draft.selected] == null) return false;
-  return true;
-}
-
-function isValidPlan(plan: PlanSnapshot | null): boolean {
-  if (plan == null) return true;
-  const { input, result } = plan;
-  if (input == null || result == null) return false;
-  if (!AMOUNT_FIELDS.every((f) => Number.isFinite(input[f]) && input[f] >= 0)) return false;
-  if (!RATIO_FIELDS.every((f) => Number.isFinite(input[f]) && input[f] >= 0 && input[f] < 1)) return false;
-  // 백엔드 422와 같은 규칙 — 변동비율 ≥ 1이면 BEP가 성립하지 않는다.
-  if (input.cost_ratio + input.fee_ratio >= 1) return false;
-  return Number.isFinite(result.external_funding_need) && Number.isFinite(result.total_required_funds);
 }

@@ -8,7 +8,7 @@ import type { FinanceInput, PlanProfile, PlanQuestion } from "@/shared/api/types
 import { industryLabel } from "@/shared/industries";
 import { fetchPlanRegion, fetchFinancePrefill, fetchFundingCandidates, fetchPlanQuestions, simulateFinance } from "../api";
 import { buildDefaults, prefillBadges, type AmountField } from "../lib/form-defaults";
-import { emptyDraft, loadDraft, recordCalculation, saveDraft, selectPlan, setCandidatesSeen, setProfile, setQuestions, withScope, type PlanDraft } from "../lib/plan-draft";
+import { emptyDraft, recordCalculation, selectPlan, setCandidatesSeen, setProfile, setQuestions, withScope, type PlanDraft } from "../lib/plan-draft";
 import { CandidateCards } from "./candidate-cards";
 import { PlanComparison } from "./plan-comparison";
 import { PlanForm } from "./plan-form";
@@ -18,7 +18,7 @@ import { QuestionList } from "./question-list";
 import { ResultFigures } from "./result-figures";
 import styles from "./plan-workspace.module.css";
 
-/** /plan — 프리필 로드 → 폼 → 계산(서버) → 결과 → 최초안/현재안 비교. 초안은 sessionStorage에 산다. */
+/** /plan — 프리필 로드 → 폼 → 계산(서버) → 결과 → 최초안/현재안 비교. 초안은 화면 상태로만 둔다. */
 export function PlanPage() {
   const searchParams = useSearchParams();
   const region = searchParams.get("region");
@@ -40,9 +40,10 @@ export function PlanPage() {
   });
   const regionName = regionInfo.data?.name ?? "선택한 동네";
 
+  // 계획은 화면에 머무는 동안만 산다 — 다시 들어오면 빈 계획서로 시작한다(지난 계산이 남아 있으면 안 된다).
   const [draft, setDraft] = useState<PlanDraft>(() => emptyDraft(scope));
-  useEffect(() => { setDraft(withScope(loadDraft() ?? emptyDraft(scope), scope)); }, [scope]);
-  const update = useCallback((next: PlanDraft) => { setDraft(next); saveDraft(next); }, []);
+  useEffect(() => { setDraft((prev) => withScope(prev, scope)); }, [scope]);
+  const update = useCallback((next: PlanDraft) => setDraft(next), []);
 
   const defaults = useMemo(() => buildDefaults({ budget, prefill: prefill.data ?? null }), [budget, prefill.data]);
 

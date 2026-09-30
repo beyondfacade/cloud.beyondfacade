@@ -1,6 +1,6 @@
-import { beforeEach, describe, expect, it } from "vitest";
+import { describe, expect, it } from "vitest";
 import type { FinanceInput, FinanceResult, PlanQuestion } from "@/shared/api/types";
-import { DRAFT_KEY, emptyDraft, loadDraft, recordCalculation, saveDraft, selectPlan, selectedPlan, setCandidatesSeen, setProfile, setQuestions, withScope } from "./plan-draft";
+import { emptyDraft, recordCalculation, selectPlan, selectedPlan, setCandidatesSeen, setProfile, setQuestions, withScope } from "./plan-draft";
 
 const input: FinanceInput = {
   deposit: 20_000_000, key_money: 0, interior_cost: 20_000_000, equipment_cost: 10_000_000,
@@ -16,8 +16,6 @@ const result: FinanceResult = {
 const scope = { region: "1168064000", industry: "cafe" };
 
 describe("계획 초안", () => {
-  beforeEach(() => sessionStorage.clear());
-
   it("첫 계산은 최초안으로 고정되고 두 번째부터 현재안이 갱신된다", () => {
     let draft = recordCalculation(emptyDraft(scope), input, result, ["deposit"]);
     expect(draft.baseline?.result.external_funding_need).toBe(31_600_000);
@@ -41,21 +39,6 @@ describe("계획 초안", () => {
     expect(moved.change_reason).toBe("월세를 낮췄다");
     expect(withScope(draft, scope)).toBe(draft);
   });
-
-  it("sessionStorage 왕복 — 저장한 초안이 그대로 복원된다", () => {
-    const draft = recordCalculation(emptyDraft(scope), input, result, ["deposit"]);
-    saveDraft(draft);
-    expect(sessionStorage.getItem(DRAFT_KEY)).not.toBeNull();
-    expect(loadDraft()).toEqual(draft);
-  });
-
-  it("버전이 다르거나 비율이 어긋난 저장값은 복원하지 않는다", () => {
-    sessionStorage.setItem(DRAFT_KEY, JSON.stringify({ ...emptyDraft(scope), version: 0 }));
-    expect(loadDraft()).toBeNull();
-    const broken = recordCalculation(emptyDraft(scope), { ...input, cost_ratio: 0.98 }, result);
-    saveDraft(broken);
-    expect(loadDraft()).toBeNull();
-  });
 });
 
 describe("v2 — 창업 단계·질문·본 후보", () => {
@@ -75,13 +58,10 @@ describe("v2 — 창업 단계·질문·본 후보", () => {
     expect(draft.profile.business_registered).toBe("unknown");
   });
 
-  it("질문 편집본이 왕복에서 살아남는다", () => {
+  it("질문 편집본으로 교체한다", () => {
     const q: PlanQuestion[] = [{ text: "고친 질문", basis: "조달 필요 > 0", kind: "gap" }];
-    const draft = setQuestions(emptyDraft({ region: "r", industry: "cafe" }), q);
 
-    saveDraft(draft);
-
-    expect(loadDraft()?.questions).toEqual(q);
+    expect(setQuestions(emptyDraft({ region: "r", industry: "cafe" }), q).questions).toEqual(q);
   });
 
   it("동네가 바뀌면 후보·질문은 버리고 사람이 쓴 것은 남긴다", () => {
@@ -97,14 +77,5 @@ describe("v2 — 창업 단계·질문·본 후보", () => {
     expect(moved.candidates_seen).toEqual([]);
     expect(moved.change_reason).toBe("월세를 낮춘 매물");
     expect(moved.profile.business_registered).toBe(true);
-  });
-
-  it("구버전(v1) 초안은 되살리지 않는다 — 구조가 달라 화면이 undefined를 만진다", () => {
-    sessionStorage.setItem(
-      DRAFT_KEY,
-      JSON.stringify({ version: 1, region: "r", industry: "cafe", baseline: null, current: null, selected: null, change_reason: "" }),
-    );
-
-    expect(loadDraft()).toBeNull();
   });
 });
