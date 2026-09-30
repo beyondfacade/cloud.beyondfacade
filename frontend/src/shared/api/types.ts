@@ -65,6 +65,8 @@ export interface EventImpact {
   description: string | null;
   source: string;
   current: boolean;
+  /** 유형의 비교 기간 — 최저임금·지원금 1년(4분기), 감염병·근로시간 3년(12분기). */
+  years: number;
   quarters: AnalogQuarter[];
   series: IndustrySeries[];
   target_weak_quarters: number;
@@ -86,7 +88,6 @@ export interface CategoryOutlook {
 
 export interface EventAnalogs {
   industry_id: string;
-  years: number;
   as_of: string;
   categories: { category: string; label: string; reason: "question" | "current" }[];
   current_events: EventImpact[];

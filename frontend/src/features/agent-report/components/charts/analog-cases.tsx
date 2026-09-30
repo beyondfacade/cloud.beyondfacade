@@ -12,6 +12,7 @@ function formatPp(value: number): string {
 
 // 평소 대비 ±0.3%p 밖만 강세·약세로 칠한다 (백엔드 TREND_BAND와 같다)
 const TREND_BAND = 0.3;
+const MAX_QUARTERS = 12;
 // 이 크기(%p)부터 가장 진하게 — 한 분기만 튀는 값이 나머지를 흐리게 만들지 않도록 상한을 둔다
 const FULL_TONE = 2;
 
@@ -44,8 +45,10 @@ function cellColor(value: number | null): string {
 
 function QuarterGrid({ event }: { event: EventImpact }) {
   const years = [...new Set(event.quarters.map((q) => Math.ceil(q.quarter / 4)))];
+  // 4분기 사례도 12분기 사례와 칸 너비가 같도록 표 너비를 분기 수에 비례해 줄인다
   return (
-    <table aria-label={`${event.name} 분기별 변동폭`} className="w-full table-fixed border-separate border-spacing-0.5 text-xs">
+    <table aria-label={`${event.name} 분기별 변동폭`} className="table-fixed border-separate border-spacing-0.5 text-xs"
+      style={{ width: `calc(7rem + (100% - 7rem) * ${event.quarters.length} / ${MAX_QUARTERS})` }}>
       <colgroup>
         <col className="w-28" />
         {event.quarters.map((q) => <col key={q.quarter} />)}
@@ -145,6 +148,7 @@ function EventCard({ event }: { event: EventImpact }) {
           <p className="text-xs text-[var(--text-secondary)]">
             내 업종 {event.quarters.length}분기 중 약세 {event.target_weak_quarters} · 강세 {event.target_strong_quarters}
             {event.target_weak_streak > 0 && ` · 처음부터 ${event.target_weak_streak}분기 연속 약세`}
+            {event.quarters.length < event.years * 4 && ` · 비교 기간 ${event.years * 4}분기 중 ${event.quarters.length}분기 지남`}
           </p>
           <QuarterGrid event={event} />
           <Overlaps quarters={event.quarters} />

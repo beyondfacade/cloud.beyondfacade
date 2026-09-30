@@ -272,14 +272,14 @@ function demoQuarters(year: number, month: number, count: number, overlaps: Reco
 /** 유사 사례 시연 표본 — 분기·업종 흐름 구조는 GET /shocks/analogs 계약과 같다. 수치는 시연용이다. */
 function eventAnalogsDemo(industryId: string, industryName: string): EventAnalogs {
   return {
-    industry_id: industryId, years: 3, as_of: "2026-08",
+    industry_id: industryId, as_of: "2026-08",
     categories: [
       { category: "pandemic", label: "감염병·방역", reason: "question" },
       { category: "minimum_wage", label: "최저임금", reason: "current" },
     ],
     current_events: [{
       event_id: "min-wage-2026", name: "최저임금 인상 — 2026년 시급 10,320원(+2.9%)", category: "minimum_wage", category_label: "최저임금",
-      start_date: "2026-01-01", end_date: "2026-12-31", duration_months: 11, description: null, source: "고용노동부 최저임금 고시", current: true,
+      start_date: "2026-01-01", end_date: "2026-12-31", duration_months: 11, description: null, source: "고용노동부 최저임금 고시", current: true, years: 1,
       quarters: demoQuarters(2026, 1, 2),
       series: [
         { industry_id: industryId, industry_name: industryName, role: "target", values: [0.6, 0.5] },
@@ -290,7 +290,7 @@ function eventAnalogsDemo(industryId: string, industryName: string): EventAnalog
     }],
     analogs: [{
       event_id: "outbreak-covid19-20200120", name: "코로나19 국내 유행과 방역 조치", category: "pandemic", category_label: "감염병·방역",
-      start_date: "2020-01-20", end_date: "2022-04-17", duration_months: 27, description: null, source: "보건복지부·중앙재난안전대책본부 보도자료", current: false,
+      start_date: "2020-01-20", end_date: "2022-04-17", duration_months: 27, description: null, source: "보건복지부·중앙재난안전대책본부 보도자료", current: false, years: 3,
       quarters: demoQuarters(2020, 1, 12, {
         1: ["최저임금 인상 — 2020년", "주 52시간제 시행 — 50~299인 사업장"], 2: ["1차 긴급재난지원금 지급 (전 국민)"],
         5: ["최저임금 인상 — 2021년"], 8: ["소상공인 손실보상제 시행"], 9: ["최저임금 인상 — 2022년"],

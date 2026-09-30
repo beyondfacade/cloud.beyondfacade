@@ -7,6 +7,9 @@ it("진행 중 이벤트와 지난 사례를 이름·기간·유형과 함께 �
   render(<AnalogCases analogs={eventAnalogs()} />);
   const current = screen.getByRole("article", { name: "최저임금 인상 — 2026년" });
   expect(within(current).getByText("진행 중")).toBeInTheDocument();
+  // 최저임금은 그 해 4분기만 본다 — 아직 2분기만 끝났다
+  expect(within(current).getByText("내 업종 2분기 중 약세 0 · 강세 2 · 비교 기간 4분기 중 2분기 지남")).toBeInTheDocument();
+  expect(within(current).getAllByRole("cell")).toHaveLength(2);
   const covid = screen.getByRole("article", { name: "코로나19 국내 유행과 방역 조치" });
   expect(within(covid).getByText("2020-01-20 ~ 2022-04-17 · 약 27개월")).toBeInTheDocument();
   expect(within(covid).queryByText("진행 중")).toBeNull();

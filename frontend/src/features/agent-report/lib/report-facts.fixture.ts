@@ -15,21 +15,21 @@ export function analogQuarters(year: number, month: number, count: number, overl
 /** 유사 사례 표본 — 진행 중 1건(2분기) + 지난 사례 1건(12분기). */
 export function eventAnalogs(): EventAnalogs {
   return {
-    industry_id: "cafe", years: 3, as_of: "2026-08",
+    industry_id: "cafe", as_of: "2026-08",
     categories: [
       { category: "pandemic", label: "감염병·방역", reason: "question" },
       { category: "minimum_wage", label: "최저임금", reason: "current" },
     ],
     current_events: [{
       event_id: "min-wage-2026", name: "최저임금 인상 — 2026년", category: "minimum_wage", category_label: "최저임금",
-      start_date: "2026-01-01", end_date: "2026-12-31", duration_months: 11, description: null, source: "고용노동부", current: true,
+      start_date: "2026-01-01", end_date: "2026-12-31", duration_months: 11, description: null, source: "고용노동부", current: true, years: 1,
       quarters: analogQuarters(2026, 1, 2),
       series: [{ industry_id: "cafe", industry_name: "카페", role: "target", values: [0.6, 0.5] }],
       target_weak_quarters: 0, target_strong_quarters: 2, target_weak_streak: 0,
     }],
     analogs: [{
       event_id: "outbreak-covid19-20200120", name: "코로나19 국내 유행과 방역 조치", category: "pandemic", category_label: "감염병·방역",
-      start_date: "2020-01-20", end_date: "2022-04-17", duration_months: 27, description: null, source: "보건복지부", current: false,
+      start_date: "2020-01-20", end_date: "2022-04-17", duration_months: 27, description: null, source: "보건복지부", current: false, years: 3,
       quarters: analogQuarters(2020, 1, 12, { 2: ["1차 긴급재난지원금 지급"], 8: ["소상공인 손실보상제 시행"] }),
       series: [
         { industry_id: "cafe", industry_name: "카페", role: "target", values: [-0.8, -1.1, -0.6, -1.4, -0.7, -1.4, -0.9, -0.4, -1.2, -1.6, -1.2, -1.7] },
