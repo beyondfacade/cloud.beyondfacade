@@ -128,3 +128,19 @@ it("구글로만 가입한 본인 계정은 비밀번호 변경 대신 안내를
   expect(within(panel).queryByRole("form", { name: "내 비밀번호 변경" })).not.toBeInTheDocument();
   expect(within(panel).getByText(/구글로 가입한 계정이라 비밀번호가 없습니다/)).toBeInTheDocument();
 });
+
+it("scrollIntoView가 Promise를 돌려주는 브라우저에서도 패널을 열고 닫을 수 있다", async () => {
+  const scroll = vi.fn(() => Promise.resolve());
+  Object.defineProperty(Element.prototype, "scrollIntoView", { value: scroll, configurable: true, writable: true });
+  try {
+    vi.spyOn(api, "fetchAdminMe").mockResolvedValue(VIEWER);
+    renderWithQuery(<UsersRoom />);
+    await userEvent.click(await screen.findByRole("button", { name: "lee.ops" }));
+    const panel = screen.getByRole("region", { name: "계정 lee.ops" });
+    expect(scroll).toHaveBeenCalled();
+    await userEvent.click(within(panel).getByRole("button", { name: "닫기" }));
+    expect(screen.queryByRole("region", { name: "계정 lee.ops" })).not.toBeInTheDocument();
+  } finally {
+    delete (Element.prototype as { scrollIntoView?: unknown }).scrollIntoView;
+  }
+});

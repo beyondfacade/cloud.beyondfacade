@@ -269,7 +269,9 @@ function UserPanel({ user, me, now, onClose }: { user: AdminUser; me: AdminMe; n
   const isSelf = user.username === me.username;
   const ref = useRef<HTMLDivElement>(null);
   // 좁은 화면에서는 패널이 표 아래로 내려간다 — 열 때 보이는 곳으로 끌어온다.
-  useEffect(() => ref.current?.scrollIntoView?.({ block: "nearest", behavior: "smooth" }), []);
+  useEffect(() => {
+    ref.current?.scrollIntoView?.({ block: "nearest", behavior: "smooth" });
+  }, []);
   return (
     <div className={styles.panel} ref={ref}>
       <Section
