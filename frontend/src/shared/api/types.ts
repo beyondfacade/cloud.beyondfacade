@@ -490,6 +490,8 @@ export interface AccessEvent {
   path: string;
   status_code: number;
   username: string | null;
+  device_id: string | null; // 관리자 경로에서 발급한 디바이스 쿠키 ID(22자)
+  user_agent: string | null;
 }
 
 export interface SecurityOverview {
@@ -519,6 +521,35 @@ export interface IpBlockCreate {
   ip: string;
   reason: string;
   ttl_minutes: number | null;
+}
+
+export type RulePolicy = "allow" | "deny"; // 화이트리스트 | 블랙리스트
+export type RuleTarget = "ip" | "device"; // IP·대역 | 디바이스 — IP 블랙리스트는 IpBlock
+
+export interface AccessRule {
+  id: number;
+  policy: RulePolicy;
+  target: RuleTarget;
+  value: string;
+  note: string;
+  created_at: string;
+  expires_at: string | null; // null = 무기한
+  created_by: string | null;
+}
+
+export interface AccessRuleCreate {
+  policy: RulePolicy;
+  target: RuleTarget;
+  value: string;
+  note: string;
+  ttl_minutes: number | null;
+}
+
+export interface CurrentDevice {
+  device_id: string | null;
+  user_agent: string | null;
+  allowed: boolean;
+  denied: boolean;
 }
 
 export interface AutoBlockRule {
@@ -636,7 +667,8 @@ export interface SecurityEventFilter {
 }
 
 export type AuditAction =
-  | "ip_block.create" | "ip_block.delete" | "ip_block.auto" | "auto_defense.toggle" | "probe.run" | "collector.run"
+  | "ip_block.create" | "ip_block.delete" | "ip_block.auto" | "auto_defense.toggle"
+  | "access_rule.create" | "access_rule.delete" | "probe.run" | "collector.run"
   | "user.create" | "user.role" | "user.suspend" | "user.reactivate"
   | "user.password_reset" | "user.sessions_revoke" | "password.change" | "username.change";
 

@@ -9,6 +9,7 @@ import {
   formatBytes,
   formatCount,
   formatDateTime,
+  deviceLabel,
   formatMinutes,
   formatMs,
   formatRelative,
@@ -47,6 +48,14 @@ it("지연은 1초 미만 ms, 이상은 초 한 자리", () => {
   expect(formatMs(142)).toBe("142ms");
   expect(formatMs(16_200)).toBe("16.2s");
   expect(formatMs(null)).toBe("—");
+});
+
+it("User-Agent는 브라우저·운영체제로 줄여 보여준다", () => {
+  expect(deviceLabel("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 Version/18.0 Safari/605.1.15")).toBe("Safari · macOS");
+  expect(deviceLabel("Mozilla/5.0 (Windows NT 10.0) AppleWebKit/537.36 Chrome/140.0 Safari/537.36 Edg/140.0")).toBe("Edge · Windows");
+  expect(deviceLabel("Mozilla/5.0 (Linux; Android 15) AppleWebKit/537.36 Chrome/140.0 Mobile Safari/537.36")).toBe("Chrome · Android");
+  expect(deviceLabel("python-requests/2.32")).toBe("python-requests/2.32");
+  expect(deviceLabel(null)).toBe("—");
 });
 
 it("차단 기간은 분·시간·일 중 딱 떨어지는 단위로 쓴다", () => {

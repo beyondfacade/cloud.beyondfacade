@@ -46,6 +46,23 @@ export function formatMs(ms: number | null | undefined): string {
   return ms < 1_000 ? `${Math.round(ms)}ms` : `${(ms / 1_000).toFixed(1)}s`;
 }
 
+const BROWSERS: [RegExp, string][] = [
+  [/Edg\//, "Edge"], [/Whale\//, "Whale"], [/SamsungBrowser\//, "삼성 인터넷"], [/Chrome\//, "Chrome"],
+  [/Firefox\//, "Firefox"], [/Safari\//, "Safari"], [/curl\//i, "curl"],
+];
+const SYSTEMS: [RegExp, string][] = [
+  [/iPhone|iPad/, "iOS"], [/Android/, "Android"], [/Windows/, "Windows"], [/Mac OS X|Macintosh/, "macOS"], [/Linux/, "Linux"],
+];
+
+/** User-Agent → "Chrome · macOS". 모르는 값은 원문 앞부분. 순서가 중요하다(Edge·Chrome UA에도 Safari가 들어 있다). */
+export function deviceLabel(userAgent: string | null | undefined): string {
+  if (!userAgent) return DASH;
+  const browser = BROWSERS.find(([pattern]) => pattern.test(userAgent))?.[1];
+  const system = SYSTEMS.find(([pattern]) => pattern.test(userAgent))?.[1];
+  if (!browser && !system) return userAgent.slice(0, 24);
+  return [browser, system].filter(Boolean).join(" · ");
+}
+
 /** 차단 기간 표기 — BLOCK_TTL_OPTIONS와 같은 말투(1시간·24시간·7일). */
 export function formatMinutes(minutes: number): string {
   if (minutes > 1_440 && minutes % 1_440 === 0) return `${minutes / 1_440}일`;
@@ -141,6 +158,8 @@ export const AUDIT_ACTION: Record<AuditAction, { label: string; tone: Tone }> = 
   "ip_block.delete": { label: "차단 해제", tone: "neutral" },
   "ip_block.auto": { label: "자동 차단", tone: "danger" },
   "auto_defense.toggle": { label: "자동 방어 설정", tone: "warn" },
+  "access_rule.create": { label: "목록 추가", tone: "warn" },
+  "access_rule.delete": { label: "목록 삭제", tone: "neutral" },
   "probe.run": { label: "프로브 실행", tone: "neutral" },
   "collector.run": { label: "수집기 실행", tone: "neutral" },
   "user.create": { label: "계정 생성", tone: "ok" },

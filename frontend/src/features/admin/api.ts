@@ -1,6 +1,8 @@
 import { apiDelete, apiGet, apiPatch, apiPost, apiPut } from "@/shared/api/client";
 import type {
   AccessEventPage,
+  AccessRule,
+  AccessRuleCreate,
   AdminMe,
   AdminSessionInfo,
   AdminUser,
@@ -10,6 +12,7 @@ import type {
   AutoDefense,
   CollectorLog,
   CollectorRun,
+  CurrentDevice,
   FacilitySnapshot,
   HealthcareSnapshot,
   HostHistory,
@@ -76,6 +79,22 @@ export function createIpBlock(body: IpBlockCreate): Promise<IpBlock> {
 
 export function deleteIpBlock(ip: string): Promise<void> {
   return apiDelete(`/admin/security/ip-blocks/${encodeURIComponent(ip)}`);
+}
+
+export function fetchAccessRules(): Promise<AccessRule[]> {
+  return apiGet<AccessRule[]>("/admin/security/access-rules");
+}
+
+export function createAccessRule(body: AccessRuleCreate): Promise<AccessRule> {
+  return apiPost<AccessRule>("/admin/security/access-rules", body);
+}
+
+export function deleteAccessRule(id: number): Promise<void> {
+  return apiDelete(`/admin/security/access-rules/${id}`);
+}
+
+export function fetchCurrentDevice(): Promise<CurrentDevice> {
+  return apiGet<CurrentDevice>("/admin/security/access-rules/current-device");
 }
 
 export function fetchAutoDefense(): Promise<AutoDefense> {

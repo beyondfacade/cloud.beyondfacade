@@ -1,7 +1,13 @@
 import { screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
-import { autoDefenseFixture, initialIpBlocks, securityOverviewFixture } from "@/app/api/mock/admin-fixtures";
+import {
+  autoDefenseFixture,
+  currentDeviceFixture,
+  initialAccessRules,
+  initialIpBlocks,
+  securityOverviewFixture,
+} from "@/app/api/mock/admin-fixtures";
 import { searchSecurityEvents } from "@/app/api/mock/admin-ops-fixtures";
 import type { AdminMe } from "@/shared/api/types";
 import * as api from "../api";
@@ -17,6 +23,8 @@ beforeEach(() => {
   vi.spyOn(api, "fetchSecurityOverview").mockResolvedValue(securityOverviewFixture);
   vi.spyOn(api, "fetchIpBlocks").mockResolvedValue(initialIpBlocks);
   vi.spyOn(api, "fetchAutoDefense").mockResolvedValue(autoDefenseFixture);
+  vi.spyOn(api, "fetchAccessRules").mockResolvedValue(initialAccessRules);
+  vi.spyOn(api, "fetchCurrentDevice").mockResolvedValue(currentDeviceFixture);
 });
 afterEach(() => vi.restoreAllMocks());
 
@@ -64,7 +72,7 @@ it("일반 회원에게는 차단 버튼 대신 권한 안내를 보여준다", 
   renderWithQuery(<SecurityRoom />);
   await screen.findByText("관리자 로그인 실패 12회 (15분)");
   expect(screen.queryByRole("button", { name: "24시간 차단" })).not.toBeInTheDocument();
-  await userEvent.click(screen.getByRole("tab", { name: /IP 차단/ }));
+  await userEvent.click(screen.getByRole("tab", { name: /블랙리스트/ }));
   expect(screen.getByRole("note")).toHaveTextContent("관리자 권한");
   expect(screen.queryByRole("button", { name: "해제" })).not.toBeInTheDocument();
 });
@@ -88,6 +96,8 @@ it("이벤트 탭은 종류·IP로 걸러 조회하고 더 보기로 다음 쪽�
   renderWithQuery(<SecurityRoom />);
   await userEvent.click(await screen.findByRole("tab", { name: /이벤트/ }));
   expect(await screen.findByText("50건 표시")).toBeInTheDocument();
+  expect(screen.getAllByText("Chrome · macOS").length).toBeGreaterThan(0);
+  expect(screen.getAllByText("Mo7pL2qR9tVx4nZ8cK1wJd").length).toBeGreaterThan(0);
   await userEvent.click(screen.getByRole("button", { name: "더 보기" }));
   expect(await screen.findByText("72건 표시 · 끝")).toBeInTheDocument();
   expect(search).toHaveBeenLastCalledWith({ kind: null, ip: "", hours: 24 }, 23);
@@ -117,11 +127,65 @@ it("운영 관리자는 차단 탭에서 기간을 골라 추가하고 해제할
   const create = vi.spyOn(api, "createIpBlock").mockResolvedValue(initialIpBlocks[0]);
   const remove = vi.spyOn(api, "deleteIpBlock").mockResolvedValue(undefined);
   renderWithQuery(<SecurityRoom />);
-  await userEvent.click(await screen.findByRole("tab", { name: /IP 차단/ }));
+  await userEvent.click(await screen.findByRole("tab", { name: /블랙리스트/ }));
   await userEvent.type(screen.getByLabelText("IP 주소"), "192.0.2.9");
   await userEvent.selectOptions(screen.getByLabelText("기간"), "무기한");
   await userEvent.click(screen.getByRole("button", { name: "차단 추가" }));
   await waitFor(() => expect(create).toHaveBeenCalledWith({ ip: "192.0.2.9", reason: "", ttl_minutes: null }));
-  await userEvent.click(screen.getByRole("button", { name: "해제" }));
+  const ipTable = screen.getByRole("region", { name: "차단 중인 IP" });
+  await userEvent.click(within(ipTable).getByRole("button", { name: "해제" }));
   await waitFor(() => expect(remove).toHaveBeenCalledWith("198.51.100.7"));
+});
+
+it("블랙리스트 탭에서 대상을 디바이스로 바꾸면 디바이스 차단으로 추가하고, 차단 중인 디바이스를 해제한다", async () => {
+  vi.spyOn(api, "fetchAdminMe").mockResolvedValue(OPERATOR);
+  const create = vi.spyOn(api, "createAccessRule").mockResolvedValue(initialAccessRules[0]);
+  const remove = vi.spyOn(api, "deleteAccessRule").mockResolvedValue(undefined);
+  renderWithQuery(<SecurityRoom />);
+  await userEvent.click(await screen.findByRole("tab", { name: /블랙리스트/ }));
+  const devices = await screen.findByRole("region", { name: "차단 중인 디바이스" });
+  expect(within(devices).getByText("로그인 대입 봇")).toBeInTheDocument();
+
+  await userEvent.selectOptions(screen.getByLabelText("대상"), "디바이스");
+  await userEvent.type(screen.getByLabelText("디바이스 ID"), "Bb".repeat(11));
+  await userEvent.type(screen.getByLabelText("사유"), "스크래퍼");
+  await userEvent.click(screen.getByRole("button", { name: "차단 추가" }));
+  await waitFor(() => expect(create).toHaveBeenCalledWith({
+    policy: "deny", target: "device", value: "Bb".repeat(11), note: "스크래퍼", ttl_minutes: 1_440,
+  }));
+
+  await userEvent.click(within(devices).getByRole("button", { name: "해제" }));
+  await waitFor(() => expect(remove).toHaveBeenCalledWith(2));
+});
+
+it("화이트리스트 탭은 예외 규칙을 설명하고, 내 디바이스를 바로 넣거나 항목을 지운다", async () => {
+  vi.spyOn(api, "fetchAdminMe").mockResolvedValue(OPERATOR);
+  const create = vi.spyOn(api, "createAccessRule").mockResolvedValue(initialAccessRules[1]);
+  const remove = vi.spyOn(api, "deleteAccessRule").mockResolvedValue(undefined);
+  renderWithQuery(<SecurityRoom />);
+  await userEvent.click(await screen.findByRole("tab", { name: /화이트리스트/ }));
+  expect(screen.getByRole("note")).toHaveTextContent("자동 차단과 로그인 실패 횟수 제한에 걸리지 않습니다");
+  const list = screen.getByRole("region", { name: "화이트리스트" });
+  expect(within(list).getByText("10.0.0.0/8")).toBeInTheDocument();
+  expect(within(list).queryByText("로그인 대입 봇")).not.toBeInTheDocument();
+  expect(await screen.findByText(/지금 디바이스: Chrome · macOS/)).toBeInTheDocument();
+
+  await userEvent.click(screen.getByRole("button", { name: "내 디바이스 넣기" }));
+  expect(screen.getByLabelText("디바이스 ID")).toHaveValue(currentDeviceFixture.device_id);
+  await userEvent.click(screen.getByRole("button", { name: "추가" }));
+  await waitFor(() => expect(create).toHaveBeenCalledWith({
+    policy: "allow", target: "device", value: currentDeviceFixture.device_id, note: "", ttl_minutes: null,
+  }));
+
+  await userEvent.click(within(list).getByRole("button", { name: "삭제" }));
+  await waitFor(() => expect(remove).toHaveBeenCalledWith(1));
+});
+
+it("일반 회원은 화이트리스트를 볼 수만 있다", async () => {
+  vi.spyOn(api, "fetchAdminMe").mockResolvedValue(VIEWER);
+  renderWithQuery(<SecurityRoom />);
+  await userEvent.click(await screen.findByRole("tab", { name: /화이트리스트/ }));
+  expect(await screen.findByText("10.0.0.0/8")).toBeInTheDocument();
+  expect(screen.queryByRole("form", { name: "화이트리스트 추가" })).not.toBeInTheDocument();
+  expect(screen.queryByRole("button", { name: "삭제" })).not.toBeInTheDocument();
 });

@@ -5,13 +5,20 @@ const NOW = Date.parse("2026-09-29T12:00:00+09:00");
 const MINUTE = 60_000;
 const HOUR = 60 * MINUTE;
 
-const EVENT_PATTERN: { kind: AccessEventKind; ip: string; method: string; path: string; status: number; username: string | null }[] = [
-  { kind: "login_failed", ip: "203.0.113.10", method: "POST", path: "/admin/auth/login", status: 401, username: "admin" },
-  { kind: "scanner_probe", ip: "198.51.100.7", method: "GET", path: "/.env", status: 404, username: null },
-  { kind: "login_succeeded", ip: "10.0.0.5", method: "POST", path: "/admin/auth/login", status: 200, username: "ops" },
-  { kind: "scanner_probe", ip: "198.51.100.7", method: "GET", path: "/wp-login.php", status: 404, username: null },
-  { kind: "server_error", ip: "10.0.0.5", method: "GET", path: "/regions/1168063000/summary", status: 500, username: null },
-  { kind: "blocked_request", ip: "198.51.100.7", method: "GET", path: "/admin/security/overview", status: 403, username: null },
+const ATTACKER_DEVICE = { device: "Xk3vQ9mZt2LpW8rN1sYb0c", ua: "python-requests/2.32" };
+const OPS_DEVICE = { device: "Mo7pL2qR9tVx4nZ8cK1wJd", ua: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 Chrome/140.0 Safari/537.36" };
+const NO_DEVICE = { device: null, ua: "curl/8.5.0" };
+
+const EVENT_PATTERN: {
+  kind: AccessEventKind; ip: string; method: string; path: string; status: number; username: string | null;
+  device: string | null; ua: string;
+}[] = [
+  { kind: "login_failed", ip: "203.0.113.10", method: "POST", path: "/admin/auth/login", status: 401, username: "admin", ...ATTACKER_DEVICE },
+  { kind: "scanner_probe", ip: "198.51.100.7", method: "GET", path: "/.env", status: 404, username: null, ...NO_DEVICE },
+  { kind: "login_succeeded", ip: "10.0.0.5", method: "POST", path: "/admin/auth/login", status: 200, username: "ops", ...OPS_DEVICE },
+  { kind: "scanner_probe", ip: "198.51.100.7", method: "GET", path: "/wp-login.php", status: 404, username: null, ...NO_DEVICE },
+  { kind: "server_error", ip: "10.0.0.5", method: "GET", path: "/regions/1168063000/summary", status: 500, username: null, ...NO_DEVICE },
+  { kind: "blocked_request", ip: "198.51.100.7", method: "GET", path: "/admin/security/overview", status: 403, username: null, ...NO_DEVICE },
 ];
 
 /** 20분 간격 72건(24시간) — id가 클수록 최신. "더 보기" 쪽 나눔을 확인할 만큼 넉넉하게. */
@@ -26,6 +33,8 @@ export const securityEventsFixture: AccessEvent[] = Array.from({ length: 72 }, (
     path: pattern.path,
     status_code: pattern.status,
     username: pattern.username,
+    device_id: pattern.device,
+    user_agent: pattern.ua,
   };
 });
 

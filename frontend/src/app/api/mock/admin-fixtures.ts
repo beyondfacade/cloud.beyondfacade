@@ -1,7 +1,9 @@
 /** 관리자 mock 픽스처 — 서버 전용. 시각은 고정 ISO 문자열(결정적 데이터). */
 import type {
+  AccessRule,
   AdminMe,
   AutoDefense,
+  CurrentDevice,
   FacilitySnapshot,
   HealthcareSnapshot,
   IpBlock,
@@ -40,6 +42,9 @@ export const forbiddenRole = () => adminError(403, "FORBIDDEN_ROLE", "관리자 
 
 const ATTACKER = "203.0.113.10";
 const SCANNER = "198.51.100.7";
+const ATTACKER_DEVICE = "Xk3vQ9mZt2LpW8rN1sYb0c";
+const OPS_DEVICE = "Mo7pL2qR9tVx4nZ8cK1wJd";
+const OPS_UA = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 Chrome/140.0 Safari/537.36";
 
 export const securityOverviewFixture: SecurityOverview = {
   generated_at: "2026-09-29T12:00:00+09:00",
@@ -58,16 +63,24 @@ export const securityOverviewFixture: SecurityOverview = {
     },
   ],
   recent_events: [
-    { id: 27, occurred_at: "2026-09-29T11:58:42+09:00", kind: "login_failed", ip: ATTACKER, method: "POST", path: "/admin/auth/login", status_code: 401, username: "admin" },
-    { id: 26, occurred_at: "2026-09-29T11:52:03+09:00", kind: "login_succeeded", ip: "10.0.0.5", method: "POST", path: "/admin/auth/login", status_code: 200, username: "ops" },
-    { id: 25, occurred_at: "2026-09-29T11:31:00+09:00", kind: "scanner_probe", ip: SCANNER, method: "GET", path: "/.env", status_code: 404, username: null },
-    { id: 24, occurred_at: "2026-09-29T10:12:44+09:00", kind: "server_error", ip: "10.0.0.5", method: "GET", path: "/regions/1168063000/summary", status_code: 500, username: null },
+    { id: 27, occurred_at: "2026-09-29T11:58:42+09:00", kind: "login_failed", ip: ATTACKER, method: "POST", path: "/admin/auth/login", status_code: 401, username: "admin", device_id: ATTACKER_DEVICE, user_agent: "python-requests/2.32" },
+    { id: 26, occurred_at: "2026-09-29T11:52:03+09:00", kind: "login_succeeded", ip: "10.0.0.5", method: "POST", path: "/admin/auth/login", status_code: 200, username: "ops", device_id: OPS_DEVICE, user_agent: OPS_UA },
+    { id: 25, occurred_at: "2026-09-29T11:31:00+09:00", kind: "scanner_probe", ip: SCANNER, method: "GET", path: "/.env", status_code: 404, username: null, device_id: null, user_agent: "curl/8.5.0" },
+    { id: 24, occurred_at: "2026-09-29T10:12:44+09:00", kind: "server_error", ip: "10.0.0.5", method: "GET", path: "/regions/1168063000/summary", status_code: 500, username: null, device_id: null, user_agent: null },
   ],
 };
 
 export const initialIpBlocks: IpBlock[] = [
   { ip: SCANNER, reason: "스캐너 경로 탐색", created_at: "2026-09-29T11:32:00+09:00", expires_at: "2026-09-30T11:32:00+09:00", created_by: "ops" },
 ];
+
+export const initialAccessRules: AccessRule[] = [
+  { id: 2, policy: "deny", target: "device", value: ATTACKER_DEVICE, note: "로그인 대입 봇", created_at: "2026-09-29T12:01:00+09:00", expires_at: null, created_by: "ops" },
+  { id: 1, policy: "allow", target: "ip", value: "10.0.0.0/8", note: "사내망", created_at: "2026-09-29T09:00:00+09:00", expires_at: null, created_by: "ops" },
+];
+
+/** mock 요청의 디바이스 — 운영 관리자 브라우저로 본다. */
+export const currentDeviceFixture: CurrentDevice = { device_id: OPS_DEVICE, user_agent: OPS_UA, allowed: false, denied: false };
 
 /** 백엔드 auto_block_rules.AUTO_BLOCK_RULES와 같은 값 — 규칙을 바꾸면 둘 다 고친다. */
 export const autoDefenseFixture: AutoDefense = {

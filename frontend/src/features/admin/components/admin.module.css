@@ -83,6 +83,8 @@
 .ruleList strong { min-width: 150px; font-weight: 650; }
 .ruleList span { color: var(--text-secondary); font-variant-numeric: tabular-nums; }
 .ruleNote { margin-top: 14px; font-size: 11px; line-height: 1.6; color: var(--text-secondary); }
+.deviceId { display: block; margin-top: 2px; font-size: 10px; color: var(--text-secondary); user-select: all; }
+.notice + .ruleNote, .ruleNote + .section, .notice + .section { margin-top: 14px; }
 .tableWrap { overflow-x: auto; }
 .table { width: 100%; border-collapse: collapse; font-size: 12px; font-variant-numeric: tabular-nums; }
 .table th { padding: 10px 20px; background: var(--bg-raised); text-align: left; font-size: 11px; font-weight: 600; color: var(--text-secondary); white-space: nowrap; }
