@@ -23,6 +23,10 @@ CATEGORY_LABELS: dict[str, str] = {
 
 # 비교 기간(년, 분기는 ×4) — 해마다 새로 정해지는 최저임금·한 번 지급하는 지원금은 그 해만 본다
 # (다음 해 이벤트와 겹치지 않게). 드문 충격인 감염병과 한 번 바뀌면 이어지는 근로시간 제도는 3년.
+# 이벤트 직전 4분기와 최근 4분기의 업종 상태를 견주는 유형 — 몇 년에 한 번 오는 드문 이벤트만.
+# 최저임금은 해마다 올라 "직전 4분기"가 곧 작년(최근과 겹침)이고, 지원금은 짧아 상태를 바꾸지 못한다.
+CONDITION_COMPARED: frozenset[str] = frozenset({EventCategory.PANDEMIC, EventCategory.WORK_HOURS})
+
 CATEGORY_YEARS: dict[str, int] = {
     EventCategory.PANDEMIC: 3,
     EventCategory.MINIMUM_WAGE: 1,

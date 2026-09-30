@@ -156,6 +156,38 @@ def test_유사_사례_폴백은_유형별_결론과_강세_업종을_덧붙인�
     assert "사례 속 강세 업종 양식 / 약세 업종 PC방" in markdown
 
 
+def test_유사_사례_폴백은_사례_직전과_최근_4분기의_업종_상태를_덧붙인다():
+    def period(start: str, end: str, growth: float, all_growth: float, closure: float) -> dict:
+        return {
+            "start_month": start, "end_month": end, "growth_pct": growth, "all_growth_pct": all_growth,
+            "excess_pct": round(growth - all_growth, 1), "closure_rate_pct": closure,
+            "rank": 1, "industry_count": 63,
+        }
+
+    markdown = analogs_markdown(
+        {
+            **_ANALOGS,
+            "outlooks": [
+                {
+                    "label": "감염병·방역", "analog_count": 2, "target_trend": "weak",
+                    "recommended": [], "avoid": [],
+                    "condition": {
+                        "event_id": "outbreak-covid19-20200120", "event_name": "코로나19 국내 유행",
+                        "direction": "weaker",
+                        "before": period("2019-01", "2019-12", 7.1, 1.3, 14.0),
+                        "recent": period("2025-09", "2026-08", -1.1, -1.1, 20.1),
+                    },
+                }
+            ],
+        }
+    )
+
+    assert (
+        "코로나19 국내 유행 직전 4분기(2019-01~2019-12) 대비 최근 4분기(2025-09~2026-08): "
+        "점포 +7.1% → -1.1% (전 업종 대비 +5.8%p → +0.0%p), 폐업률 14.0% → 20.1% — 그때보다 약한 상태."
+    ) in markdown
+
+
 def test_유사_사례_폴백은_질문_속_유형의_최근_조치_소식을_덧붙인다():
     def recent(checked: bool, count: int, headlines: list[dict]) -> dict:
         return {

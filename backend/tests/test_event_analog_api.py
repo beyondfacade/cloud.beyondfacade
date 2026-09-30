@@ -204,6 +204,19 @@ def test_비교하지_않은_유형은_질문에_넣을_예시_단어로_안내�
     assert [h.category for h in _interactor().analogs("cafe", None).hints] == ["pandemic", "work_hours", "relief"]
 
 
+def test_드문_유형의_종합에는_가장_최근_사례_직전과_최근_4분기의_업종_상태를_싣는다():
+    report = _interactor().analogs("cafe", "코로나 같은 상황")
+    pandemic = next(o for o in report.outlooks if o.category == "pandemic")
+    condition = pandemic.condition
+    assert (condition.event_id, condition.event_name) == ("covid", "covid 이름")  # 코로나가 메르스보다 최근
+    assert (condition.before.start_month, condition.before.end_month) == ("2019-01", "2019-12")
+    assert (condition.recent.start_month, condition.recent.end_month) == ("2025-09", "2026-08")
+    assert condition.direction in {"weaker", "stronger", "similar"}
+    assert condition.before.industry_count == 2
+    minimum_wage = next(o for o in report.outlooks if o.category == "minimum_wage")
+    assert minimum_wage.condition is None  # 해마다 오는 유형은 견주지 않는다
+
+
 def test_진행_중_이벤트가_없는_질문_속_유형은_최근_30일_조치_기사를_확인한다():
     news = FakeNews({"집합금지": [
         NewsHeadline("집합금지 명령 발동", datetime(2026, 9, 25, 10), "u1"),

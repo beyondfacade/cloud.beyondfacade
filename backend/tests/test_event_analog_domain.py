@@ -23,9 +23,14 @@ from apps.shock.domain.services.event_category_hints import (
     categories_in,
 )
 from apps.shock.domain.services.event_window import Quarter, Window, event_quarters
+from apps.shock.domain.services.industry_condition import condition_compare
 from apps.shock.domain.services.industry_flows import IndustryFlows, WindowChange
 from apps.shock.domain.services.recent_measures import NEWS_DAYS, measure_headlines
-from apps.shock.domain.value_objects.event_category import CATEGORY_YEARS, EventCategory
+from apps.shock.domain.value_objects.event_category import (
+    CATEGORY_YEARS,
+    CONDITION_COMPARED,
+    EventCategory,
+)
 from apps.shock.domain.value_objects.news_headline import NewsHeadline
 
 TODAY = date(2026, 9, 30)
@@ -365,3 +370,53 @@ def test_유형마다_안내용_예시_단어는_그_유형의_단서다():
 
 def test_유형_값은_4종이다():
     assert {c.value for c in EventCategory} == {"pandemic", "minimum_wage", "work_hours", "relief"}
+
+
+# ── 직전·최근 업종 상태 ────────────────────────────────────────────────
+
+
+def _shifted(industry_id: str, before: tuple[int, int], after: tuple[int, int], stock: int = 1000) -> IndustryFlows:
+    """2019년까지 before(개업, 폐업), 2020년부터 after — 매달 같은 수."""
+    openings = {date(2012, 12, 1): stock}
+    closings: dict[date, int] = {}
+    for year in range(2013, 2027):
+        opens, closes = before if year < 2020 else after
+        for month in range(1, 13):
+            openings[date(year, month, 1)] = opens
+            closings[date(year, month, 1)] = closes
+    return IndustryFlows(industry_id, industry_id, openings, closings)
+
+
+def test_직전_비교는_드문_유형만_한다():
+    # 최저임금·지원금은 해마다 오거나 짧아 "직전 4분기"가 최근과 겹친다
+    assert CONDITION_COMPARED == frozenset({EventCategory.PANDEMIC, EventCategory.WORK_HOURS})
+
+
+def test_이벤트_직전_4분기와_최근_4분기의_업종_상태를_전_업종과_견준다():
+    flows = [_shifted("cafe", (20, 10), (10, 12)), _shifted("pc_bang", (5, 5), (5, 5))]
+
+    compare = condition_compare(flows, "cafe", date(2020, 1, 20), TODAY)
+
+    before, recent = compare.before, compare.recent
+    assert (before.window.start, before.window.end) == (date(2019, 1, 1), date(2020, 1, 1))
+    assert (recent.window.start, recent.window.end) == (date(2025, 9, 1), date(2026, 9, 1))
+    # 직전: 카페 1720→1840(+7.0%), 전 업종 2720→2840(+4.4%), 폐업 120/1720
+    assert (before.growth_pct, before.all_growth_pct, before.excess_pct) == (7.0, 4.4, 2.6)
+    assert (before.closure_rate_pct, before.rank, before.industry_count) == (7.0, 1, 2)
+    # 최근: 카페 1704→1680(−1.4%), 전 업종 2704→2680(−0.9%), 폐업 144/1704
+    assert (recent.growth_pct, recent.all_growth_pct, recent.excess_pct) == (-1.4, -0.9, -0.5)
+    assert (recent.closure_rate_pct, recent.rank) == (8.5, 2)
+    assert compare.direction == "weaker"  # 전 업종 대비 +2.6%p → −0.5%p
+
+
+def test_전_업종_대비_차이가_1퍼센트포인트_안이면_비슷하다고_본다():
+    flows = [_shifted("cafe", (10, 8), (10, 8)), _shifted("pc_bang", (5, 5), (5, 5))]
+    assert condition_compare(flows, "cafe", date(2020, 1, 20), TODAY).direction == "similar"
+    assert condition_compare([_shifted("cafe", (5, 5), (20, 5)), _shifted("pc_bang", (5, 5), (5, 5))],
+                             "cafe", date(2020, 1, 20), TODAY).direction == "stronger"
+
+
+def test_이벤트가_최근_4분기와_겹치거나_업종_흐름이_없으면_견주지_않는다():
+    flows = [_flat("cafe", 10, 5), _flat("pc_bang", 5, 5)]
+    assert condition_compare(flows, "cafe", date(2026, 1, 1), TODAY) is None  # 직전 창이 최근 창을 침범
+    assert condition_compare(flows, "academy", date(2020, 1, 20), TODAY) is None

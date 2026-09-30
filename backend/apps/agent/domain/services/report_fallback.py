@@ -103,12 +103,34 @@ def _industry_names(industries: list[dict] | None) -> str:
     return "·".join(i["industry_name"] for i in industries or []) or "없음"
 
 
+_DIRECTION_LABELS = {
+    "weaker": "그때보다 약한 상태",
+    "stronger": "그때보다 강한 상태",
+    "similar": "그때와 비슷한 상태",
+}
+
+
+def _condition_line(condition: dict | None) -> str:
+    if not condition:
+        return ""
+    before, recent = condition["before"], condition["recent"]
+    return (
+        f"\n{condition.get('event_name')} 직전 4분기({before['start_month']}~{before['end_month']}) 대비 "
+        f"최근 4분기({recent['start_month']}~{recent['end_month']}): "
+        f"점포 {before['growth_pct']:+.1f}% → {recent['growth_pct']:+.1f}% "
+        f"(전 업종 대비 {before['excess_pct']:+.1f}%p → {recent['excess_pct']:+.1f}%p), "
+        f"폐업률 {before['closure_rate_pct']:.1f}% → {recent['closure_rate_pct']:.1f}% — "
+        f"{_DIRECTION_LABELS.get(condition.get('direction'), '비교 불가')}."
+    )
+
+
 def _outlook_line(outlook: dict) -> str:
     return (
         f"\n**{outlook.get('label')}** 지난 사례 {outlook.get('analog_count')}건에서 이 업종은 "
         f"{_TREND_LABELS.get(outlook.get('target_trend'), '판단할 자료가 없다')}. "
         f"사례 속 강세 업종 {_industry_names(outlook.get('recommended'))} / "
         f"약세 업종 {_industry_names(outlook.get('avoid'))}."
+        f"{_condition_line(outlook.get('condition'))}"
     )
 
 

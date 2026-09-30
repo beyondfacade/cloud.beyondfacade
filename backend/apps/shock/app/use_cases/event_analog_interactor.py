@@ -6,11 +6,13 @@ from apps.shock.app.dtos.event_analog_dto import (
     AnalogCategoryDto,
     AnalogHintDto,
     CategoryOutlookDto,
+    ConditionCompareDto,
     EventAnalogReportDto,
     EventImpactDto,
     IndustryRefDto,
     IndustrySeriesDto,
     NewsHeadlineDto,
+    PeriodConditionDto,
     QuarterDto,
     RecentNewsDto,
 )
@@ -35,8 +37,14 @@ from apps.shock.domain.services.event_category_hints import (
     categories_in,
 )
 from apps.shock.domain.services.event_window import add_months, month_of
+from apps.shock.domain.services.industry_condition import PeriodCondition, condition_compare
+from apps.shock.domain.services.industry_flows import IndustryFlows
 from apps.shock.domain.services.recent_measures import HEADLINES_SHOWN, NEWS_DAYS, measure_headlines
-from apps.shock.domain.value_objects.event_category import CATEGORY_LABELS, EventCategory
+from apps.shock.domain.value_objects.event_category import (
+    CATEGORY_LABELS,
+    CONDITION_COMPARED,
+    EventCategory,
+)
 
 LOGGER = logging.getLogger("beyondfacade.shock.analogs")
 
@@ -47,6 +55,8 @@ _CAVEATS = [
     "변동폭은 이벤트 직전 1년의 같은 분기 대비다 — 비교 기간(최저임금·지원금 그 해 4분기, 감염병·근로시간 "
     "3년 12분기)에 겹친 다른 정책도 섞이므로 "
     "이벤트만의 효과로 단정하지 않는다.",
+    "사례 직전과 최근 4분기 비교(condition)는 그 사이 몇 년의 다른 변화가 섞인 업종 상태 비교다 — 이벤트 효과로 "
+    "읽지 않고, 과거 사례를 지금에 옮길 때 그때보다 약한지·강한지 가늠하는 데만 쓴다.",
 ]
 
 
@@ -86,7 +96,7 @@ def _series(
     ]
 
 
-def _outlook(outlook: CategoryOutlook) -> CategoryOutlookDto:
+def _outlook(outlook: CategoryOutlook, condition: ConditionCompareDto | None) -> CategoryOutlookDto:
     return CategoryOutlookDto(
         category=outlook.category,
         label=CATEGORY_LABELS[outlook.category],
@@ -95,6 +105,39 @@ def _outlook(outlook: CategoryOutlook) -> CategoryOutlookDto:
         recommended=[IndustryRefDto(i, name) for i, name in outlook.recommended],
         avoid=[IndustryRefDto(i, name) for i, name in outlook.avoid],
         typical_duration_months=outlook.typical_duration_months,
+        condition=condition,
+    )
+
+
+def _period(condition: PeriodCondition) -> PeriodConditionDto:
+    return PeriodConditionDto(
+        start_month=_month(condition.window.start),
+        end_month=_month(add_months(condition.window.end, -1)),
+        growth_pct=condition.growth_pct,
+        all_growth_pct=condition.all_growth_pct,
+        excess_pct=condition.excess_pct,
+        closure_rate_pct=condition.closure_rate_pct,
+        rank=condition.rank,
+        industry_count=condition.industry_count,
+    )
+
+
+def _condition(
+    category: str, impacts: list[EventImpact], flows: list[IndustryFlows], target_id: str, today: date
+) -> ConditionCompareDto | None:
+    """드문 유형만 — 가장 최근 사례(유형 안에서 최근순으로 골라 뒀다)의 직전과 지금을 견준다."""
+    if category not in CONDITION_COMPARED:
+        return None
+    latest = next((i.event for i in impacts if i.event.category == category), None)
+    compare = latest and condition_compare(flows, target_id, latest.start_date, today)
+    if not compare:
+        return None
+    return ConditionCompareDto(
+        event_id=latest.event_id,
+        event_name=latest.name,
+        direction=compare.direction,
+        before=_period(compare.before),
+        recent=_period(compare.recent),
     )
 
 
@@ -216,7 +259,7 @@ class EventAnalogInteractor(EventAnalogUseCase):
             categories=categories,
             current_events=[to_dto(i) for i in impacts(current)],
             analogs=[to_dto(i) for i in analog_impacts],
-            outlooks=[_outlook(o) for o in outlooks.values()],
+            outlooks=[_outlook(o, _condition(o.category, analog_impacts, flows, industry_id, today)) for o in outlooks.values()],
             caveats=list(_CAVEATS),
             hints=_hints({c.category for c in categories}),
             recent_news=[self._recent_news(c, today) for c in unconfirmed] if self._news else [],

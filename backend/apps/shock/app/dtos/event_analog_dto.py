@@ -80,6 +80,29 @@ class IndustryRefDto:
 
 
 @dataclass
+class PeriodConditionDto:
+    start_month: str  # YYYY-MM
+    end_month: str  # YYYY-MM (포함)
+    growth_pct: float  # 대상 업종 점포수 증감률
+    all_growth_pct: float  # 전 업종 합계 점포수 증감률
+    excess_pct: float  # 대상 − 전 업종 (%p)
+    closure_rate_pct: float
+    rank: int
+    industry_count: int
+
+
+@dataclass
+class ConditionCompareDto:
+    """가장 최근 사례 직전 4분기 vs 최근 4분기 — 과거 사례를 지금에 옮길 때의 보정 근거 (이벤트 효과 아님)."""
+
+    event_id: str
+    event_name: str
+    direction: str  # weaker: 그때보다 약한 상태 / stronger: 강한 상태 / similar
+    before: PeriodConditionDto
+    recent: PeriodConditionDto
+
+
+@dataclass
 class CategoryOutlookDto:
     category: str
     label: str
@@ -88,6 +111,7 @@ class CategoryOutlookDto:
     recommended: list[IndustryRefDto] = field(default_factory=list)
     avoid: list[IndustryRefDto] = field(default_factory=list)
     typical_duration_months: int | None = None
+    condition: ConditionCompareDto | None = None
 
 
 @dataclass
