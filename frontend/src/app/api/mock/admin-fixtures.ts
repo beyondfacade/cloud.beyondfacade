@@ -1,6 +1,7 @@
 /** 관리자 mock 픽스처 — 서버 전용. 시각은 고정 ISO 문자열(결정적 데이터). */
 import type {
   AdminMe,
+  AutoDefense,
   FacilitySnapshot,
   HealthcareSnapshot,
   IpBlock,
@@ -67,6 +68,17 @@ export const securityOverviewFixture: SecurityOverview = {
 export const initialIpBlocks: IpBlock[] = [
   { ip: SCANNER, reason: "스캐너 경로 탐색", created_at: "2026-09-29T11:32:00+09:00", expires_at: "2026-09-30T11:32:00+09:00", created_by: "ops" },
 ];
+
+/** 백엔드 auto_block_rules.AUTO_BLOCK_RULES와 같은 값 — 규칙을 바꾸면 둘 다 고친다. */
+export const autoDefenseFixture: AutoDefense = {
+  enabled: true,
+  updated_at: null,
+  updated_by: null,
+  rules: [
+    { rule: "brute_force_login", title: "로그인 실패", threshold: 10, window_minutes: 15, block_minutes: 60, repeat_block_minutes: 1_440 },
+    { rule: "scanner_probe", title: "취약점 스캐너 경로 탐색", threshold: 5, window_minutes: 60, block_minutes: 1_440, repeat_block_minutes: 10_080 },
+  ],
+};
 
 export const healthcareSnapshotFixture: HealthcareSnapshot = {
   generated_at: "2026-09-29T12:00:00+09:00",

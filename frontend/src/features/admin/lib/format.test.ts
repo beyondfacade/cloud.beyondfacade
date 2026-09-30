@@ -9,6 +9,7 @@ import {
   formatBytes,
   formatCount,
   formatDateTime,
+  formatMinutes,
   formatMs,
   formatRelative,
   formatUptime,
@@ -46,6 +47,13 @@ it("지연은 1초 미만 ms, 이상은 초 한 자리", () => {
   expect(formatMs(142)).toBe("142ms");
   expect(formatMs(16_200)).toBe("16.2s");
   expect(formatMs(null)).toBe("—");
+});
+
+it("차단 기간은 분·시간·일 중 딱 떨어지는 단위로 쓴다", () => {
+  expect(formatMinutes(15)).toBe("15분");
+  expect(formatMinutes(60)).toBe("1시간");
+  expect(formatMinutes(1_440)).toBe("24시간");
+  expect(formatMinutes(10_080)).toBe("7일");
 });
 
 it("건수는 천 단위 구분, 날짜는 서울 시간", () => {

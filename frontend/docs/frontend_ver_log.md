@@ -2,6 +2,16 @@
 
 > 2026-09-23 T0-2 병합에서 v0.14.x 충돌로 우리 쪽 4항목(랜딩·E2E·동네 프로필·영업 지속 개월)을 v0.15.0·v0.15.1·v0.16.0·v0.17.0으로 재번호했다. 해당 커밋 메시지의 번호는 병합 전 번호다.
 
+## [v0.38.0] - 2026-09-30
+
+### Added
+- 보안 감사팀 요약 아래에 **자동 방어** 패널을 더했다. 관리자는 ON/OFF 버튼으로 켜고 끄고(`setAutoDefense` → `PUT /admin/security/settings/auto-defense`), 일반 회원은 상태 배지만 본다. 규칙별로 "같은 IP가 15분 안에 10회 → 1시간 차단 · 풀린 뒤 다시 걸리면 24시간"처럼 보여 주고, 마지막 변경자·시각과 켬/끔 상태별 안내를 붙였다.
+- 타입 `AutoDefense`·`AutoBlockRule`, 감사 동작 `ip_block.auto`("자동 차단")·`auto_defense.toggle`("자동 방어 설정"), 기간 표기 `formatMinutes`.
+- mock `GET/PUT /api/mock/admin/security/settings/auto-defense`(감사 기록 포함)와 계약 테스트, 패널 컴포넌트 테스트 2개.
+
+### Changed
+- 관리자 화면 섹션 간격: 요약 띠·2열 그리드와 섹션이 붙어 있던 곳에 18px 여백을 줬다.
+
 ## [v0.37.0] - 2026-09-30
 
 ### Added

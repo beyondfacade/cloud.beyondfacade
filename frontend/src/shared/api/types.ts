@@ -521,6 +521,22 @@ export interface IpBlockCreate {
   ttl_minutes: number | null;
 }
 
+export interface AutoBlockRule {
+  rule: string;
+  title: string;
+  threshold: number;
+  window_minutes: number;
+  block_minutes: number;
+  repeat_block_minutes: number; // 자동 차단이 풀린 뒤 다시 걸리면 이 기간
+}
+
+export interface AutoDefense {
+  enabled: boolean;
+  updated_at: string | null; // null = 한 번도 바꾸지 않음(기본값 켜짐)
+  updated_by: string | null;
+  rules: AutoBlockRule[];
+}
+
 export interface UsageSummary {
   window_hours: number;
   calls: number;
@@ -620,7 +636,7 @@ export interface SecurityEventFilter {
 }
 
 export type AuditAction =
-  | "ip_block.create" | "ip_block.delete" | "probe.run" | "collector.run"
+  | "ip_block.create" | "ip_block.delete" | "ip_block.auto" | "auto_defense.toggle" | "probe.run" | "collector.run"
   | "user.create" | "user.role" | "user.suspend" | "user.reactivate"
   | "user.password_reset" | "user.sessions_revoke" | "password.change" | "username.change";
 

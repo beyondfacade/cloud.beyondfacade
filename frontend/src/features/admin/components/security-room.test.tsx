@@ -1,7 +1,7 @@
 import { screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
-import { initialIpBlocks, securityOverviewFixture } from "@/app/api/mock/admin-fixtures";
+import { autoDefenseFixture, initialIpBlocks, securityOverviewFixture } from "@/app/api/mock/admin-fixtures";
 import { searchSecurityEvents } from "@/app/api/mock/admin-ops-fixtures";
 import type { AdminMe } from "@/shared/api/types";
 import * as api from "../api";
@@ -16,8 +16,39 @@ const OPERATOR: AdminMe = { username: "ops", role: "operator", can_operate: true
 beforeEach(() => {
   vi.spyOn(api, "fetchSecurityOverview").mockResolvedValue(securityOverviewFixture);
   vi.spyOn(api, "fetchIpBlocks").mockResolvedValue(initialIpBlocks);
+  vi.spyOn(api, "fetchAutoDefense").mockResolvedValue(autoDefenseFixture);
 });
 afterEach(() => vi.restoreAllMocks());
+
+it("자동 방어 상태와 규칙을 보여주고, 일반 회원에게는 켜기·끄기 버튼이 없다", async () => {
+  vi.spyOn(api, "fetchAdminMe").mockResolvedValue(VIEWER);
+  renderWithQuery(<SecurityRoom />);
+  const rules = await screen.findByRole("list", { name: "자동 차단 규칙" });
+  expect(within(rules).getByText(/15분 안에 10회 → 1시간 차단/)).toBeInTheDocument();
+  expect(within(rules).getByText(/풀린 뒤 다시 걸리면 7일/)).toBeInTheDocument();
+  const panel = screen.getByRole("region", { name: "자동 방어" });
+  expect(within(panel).getByText("ON")).toBeInTheDocument();
+  expect(within(panel).getByText("기본값")).toBeInTheDocument();
+  expect(screen.queryByRole("group", { name: "자동 방어 켜기·끄기" })).not.toBeInTheDocument();
+});
+
+it("운영 관리자가 OFF를 누르면 자동 방어를 끄고 꺼진 상태 안내로 바뀐다", async () => {
+  vi.spyOn(api, "fetchAdminMe").mockResolvedValue(OPERATOR);
+  const off = { ...autoDefenseFixture, enabled: false, updated_at: "2026-09-30T12:00:00+09:00", updated_by: "ops" };
+  const set = vi.spyOn(api, "setAutoDefense").mockResolvedValue(off);
+  renderWithQuery(<SecurityRoom />);
+  const toggle = await screen.findByRole("group", { name: "자동 방어 켜기·끄기" });
+  expect(within(toggle).getByRole("button", { name: "ON" })).toHaveAttribute("aria-pressed", "true");
+
+  vi.mocked(api.fetchAutoDefense).mockResolvedValue(off);
+  await userEvent.click(within(toggle).getByRole("button", { name: "OFF" }));
+  await waitFor(() => expect(set).toHaveBeenCalledWith(false));
+  expect(await screen.findByText(/꺼져 있는 동안에는 새 차단을 만들지 않습니다/)).toBeInTheDocument();
+  expect(within(toggle).getByRole("button", { name: "OFF" })).toHaveAttribute("aria-pressed", "true");
+
+  await userEvent.click(within(toggle).getByRole("button", { name: "OFF" }));
+  expect(set).toHaveBeenCalledTimes(1);
+});
 
 it("요약 지표와 심각도 배지가 붙은 알림을 보여준다", async () => {
   vi.spyOn(api, "fetchAdminMe").mockResolvedValue(VIEWER);

@@ -76,6 +76,13 @@
 .sectionBody { padding: 18px 20px; }
 .grid2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
 .grid2 > .section + .section { margin-top: 0; }
+.section + .grid2, .grid2 + .section, .grid2 + .grid2, .stats + .section { margin-top: 18px; }
+.headControls { display: flex; align-items: center; gap: 12px; }
+.ruleList { display: grid; gap: 10px; list-style: none; font-size: 13px; }
+.ruleList li { display: flex; flex-wrap: wrap; gap: 4px 14px; }
+.ruleList strong { min-width: 150px; font-weight: 650; }
+.ruleList span { color: var(--text-secondary); font-variant-numeric: tabular-nums; }
+.ruleNote { margin-top: 14px; font-size: 11px; line-height: 1.6; color: var(--text-secondary); }
 .tableWrap { overflow-x: auto; }
 .table { width: 100%; border-collapse: collapse; font-size: 12px; font-variant-numeric: tabular-nums; }
 .table th { padding: 10px 20px; background: var(--bg-raised); text-align: left; font-size: 11px; font-weight: 600; color: var(--text-secondary); white-space: nowrap; }

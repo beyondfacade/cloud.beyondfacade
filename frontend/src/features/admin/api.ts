@@ -1,4 +1,4 @@
-import { apiDelete, apiGet, apiPatch, apiPost } from "@/shared/api/client";
+import { apiDelete, apiGet, apiPatch, apiPost, apiPut } from "@/shared/api/client";
 import type {
   AccessEventPage,
   AdminMe,
@@ -7,6 +7,7 @@ import type {
   AdminUserFilter,
   AuditAction,
   AuditPage,
+  AutoDefense,
   CollectorLog,
   CollectorRun,
   FacilitySnapshot,
@@ -75,6 +76,14 @@ export function createIpBlock(body: IpBlockCreate): Promise<IpBlock> {
 
 export function deleteIpBlock(ip: string): Promise<void> {
   return apiDelete(`/admin/security/ip-blocks/${encodeURIComponent(ip)}`);
+}
+
+export function fetchAutoDefense(): Promise<AutoDefense> {
+  return apiGet<AutoDefense>("/admin/security/settings/auto-defense");
+}
+
+export function setAutoDefense(enabled: boolean): Promise<AutoDefense> {
+  return apiPut<AutoDefense>("/admin/security/settings/auto-defense", { enabled });
 }
 
 export function fetchHealthcareSnapshot(): Promise<HealthcareSnapshot> {

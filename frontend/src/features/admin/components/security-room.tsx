@@ -11,9 +11,27 @@ import type {
   SecurityEventFilter,
   SecurityOverview,
 } from "@/shared/api/types";
-import { createIpBlock, deleteIpBlock, fetchAuditPage, fetchIpBlocks, fetchSecurityEvents, fetchSecurityOverview } from "../api";
+import {
+  createIpBlock,
+  deleteIpBlock,
+  fetchAuditPage,
+  fetchAutoDefense,
+  fetchIpBlocks,
+  fetchSecurityEvents,
+  fetchSecurityOverview,
+  setAutoDefense,
+} from "../api";
 import { useAdminMe, useAdminPages, useAdminQuery } from "../hooks/use-admin-query";
-import { AUDIT_ACTION, BLOCK_TTL_OPTIONS, EVENT_KIND, EVENT_WINDOWS, SEVERITY, formatCount, formatDateTime } from "../lib/format";
+import {
+  AUDIT_ACTION,
+  BLOCK_TTL_OPTIONS,
+  EVENT_KIND,
+  EVENT_WINDOWS,
+  SEVERITY,
+  formatCount,
+  formatDateTime,
+  formatMinutes,
+} from "../lib/format";
 import { ROOM_BY_KEY } from "../lib/rooms";
 import { Badge, Empty, LoadMore, Notice, RoomError, Section, Segment, StatStrip, Tabs, type StatItem } from "./admin-ui";
 import { RoomHeader } from "./room-header";
@@ -39,6 +57,63 @@ function useSecurityMutations() {
   const block = useMutation({ mutationFn: (body: IpBlockCreate) => createIpBlock(body), onSuccess: refresh });
   const unblock = useMutation({ mutationFn: (ip: string) => deleteIpBlock(ip), onSuccess: refresh });
   return { block, unblock };
+}
+
+const AUTO_DEFENSE_KEY = ["admin", "security", "auto-defense"];
+const SWITCH_OPTIONS = [{ value: "on", label: "ON" }, { value: "off", label: "OFF" }] as const;
+
+function AutoDefensePanel({ canOperate }: { canOperate: boolean }) {
+  const queryClient = useQueryClient();
+  const setting = useAdminQuery(AUTO_DEFENSE_KEY, fetchAutoDefense, ROOM.pollMs);
+  const toggle = useMutation({
+    mutationFn: (enabled: boolean) => setAutoDefense(enabled),
+    onSuccess: (next) => {
+      queryClient.setQueryData(AUTO_DEFENSE_KEY, next);
+      void queryClient.invalidateQueries({ queryKey: ["admin", "security"] });
+    },
+  });
+  const data = setting.data;
+  if (!data) return setting.isError ? <Section title="자동 방어"><RoomError error={setting.error} /></Section> : null;
+
+  const changed = data.updated_by ? `${data.updated_by} · ${formatDateTime(data.updated_at)} 변경` : "기본값";
+  return (
+    <Section
+      title="자동 방어"
+      aside={
+        <div className={styles.headControls}>
+          <p>{changed}</p>
+          {canOperate ? (
+            <Segment
+              label="자동 방어 켜기·끄기"
+              options={[...SWITCH_OPTIONS]}
+              value={data.enabled ? "on" : "off"}
+              onChange={(value) => value !== (data.enabled ? "on" : "off") && toggle.mutate(value === "on")}
+            />
+          ) : (
+            <Badge tone={data.enabled ? "ok" : "danger"} dot>{data.enabled ? "ON" : "OFF"}</Badge>
+          )}
+        </div>
+      }
+    >
+      <ul className={styles.ruleList} aria-label="자동 차단 규칙">
+        {data.rules.map((rule) => (
+          <li key={rule.rule}>
+            <strong>{rule.title}</strong>
+            <span>
+              같은 IP가 {formatMinutes(rule.window_minutes)} 안에 {formatCount(rule.threshold)}회 → {formatMinutes(rule.block_minutes)} 차단
+              · 풀린 뒤 다시 걸리면 {formatMinutes(rule.repeat_block_minutes)}
+            </span>
+          </li>
+        ))}
+      </ul>
+      <p className={styles.ruleNote}>
+        {data.enabled
+          ? "차단된 IP는 /admin 경로에 접근할 수 없습니다. 서버 자신(루프백)은 차단하지 않고, 이미 걸린 수동 차단은 덮어쓰지 않습니다."
+          : "꺼져 있는 동안에는 새 차단을 만들지 않습니다. 로그인은 IP당 10분 10회 실패 제한(429)만 적용되고, 이미 걸린 차단은 만료될 때까지 유지됩니다."}
+      </p>
+      {toggle.error instanceof Error && <p className={styles.formError} role="alert">{toggle.error.message}</p>}
+    </Section>
+  );
 }
 
 function AlertsPanel({ alerts, canOperate, onBlock, pendingIp }: {
@@ -331,6 +406,7 @@ export function SecurityRoom() {
       {data && (
         <>
           <StatStrip label="보안 요약 (최근 24시간)" items={summaryItems(data.summary)} />
+          <AutoDefensePanel canOperate={canOperate} />
           <Tabs
             label="보안 감사 탭"
             tabs={[

@@ -46,6 +46,13 @@ export function formatMs(ms: number | null | undefined): string {
   return ms < 1_000 ? `${Math.round(ms)}ms` : `${(ms / 1_000).toFixed(1)}s`;
 }
 
+/** 차단 기간 표기 — BLOCK_TTL_OPTIONS와 같은 말투(1시간·24시간·7일). */
+export function formatMinutes(minutes: number): string {
+  if (minutes > 1_440 && minutes % 1_440 === 0) return `${minutes / 1_440}일`;
+  if (minutes % 60 === 0) return `${minutes / 60}시간`;
+  return `${minutes}분`;
+}
+
 export function formatCount(value: number | null | undefined): string {
   return value == null ? DASH : value.toLocaleString("ko-KR");
 }
@@ -132,6 +139,8 @@ export const ROLE: Record<AdminRole, { label: string; tone: Tone }> = {
 export const AUDIT_ACTION: Record<AuditAction, { label: string; tone: Tone }> = {
   "ip_block.create": { label: "IP 차단", tone: "warn" },
   "ip_block.delete": { label: "차단 해제", tone: "neutral" },
+  "ip_block.auto": { label: "자동 차단", tone: "danger" },
+  "auto_defense.toggle": { label: "자동 방어 설정", tone: "warn" },
   "probe.run": { label: "프로브 실행", tone: "neutral" },
   "collector.run": { label: "수집기 실행", tone: "neutral" },
   "user.create": { label: "계정 생성", tone: "ok" },
