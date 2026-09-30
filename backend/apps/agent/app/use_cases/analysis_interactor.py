@@ -44,6 +44,7 @@ from apps.agent.app.ports.output.agent_port import (
 from apps.agent.app.use_cases.agent_tools import AgentTool
 from apps.agent.app.use_cases.report_facts import ReportFactsCollector
 from apps.agent.domain.entities.agent_event_entity import AgentEvent
+from apps.agent.domain.services.analog_sentences import llm_view
 from apps.agent.domain.services.report_fallback import (
     alternatives_markdown,
     analogs_markdown,
@@ -145,54 +146,51 @@ facts에 없는 수치는 지어내지 않는다. 값이 없으면 "자료 없�
   바꾼다. 그러니 빈 줄·줄바꿈 없이 이어 쓰고, 표기는 제목처럼 줄을 떼지 말고 문장마다 붙이지도 않는다.
   근거의 성격이 바뀌는 곳에만 그 문장 바로 앞에 붙인다 — 사례 근거는 [확인된 사실], 뉴스 확인은
   [참고 신호], 다음 유형의 사례로 넘어가면 다시 [확인된 사실](예: "[확인된 사실] …약했습니다. [참고 신호]
-  최근 30일 …없습니다. [확인된 사실] 근로시간 …"). 유형이 하나면 6문장, 둘 이상이면 8문장 이내로 이
-  순서대로 쓴다(`condition_sentence`·`recommended_sentence`는 이 수에 넣지 않는다).
+  최근 30일 …없습니다. [확인된 사실] 근로시간 …"). **유형 하나를 [확인된 사실]·[참고 신호]까지 다 쓴 뒤
+  다음 유형으로 넘어간다** — 다음 유형을 쓰고 나서 앞 유형의 뉴스로 돌아오지 않는다. 유형마다 지어 쓰는
+  문장은 3문장 이내로 이 순서대로 쓴다(코드가 만든 고정 문장은 이 수에 넣지 않는다).
+- **고정 문장**: `summary_sentence`·`overlap_sentence`(사례·진행 중 이벤트), `condition_sentence`·
+  `recommended_sentence`(유형 종합), `recent_news[].sentence`(뉴스)는 코드가 만든 완성 문장이다 — **한
+  글자도 바꾸지 말고 그대로 옮기고**, 그 유형 항목의 문장만 쓴다. 문장마다 **한 번만** 쓴다 — 유형 종합·뉴스
+  문장을 사례마다 되풀이하지 않는다. 값이 `null`인 문장은 쓰지 않고, 같은 내용을 스스로 지어 쓰지도
+  않는다(분기 수·%p·폐업률·뉴스 건수를 다른 말로 다시 쓰지 않는다).
   ① 지금 상황의 유형과 결론 1문장 — 유형이 여럿이면 `reason: "question"`(질문 속 상황) 유형을 중심에
      둔다(`"current"`는 운영자가 등록한 진행 중 이벤트). 질문 속 유형이 둘 이상이면 사례가 많거나 질문에
-     먼저 나온 유형을 중심에 두고, 나머지 유형은 ③에서 결론·지금 상황만 1~2문장으로 줄여 같은 문단에
-     잇는다. 결론은 그 유형의 `outlooks[].target_trend`다:
+     먼저 나온 유형을 중심에 두고, 나머지 유형은 ④에서 잇는다. 결론은 그 유형의 `outlooks[].target_trend`다:
      `weak` "지난 사례에서 {업종}는 평소보다 약했다" / `strong` "강했다" / `mixed` "뚜렷한 방향이 없었다" /
      `unknown` "판단할 자료가 없다". {업종}은 `facts.region.industry_name`(예: 카페)이다 — "이 업종"보다
      이름으로 쓴다.
-  ② 근거 1~2문장 — 대표 사례 1~2건. 사례의 비교 기간은 유형마다 다르다(`years`: 최저임금·지원금 1년
-     4분기, 감염병·근로시간 3년 12분기). `target_weak_quarters`/`quarters` 수로 "4분기 중 N분기 약세",
-     `target_weak_streak`로 "처음부터 N분기 연속 약세"를 쓴다. `target_weak_quarters`는 흩어진 약세까지 센
-     총수라 "연속"이나 "초기 N분기"로 쓰지 않는다. 필요하면 `series`(`role: target`의 분기별 `values`,
-     평소 대비 점포수 증감 %p)로 언제 풀렸는지 분기 라벨("1년 차 4분기")로 짚는다. 인용한 분기의
-     `overlaps`에 다른 정책이 있으면 함께 적는다. 겹친 정책은 **나란히만** 쓴다 — "같은 분기에
+  ② 근거 — `summary_sentence`가 있는 사례(코드가 고른 대표 사례)만 그 문장을 그대로 옮긴다.
+     `summary_sentence`가 `null`인 사례는 쓰지 않는다. 필요하면 `series`(`role: target`의
+     분기별 `values`, 평소 대비 점포수 증감 %p)로 언제 풀렸는지 분기 라벨("1년 차 4분기")로 1문장 짚는다.
+     분기 라벨은 사례 이후 몇 번째 분기다 — 달력 연도·월("2020년 1분기")로 바꾸지 않는다. 겹친 정책은
+     그 사례의 `overlap_sentence`만 요약 문장 뒤에 옮긴다 — `quarters[].overlaps`를 직접 나열하지 않는다. 겹친 정책은 **나란히만** 쓴다 — "같은 분기에
      긴급재난지원금 지급도 있었습니다"처럼 따로 한 문장으로 두고, 그 정책이 변동을 키웠는지 줄였는지는
      알 수 없으니 "겹쳤음에도 불구하고"·"겹쳐 약세가 심화"·"덕분에"·"때문에"·"영향으로"처럼 방향이나
      인과를 붙이지 않는다. 겹친 정책 문장에는 약세·강세 같은 결과를 함께 쓰지 않는다.
      다음 문장을 "그러나"·"그럼에도"·"하지만"으로 잇지도 않는다 — 겹친 정책이 반대로 작용했다는 뜻이 된다.
-     그 유형 `outlooks[]` 항목의 **고정 문장 두 개는 코드가 만든 완성 문장이다 — 한 글자도 바꾸지 말고
-     그대로 옮긴다**(다른 유형 항목의 문장을 옮기지 않는다). 둘 다 근거 뒤 [확인된 사실]에 둔다:
-     · `condition_sentence`(감염병·근로시간처럼 드문 유형만, 두 문장) — 사례 직전 1년과 최근 1년의 업종
-       상태 비교와 해석. 그 사이 몇 년의 여러 변화가 섞인 비교라 이벤트 때문이라고 덧붙이지 않는다.
-     · `recommended_sentence` — 사례 속 거듭 강세 업종(업종끼리 비교한 과거 값).
-     값이 `null`인 문장은 쓰지 않고, 같은 내용을 스스로 지어 쓰지도 않는다.
-  ③ 진행 중 이벤트(`current_events`)나 다른 유형이 있으면 1문장으로 덧붙인다. 진행 중 이벤트의 흐름은
-     "지금까지 N분기 중 강세 M분기"처럼 그 이벤트 값으로 쓰고, 같은 유형 지난 사례의 결론
-     (`outlooks[].target_trend`)과 섞지 않는다 — 둘이 다르면 "지난 사례에서는 약했지만 이번에는 아직
-     강하다"처럼 나눠 쓴다.
-  ④ 지금도 그 상황인지 1문장 + 권고 1문장 — 지난 사례의 결론은 **지금 같은 상황일 때만** 지금의 권고가
+     근거 뒤 [확인된 사실]에 그 유형의 `condition_sentence`(감염병·근로시간처럼 드문 유형만 — 사례 직전
+     1년과 최근 1년의 업종 상태 비교, 이벤트 때문이라고 덧붙이지 않는다)와 `recommended_sentence`(사례 속
+     거듭 강세 업종)를 이 순서로 옮긴다.
+  ③ 지금도 그 상황인지 1문장 + 권고 1문장 — 지난 사례의 결론은 **지금 같은 상황일 때만** 지금의 권고가
      된다. 중심 유형이 `current_events`에 있으면 진행 중이다. 없으면 `recent_news`의 그 유형 항목으로 판단한다:
-     · `checked: true`, `article_count: 0` → 지난 사례를 이유로 지금 창업을 말리지 않는다. [참고 신호] 뒤에
-       두 문장으로 쓴다: "최근 {days}일 {keywords} 같은 조치 소식은 없습니다. 비슷한 상황이 다시 오면
-       {업종}는 약세일 가능성이 있습니다." `recommended_sentence`는 이 뒤가 아니라 [확인된 사실] 쪽(②근거
-       뒤)에 둔다(지금의 대안이 아니라 과거 값이다).
-     · `article_count` > 0 → "최근 {days}일 관련 뉴스 {article_count}건"처럼 **건수로만** 쓴다(검색 결과).
-       기사 제목은 인용하지 않는다 — `headlines`는 성격을 가리는 데만 쓴다. 조치의 시행·발동 소식이면
-       `target_trend`가 `weak`일 때 지금 창업을 신중히 보라고 쓰고 `recommended_sentence`를 대안으로 든다.
-       논의·검토·실험·해제 소식이면 "관련 뉴스 N건이 있으나 논의·실험 단계"처럼 성격만 요약하고 위의
-       조건부 위험으로만 쓴다.
-     · `checked: false` → "최근 소식은 확인하지 못했다"고 쓰고 조건부 위험으로만 쓴다.
-     뉴스 확인 여부는 `recent_news`에 있는 유형만 쓴다 — 없는 유형(진행 중이거나 비교하지 않은 유형)의
-     뉴스가 "없다·확인되지 않았다"고 쓰지 않는다. 뉴스 건수도 그 유형 항목의 `article_count`만 쓴다 —
-     진행 중인 유형(예: 최저임금)에 다른 유형의 "관련 뉴스 N건"을 옮겨 붙이지 않는다. 진행 중인 유형은
-     [참고 신호] 없이 "지금 진행 중"을 ③의 [확인된 사실]로 쓴다.
-     강세 업종은 `recommended_sentence`로만 쓴다 — `avoid` 업종이나 다른 유형의 업종을 들지 않는다.
-     시행·발동 소식이라 대안을 들 때도 이 문장을 그대로 쓴다. 전망은 "가능성"으로 쓰고 판정 등급은 바꾸지
+     [참고 신호] 뒤에 그 항목의 `sentence`를 그대로 옮기고, 이어서 1문장만 덧붙인다:
+     · `checked: true`, `article_count: 0` → 지난 사례를 이유로 지금 창업을 말리지 않는다: "비슷한 상황이
+       다시 오면 {업종}는 약세일 가능성이 있습니다."
+     · `article_count` > 0 → 기사 제목은 인용하지 않는다 — `headlines`는 성격을 가리는 데만 쓴다. 조치의
+       시행·발동 소식이면 `target_trend`가 `weak`일 때 지금 창업을 신중히 보라고 쓴다. 논의·검토·실험·해제
+       소식이면 "대부분 논의·실험 단계라, 시행되면 {업종}는 약세일 가능성이 있습니다"처럼 조건부로 쓴다.
+     · `checked: false` → 조건부 위험으로만 쓴다.
+     `recent_news`에 없는 유형(진행 중이거나 비교하지 않은 유형)은 [참고 신호]를 쓰지 않는다 — 뉴스가
+     "없다·확인되지 않았다"고도, 다른 유형의 뉴스 건수로도 쓰지 않는다. 강세 업종은 `recommended_sentence`로만
+     쓴다 — `avoid` 업종이나 다른 유형의 업종을 들지 않는다. 전망은 "가능성"으로 쓰고 판정 등급은 바꾸지
      않는다(규칙 ⑤).
+  ④ 진행 중 이벤트(`current_events`)나 다른 유형은 중심 유형의 ①~③을 다 쓴 **뒤에** [확인된 사실]로
+     잇는다. 진행 중 이벤트는 그 이벤트의 `summary_sentence`만 옮긴다 — 이 문장이 "이후 지금까지"로
+     진행 중임을 이미 말하므로 "지금 진행 중" 문장이나 같은 내용을 따로 짓지 않는다. 같은 유형 지난
+     사례의 결론(`outlooks[].target_trend`)과 섞지 않는다 — 둘이 다르면 "지난 사례에서는 뚜렷한 방향이
+     없었지만 이번에는 아직 강하다"처럼 나눠 쓴다. 그 유형의 `recommended_sentence`가 있으면 끝에 옮긴다.
+     다른 질문 속 유형이면 그 유형도 ①~③ 순서로 쓴다.
 - 변동폭의 기준은 **그 업종의 평소**(이벤트 직전 1년의 같은 분기)다 — "평소보다 약했다"로 쓰고 "서울 평균
   대비"·"다른 지역 대비"로 쓰지 않는다.
 - `typical_duration_months`는 이벤트(정책) 자체가 이어진 기간의 중앙값이다 — 쓰려면 "비슷한 상황은 보통
@@ -562,6 +560,9 @@ def _user_message(region: str, industry: str, question: str | None, facts: dict)
     parts = [f"분석 지역: {region}", f"업종: {industry}"]
     if question:
         parts.append(f"사용자 질문: {question}")
+    analogs = facts.get("analogs")
+    if isinstance(analogs, dict):
+        facts = {**facts, "analogs": llm_view(analogs)}
     parts.append("[FACTS]\n" + json.dumps(facts, ensure_ascii=False))
     return "\n".join(parts)
 
