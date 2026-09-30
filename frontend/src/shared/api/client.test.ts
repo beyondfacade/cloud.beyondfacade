@@ -1,5 +1,5 @@
 import { afterEach, expect, it, vi } from "vitest";
-import { apiGet, apiPost, ApiError } from "./client";
+import { apiDelete, apiGet, apiPost, ApiError } from "./client";
 
 afterEach(() => vi.restoreAllMocks());
 
@@ -14,6 +14,19 @@ it("에러 응답은 {error:{code,message}}를 ApiError로 던진다", async () 
     new Response(JSON.stringify({ error: { code: "NOT_FOUND", message: "없음" } }), { status: 404 })));
   await expect(apiGet("/x")).rejects.toMatchObject({ code: "NOT_FOUND", message: "없음" });
   await expect(apiGet("/x")).rejects.toBeInstanceOf(ApiError);
+});
+
+it("본문 없는 204 응답은 undefined로 끝난다", async () => {
+  vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response(null, { status: 204 })));
+  await expect(apiPost("/x", {})).resolves.toBeUndefined();
+});
+
+it("DELETE는 메서드를 실어 보내고 에러 바디를 ApiError로 던진다", async () => {
+  const fetchMock = vi.fn().mockResolvedValue(
+    new Response(JSON.stringify({ error: { code: "IP_BLOCK_NOT_FOUND", message: "없음" } }), { status: 404 }));
+  vi.stubGlobal("fetch", fetchMock);
+  await expect(apiDelete("/x/1")).rejects.toMatchObject({ code: "IP_BLOCK_NOT_FOUND" });
+  expect(fetchMock.mock.calls[0][1]).toMatchObject({ method: "DELETE" });
 });
 
 it("선택적 요청 신호가 GET과 POST의 실제 fetch를 중단한다", async () => {

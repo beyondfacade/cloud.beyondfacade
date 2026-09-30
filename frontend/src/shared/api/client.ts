@@ -7,6 +7,7 @@ export class ApiError extends Error {
 }
 
 async function handle<T>(res: Response): Promise<T> {
+  if (res.status === 204) return undefined as T;
   if (res.ok) return res.json() as Promise<T>;
   const body = await res.json().catch(() => null);
   const err = body?.error ?? { code: `HTTP_${res.status}`, message: res.statusText };
@@ -23,3 +24,6 @@ export const apiPost = <T>(path: string, body: unknown, base: string = config.ap
     body: JSON.stringify(body),
     signal: options?.signal,
   }).then((r) => handle<T>(r));
+
+export const apiDelete = <T = void>(path: string) =>
+  fetch(`${config.apiBase}${path}`, { method: "DELETE" }).then((r) => handle<T>(r));

@@ -442,3 +442,157 @@ export interface VerdictAlternatives {
   industries: AlternativeIndustry[];
   regions: AlternativeRegion[];
 }
+
+// ── 관리자 (/admin/*) — 세션 쿠키 인증. 시각은 ISO 문자열 ──
+
+export type AdminRole = "viewer" | "operator";
+
+export interface AdminMe {
+  username: string;
+  role: AdminRole;
+  can_operate: boolean;
+}
+
+export type AlertSeverity = "critical" | "high" | "medium" | "low";
+
+export interface SecurityAlert {
+  rule: string;
+  severity: AlertSeverity;
+  title: string;
+  ip: string | null;
+  count: number;
+  first_seen: string;
+  last_seen: string;
+  blocked: boolean;
+}
+
+export type AccessEventKind =
+  | "login_failed" | "login_succeeded" | "login_throttled"
+  | "scanner_probe" | "server_error" | "blocked_request";
+
+export interface AccessEvent {
+  id: number | null;
+  occurred_at: string;
+  kind: AccessEventKind;
+  ip: string | null;
+  method: string;
+  path: string;
+  status_code: number;
+  username: string | null;
+}
+
+export interface SecurityOverview {
+  generated_at: string;
+  summary: {
+    events_24h: number;
+    failed_logins_24h: number;
+    scanner_probes_24h: number;
+    server_errors_24h: number;
+    blocked_requests_24h: number;
+    open_alerts: number;
+    blocked_ips: number;
+  };
+  alerts: SecurityAlert[];
+  recent_events: AccessEvent[];
+}
+
+export interface IpBlock {
+  ip: string;
+  reason: string;
+  created_at: string;
+  expires_at: string | null; // null = 무기한
+  created_by: string | null;
+}
+
+export interface IpBlockCreate {
+  ip: string;
+  reason: string;
+  ttl_minutes: number | null;
+}
+
+export interface UsageSummary {
+  window_hours: number;
+  calls: number;
+  input_tokens: number;
+  output_tokens: number;
+  p50_latency_ms: number | null;
+  p95_latency_ms: number | null;
+  by_model: { model: string; calls: number; input_tokens: number; output_tokens: number; avg_latency_ms: number }[];
+}
+
+export interface HealthcareSnapshot {
+  generated_at: string;
+  llm_routes: { role: "primary" | "fallback"; provider: string; model: string; available: boolean; detail: string }[];
+  required_models: { name: string; purpose: string; installed: boolean; loaded: boolean }[];
+  ollama: {
+    reachable: boolean;
+    base_url: string;
+    latency_ms: number | null;
+    models: { name: string; size_bytes: number }[];
+    loaded: string[];
+    error: string | null;
+  };
+  usage_24h: UsageSummary;
+  usage_7d: UsageSummary;
+  recent_analyses: {
+    id: string; region_code: string; industry: string; model: string;
+    input_tokens: number; output_tokens: number; latency_ms: number; created_at: string;
+  }[];
+  rag: {
+    total_chunks: number;
+    embedded_chunks: number;
+    by_source: { source_type: string; chunks: number; embedded: number; latest_published_at: string | null }[];
+    embedded_by: { model: string; chunks: number }[];
+  };
+}
+
+export type ProbeKind = "rag" | "llm";
+
+export interface ProbeResult {
+  kind: ProbeKind;
+  ok: boolean;
+  latency_ms: number;
+  model: string | null;
+  output: string | null;
+  input_tokens: number | null;
+  output_tokens: number | null;
+  hits: { source_type: string; source_id: string; score: number; snippet: string; url: string | null }[];
+  error: string | null;
+}
+
+export type CollectorStatus = "ok" | "late" | "missing";
+
+export interface FacilitySnapshot {
+  generated_at: string;
+  host: {
+    hostname: string;
+    platform: string;
+    cpu_count: number;
+    cpu_percent: number | null;
+    load_avg: number[];
+    memory_total_bytes: number | null;
+    memory_available_bytes: number | null;
+    swap_total_bytes: number | null;
+    swap_used_bytes: number | null;
+    uptime_seconds: number | null;
+    disks: { mount: string; total_bytes: number; used_bytes: number; free_bytes: number }[];
+  };
+  gpus: {
+    index: number; name: string; memory_used_mb: number; memory_total_mb: number;
+    utilization_percent: number; temperature_c: number | null;
+  }[];
+  services: { name: string; ok: boolean; latency_ms: number | null; detail: string }[];
+  database: {
+    version: string;
+    size_bytes: number;
+    connections: number;
+    max_connections: number;
+    alembic_revision: string | null;
+    pgvector_version: string | null;
+    largest_tables: { name: string; total_bytes: number; row_estimate: number }[];
+  } | null;
+  collectors: {
+    key: string; label: string; schedule: string; status: CollectorStatus;
+    last_run_at: string | null; table: string | null; rows: number | null; latest_data_at: string | null;
+  }[];
+}

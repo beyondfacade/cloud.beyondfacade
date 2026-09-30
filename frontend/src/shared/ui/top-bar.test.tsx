@@ -30,6 +30,12 @@ it("지도 경로에서 지도 탐색 탭이 활성화된다", () => {
   expect(screen.getByRole("link", { name: "지도 탐색" })).toHaveAttribute("aria-current", "page");
 });
 
+it("관리자 화면은 자체 헤더를 쓰므로 서비스 헤더를 숨긴다", () => {
+  navigation.pathname = "/admin/security";
+  render(<TopBar />);
+  expect(screen.queryByRole("banner")).not.toBeInTheDocument();
+});
+
 it("첫 화면에서는 전용 헤더와 내비게이션이 중복되지 않는다", () => {
   navigation.pathname = "/";
   render(<TopBar />);

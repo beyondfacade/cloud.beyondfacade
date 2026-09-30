@@ -12,7 +12,7 @@ const TABS = [
 
 export function TopBar() {
   const pathname = usePathname();
-  if (pathname === "/") return null;
+  if (pathname === "/" || pathname.startsWith("/admin")) return null;
 
   return (
     <header className={styles.header}>
