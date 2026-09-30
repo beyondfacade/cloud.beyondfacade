@@ -1,6 +1,6 @@
 """유사 사례 분석 도메인 — 분기·변동폭·질문 유형 힌트·유사 사례 고르기 (순수 함수, DB 없음)."""
 
-from datetime import date
+from datetime import date, datetime, timedelta
 
 import pytest
 
@@ -17,10 +17,16 @@ from apps.shock.domain.services.event_analog import (
     trend_counts,
     weak_streak,
 )
-from apps.shock.domain.services.event_category_hints import HINT_KEYWORDS, categories_in
+from apps.shock.domain.services.event_category_hints import (
+    HINT_KEYWORDS,
+    MEASURE_KEYWORDS,
+    categories_in,
+)
 from apps.shock.domain.services.event_window import Quarter, Window, event_quarters
 from apps.shock.domain.services.industry_flows import IndustryFlows, WindowChange
+from apps.shock.domain.services.recent_measures import NEWS_DAYS, measure_headlines
 from apps.shock.domain.value_objects.event_category import CATEGORY_YEARS, EventCategory
+from apps.shock.domain.value_objects.news_headline import NewsHeadline
 
 TODAY = date(2026, 9, 30)
 
@@ -325,6 +331,25 @@ def test_질문에서_여러_유형을_순서대로_알아본다():
 def test_질문이_없거나_단서가_없으면_유형도_없다():
     assert categories_in(None) == []
     assert categories_in("역삼동 카페 괜찮아?") == []
+
+
+def test_유형마다_지금_상권에_영향을_주는_조치_단어가_있다():
+    # "감염병·방역·거리두기"는 가축 방역·독감 접종·은행 영업시간 기사에도 걸린다 — 영업을 막는 조치만 본다
+    assert [c.value for c in MEASURE_KEYWORDS] == [c.value for c in EventCategory]
+    assert MEASURE_KEYWORDS[EventCategory.PANDEMIC] == ("집합금지", "영업제한", "거리두기 격상")
+
+
+def test_최근_조치_기사는_제목에_조치_단어가_있고_기간_안인_것만_최신순으로_고른다():
+    since = date(2026, 9, 30) - timedelta(days=NEWS_DAYS)
+    headlines = [
+        NewsHeadline("식당 영업 제한 다시 검토", datetime(2026, 9, 20, 9), "u1"),  # 띄어쓰기가 달라도 같은 말
+        NewsHeadline("독감 예방접종 시작", datetime(2026, 9, 29), "u2"),  # 조치 단어가 없다
+        NewsHeadline("집합금지 해제 1년", datetime(2026, 8, 20), "u3"),  # 30일보다 오래됐다
+        NewsHeadline("집합금지 명령 발동", datetime(2026, 9, 25), "u4"),
+        NewsHeadline("집합금지 명령 발동", datetime(2026, 9, 25), "u4"),  # 여러 단어로 찾아 겹친 기사
+    ]
+    picked = measure_headlines(headlines, ("집합금지", "영업제한"), since)
+    assert [h.url for h in picked] == ["u4", "u1"]
 
 
 def test_유형마다_안내용_예시_단어는_그_유형의_단서다():

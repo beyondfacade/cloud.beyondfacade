@@ -76,8 +76,21 @@ def analogs_markdown(analogs: dict | None) -> str | None:
             "",
             *(_analog_line(event) for event in events),
             *(_outlook_line(outlook) for outlook in analogs.get("outlooks") or []),
+            *(_recent_news_line(recent) for recent in analogs.get("recent_news") or []),
         ]
     )
+
+
+def _recent_news_line(recent: dict) -> str:
+    label = recent.get("label")
+    if not recent.get("checked"):
+        return f"\n{label} 최근 소식은 확인하지 못했다."
+    subject = f"\n{label} 최근 {recent.get('days')}일 {'·'.join(recent.get('keywords') or [])} 기사"
+    headlines = recent.get("headlines") or []
+    if not recent.get("article_count") or not headlines:
+        return f"{subject} 없음."
+    latest = headlines[0]
+    return f"{subject} {recent['article_count']}건 — 최신: {latest.get('title')} ({latest.get('published_at')})."
 
 
 _TREND_LABELS = {

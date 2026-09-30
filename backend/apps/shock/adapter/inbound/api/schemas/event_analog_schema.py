@@ -49,6 +49,22 @@ class AnalogHintResponse(BaseModel):
     keyword: str
 
 
+class NewsHeadlineResponse(BaseModel):
+    title: str
+    published_at: str
+    url: str
+
+
+class RecentNewsResponse(BaseModel):
+    category: str
+    label: str
+    days: int
+    keywords: list[str]
+    checked: bool
+    article_count: int = 0
+    headlines: list[NewsHeadlineResponse] = []
+
+
 class IndustryRefResponse(BaseModel):
     industry_id: str
     industry_name: str
@@ -73,3 +89,4 @@ class EventAnalogReportResponse(BaseModel):
     outlooks: list[CategoryOutlookResponse] = []
     caveats: list[str] = []
     hints: list[AnalogHintResponse] = []
+    recent_news: list[RecentNewsResponse] = []

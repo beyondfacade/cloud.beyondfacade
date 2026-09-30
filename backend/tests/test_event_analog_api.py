@@ -5,22 +5,29 @@ from datetime import date, datetime, timedelta
 from fastapi.testclient import TestClient
 from sqlalchemy import delete
 
+from apps.news.app.ports.output.news_article_port import NewsSearchGatewayPort
+from apps.news.domain.entities.news_article_entity import NewsArticle
+from apps.shock.adapter.outbound.gateways.caching_recent_news_gateway import (
+    CachingRecentNewsGateway,
+)
 from apps.shock.adapter.outbound.gateways.caching_store_flow_gateway import (
     CachingStoreFlowGateway,
 )
+from apps.shock.adapter.outbound.gateways.recent_news_gateway import RecentNewsGateway
 from apps.shock.adapter.outbound.gateways.shock_seed_gateway import ShockSeedGateway
 from apps.shock.adapter.outbound.orms.shock_event_industry_orm import ShockEventIndustryOrm
 from apps.shock.adapter.outbound.orms.shock_event_orm import ShockEventOrm
 from apps.shock.adapter.outbound.repositories.shock_event_repository import (
     SqlAlchemyShockEventRepository,
 )
-from apps.shock.app.ports.output.event_analog_port import StoreFlowPort
+from apps.shock.app.ports.output.event_analog_port import RecentNewsPort, StoreFlowPort
 from apps.shock.app.ports.output.shock_event_port import ShockEventRepositoryPort
 from apps.shock.app.use_cases.event_analog_interactor import EventAnalogInteractor
 from apps.shock.app.use_cases.shock_event_interactor import ShockEventInteractor
 from apps.shock.domain.entities.shock_event_entity import ShockEvent
 from apps.shock.domain.services.industry_flows import IndustryFlows
 from apps.shock.domain.value_objects.event_category import EventCategory
+from apps.shock.domain.value_objects.news_headline import NewsHeadline
 from core.matrix.grid_oracle_database_manager import session_scope
 from main import app
 
@@ -76,6 +83,19 @@ class FakeFlows(StoreFlowPort):
         return [_flows("cafe", "카페", 10, 8, closes_2020=30), _flows("pc_bang", "PC방", 3, 1)]
 
 
+class FakeNews(RecentNewsPort):
+    def __init__(self, by_keyword: dict[str, list[NewsHeadline]] | None = None, fail: bool = False) -> None:
+        self._by_keyword = by_keyword or {}
+        self._fail = fail
+        self.queries: list[str] = []
+
+    def latest(self, keyword: str) -> list[NewsHeadline]:
+        self.queries.append(keyword)
+        if self._fail:
+            raise RuntimeError("뉴스 검색 실패")
+        return self._by_keyword.get(keyword, [])
+
+
 _EVENTS = [
     _event("covid", date(2020, 1, 20), "pandemic", date(2022, 4, 17)),
     _event("mers", date(2015, 5, 20), "pandemic", date(2015, 12, 23)),
@@ -86,8 +106,8 @@ _EVENTS = [
 ]
 
 
-def _interactor(events=_EVENTS) -> EventAnalogInteractor:
-    return EventAnalogInteractor(events=FakeEvents(events), flows=FakeFlows(), today=lambda: TODAY)
+def _interactor(events=_EVENTS, news: RecentNewsPort | None = None) -> EventAnalogInteractor:
+    return EventAnalogInteractor(events=FakeEvents(events), flows=FakeFlows(), today=lambda: TODAY, news=news)
 
 
 # ── 유스케이스 ──────────────────────────────────────────────────────────
@@ -184,6 +204,33 @@ def test_비교하지_않은_유형은_질문에_넣을_예시_단어로_안내�
     assert [h.category for h in _interactor().analogs("cafe", None).hints] == ["pandemic", "work_hours", "relief"]
 
 
+def test_진행_중_이벤트가_없는_질문_속_유형은_최근_30일_조치_기사를_확인한다():
+    news = FakeNews({"집합금지": [
+        NewsHeadline("집합금지 명령 발동", datetime(2026, 9, 25, 10), "u1"),
+        NewsHeadline("집합금지 해제", datetime(2026, 8, 1), "old"),
+    ]})
+    [recent] = _interactor(news=news).analogs("cafe", "코로나 같은 상황이면").recent_news
+    assert (recent.category, recent.label, recent.days, recent.checked) == ("pandemic", "감염병·방역", 30, True)
+    assert recent.keywords == ["집합금지", "영업제한", "거리두기 격상"]
+    assert recent.article_count == 1
+    assert [(h.title, h.published_at, h.url) for h in recent.headlines] == [("집합금지 명령 발동", "2026-09-25", "u1")]
+    assert news.queries == ["집합금지", "영업제한", "거리두기 격상"]  # 진행 중인 최저임금은 찾지 않는다
+
+
+def test_조치_기사가_없으면_없다고_싣고_검색이_실패하면_확인하지_못했다고_싣는다():
+    quiet = _interactor(news=FakeNews()).analogs("cafe", "코로나").recent_news[0]
+    assert quiet.checked is True
+    assert (quiet.article_count, quiet.headlines) == (0, [])
+    down = _interactor(news=FakeNews(fail=True)).analogs("cafe", "코로나").recent_news[0]
+    assert down.checked is False
+
+
+def test_질문_속_유형이_없으면_뉴스를_찾지_않는다():
+    news = FakeNews()
+    assert _interactor(news=news).analogs("cafe", None).recent_news == []
+    assert news.queries == []
+
+
 def test_흐름이_없는_업종은_대상_변동폭이_없다():
     report = _interactor().analogs("academy", "코로나")
     assert all(v is None for e in report.analogs for v in e.series[0].values)
@@ -211,6 +258,30 @@ def test_흐름은_유효_시간_안에는_다시_조회하지_않는다():
     clock[0] += timedelta(hours=2)
     proxy.monthly_flows()
     assert inner.calls == 2
+
+
+def test_조치_기사는_단어마다_유효_시간_안에는_다시_찾지_않는다():
+    inner = FakeNews()
+    clock = [datetime(2026, 9, 30, 9)]
+    proxy = CachingRecentNewsGateway(inner, ttl=timedelta(hours=1), now=lambda: clock[0])
+    proxy.latest("집합금지")
+    proxy.latest("집합금지")
+    proxy.latest("영업제한")
+    assert inner.queries == ["집합금지", "영업제한"]
+    clock[0] += timedelta(hours=2)
+    proxy.latest("집합금지")
+    assert inner.queries == ["집합금지", "영업제한", "집합금지"]
+
+
+class FakeSearch(NewsSearchGatewayPort):
+    def search(self, keyword: str) -> list[NewsArticle]:
+        return [NewsArticle("a1", f"{keyword} 명령", "발췌", datetime(2026, 9, 25, 10), "https://news/1", keyword)]
+
+
+def test_뉴스_검색_결과를_제목_날짜_링크만_남긴_헤드라인으로_옮긴다():
+    assert RecentNewsGateway(FakeSearch()).latest("집합금지") == [
+        NewsHeadline("집합금지 명령", datetime(2026, 9, 25, 10), "https://news/1")
+    ]
 
 
 # ── 라우터 ─────────────────────────────────────────────────────────────

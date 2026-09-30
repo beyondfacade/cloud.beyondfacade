@@ -1,5 +1,6 @@
+import logging
 from collections.abc import Callable
-from datetime import date
+from datetime import date, timedelta
 
 from apps.shock.app.dtos.event_analog_dto import (
     AnalogCategoryDto,
@@ -9,10 +10,12 @@ from apps.shock.app.dtos.event_analog_dto import (
     EventImpactDto,
     IndustryRefDto,
     IndustrySeriesDto,
+    NewsHeadlineDto,
     QuarterDto,
+    RecentNewsDto,
 )
 from apps.shock.app.ports.input.event_analog_use_case import EventAnalogUseCase
-from apps.shock.app.ports.output.event_analog_port import StoreFlowPort
+from apps.shock.app.ports.output.event_analog_port import RecentNewsPort, StoreFlowPort
 from apps.shock.app.ports.output.shock_event_port import ShockEventRepositoryPort
 from apps.shock.domain.entities.shock_event_entity import ShockEvent
 from apps.shock.domain.services.event_analog import (
@@ -26,9 +29,16 @@ from apps.shock.domain.services.event_analog import (
     trend_counts,
     weak_streak,
 )
-from apps.shock.domain.services.event_category_hints import HINT_KEYWORDS, categories_in
+from apps.shock.domain.services.event_category_hints import (
+    HINT_KEYWORDS,
+    MEASURE_KEYWORDS,
+    categories_in,
+)
 from apps.shock.domain.services.event_window import add_months, month_of
+from apps.shock.domain.services.recent_measures import HEADLINES_SHOWN, NEWS_DAYS, measure_headlines
 from apps.shock.domain.value_objects.event_category import CATEGORY_LABELS, EventCategory
+
+LOGGER = logging.getLogger("beyondfacade.shock.analogs")
 
 _CAVEATS = [
     "서울 전체 인허가 기준이다 — 학원·어린이집·편의점·치킨·부동산중개는 흐름을 비교할 수 없어 뺐다.",
@@ -102,10 +112,29 @@ class EventAnalogInteractor(EventAnalogUseCase):
         events: ShockEventRepositoryPort,
         flows: StoreFlowPort,
         today: Callable[[], date] = date.today,
+        news: RecentNewsPort | None = None,
     ) -> None:
         self._events = events
         self._flows = flows
         self._today = today
+        self._news = news
+
+    def _recent_news(self, category: AnalogCategoryDto, today: date) -> RecentNewsDto:
+        """뉴스 검색이 실패해도 유사 사례는 나간다 — 확인하지 못했다고만 싣는다."""
+        keywords = MEASURE_KEYWORDS[EventCategory(category.category)]
+        base = RecentNewsDto(category.category, category.label, NEWS_DAYS, list(keywords), checked=False)
+        try:
+            found = [h for keyword in keywords for h in self._news.latest(keyword)]
+        except Exception:
+            LOGGER.warning("최근 조치 기사 검색 실패 — %s", category.category, exc_info=True)
+            return base
+        picked = measure_headlines(found, keywords, today - timedelta(days=NEWS_DAYS))
+        base.checked = True
+        base.article_count = len(picked)
+        base.headlines = [
+            NewsHeadlineDto(h.title, h.published_at.date().isoformat(), h.url) for h in picked[:HEADLINES_SHOWN]
+        ]
+        return base
 
     def myself(self) -> EventAnalogReportDto:
         return EventAnalogReportDto(
@@ -140,6 +169,9 @@ class EventAnalogInteractor(EventAnalogUseCase):
             if all(c.category != event.category for c in categories):
                 categories.append(AnalogCategoryDto(event.category, CATEGORY_LABELS[event.category], "current"))
         analogs = select_analogs(events, [c.category for c in categories], today)
+        # 진행 중으로 등록된 이벤트가 없는 질문 속 유형은 지금 그 상황인지 뉴스로 확인한다
+        running = {e.category for e in current}
+        unconfirmed = [c for c in categories if c.reason == "question" and c.category not in running]
         flows = self._flows.monthly_flows() if current or analogs else []
         names = {f.industry_id: f.industry_name for f in flows}
 
@@ -187,4 +219,5 @@ class EventAnalogInteractor(EventAnalogUseCase):
             outlooks=[_outlook(o) for o in outlooks.values()],
             caveats=list(_CAVEATS),
             hints=_hints({c.category for c in categories}),
+            recent_news=[self._recent_news(c, today) for c in unconfirmed] if self._news else [],
         )

@@ -54,6 +54,26 @@ class AnalogHintDto:
 
 
 @dataclass
+class NewsHeadlineDto:
+    title: str
+    published_at: str  # YYYY-MM-DD
+    url: str
+
+
+@dataclass
+class RecentNewsDto:
+    """진행 중 이벤트가 없는 질문 속 유형 — 지금 그 상황인지 최근 조치 기사로 확인한 결과."""
+
+    category: str
+    label: str
+    days: int
+    keywords: list[str]
+    checked: bool  # False: 검색 실패로 확인하지 못함
+    article_count: int = 0  # 기간 안에 제목에 조치 단어가 든 기사 수
+    headlines: list[NewsHeadlineDto] = field(default_factory=list)  # 최신 몇 건
+
+
+@dataclass
 class IndustryRefDto:
     industry_id: str
     industry_name: str
@@ -80,3 +100,4 @@ class EventAnalogReportDto:
     outlooks: list[CategoryOutlookDto] = field(default_factory=list)
     caveats: list[str] = field(default_factory=list)
     hints: list[AnalogHintDto] = field(default_factory=list)  # 이번에 비교하지 않은 유형 — 화면 안내용
+    recent_news: list[RecentNewsDto] = field(default_factory=list)

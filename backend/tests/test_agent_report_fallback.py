@@ -156,6 +156,24 @@ def test_유사_사례_폴백은_유형별_결론과_강세_업종을_덧붙인�
     assert "사례 속 강세 업종 양식 / 약세 업종 PC방" in markdown
 
 
+def test_유사_사례_폴백은_질문_속_유형의_최근_조치_소식을_덧붙인다():
+    def recent(checked: bool, count: int, headlines: list[dict]) -> dict:
+        return {
+            "category": "pandemic", "label": "감염병·방역", "days": 30,
+            "keywords": ["집합금지", "영업제한", "거리두기 격상"],
+            "checked": checked, "article_count": count, "headlines": headlines,
+        }
+
+    quiet = analogs_markdown({**_ANALOGS, "recent_news": [recent(True, 0, [])]})
+    assert "감염병·방역 최근 30일 집합금지·영업제한·거리두기 격상 기사 없음." in quiet
+    active = analogs_markdown({**_ANALOGS, "recent_news": [
+        recent(True, 2, [{"title": "집합금지 명령 발동", "published_at": "2026-09-25", "url": "u1"}])
+    ]})
+    assert "감염병·방역 최근 30일 집합금지·영업제한·거리두기 격상 기사 2건 — 최신: 집합금지 명령 발동 (2026-09-25)." in active
+    down = analogs_markdown({**_ANALOGS, "recent_news": [recent(False, 0, [])]})
+    assert "감염병·방역 최근 소식은 확인하지 못했다." in down
+
+
 def test_비교할_이벤트가_없으면_그렇게_쓴다():
     markdown = analogs_markdown({"categories": [], "current_events": [], "analogs": []})
 

@@ -17,6 +17,15 @@ _KEYWORDS: dict[EventCategory, tuple[str, ...]] = {
     EventCategory.RELIEF: ("지원금", "손실보상", "재난지원", "보조금"),
 }
 
+# 지금 그 상황이 벌어지고 있는지 뉴스 제목에서 확인할 조치 단어 — 상권 영업에 직접 닿는 말만.
+# "방역·위기경보·거리두기"만으로는 가축 방역·폭염 경보·은행 영업시간 기사에 걸린다.
+MEASURE_KEYWORDS: dict[EventCategory, tuple[str, ...]] = {
+    EventCategory.PANDEMIC: ("집합금지", "영업제한", "거리두기 격상"),
+    EventCategory.MINIMUM_WAGE: ("최저임금 인상", "최저임금 결정"),
+    EventCategory.WORK_HOURS: ("근로시간 단축", "주4일제"),
+    EventCategory.RELIEF: ("소상공인 지원금", "손실보상"),
+}
+
 # 비교하지 않은 유형을 "질문에 이 단어를 넣으면 비교한다"고 안내할 때 쓰는 대표 단서
 HINT_KEYWORDS: dict[EventCategory, str] = {
     EventCategory.PANDEMIC: "코로나",
