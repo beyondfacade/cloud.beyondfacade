@@ -25,7 +25,10 @@ _PROGRAM = FundingProgramDto(
 
 
 class _FakeFundingUseCase:
-    def list_candidates(self, industry_id, external_funding_need, stage):
+    regions: list = []
+
+    def list_candidates(self, industry_id, external_funding_need, stage, region_code=None):
+        self.regions.append(region_code)
         return FundingCandidateListDto(
             candidates=[FundingCandidateDto(program=_PROGRAM, why="서울 소재 미만료 공고")],
             industry_id=industry_id,
@@ -47,3 +50,14 @@ def test_공고_후보는_카드가_읽는_키를_싣는다(monkeypatch):
     assert candidate["program_id"] == "PBLN_000000000126191"
     assert candidate["field_category"] == "금융"  # 수집기가 `target`으로 옮긴다
     assert candidate["why"] == "서울 소재 미만료 공고"
+
+
+def test_공고_후보_조회에_동을_넘긴다(monkeypatch):
+    _FakeFundingUseCase.regions = []
+    monkeypatch.setattr(
+        funding_facts_gateway, "get_funding_program_use_case", _FakeFundingUseCase
+    )
+
+    FundingFactsGateway().candidates("korean_food", None, None, "1162052500")
+
+    assert _FakeFundingUseCase.regions == ["1162052500"]

@@ -53,14 +53,15 @@ def list_candidates(
     industry: str | None = None,
     need: int | None = None,
     stage: str | None = None,
+    region: str | None = None,
     use_case: FundingProgramUseCase = Depends(get_funding_program_use_case),
 ) -> FundingCandidateListResponse:
     """서울 창업자에게 해당하는 미만료 공고 상위 8건 (설계서 §3).
 
     자격 확정이 아니다. `industry`·`need`는 필터에 쓰이지 않고 응답에 그대로 돌아간다 —
-    공고에 업종·한도가 구조화돼 있지 않다.
+    공고에 업종·한도가 구조화돼 있지 않다. `region`(동)을 주면 다른 구 전용 공고를 뺀다.
     """
-    return to_candidate_list_response(use_case.list_candidates(industry, need, stage))
+    return to_candidate_list_response(use_case.list_candidates(industry, need, stage, region))
 
 
 @router.get("/support", response_model=SupportGuideResponse)

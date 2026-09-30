@@ -97,7 +97,7 @@ class ReportFactsCollector:
                 "population": pool.submit(self._region_facts.population, region),
                 "shocks": pool.submit(self._shocks, industry),
                 "analogs": pool.submit(self._analogs, industry, question, region),
-                "funding_candidates": pool.submit(self._funding, industry),
+                "funding_candidates": pool.submit(self._funding, industry, region),
                 # 뉴스 질의는 동 이름·업종명을 쓴다 — 워커가 region future를 기다리므로 **맨 뒤**에
                 # 넣는다. 앞선 항목이 워커를 다 채워도 region은 이미 실행 중이라 굶지 않는다.
                 "news": pool.submit(self._news, region_future),
@@ -138,15 +138,15 @@ class ReportFactsCollector:
             return {"available": False, "reason": "유사 사례 조회가 연결되지 않았습니다"}
         return with_sentences(self._analog_facts.analogs(industry, question, region))
 
-    def _funding(self, industry: str) -> list[dict]:
-        """공고 목록만 남긴다 — 프론트 계약은 배열이다 (설계서 §3-1).
+    def _funding(self, industry: str, region: str) -> list[dict]:
+        """공고 목록만 남긴다 — 프론트 계약은 배열이다 (설계서 §3-1). 다른 구 전용 공고는 빠져 온다.
 
         되돌려받는 요청 값(`industry_id`·`stage`)과 `disclaimer`는 버린다 — 앞의 둘은 호출부가
         이미 알고, 면책 문구는 funding 절 프롬프트 계약이 이미 갖는다.
         `target`은 **넣지 않는다** — 원천의 분야(`field_category`)는 대상이 아니다("대상: 금융"은
         거짓말이다). 프론트는 `target`이 없으면 '대상' 줄을 지운다.
         """
-        return self._funding_facts.candidates(industry, None, None)["candidates"]
+        return self._funding_facts.candidates(industry, None, None, region)["candidates"]
 
     def _news(self, region_future: Future) -> list[dict]:
         """동 이름 + 업종명으로 뉴스를 찾는다."""

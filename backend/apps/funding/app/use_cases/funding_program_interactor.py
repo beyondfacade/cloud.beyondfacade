@@ -17,8 +17,12 @@ from apps.funding.app.ports.output.funding_program_port import (
     SeoulDistrictNamesPort,
 )
 from apps.funding.domain.entities.funding_program_entity import FundingProgram
-from apps.funding.domain.services.candidates import select_candidates
-from apps.funding.domain.services.support_guide import SupportItem, build_support_guide
+from apps.funding.domain.services.candidates import DEFAULT_LIMIT, select_candidates
+from apps.funding.domain.services.support_guide import (
+    SupportItem,
+    build_support_guide,
+    open_to_district,
+)
 
 _DISTRICT_CODE_LENGTH = 5  # 행정동 코드 앞 5자리 = 자치구 코드
 
@@ -89,16 +93,24 @@ class FundingProgramInteractor(FundingProgramUseCase):
         industry_id: str | None,
         external_funding_need: int | None,
         stage: str | None,
+        region_code: str | None = None,
     ) -> FundingCandidateListDto:
         district_names = (
             self._seoul_districts.names() if self._seoul_districts is not None else frozenset()
         )
+        programs = self._repository.list_open_all()
         selected = select_candidates(
-            self._repository.list_open_all(),
+            programs,
             seoul_district_names=district_names,
             today=date.today(),
             stage=stage,
+            limit=len(programs) if region_code else DEFAULT_LIMIT,
         )
+        if region_code:
+            district_name = self._district_name(region_code)
+            selected = [
+                c for c in selected if open_to_district(c.program, district_names, district_name)
+            ][:DEFAULT_LIMIT]
         return FundingCandidateListDto(
             candidates=[
                 FundingCandidateDto(program=_to_dto(c.program), why=c.why) for c in selected
@@ -108,12 +120,13 @@ class FundingProgramInteractor(FundingProgramUseCase):
             stage=stage,
         )
 
+    def _district_name(self, region_code: str | None) -> str | None:
+        if not region_code or self._district_lookup is None:
+            return None
+        return self._district_lookup.name_of(region_code[:_DISTRICT_CODE_LENGTH])
+
     def support_guide(self, region_code: str | None, industry_id: str | None) -> SupportGuideDto:
-        district_name = (
-            self._district_lookup.name_of(region_code[:_DISTRICT_CODE_LENGTH])
-            if region_code and self._district_lookup is not None
-            else None
-        )
+        district_name = self._district_name(region_code)
         guide = build_support_guide(
             self._repository.list_open_all(),
             seoul_district_names=(

@@ -85,6 +85,12 @@ def mentioned_districts(program: FundingProgram, district_names: Iterable[str]) 
     }
 
 
+def open_to_district(program: FundingProgram, district_names: Iterable[str], district_name: str | None) -> bool:
+    """구 전용이 아니거나 우리 구 전용인 공고 — 구를 모르면(`None`) 구 전용은 모두 닫혀 있다."""
+    districts = mentioned_districts(program, district_names)
+    return not districts or district_name in districts
+
+
 def industry_matched(program: FundingProgram, industry_id: str | None) -> bool:
     words = INDUSTRY_KEYWORDS.get(industry_id or "", ())
     blob = f"{program.title} {program.hashtags or ''} {program.target_text or ''}"
@@ -111,13 +117,12 @@ def build_support_guide(
     )
     items: list[SupportItem] = []
     for candidate in ranked:
-        districts = mentioned_districts(candidate.program, names)
-        if districts and district_name not in districts:
+        if not open_to_district(candidate.program, names, district_name):
             continue
         items.append(
             SupportItem(
                 candidate,
-                district_match=bool(districts),
+                district_match=bool(mentioned_districts(candidate.program, names)),
                 industry_match=industry_matched(candidate.program, industry_id),
             )
         )

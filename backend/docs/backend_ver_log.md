@@ -1,5 +1,13 @@
 # Backend Version Log
 
+## [v0.62.0] - 2026-09-30
+
+### Changed
+- **리포트·자금 계획의 지원사업 후보에서 다른 구 전용 공고를 뺀다** — 관악구 리포트에 은평구 청년식당·LED간판 공고가 나왔다. `GET /funding/candidates`에 `region`(동 코드)을 받고, 앞 5자리 자치구가 아닌 구 전용 공고를 뺀 뒤 8건을 채운다. 구를 모르면 구 전용 공고를 모두 뺀다. `region`이 없으면 지금처럼 거르지 않는다.
+  - 구 전용 판정은 `/funding/support`와 같은 규칙(`open_to_district` — 제목의 한글 낱말 첫머리·태그·소관기관의 구 이름)을 쓴다.
+  - 리포트 수집기(`ReportFactsCollector._funding`)가 동 코드를 넘긴다(`FundingFactsPort.candidates(..., region_code)`).
+  - 2026-09-30 실측(한식): 관악구 동 → 은평구 2건이 빠지고 관악구 원스톱 지원은 남음 / 강남구 동 → 셋 다 빠짐.
+
 ## [v0.61.0] - 2026-09-30
 
 ### Added

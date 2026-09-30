@@ -13,10 +13,14 @@ _DISCLAIMER = "자격 확정이 아니라 해당 가능성이 있는 공고다. 
 
 class FundingFactsGateway(FundingFactsPort):
     def candidates(
-        self, industry_id: str | None, external_funding_need: int | None, stage: str | None
+        self,
+        industry_id: str | None,
+        external_funding_need: int | None,
+        stage: str | None,
+        region_code: str | None = None,
     ) -> dict:
         result = get_funding_program_use_case().list_candidates(
-            industry_id, external_funding_need, stage
+            industry_id, external_funding_need, stage, region_code
         )
         return {
             "candidates": [

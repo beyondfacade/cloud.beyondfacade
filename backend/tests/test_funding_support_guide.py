@@ -21,6 +21,7 @@ from apps.funding.domain.services.support_guide import (
     build_support_guide,
     industry_matched,
     mentioned_districts,
+    open_to_district,
 )
 from main import app
 
@@ -239,6 +240,53 @@ def test_동_코드가_없어도_묶음을_돌려준다():
 
     assert guide.district_name is None
     assert [item.program.program_id for item in guide.others] == ["p01"]
+
+
+def test_구_전용이_아니거나_우리_구_전용이면_열려_있다():
+    assert open_to_district(_program(1), _SEOUL_GU, "강남구")
+    assert open_to_district(_program(2, title="강남구 소상공인 지원"), _SEOUL_GU, "강남구")
+    assert not open_to_district(_program(3, title="관악구 소상공인 지원"), _SEOUL_GU, "강남구")
+    assert not open_to_district(_program(4, title="강남구 소상공인 지원"), _SEOUL_GU, None)
+
+
+def test_공고_후보는_동을_주면_다른_구_전용을_빼고_상한을_채운다():
+    다른구 = [_program(n, title=f"관악구 지원 {n}", deadline=date(2026, 10, n)) for n in range(1, 9)]
+    우리구 = _program(9, title="강남구 소상공인 지원", deadline=date(2026, 11, 1))
+    일반 = [_program(n, deadline=date(2026, 11, n)) for n in range(10, 20)]
+    interactor = _interactor([*다른구, 우리구, *일반])
+
+    picked = [c.program.program_id for c in interactor.list_candidates("korean_food", None, None, "1168064000").candidates]
+
+    assert len(picked) == 8
+    assert "p09" in picked
+    assert not any(p in picked for p in [f"p{n:02d}" for n in range(1, 9)])
+
+
+def test_공고_후보는_동이_없으면_지금처럼_거르지_않는다():
+    interactor = _interactor([_program(1, title="관악구 소상공인 지원")])
+
+    assert [c.program.program_id for c in interactor.list_candidates(None, None, None).candidates] == ["p01"]
+
+
+def test_공고_후보는_모르는_동이면_구_전용을_모두_뺀다():
+    interactor = _interactor([_program(1, title="강남구 소상공인 지원"), _program(2)])
+
+    picked = interactor.list_candidates(None, None, None, "9999999999").candidates
+
+    assert [c.program.program_id for c in picked] == ["p02"]
+
+
+def test_공고_후보_API는_동을_받아_다른_구_전용을_뺀다():
+    app.dependency_overrides[get_funding_program_use_case] = lambda: _interactor(
+        [_program(1, title="관악구 소상공인 지원"), _program(2)]
+    )
+    try:
+        response = TestClient(app).get("/funding/candidates?industry=korean_food&region=1168064000")
+    finally:
+        app.dependency_overrides.clear()
+
+    assert response.status_code == 200
+    assert [c["program_id"] for c in response.json()["candidates"]] == ["p02"]
 
 
 def test_지원_정보_API는_세_묶음과_금리를_돌려준다():

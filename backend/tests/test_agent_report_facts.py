@@ -98,9 +98,13 @@ class FakeFundingFacts(FundingFactsPort):
         self.calls: list[tuple] = []
 
     def candidates(
-        self, industry_id: str | None, external_funding_need: int | None, stage: str | None
+        self,
+        industry_id: str | None,
+        external_funding_need: int | None,
+        stage: str | None,
+        region_code: str | None = None,
     ) -> dict:
-        self.calls.append((industry_id, external_funding_need, stage))
+        self.calls.append((industry_id, external_funding_need, stage, region_code))
         return {
             "candidates": [
                 {"program_id": "P1", "title": "청년창업자금", "field_category": "금융"},
@@ -229,13 +233,13 @@ def test_뉴스는_동_이름과_업종명으로_검색한다():
     assert facts["news"][0]["published_at"] == "2026-09-01T12:00:00"
 
 
-def test_지원사업_후보는_업종만_걸러_받는다():
-    """get_funding_candidates의 기본값과 같다 — 조달 필요액·단계는 아직 모른다."""
+def test_지원사업_후보는_업종과_동으로_받는다():
+    """조달 필요액·단계는 아직 모른다. 동은 다른 구 전용 공고를 빼는 데 쓴다."""
     funding = FakeFundingFacts()
 
     facts = _collector(funding=funding).collect("1168064000", "korean_food", None)
 
-    assert funding.calls == [("korean_food", None, None)]
+    assert funding.calls == [("korean_food", None, None, "1168064000")]
     assert facts["funding_candidates"][0]["title"] == "청년창업자금"
 
 
