@@ -93,10 +93,10 @@ it("공식 상담·신청 창구 링크를 새 창으로 연다", async () => {
   expect(within(channels).getByRole("link", { name: /서울신용보증재단/ })).toBeInTheDocument();
 });
 
-it("분석 결과로 돌아가는 링크와 자금 계획 링크가 동·업종·예산을 유지한다", async () => {
+it("리포트로 돌아가는 링크와 자금 계획 링크가 동·업종·예산을 유지한다", async () => {
   renderPage();
   await screen.findByRole("region", { name: "대출·보증" });
-  expect(screen.getByRole("link", { name: "← 분석 결과로" })).toHaveAttribute("href", "/analysis?region=1168064000&industry=korean_food&budget=50000000");
+  expect(screen.getByRole("link", { name: "← 리포트로" })).toHaveAttribute("href", "/analysis?region=1168064000&industry=korean_food&budget=50000000");
   expect(screen.getByRole("link", { name: /필요한 자금 계산하기/ })).toHaveAttribute("href", "/plan?region=1168064000&industry=korean_food&budget=50000000");
 });
 

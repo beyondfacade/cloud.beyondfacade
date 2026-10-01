@@ -114,7 +114,8 @@ describe("사이드패널 한 화면 요약", () => {
       ? Promise.resolve(Response.json({ error: { code: "HTTP_500", message: "조회 실패" } }, { status: 500 }))
       : fetch(input)));
     renderPanel({ budget: 50000000 });
-    expect(await screen.findByRole("alert")).toHaveTextContent("불러오기 실패");
+    expect(await screen.findByRole("alert")).toHaveTextContent("1168064000 행정동의 카페 요약 정보를 불러오지 못했습니다.");
+    expect(screen.getByRole("alert")).not.toHaveTextContent("판정을 불러오지 못했습니다");
     expect(await screen.findByRole("region", { name: "창업 경고 판정" })).toBeInTheDocument();
     expect(await screen.findByText("낮 인구 우위형 · 점심·오후가 하루의 정점")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "창업 경고 리포트 보기" })).toHaveAttribute("href", "/analysis?region=1168064000&industry=cafe&budget=50000000");
@@ -128,20 +129,35 @@ describe("사이드패널 한 화면 요약", () => {
     expect(screen.queryByRole("checkbox")).toBeNull();
   });
 
-  it("빈 화면은 동을 누르라고 안내하고 배지는 선택된 동 없음이다", () => {
-    renderPanel({ regionCode: null });
+  it.each([
+    ["cafe", "카페"],
+    ["convenience_store", "편의점"],
+    ["real_estate", "부동산중개업"],
+  ])("%s의 빈 화면은 제공 가능한 판정만 안내한다", (industry, label) => {
+    renderPanel({ regionCode: null, industry });
     expect(screen.getByText("선택된 동 없음")).toBeInTheDocument();
-    expect(screen.getByText(/지도에서 동을 누르면 .* 창업 경고 판정과 근거가 여기에 나옵니다\./)).toBeInTheDocument();
+    expect(screen.getByText(`지도에서 동을 누르면 ${label} 관련 정보와 제공 가능한 창업 경고 판정을 확인할 수 있습니다.`)).toBeInTheDocument();
   });
 
-  it("불러오는 동안 판정을 불러온다고 알린다", () => {
+  it("판정이 도착해도 요약이 대기 중이면 요약 정보를 불러온다고 알린다", async () => {
+    const fetch = globalThis.fetch;
+    vi.stubGlobal("fetch", vi.fn((input: string) => input.includes("/regions/")
+      ? new Promise<Response>(() => {})
+      : fetch(input)));
     renderPanel();
-    expect(screen.getByText("판정을 불러오고 있어요.")).toBeInTheDocument();
+    expect(await screen.findByRole("region", { name: "창업 경고 판정" })).toBeInTheDocument();
+    expect(screen.getByRole("status", { name: "불러오는 중" })).toHaveTextContent("동네 요약 정보를 불러오고 있어요.");
   });
 
-  it("조회에 실패하면 창업 경고 판정을 불러오지 못했다고 알린다", async () => {
-    vi.stubGlobal("fetch", vi.fn(async () => Response.json({ error: { code: "NOT_FOUND", message: "자료 없음" } }, { status: 404 })));
+  it("판정만 실패하면 정상 요약과 판정 실패 안내를 표시한다", async () => {
+    const fetch = globalThis.fetch;
+    vi.stubGlobal("fetch", vi.fn((input: string) => input.includes("/verdicts/")
+      ? Promise.resolve(Response.json({ error: { code: "HTTP_500", message: "조회 실패" } }, { status: 500 }))
+      : fetch(input)));
     renderPanel();
-    expect(await screen.findByText(/행정동의 .* 창업 경고 판정을 불러오지 못했습니다\./)).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: "역삼1동" })).toBeInTheDocument();
+    expect(await screen.findByRole("alert")).toHaveTextContent("판정을 불러오지 못했습니다.");
+    expect(screen.queryByText(/요약 정보를 불러오지 못했습니다/)).toBeNull();
+    expect(screen.queryByRole("region", { name: "창업 경고 판정" })).toBeNull();
   });
 });

@@ -32,7 +32,7 @@ export function MapPage() {
           <p className={styles.eyebrow}>SEOUL WARNING MAP</p>
           <h1>피해야 할 동네부터 보입니다.</h1>
         </div>
-        <p className={styles.pageDescription}>업종을 고르면 서울 427개 동의 창업 경고가 색으로 나타납니다.<br />동을 누르면 근거와 대안이 나옵니다.</p>
+        <p className={styles.pageDescription}>판정 대상 12개 업종의 창업 경고를 서울 427개 동에서 확인합니다.<br />동을 누르면 판정 근거를 보고, 경고가 있는 경우 대안도 살펴볼 수 있습니다.</p>
       </header>
       <ControlBar state={state} onChange={handleStateChange} />
       <div className={styles.mapAndBrief}>

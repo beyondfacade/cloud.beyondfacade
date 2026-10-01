@@ -34,7 +34,7 @@ export function SupportPage() {
   return (
     <main aria-label="창업 지원·대출 정보" className="mx-auto flex max-w-4xl flex-col gap-10 px-4 py-10">
       <header className="flex flex-col gap-3">
-        <Link href={`/analysis${query ? `?${query}` : ""}`} className="w-fit text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)]">← 분석 결과로</Link>
+        <Link href={`/analysis${query ? `?${query}` : ""}`} className="w-fit text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)]">← 리포트로</Link>
         <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1">
           <h1 className="text-2xl font-semibold tracking-tight text-[var(--text-primary)]">창업 지원·대출 정보</h1>
           {region && industry && (

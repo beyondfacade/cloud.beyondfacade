@@ -42,3 +42,10 @@ it("지도 머리말 이름표와 지도 영역 이름이 창업 경고 지도�
   expect(screen.getByText("SEOUL WARNING MAP")).toBeInTheDocument();
   expect(screen.getByRole("region", { name: "서울 창업 경고 지도" })).toBeInTheDocument();
 });
+
+it.each(["cafe", "convenience_store", "real_estate"])("%s 선택 시 지도 설명은 판정 대상과 대안 제공 조건을 밝힌다", (industry) => {
+  navigation.query = `industry=${industry}`;
+  render(<MapPage />);
+  expect(screen.getByText(/판정 대상 12개 업종/)).toHaveTextContent("판정 대상 12개 업종의 창업 경고를 서울 427개 동에서 확인합니다.");
+  expect(screen.getByText(/판정 대상 12개 업종/)).toHaveTextContent("동을 누르면 판정 근거를 보고, 경고가 있는 경우 대안도 살펴볼 수 있습니다.");
+});

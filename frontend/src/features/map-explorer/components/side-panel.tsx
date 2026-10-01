@@ -79,7 +79,7 @@ export function SidePanel({ regionCode, industry, budget = null, showClosed, onT
           <h2>어느 동네를 보고 계세요?</h2>
           <span className={styles.emptyStatus}>선택된 동 없음</span>
           <p>
-            지도에서 동을 누르면 {label} 창업 경고 판정과 근거가 여기에 나옵니다.
+            지도에서 동을 누르면 {label} 관련 정보와 제공 가능한 창업 경고 판정을 확인할 수 있습니다.
           </p>
           <span className={styles.emptyGuide}>동네 선택 → 판정·대안 → 리포트</span>
         </div>
@@ -87,7 +87,7 @@ export function SidePanel({ regionCode, industry, budget = null, showClosed, onT
 
       {regionCode && summary.isPending && (
         <div role="status" aria-label="불러오는 중" className={styles.loadingBrief}>
-          <p className="mb-6 text-sm text-[var(--text-secondary)]">판정을 불러오고 있어요.</p>
+          <p className="mb-6 text-sm text-[var(--text-secondary)]">동네 요약 정보를 불러오고 있어요.</p>
           <div className="mb-5 h-5 w-24 rounded bg-[var(--bg-raised)]" aria-hidden />
           <SkeletonRows />
         </div>
@@ -100,7 +100,7 @@ export function SidePanel({ regionCode, industry, budget = null, showClosed, onT
           {/* "데이터 없음"은 스냅샷 업종 안내와 뜻이 겹친다 — 조회 실패는 실패라고 말한다 (v0.14.1) */}
           <span className="text-xs font-medium text-[var(--danger)]">불러오기 실패</span>
           <span className="text-sm leading-relaxed text-[var(--text-secondary)]">
-            <span className="tabular-nums">{regionCode}</span> 행정동의 {label} 창업 경고 판정을 불러오지 못했습니다.
+            <span className="tabular-nums">{regionCode}</span> 행정동의 {label} 요약 정보를 불러오지 못했습니다.
           </span>
         </div>
       )}
