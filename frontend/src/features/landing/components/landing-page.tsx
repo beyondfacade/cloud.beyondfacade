@@ -65,7 +65,7 @@ export function LandingPage({ hero }: LandingPageProps = {}) {
           <div className={styles.feature}>
             <span className={`${styles.featureNumber} text-[var(--landing-accent)]`}>01 / VERDICT</span>
             <h3>판정은 셋 중 하나</h3>
-            <p className="text-[var(--landing-muted)]">비추천 · 조건부 · 경고 없음.<br />추천 등급은 없고, 표본이 부족하면 판정을 보류합니다.</p>
+            <p className="text-[var(--landing-muted)]">비추천 · 조건부 · 경고 없음. <br />추천 등급은 없고, 표본이 부족하면 판정을 보류합니다.</p>
           </div>
           <div className={styles.feature}>
             <span className={`${styles.featureNumber} text-[var(--landing-accent)]`}>02 / EVIDENCE</span>
@@ -75,7 +75,7 @@ export function LandingPage({ hero }: LandingPageProps = {}) {
           <div className={styles.feature}>
             <span className={`${styles.featureNumber} text-[var(--landing-accent)]`}>03 / WHAT NEXT</span>
             <h3>그래도 한다면</h3>
-            <p className="text-[var(--landing-muted)]">대안 동네와 업종, 필요 자금, 지원사업,<br />상담 준비자료까지 이어집니다.</p>
+            <p className="text-[var(--landing-muted)]">대안 동네와 업종, 필요 자금, 지원사업, <br />상담 준비자료까지 이어집니다.</p>
           </div>
         </section>
 
