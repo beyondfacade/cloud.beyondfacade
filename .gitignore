@@ -5,3 +5,5 @@ __pycache__/
 logs/
 스크린샷*.png
 .worktrees/
+/docs/plan/
+/docs/bm-proposal.md
