@@ -30,9 +30,9 @@ export function MapPage() {
       <header className={styles.pageHeading}>
         <div>
           <p className={styles.eyebrow}>EXPLORE THE NEIGHBORHOOD</p>
-          <h1>동네의 가능성을 펼쳐보세요.</h1>
+          <h1>피해야 할 동네부터 보입니다.</h1>
         </div>
-        <p className={styles.pageDescription}>궁금한 동네를 선택하고,<br />상권의 흐름을 차근차근 살펴보세요.</p>
+        <p className={styles.pageDescription}>업종을 고르면 서울 427개 동의 창업 경고가 색으로 나타납니다.<br />동을 누르면 근거와 대안이 나옵니다.</p>
       </header>
       <ControlBar state={state} onChange={handleStateChange} />
       <div className={styles.mapAndBrief}>

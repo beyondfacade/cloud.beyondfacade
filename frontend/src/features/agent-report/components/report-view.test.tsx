@@ -145,3 +145,8 @@ it.each([
   render(<ReportView state={{ ...initialAgentState(), facts: { ...facts, region: { ...facts.region, industry_name: industryName } } }} />);
   expect(screen.getByRole("heading", { level: 3, name: title })).toBeInTheDocument();
 });
+
+it("리포트 article의 접근성 이름은 창업 경고 리포트다", () => {
+  render(<ReportView state={{ ...initialAgentState(), facts: reportFacts() }} />);
+  expect(screen.getByRole("article", { name: "창업 경고 리포트" })).toBeInTheDocument();
+});

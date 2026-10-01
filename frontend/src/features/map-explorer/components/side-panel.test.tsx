@@ -123,7 +123,7 @@ describe("사이드패널 한 화면 요약", () => {
 
   it("동을 선택하지 않으면 선택 안내만 표시한다", () => {
     renderPanel({ regionCode: null });
-    expect(screen.getByRole("heading", { name: "어느 동네가 궁금하세요?" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "어느 동네를 보고 계세요?" })).toBeInTheDocument();
     expect(screen.queryByRole("link")).toBeNull();
     expect(screen.queryByRole("checkbox")).toBeNull();
   });

@@ -147,3 +147,8 @@ it("원 단위 예산을 만원으로 표시할 때 소수 네 자리까지 보�
   renderPage();
   expect(await screen.findByText("역삼1동 · 한식 · 예산 5,000.0001만원")).toBeInTheDocument();
 });
+
+it("분석 화면 제목은 왜 안 되는지 한 장으로 읽힌다", () => {
+  renderPage();
+  expect(screen.getByRole("heading", { level: 1 }).textContent).toMatch(/왜 안 되는지,\s*한 장으로\./);
+});

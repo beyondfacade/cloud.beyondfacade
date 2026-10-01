@@ -17,3 +17,9 @@ it("판정 데이터가 없으면 범례를 표시하지 않는다", () => {
   const { container } = render(<MapLegend scale={{ classes: [] }} />);
   expect(container).toBeEmptyDOMElement();
 });
+
+it("범례에 경고 없음이 추천이 아니라는 안내 줄을 표시한다", () => {
+  const classes = ["red", "clear"].map((code) => ({ code, color: "#123456" }));
+  render(<MapLegend scale={{ classes }} />);
+  expect(screen.getByText("\"경고 없음\"은 추천이 아닙니다.")).toBeInTheDocument();
+});

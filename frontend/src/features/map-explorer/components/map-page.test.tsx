@@ -31,3 +31,8 @@ it.each(["", "&metric=closure_rate&year=2021&year_quarter=20211", "&metric=unkno
     expect(navigation.replace).toHaveBeenCalledWith("?industry=karaoke&region=1168064000&budget=50000000", { scroll: false });
   },
 );
+
+it("머리말 제목은 피해야 할 동네부터 보인다고 알린다", () => {
+  render(<MapPage />);
+  expect(screen.getByRole("heading", { level: 1, name: "피해야 할 동네부터 보입니다." })).toBeInTheDocument();
+});

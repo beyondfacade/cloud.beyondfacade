@@ -80,12 +80,12 @@ export function ReportView({ state }: ReportViewProps) {
     return (
       <div className={`${styles.reportSheet} ${styles.emptySheet} border-[var(--border)] bg-[var(--bg-surface)]`}>
         <div className={`${styles.reportMasthead} border-[var(--border)] text-[var(--text-secondary)]`}>
-          <span>NEIGHBORHOOD REPORT</span><span>상권 분석 리포트</span>
+          <span>WARNING REPORT</span><span>창업 경고 리포트</span>
         </div>
         <div className={styles.emptyContent}>
           <span className={`${styles.emptyMark} text-[var(--accent)] bg-[var(--bg-raised)]`} aria-hidden="true">✳</span>
-          <p className={`${styles.eyebrow} text-[var(--accent)]`}>A CLOSER LOOK AT YOUR NEIGHBORHOOD</p>
-          <h2>우리 동네를 이해하는<br />또 하나의 시선.</h2>
+          <p className={`${styles.eyebrow} text-[var(--accent)]`}>BEFORE YOU SIGN</p>
+          <h2>계약 전에 읽는<br />한 장.</h2>
           <p className={`${styles.emptyDescription} text-[var(--text-secondary)]`}>아직 리포트가 없습니다.<br />지역 코드와 업종을 확인한 뒤 분석을 시작하세요.<br />분석 내용과 참고 자료가 이곳에 차례로 모입니다.</p>
           <div className={`${styles.reportOutline} border-[var(--border)]`}>
             {SECTION_ORDER.map((section, index) => (
@@ -93,7 +93,7 @@ export function ReportView({ state }: ReportViewProps) {
             ))}
           </div>
         </div>
-        <p className={`${styles.reportFooter} border-[var(--border)] text-[var(--text-secondary)]`}>METABOLE<span>동네의 맥락에서, 다음 가능성으로.</span></p>
+        <p className={`${styles.reportFooter} border-[var(--border)] text-[var(--text-secondary)]`}>METABOLE<span>근거가 있는 경고, 그다음의 대안.</span></p>
       </div>
     );
   }
@@ -101,9 +101,9 @@ export function ReportView({ state }: ReportViewProps) {
   const citations = state.citations.filter(isCitation);
 
   return (
-    <article className={`${styles.reportSheet} border-[var(--border)] bg-[var(--bg-surface)]`} aria-label="상권 분석 리포트">
+    <article className={`${styles.reportSheet} border-[var(--border)] bg-[var(--bg-surface)]`} aria-label="창업 경고 리포트">
       <header className={`${styles.reportMasthead} border-[var(--border)] text-[var(--text-secondary)]`}>
-        <span>NEIGHBORHOOD REPORT</span><span>{state.error ? "작성 중단" : state.done ? "작성 완료" : "리포트 작성 중"}</span>
+        <span>WARNING REPORT</span><span>{state.error ? "작성 중단" : state.done ? "작성 완료" : "리포트 작성 중"}</span>
       </header>
       <div className={styles.reportBody}>
         {sections.map((section, index) => (

@@ -208,7 +208,7 @@ fi
 report_state() {
   cat <<'JS' | AB eval --stdin
 (() => {
-  const el = document.querySelector('[aria-label="상권 분석 리포트"]');
+  const el = document.querySelector('[aria-label="창업 경고 리포트"]');
   if (!el) return "NO_ARTICLE 0";
   const head = el.querySelector("header")?.textContent ?? "";
   const body = (el.textContent ?? "").replace(/\s+/g, " ").trim();

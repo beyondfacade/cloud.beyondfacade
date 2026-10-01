@@ -44,8 +44,8 @@ function AnalysisWorkspace({ region, industry, budget }: { region: string; indus
       <header className={styles.pageHeader}>
         <div>
           <p className={`${styles.eyebrow} text-[var(--accent)]`}>SEOUL COMMERCIAL METABOLE / ANALYSIS</p>
-          <h1>동네의 가능성을,<br className={styles.mobileBreak} /> 한 장의 분석으로.</h1>
-          <p className={`${styles.pageDescription} text-[var(--text-secondary)]`}>궁금한 지역과 업종을 정하고, 상권을 이해할 다음 단서를 찾아보세요.</p>
+          <h1>왜 안 되는지,<br className={styles.mobileBreak} /> 한 장으로.</h1>
+          <p className={`${styles.pageDescription} text-[var(--text-secondary)]`}>동네와 업종을 정하면 판정 근거, 그래도 한다면 지킬 조건, 대안을 차례로 정리합니다.</p>
         </div>
         <span className={`${styles.pageEdition} text-[var(--text-secondary)]`}>AI 분석 워크스페이스<span aria-hidden="true">↘</span></span>
       </header>

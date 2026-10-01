@@ -41,6 +41,7 @@ export function MapLegend({ scale }: MapLegendProps) {
           데이터 없음
         </li>
       </ul>
+      <p className="mt-2.5 text-[11px] leading-none text-[var(--text-secondary)]">&quot;경고 없음&quot;은 추천이 아닙니다.</p>
     </div>
   );
 }

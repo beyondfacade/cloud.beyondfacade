@@ -76,12 +76,12 @@ export function SidePanel({ regionCode, industry, budget = null, showClosed, onT
           <span className={styles.emptyIcon} aria-hidden="true">
             <svg width="32" height="32" viewBox="0 0 32 32" fill="none"><circle cx="16" cy="16" r="12" stroke="currentColor" strokeWidth="1.25" /><path d="m20.5 11.5-3 6-6 3 3-6 6-3Z" stroke="currentColor" strokeWidth="1.25" strokeLinejoin="round" /><path d="M16 2v4m0 20v4M2 16h4m20 0h4" stroke="currentColor" strokeWidth="1.25" /></svg>
           </span>
-          <h2>어느 동네가 궁금하세요?</h2>
+          <h2>어느 동네를 보고 계세요?</h2>
           <span className={styles.emptyStatus}>선택된 행정동 없음</span>
           <p>
-            지도에서 행정동을 클릭하면 {label} 지표와 신호가 여기에 표시됩니다.
+            지도에서 행정동을 클릭하면 {label} 창업 경고 판정과 근거가 여기에 나옵니다.
           </p>
-          <span className={styles.emptyGuide}>동네 선택 → 지표 확인 → AI 분석</span>
+          <span className={styles.emptyGuide}>동네 선택 → 판정·대안 → 리포트</span>
         </div>
       )}
 

@@ -117,7 +117,7 @@ export function PlanPage() {
   return (
     <main className={styles.page} aria-label="자금 계획">
       <header className={styles.header}>
-        <Link className={styles.back} href={`/map?${new URLSearchParams({ region, industry })}`}>← 상권 탐색으로</Link>
+        <Link className={styles.back} href={`/map?${new URLSearchParams({ region, industry })}`}>← 경고 지도로</Link>
         <div className={styles.titleRow}>
           <h1 className={styles.title}>자금 계획</h1>
           <p className={styles.context}><span>{regionName}</span><span aria-hidden="true">·</span><span>{industryLabel(industry)}</span></p>

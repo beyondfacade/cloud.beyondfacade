@@ -18,7 +18,7 @@ interface ControlBarProps {
 export function ControlBar({ state, onChange }: ControlBarProps) {
   return (
     <div className={styles.filterTray}>
-      <div className={styles.filterIntro}><span className={styles.eyebrow}>YOUR PERSPECTIVE</span><span>어떤 상권이 궁금하세요?</span></div>
+      <div className={styles.filterIntro}><span className={styles.eyebrow}>CHECK FIRST</span><span>어떤 업종을 하려고 하세요?</span></div>
       <label className={`${styles.industryField} flex flex-col gap-2`}>
         <span className={LEGEND}>업종</span>
         <select
