@@ -7,8 +7,8 @@ import "pretendard/dist/web/variable/pretendardvariable-dynamic-subset.css";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Metabole — 상권 분석",
-  description: "행정동 단위 상권 지표를 지도에서 탐색하고, AI 에이전트 분석 리포트를 확인합니다.",
+  title: "Metabole — 서울 창업 경고 리포트",
+  description: "서울 행정동 × 업종별 창업 경고 판정을 지도에서 확인하고, 근거와 대안을 담은 리포트로 이어갑니다.",
 };
 
 const THEME_BOOT =

@@ -4,7 +4,7 @@ import { useRef, useState } from "react";
 import styles from "./intent-gate.module.css";
 
 /** 예시는 실제로 끝까지 이어지는 문장만 둔다. 셋째는 LLM 경로(랜드마크→동) 시연이다. */
-export const EXAMPLE_CHIPS = ["역삼동에 카페, 예산 5천", "연남동에서 뭘 하면 좋을까", "홍대 근처 미용실"];
+export const EXAMPLE_CHIPS = ["역삼동에 카페, 예산 5천", "망원동에 한식집", "홍대 근처 미용실"];
 
 interface IntentFormProps {
   pending: boolean;
@@ -36,7 +36,7 @@ export function IntentForm({ pending, onSubmit }: IntentFormProps) {
             autoComplete="off"
           />
           <button type="submit" disabled={!text.trim()}>
-            {pending ? "찾는 중…" : "찾아보기"}<span aria-hidden="true">↗</span>
+            {pending ? "확인 중…" : "확인하기"}<span aria-hidden="true">↗</span>
           </button>
         </div>
       </form>

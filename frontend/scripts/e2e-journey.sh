@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# E2E 여정: /map → 동 폴리곤 클릭 → 사이드패널 확인 → 점포 마커 로드 확인 → [AI 분석] 클릭
+# E2E 여정: /map → 동 폴리곤 클릭 → 사이드패널 확인 → 점포 마커 로드 확인 → [리포트] 클릭
 #           → /analysis URL 조건 확인 → 자동 시작 → report_done까지 대기 → 리포트 텍스트 존재 assert
 #
 # 전제: http://localhost:3200 (또는 $BASE_URL)에 dev 서버가 떠 있어야 한다 (npm run dev).
@@ -57,7 +57,7 @@ echo "[0/8] 채팅 관문(/) — 문장 입력 → /map?region 착지"
 AB set viewport "$VIEWPORT_W" "$VIEWPORT_H" >/dev/null
 AB open "$BASE_URL/" >/dev/null
 AB wait --load networkidle >/dev/null
-AB wait --text "찾아보기" >/dev/null
+AB wait --text "확인하기" >/dev/null
 cat <<'JS' | AB eval --stdin >/dev/null
 (() => {
   const input = document.getElementById("intent-text");
@@ -79,7 +79,7 @@ while :; do
 done
 echo "  관문 착지 확인: $GATE_URL"
 
-echo "[1/8] 지도 탐색(/map) 오픈"
+echo "[1/8] 경고 지도(/map) 오픈"
 AB set viewport "$VIEWPORT_W" "$VIEWPORT_H" >/dev/null
 AB open "$BASE_URL/map" >/dev/null
 AB wait --load networkidle >/dev/null
@@ -180,10 +180,10 @@ if [[ "$STORE_REQUESTS" != *"region=${SELECTED_REGION}"* ]]; then
   exit 1
 fi
 
-echo "[5/8] [AI 분석] 클릭"
+echo "[5/8] [리포트] 클릭"
 # 사이드패널이 길어져(동네 프로필 섹션) CTA가 패널 스크롤 영역 아래로 밀린다. 화면 밖 요소를 클릭하면
 # agent-browser는 조용히 빗나가고 URL이 안 바뀐다(2026-09-23 재현: top 1208px / 뷰포트 577px). 먼저 보이게 한다.
-# 상단 바에도 "AI 분석" 탭이 있으므로 href로 사이드패널 링크를 특정한다.
+# 상단 바에도 "리포트" 탭이 있으므로 href로 사이드패널 링크를 특정한다.
 AB eval "document.querySelector('a[href^=\"/analysis?\"]')?.scrollIntoView({block:'center'})" >/dev/null
 AB find text "AI 분석 리포트 보기" click >/dev/null
 AB wait --text "다시 분석" >/dev/null

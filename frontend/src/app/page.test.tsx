@@ -26,13 +26,24 @@ it("반복된 검색값과 특수문자도 지도 주소에 보존한다", async
   });
 });
 
-it.each([{}, { utm_source: "newsletter" }])("지도 선택값이 없는 방문에는 탐색 시작 링크를 제공한다 (%j)", async (query) => {
+it.each([{}, { utm_source: "newsletter" }])("지도 선택값이 없는 방문에는 경고 지도 링크를 제공한다 (%j)", async (query) => {
   render(await Home({ searchParams: Promise.resolve(query) }));
-  expect(screen.getByRole("link", { name: "상권 탐색하기" })).toHaveAttribute("href", "/map");
+  expect(screen.getByRole("link", { name: "창업 경고 지도 보기" })).toHaveAttribute("href", "/map");
 });
 
 it("지도 선택값이 없는 방문에는 관문 입력창이 히어로에 있다", async () => {
   render(await Home({ searchParams: Promise.resolve({}) }));
   expect(screen.getByLabelText("어느 동네에서 무엇을 하려고 하세요?")).toBeInTheDocument();
   expect(screen.getByRole("button", { name: "역삼동에 카페, 예산 5천" })).toBeInTheDocument();
+});
+
+it("랜딩 제목은 피해야 할 자리부터 확인하라고 읽히고 화면 어디에도 가능성이 없다", async () => {
+  const { container } = render(await Home({ searchParams: Promise.resolve({}) }));
+  expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("가게 자리를 찾기 전에,피해야 할 자리부터확인하세요.");
+  expect(container.textContent).not.toContain("가능성");
+});
+
+it("보조 링크 어떻게 판정하나요?는 소개 절을 가리킨다", async () => {
+  render(await Home({ searchParams: Promise.resolve({}) }));
+  expect(screen.getByRole("link", { name: /어떻게 판정하나요\?/ })).toHaveAttribute("href", "#about");
 });

@@ -11,13 +11,13 @@ beforeEach(() => { navigation.pathname = "/analysis"; });
 
 it("현재 경로의 탭에 aria-current가 표시된다", () => {
   render(<TopBar />);
-  expect(screen.getByRole("link", { name: "AI 분석" })).toHaveAttribute("aria-current", "page");
-  expect(screen.getByRole("link", { name: "지도 탐색" })).not.toHaveAttribute("aria-current");
+  expect(screen.getByRole("link", { name: "리포트" })).toHaveAttribute("aria-current", "page");
+  expect(screen.getByRole("link", { name: "경고 지도" })).not.toHaveAttribute("aria-current");
 });
 
-it("지도 탐색 탭은 전용 지도 경로로 연결된다", () => {
+it("경고 지도 탭은 전용 지도 경로로 연결된다", () => {
   render(<TopBar />);
-  expect(screen.getByRole("link", { name: "지도 탐색" })).toHaveAttribute("href", "/map");
+  expect(screen.getByRole("link", { name: "경고 지도" })).toHaveAttribute("href", "/map");
 });
 
 it("서비스 이름을 통해 첫 화면으로 돌아간다", () => {
@@ -25,10 +25,10 @@ it("서비스 이름을 통해 첫 화면으로 돌아간다", () => {
   expect(screen.getByRole("link", { name: "Metabole" })).toHaveAttribute("href", "/");
 });
 
-it("지도 경로에서 지도 탐색 탭이 활성화된다", () => {
+it("지도 경로에서 경고 지도 탭이 활성화된다", () => {
   navigation.pathname = "/map";
   render(<TopBar />);
-  expect(screen.getByRole("link", { name: "지도 탐색" })).toHaveAttribute("aria-current", "page");
+  expect(screen.getByRole("link", { name: "경고 지도" })).toHaveAttribute("aria-current", "page");
 });
 
 it("관리자 화면은 자체 헤더를 쓰므로 서비스 헤더를 숨긴다", () => {

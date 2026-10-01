@@ -7,8 +7,8 @@ import { ThemeToggle } from "./theme-toggle";
 import styles from "./top-bar.module.css";
 
 const TABS = [
-  { href: "/map", label: "지도 탐색" },
-  { href: "/analysis", label: "AI 분석" },
+  { href: "/map", label: "경고 지도" },
+  { href: "/analysis", label: "리포트" },
 ];
 
 // 첫 화면·관제실·로그인/가입은 자체 헤더를 쓴다

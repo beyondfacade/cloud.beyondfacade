@@ -38,7 +38,7 @@ const DIAGNOSIS = {
 
 async function submit(text: string) {
   fireEvent.change(screen.getByLabelText("어느 동네에서 무엇을 하려고 하세요?"), { target: { value: text } });
-  await act(async () => { fireEvent.click(screen.getByRole("button", { name: /찾아보기|찾는 중/ })); });
+  await act(async () => { fireEvent.click(screen.getByRole("button", { name: /확인하기|확인 중/ })); });
 }
 
 beforeEach(() => {
@@ -111,7 +111,7 @@ describe("관문 상태 전이", () => {
     render(<IntentGate />);
 
     await submit("헬스장");
-    expect(screen.getByRole("button", { name: /찾는 중/ })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /확인 중/ })).toBeInTheDocument();
     await act(async () => { vi.advanceTimersByTime(15_001); });
     expect(await screen.findByRole("alert")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "다시 시도" })).toBeInTheDocument();

@@ -5,7 +5,7 @@ import { LandingPage } from "@/features/landing/components/landing-page";
 
 export const metadata: Metadata = {
   title: "서울 상권 메타볼레 | Metabole",
-  description: "서울의 변화 속에서, 내 가게의 자리를 찾다. 지도로 동네의 상권 지표를 살펴보고 AI 분석으로 탐색을 이어가세요.",
+  description: "가게 자리를 찾기 전에, 피해야 할 자리부터. 서울 427개 동 × 12개 업종의 개업·폐업 기록으로 창업 경고를 판정하고 대안과 필요 자금까지 이어서 확인합니다.",
 };
 
 export default async function Home({ searchParams }: {

@@ -25,7 +25,7 @@ export function DiagnosisLine({ sentence, href, planHref = null, onNavigate }: D
     <div className={styles.diagnosis} role="status">
       <p>{sentence}</p>
       <Link href={href} prefetch={false} onClick={(e) => { e.preventDefault(); onNavigate(href); }}>
-        지도에서 확인 <span aria-hidden="true">→</span>
+        근거 보기 <span aria-hidden="true">→</span>
       </Link>
       {planHref && (
         <Link href={planHref} prefetch={false} onClick={(e) => { e.preventDefault(); onNavigate(planHref); }}>
