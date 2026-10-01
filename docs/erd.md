@@ -364,10 +364,12 @@ erDiagram
 
 ---
 
-## 6. 최종 ERD — 실DB 스키마 기준 (2026-09-23)
+## 6. 최종 ERD — 실DB 스키마 기준 (2026-10-01)
 
-> 원천: 운영 DB `information_schema`(컬럼·PK·UK·FK) 실조회. **36테이블**(`alembic_version` 제외).
-> 2026-09-17의 21테이블에 commerce 3·neighborhood 8·metric 파생 2·agent 2 = **15테이블**을 더했다(T0-4).
+> 원천: 운영 DB `information_schema`(컬럼·PK·UK·FK) 실조회. **47테이블**(`alembic_version` 제외), DB FK 49개.
+> 2026-09-17의 21테이블에 commerce 3·neighborhood 8·metric 파생 2·agent 2 = **15테이블**을 더했고(T0-4, 9/23),
+> 2026-10-01에 verdict 1·housing 1·admin 7·ops 1·agent 1 = **11테이블**을 더했다.
+> admin 7·`host_metric_sample`·`llm_call_event`는 `feat/admin-rooms` 브랜치 마이그레이션분이다(main 미병합, dev DB에는 적용 — head `b5e9d2c4a817`).
 > 실선 = DB `FOREIGN KEY` 제약, 점선 = 애플리케이션 레벨 엣지(DB 제약 없음 — 사유는 §6.2).
 
 ```mermaid
@@ -447,6 +449,23 @@ erDiagram
     analysis_report ||--o{ llm_usage : "턴별 토큰"
     region |o..o{ analysis_report : "region_code (FK 없음)"
 
+    %% ── 판정 계층 (verdict, 새벽 배치 재생성) ──
+    region ||--o{ region_industry_verdict : ""
+    industry ||--o{ region_industry_verdict : ""
+    store ||..o{ region_industry_verdict : "인허가 신호(basis=permit)"
+    tobacco_retailer ||..o{ region_industry_verdict : "편의점 대리(basis=proxy)"
+    region_commerce_store ||..o{ region_industry_verdict : "집계 원천(basis=aggregate)"
+    apt_trade_count ||..o{ region_industry_verdict : "부동산 특화 신호"
+    region_profile_quarter ||..o{ region_industry_verdict : "동네 맥락"
+
+    %% ── 관리자 계층 (admin, feat/admin-rooms) ──
+    admin_user ||--o{ admin_session : "로그인 세션(CASCADE)"
+    admin_user |o--o{ access_event : "SET NULL"
+    admin_user |o--o{ admin_audit : "행위자(SET NULL)"
+    admin_user |o--o{ access_rule : "등록자(SET NULL)"
+    admin_user |o--o{ ip_block : "등록자(SET NULL)"
+    admin_user |o--o{ security_setting : "변경자(SET NULL)"
+
     district {
         string district_code PK "자치구코드"
         string name
@@ -497,6 +516,8 @@ erDiagram
         float lat "nullable"
         float lng "nullable"
         datetime source_updated_at "증분 커서"
+        string road_address "nullable"
+        string jibun_address "nullable"
     }
     academy_course {
         string course_id PK
@@ -521,6 +542,13 @@ erDiagram
         string road_address "nullable"
         string jibun_address "nullable"
         datetime source_updated_at
+    }
+    apt_trade_count {
+        string district_code PK, FK
+        string legal_dong PK "법정동 원천 문자열 - FK 없음"
+        string deal_ym PK "YYYYMM"
+        int trade_count
+        datetime collected_at
     }
     convenience_store {
         string store_id PK "bizesId"
@@ -597,6 +625,7 @@ erDiagram
         string source
         string source_url "nullable"
         string description "nullable"
+        string category "nullable - minimum_wage|pandemic|relief|work_hours"
     }
     shock_event_industry {
         string event_id PK, FK
@@ -764,6 +793,10 @@ erDiagram
         float fnb_share "nullable"
         int facility_total "nullable"
         int resident_total "nullable"
+        float block_morning "4블록 강도 - nullable"
+        float block_day "nullable"
+        float block_evening "nullable"
+        float block_night "nullable"
     }
     region_industry_hour_gap_quarter {
         string region_code PK, FK
@@ -793,21 +826,120 @@ erDiagram
         int latency_ms
         datetime created_at
     }
+    llm_call_event {
+        bigint id PK
+        datetime occurred_at "IX"
+        string model
+        string outcome "ok|fallback|error"
+        string error_kind "nullable"
+        int latency_ms
+    }
+    region_industry_verdict {
+        string region_code PK, FK
+        string industry_id PK, FK "IX"
+        string verdict_code "red|orange|clear|insufficient"
+        smallint strong_count
+        smallint on_count
+        text signals_json "신호 JSON 배열 - 명시적 역정규화"
+        datetime computed_at
+        string basis "permit|proxy|aggregate"
+    }
+    admin_user {
+        int id PK
+        string username UK
+        string password_hash "nullable - 구글 전용 계정"
+        string role "viewer|operator"
+        boolean is_active
+        datetime created_at
+        datetime last_login_at "nullable"
+        string email UK "nullable"
+        string google_sub UK "nullable"
+    }
+    admin_session {
+        string token_hash PK
+        int admin_user_id FK "IX"
+        datetime created_at
+        datetime expires_at
+        string ip "nullable"
+    }
+    admin_audit {
+        bigint id PK
+        datetime occurred_at "IX"
+        int actor_id FK "nullable"
+        string actor_username
+        string action "IX(action, id)"
+        string target
+        string detail
+        string ip "nullable"
+    }
+    access_event {
+        bigint id PK
+        datetime occurred_at "IX"
+        string kind "IX(kind, ip, occurred_at)"
+        string ip "nullable"
+        string method
+        string path
+        int status_code
+        string username "nullable"
+        int admin_user_id FK "nullable"
+        string device_id "nullable"
+        string user_agent "nullable"
+    }
+    access_rule {
+        int id PK
+        string policy "allow|deny - UK(policy, target, value)"
+        string target
+        string value
+        string note
+        datetime created_at
+        datetime expires_at "nullable - 무기한"
+        int created_by FK "nullable"
+    }
+    ip_block {
+        string ip PK
+        string reason
+        datetime created_at
+        datetime expires_at "nullable"
+        int created_by FK "nullable"
+    }
+    security_setting {
+        string key PK
+        boolean enabled
+        datetime updated_at "nullable"
+        int updated_by FK "nullable"
+    }
+    host_metric_sample {
+        datetime sampled_at PK "1분 표본, 8일 보존"
+        float cpu_percent "nullable"
+        float load1 "nullable"
+        float memory_percent "nullable"
+        float swap_percent "nullable"
+        float disk_percent "nullable"
+        float gpu_util_percent "nullable"
+        float gpu_memory_percent "nullable"
+        float gpu_temp_c "nullable"
+    }
 ```
 
-### 6.1 적재 현황 (2026-09-23, `count(*)` 실측)
+### 6.1 적재 현황 (2026-10-01, `count(*)` 실측)
 
 | 계층 | 테이블 (행 수) |
 |---|---|
-| 마스터 | district 25 · region 427 · industry 10 · industry_subcategory 8 · industry_source_code 25 · population_stat 142,632 |
-| 원천(인허가) | store 348,996 · academy_course 64,415 · tobacco_retailer 95,402 |
-| 원천(스냅샷) | convenience_store 9,395 · childcare_center 3,940 · childcare_center_stat 7,880 |
-| 원천(외생) | rent_price 3,638 · interest_rate 365 · shock_event 26 · shock_event_industry 107 · shock_event_region **0** · news_article 5,808 · funding_program 2,032 |
+| 마스터 | district 25 · region 427 · industry 18 · industry_subcategory 8 · industry_source_code 32 · population_stat 142,632 |
+| 원천(인허가) | store **888,480** · academy_course 64,716 · tobacco_retailer 95,402 |
+| 원천(주택 — 보조) | apt_trade_count 16,367 (25구, 202101~202608) |
+| 원천(스냅샷) | convenience_store 9,395 · childcare_center 3,940 · childcare_center_stat 11,819 |
+| 원천(외생) | rent_price 3,638 · interest_rate 368 · shock_event 28 · shock_event_industry 107 · shock_event_region **0** · news_article 6,362 · funding_program 2,194 |
 | 원천(상권분석 — 업종 실적) | region_commerce_sales 343,167 · region_commerce_store 704,470 · region_commerce_sales_breakdown **7,892,841** |
 | 원천(상권분석 — 동네 맥락) | region_footfall_quarter 205,700 · region_population_quarter 387,618 · region_household_quarter 149,353 · region_housing_average_quarter 9,331 · region_facility_quarter 187,000 · region_spending_quarter 102,850 · region_commerce_change 9,350 · seoul_commerce_change_baseline 22 |
-| 집계·파생 | region_industry_metric 27,829 · region_profile_quarter 9,284 · region_industry_hour_gap_quarter 342,078 |
-| 검색 | rag_chunk 7,695 |
-| 에이전트 | analysis_report 7 · llm_usage 7 |
+| 집계·파생 | region_industry_metric 55,093 · region_profile_quarter 9,284 · region_industry_hour_gap_quarter 342,078 |
+| 판정 | region_industry_verdict 5,124 (427동×12업종, 전부 `basis=permit`) |
+| 검색 | rag_chunk 8,470 |
+| 에이전트 | analysis_report 163 · llm_usage 163 · llm_call_event 112 |
+| 관리자 | admin_user 5 · admin_session 4 · admin_audit 6 · access_event 28 · access_rule 2 · ip_block **0** · security_setting **0** |
+| 운영 | host_metric_sample 1,448 |
+
+9/23 대비 큰 변화: 음식 8업종 인허가 적재(9/28)로 `store` 348,996 → 888,480, `industry` 10 → 18, `region_industry_metric` 27,829 → 55,093. 상권분석서비스 계열 11테이블·`tobacco_retailer`·`convenience_store`·`population_stat`·`rent_price`는 변동 없음.
 
 상권분석서비스 계열 11테이블 합계 **약 999만 행**(설계서 `2026-09-23-commerce-bc-design.md`·`…-neighborhood-bc-design.md`). 파생 2종은 `python -m apps.metric.adapter.inbound.cli.build_region_profiles`로 배치 재생성한다(33초, 멱등).
 
@@ -816,10 +948,12 @@ erDiagram
 | 구분 | 내용 |
 |---|---|
 | **추가** | `rag_chunk` — RAG 검색 청크(pgvector 1536차원). §2 초안에 없던 검색 계층 |
+| **추가** | `region_industry_verdict`(판정) · `apt_trade_count`(주택 보조) · admin 7테이블 · `host_metric_sample` · `llm_call_event` — §2 초안에 없던 판정·관리자·운영 계층 (2026-10-01 반영) |
 | **미구현** | `funding_program_industry`(공고↔업종 M:N) — 테이블 없음. `sales_estimate`(추정매출)는 `region_commerce_sales`로 구현됨(2026-09-23) |
 | **스키마 변경** | `region_industry_metric` — 대리키 `id`·`subcategory_id`·`survival_rate_3y` 없음, `period`(YYYYQ) → `year`(int), PK = (region_code, industry_id, year) 복합키 |
 | **스키마 변경** | `district.opn_authority_code`(UK) 추가, `industry_source_code.id`는 int + UK(industry_id, source_system, code) |
 | **스키마 변경** | `shock_event.source`·`description`, `shock_event_industry.severity` 추가 |
+| **스키마 변경** | `store.road_address`·`jibun_address`(888,480건 중 50,909·25,302건만 채움), `shock_event.category`(28건 중 15건), `region_profile_quarter.block_morning`·`block_day`·`block_evening`·`block_night` 추가 — 전부 nullable (2026-10-01 반영) |
 | **유보 유지** | `news_article.event_id` — shock_event 승격 시 추가 (§2 주석 그대로) |
 
 **점선(애플리케이션 레벨) 엣지 사유:**
@@ -829,9 +963,14 @@ erDiagram
 - `region_profile_quarter` · `region_industry_hour_gap_quarter` ← neighborhood·commerce 원천 — 배치 파생(`apps/metric`이 게이트웨이로 읽어 매 배치 임계값을 재계산). 행 단위 참조가 아니다.
 - `industry_source_code` ↔ `region_commerce_sales` — `service_industry_code`가 CS 코드이고 업종 매핑은 `source_system='seoul_commercial'` 행을 경유한다(cafe 3·hair_salon 3·academy 4 코드 합산). 원천 코드를 PK로 보존해야 하므로 FK를 걸지 않는다.
 - `analysis_report.region_code` — 리포트는 삭제된 지역에도 남아야 하는 이력 데이터라 FK 없음.
+- `region_industry_verdict` ← store / tobacco_retailer / region_commerce_store / apt_trade_count / region_profile_quarter — 새벽 배치(`apps/verdict` 게이트웨이)가 읽어 통째로 재생성하는 파생 관계이고 행 단위 참조가 아니다.
+- `apt_trade_count.legal_dong` — 법정동 원천 문자열이라 `region` FK를 걸지 않는다(행정동 배분은 verdict BC가 한다). 마스터 허브 연결은 `district_code` FK.
 - `region_code`가 nullable인 상권분석 11테이블 — 원천에만 있는 옛 행정동 3개(`11230536` 용신동·`11680740` 일원2동·`11740520` 상일동)를 버리지 않고 NULL로 보존한다. 조회 시 `region_code IS NOT NULL`이 원칙.
 
 **§13 연결 원칙 점검 결과 (DB FK 기준):**
 - `funding_program` — DB FK가 하나도 없다. `rag_chunk` 다형 참조로만 연결되며, 업종 허브 연결을 맡을 `funding_program_industry`가 미구현이다 → **후속 구현 대상**.
 - `interest_rate` — DB FK 없음. §4에 근거를 명시한 의도된 예외.
 - `shock_event_region` — 테이블·FK는 있으나 적재 0건.
+- admin 7테이블 — `admin_user`를 허브로 서로 연결되지만 마스터 허브(`region`·`industry`·`district`)와는 엣지가 없는 별도 섬이다.
+- `host_metric_sample` — DB FK도 애플리케이션 엣지도 없다. 설비 지표 1분 표본(8일 보존)이라 연결할 도메인 허브가 없다 → **§13 예외 승인 여부 미결**.
+- `llm_call_event` — DB FK 없음. `llm_usage`와 달리 `analysis_id` 컬럼이 없어 `analysis_report`에 연결되지 않는다 → **§13 예외 승인 여부 미결**.
