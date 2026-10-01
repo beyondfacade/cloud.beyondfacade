@@ -54,7 +54,7 @@ describe("사이드패널 한 화면 요약", () => {
       await screen.findByTestId("alt-regions"),
       await screen.findByText("낮 인구 우위형 · 점심·오후가 하루의 정점"),
       screen.getByRole("checkbox", { name: "최근 2년 폐업 점포 보기" }),
-      screen.getByRole("link", { name: "AI 분석 리포트 보기" }),
+      screen.getByRole("link", { name: "창업 경고 리포트 보기" }),
       screen.getByRole("link", { name: "자금 계획 →" }),
     ];
     ordered.slice(1).forEach((node, i) => {
@@ -66,7 +66,7 @@ describe("사이드패널 한 화면 요약", () => {
   it.each([null, 0, 50000000])("두 CTA에 동·업종과 예산 %s원을 그대로 전달한다", async (budget) => {
     renderPanel({ budget });
     const suffix = budget === null ? "" : `&budget=${budget}`;
-    expect(await screen.findByRole("link", { name: "AI 분석 리포트 보기" })).toHaveAttribute("href", `/analysis?region=1168064000&industry=cafe${suffix}`);
+    expect(await screen.findByRole("link", { name: "창업 경고 리포트 보기" })).toHaveAttribute("href", `/analysis?region=1168064000&industry=cafe${suffix}`);
     expect(screen.getByRole("link", { name: "자금 계획 →" })).toHaveAttribute("href", `/plan?region=1168064000&industry=cafe${suffix}`);
   });
 
@@ -97,7 +97,7 @@ describe("사이드패널 한 화면 요약", () => {
     expect(screen.queryByText(/낮 인구 우위형/)).toBeNull();
     expect(screen.queryByRole("checkbox")).toBeNull();
     expect(screen.queryByRole("list", { name: "브랜드별 점포 수" })).toBeNull();
-    expect(screen.getByRole("link", { name: "AI 분석 리포트 보기" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "창업 경고 리포트 보기" })).toBeInTheDocument();
   });
 
   it("부동산은 판정 없이 동네 한 줄과 CTA를 표시한다", async () => {
@@ -105,7 +105,7 @@ describe("사이드패널 한 화면 요약", () => {
     await screen.findByText("낮 인구 우위형 · 점심·오후가 하루의 정점");
     expect(screen.getByText(verdictExclusionNotice("real_estate"))).toBeInTheDocument();
     expect(screen.queryByRole("region", { name: "창업 경고 판정" })).toBeNull();
-    expect(screen.getByRole("link", { name: "AI 분석 리포트 보기" })).toHaveAttribute("href", "/analysis?region=1168064000&industry=real_estate");
+    expect(screen.getByRole("link", { name: "창업 경고 리포트 보기" })).toHaveAttribute("href", "/analysis?region=1168064000&industry=real_estate");
   });
 
   it("헤더 요약 조회가 실패해도 판정과 동네 한 줄 및 두 CTA를 표시한다", async () => {
@@ -117,7 +117,7 @@ describe("사이드패널 한 화면 요약", () => {
     expect(await screen.findByRole("alert")).toHaveTextContent("불러오기 실패");
     expect(await screen.findByRole("region", { name: "창업 경고 판정" })).toBeInTheDocument();
     expect(await screen.findByText("낮 인구 우위형 · 점심·오후가 하루의 정점")).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "AI 분석 리포트 보기" })).toHaveAttribute("href", "/analysis?region=1168064000&industry=cafe&budget=50000000");
+    expect(screen.getByRole("link", { name: "창업 경고 리포트 보기" })).toHaveAttribute("href", "/analysis?region=1168064000&industry=cafe&budget=50000000");
     expect(screen.getByRole("link", { name: "자금 계획 →" })).toBeInTheDocument();
   });
 
@@ -126,5 +126,22 @@ describe("사이드패널 한 화면 요약", () => {
     expect(screen.getByRole("heading", { name: "어느 동네를 보고 계세요?" })).toBeInTheDocument();
     expect(screen.queryByRole("link")).toBeNull();
     expect(screen.queryByRole("checkbox")).toBeNull();
+  });
+
+  it("빈 화면은 동을 누르라고 안내하고 배지는 선택된 동 없음이다", () => {
+    renderPanel({ regionCode: null });
+    expect(screen.getByText("선택된 동 없음")).toBeInTheDocument();
+    expect(screen.getByText(/지도에서 동을 누르면 .* 창업 경고 판정과 근거가 여기에 나옵니다\./)).toBeInTheDocument();
+  });
+
+  it("불러오는 동안 판정을 불러온다고 알린다", () => {
+    renderPanel();
+    expect(screen.getByText("판정을 불러오고 있어요.")).toBeInTheDocument();
+  });
+
+  it("조회에 실패하면 창업 경고 판정을 불러오지 못했다고 알린다", async () => {
+    vi.stubGlobal("fetch", vi.fn(async () => Response.json({ error: { code: "NOT_FOUND", message: "자료 없음" } }, { status: 404 })));
+    renderPanel();
+    expect(await screen.findByText(/행정동의 .* 창업 경고 판정을 불러오지 못했습니다\./)).toBeInTheDocument();
   });
 });

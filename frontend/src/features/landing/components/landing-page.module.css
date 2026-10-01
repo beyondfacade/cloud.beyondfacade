@@ -70,7 +70,7 @@
 
 .about { display: grid; grid-template-columns: 1.18fr 1fr 1fr 1fr; gap: 36px; padding-block: 50px 57px; border-top-width: 1px; }
 .sectionIntro .eyebrow { font-size: 9px; letter-spacing: 1.7px; }
-.about h2 { margin-top: 14px; font-size: 27px; line-height: 1.4; font-weight: 650; letter-spacing: -1.2px; }
+.about h2 { margin-top: 14px; font-size: 27px; line-height: 1.4; font-weight: 650; letter-spacing: -1.2px; word-break: keep-all; }
 .feature { padding-top: 3px; }
 .featureNumber { font-size: 9px; font-weight: 600; letter-spacing: 1.2px; }
 .feature h3 { margin-top: 23px; font-size: 16px; font-weight: 650; letter-spacing: -.6px; }

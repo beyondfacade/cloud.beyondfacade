@@ -57,7 +57,7 @@ echo "[0/8] 채팅 관문(/) — 문장 입력 → /map?region 착지"
 AB set viewport "$VIEWPORT_W" "$VIEWPORT_H" >/dev/null
 AB open "$BASE_URL/" >/dev/null
 AB wait --load networkidle >/dev/null
-AB wait --text "확인하기" >/dev/null
+AB wait --text "어느 동네에서 무엇을 하려고 하세요?" >/dev/null
 cat <<'JS' | AB eval --stdin >/dev/null
 (() => {
   const input = document.getElementById("intent-text");
@@ -161,7 +161,7 @@ if [[ "$SELECTED_REGION" != "$DONG_CODE" ]]; then
 fi
 
 echo "[3/8] 사이드패널 확인"
-AB wait --text "AI 분석 리포트 보기" >/dev/null
+AB wait --text "창업 경고 리포트 보기" >/dev/null
 
 echo "[4/8] 점포 마커 로드 확인"
 # region-markers.tsx는 regionCode가 선택된 뒤에만 점포 조회를 호출한다(성능 가드).
@@ -185,7 +185,7 @@ echo "[5/8] [리포트] 클릭"
 # agent-browser는 조용히 빗나가고 URL이 안 바뀐다(2026-09-23 재현: top 1208px / 뷰포트 577px). 먼저 보이게 한다.
 # 상단 바에도 "리포트" 탭이 있으므로 href로 사이드패널 링크를 특정한다.
 AB eval "document.querySelector('a[href^=\"/analysis?\"]')?.scrollIntoView({block:'center'})" >/dev/null
-AB find text "AI 분석 리포트 보기" click >/dev/null
+AB find text "창업 경고 리포트 보기" click >/dev/null
 AB wait --text "다시 분석" >/dev/null
 
 echo "[6/8] /analysis URL 조건 확인"

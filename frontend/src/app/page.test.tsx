@@ -47,3 +47,13 @@ it("보조 링크 어떻게 판정하나요?는 소개 절을 가리킨다", asy
   render(await Home({ searchParams: Promise.resolve({}) }));
   expect(screen.getByRole("link", { name: /어떻게 판정하나요\?/ })).toHaveAttribute("href", "#about");
 });
+
+it("소개 문구는 근거 범위를 정확히 밝히고 히어로·소개·단계 문구가 정정되어 있다", async () => {
+  const { container } = render(await Home({ searchParams: Promise.resolve({}) }));
+  const text = container.textContent ?? "";
+  expect(text).toContain("경고에는 근거 수치와 출처가 붙습니다.");
+  expect(text).toContain("카페는 그 뒤 1년간 새로 문을 연 가게 중 비추천 동에서 76.8%, 경고 없음 동에서 38.2%가 3년 안에 문을 닫았습니다.");
+  expect(text).toContain("카페·미용실 외 업종은 차이가 작거나 표본이 적어 참고로만 보세요.");
+  expect(text).toContain("문 닫은 가게의 기록으로 창업 경고 여부를 판정합니다.");
+  expect(text).toContain("켜진 경고 신호와 근거, 굳이 한다면 바꿔 볼 만한 동네와 업종을 봅니다.");
+});

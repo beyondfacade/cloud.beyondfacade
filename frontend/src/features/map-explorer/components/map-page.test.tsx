@@ -36,3 +36,9 @@ it("머리말 제목은 피해야 할 동네부터 보인다고 알린다", () =
   render(<MapPage />);
   expect(screen.getByRole("heading", { level: 1, name: "피해야 할 동네부터 보입니다." })).toBeInTheDocument();
 });
+
+it("지도 머리말 이름표와 지도 영역 이름이 창업 경고 지도를 가리킨다", () => {
+  render(<MapPage />);
+  expect(screen.getByText("SEOUL WARNING MAP")).toBeInTheDocument();
+  expect(screen.getByRole("region", { name: "서울 창업 경고 지도" })).toBeInTheDocument();
+});

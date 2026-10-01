@@ -36,13 +36,13 @@ export function LandingPage({ hero }: LandingPageProps = {}) {
           <div className={styles.heroCopy}>
             <p className={`${styles.eyebrow} text-[var(--landing-accent)]`}><span aria-hidden="true" /> SEOUL COMMERCIAL METABOLE</p>
             <h1 id="hero-title">가게 자리를 찾기 전에,<br />피해야 할 자리부터<br /><span className="text-[var(--landing-accent)]">확인하세요.</span></h1>
-            <p className={`${styles.heroDescription} text-[var(--landing-muted)]`}>서울 427개 동, 12개 업종. 문 닫은 가게의 기록으로 창업 경고를 판정합니다.<br className={styles.desktopBreak} /> 좋은 곳을 추천하지 않습니다. 나쁜 조합을 먼저 걸러 드립니다.</p>
+            <p className={`${styles.heroDescription} text-[var(--landing-muted)]`}>서울 427개 동, 12개 업종. 문 닫은 가게의 기록으로 창업 경고 여부를 판정합니다.<br className={styles.desktopBreak} /> 좋은 곳을 추천하지 않습니다. 나쁜 조합을 먼저 걸러 드립니다.</p>
             {hero}
             <div className={styles.heroActions}>
               <Link href="/map" prefetch={false} className={`${styles.primaryLink} bg-[var(--landing-accent)] text-[var(--landing-on-accent)]`}>창업 경고 지도 보기 <Arrow /></Link>
               <a href="#about" className={styles.secondaryLink}>어떻게 판정하나요? <span aria-hidden="true">↓</span></a>
             </div>
-            <p className={`${styles.heroNote} text-[var(--landing-muted)]`}>모든 판정에는 근거 수치와 출처가 붙습니다.</p>
+            <p className={`${styles.heroNote} text-[var(--landing-muted)]`}>경고에는 근거 수치와 출처가 붙습니다.</p>
           </div>
 
           <figure className={styles.heroVisual}>
@@ -70,7 +70,7 @@ export function LandingPage({ hero }: LandingPageProps = {}) {
           <div className={styles.feature}>
             <span className={`${styles.featureNumber} text-[var(--landing-accent)]`}>02 / EVIDENCE</span>
             <h3>과거로 돌아가 검증했습니다</h3>
-            <p className="text-[var(--landing-muted)]">2022년 6월 데이터로 판정한 뒤 실제 폐업과 대조했습니다. 카페는 비추천 동에서 76.8%, 경고 없음 동에서 38.2%가 3년 안에 문을 닫았습니다. 음식 업종은 차이가 작아 참고로만 보세요.</p>
+            <p className="text-[var(--landing-muted)]">2022년 6월 데이터로 판정한 뒤 실제 폐업과 대조했습니다. 카페는 그 뒤 1년간 새로 문을 연 가게 중 비추천 동에서 76.8%, 경고 없음 동에서 38.2%가 3년 안에 문을 닫았습니다. 카페·미용실 외 업종은 차이가 작거나 표본이 적어 참고로만 보세요.</p>
           </div>
           <div className={styles.feature}>
             <span className={`${styles.featureNumber} text-[var(--landing-accent)]`}>03 / WHAT NEXT</span>
@@ -87,7 +87,7 @@ export function LandingPage({ hero }: LandingPageProps = {}) {
           </div>
           <ol className={styles.steps}>
             <li><span className="text-[var(--landing-accent)]">01</span><div><h3>동네와 업종을 한 문장으로 적으세요</h3><p className="text-[var(--landing-muted)]">예: 역삼동에 카페, 예산 5천.</p></div></li>
-            <li><span className="text-[var(--landing-accent)]">02</span><div><h3>판정과 대안을 확인하세요</h3><p className="text-[var(--landing-muted)]">켜진 경고 신호와 근거, 굳이 한다면 갈 만한 다른 동네와 업종을 봅니다.</p></div></li>
+            <li><span className="text-[var(--landing-accent)]">02</span><div><h3>판정과 대안을 확인하세요</h3><p className="text-[var(--landing-muted)]">켜진 경고 신호와 근거, 굳이 한다면 바꿔 볼 만한 동네와 업종을 봅니다.</p></div></li>
             <li><span className="text-[var(--landing-accent)]">03</span><div><h3>리포트와 자금 계획으로 이어가세요</h3><p className="text-[var(--landing-muted)]">왜 안 되는지, 얼마가 필요한지, 상담에 무엇을 들고 갈지 정리합니다.</p></div></li>
           </ol>
         </section>

@@ -38,7 +38,7 @@ for vp in "${VIEWPORTS[@]}"; do
   for theme in "${THEMES[@]}"; do
     echo "뷰포트 ${W}x${H} / 테마 ${theme}"
 
-    # --- 지도 탐색(/map) ---
+    # --- 경고 지도(/map) ---
     AB open "$BASE_URL/map"
     AB wait --load networkidle
     if [[ "$theme" == "dark" ]]; then
@@ -47,7 +47,7 @@ for vp in "${VIEWPORTS[@]}"; do
     fi
     AB screenshot "$OUT_DIR/map_${theme}_${W}.png"
 
-    # --- 지도 탐색: 동 선택 후 점포 마커/클러스터 ---
+    # --- 경고 지도: 동 선택 후 점포 마커/클러스터 ---
     AB navigate "$BASE_URL/map?region=${REGION}&industry=${INDUSTRY}"
     AB wait --load networkidle
     if [[ "$theme" == "dark" ]]; then
@@ -57,7 +57,7 @@ for vp in "${VIEWPORTS[@]}"; do
     sleep 1
     AB screenshot "$OUT_DIR/map-markers_${theme}_${W}.png"
 
-    # --- AI 분석: 직접 방문 폼 ---
+    # --- 리포트: 직접 방문 폼 ---
     AB navigate "$BASE_URL/analysis"
     AB wait --load networkidle
     if [[ "$theme" == "dark" ]]; then
@@ -66,13 +66,13 @@ for vp in "${VIEWPORTS[@]}"; do
     fi
     AB screenshot "$OUT_DIR/analysis-idle_${theme}_${W}.png"
 
-    # --- AI 분석: URL 자동 시작 ---
+    # --- 리포트: URL 자동 시작 ---
     AB navigate "$BASE_URL/analysis?region=${REGION}&industry=${INDUSTRY}"
     AB wait --text "다시 분석"
     sleep 1.5
     AB screenshot "$OUT_DIR/analysis-progress_${theme}_${W}.png"
 
-    # --- AI 분석: 완료 ---
+    # --- 리포트: 완료 ---
     AB wait --text "작성 완료"
     AB screenshot "$OUT_DIR/analysis-done_${theme}_${W}.png"
   done
