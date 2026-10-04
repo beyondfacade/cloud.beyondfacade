@@ -75,6 +75,9 @@ def _cmd_masters(args: argparse.Namespace) -> None:
 
 
 def _cmd_sheet(args: argparse.Namespace) -> None:
+    if _SHEET.exists() and not args.force:
+        print(f"sheet: {_SHEET} 가 이미 있습니다 — O/X 판정이 지워지니 apply 후에 다시 만들거나 --force 를 쓰세요.", flush=True)
+        return
     rows = _read_jsonl(_EVALSET)
     _SHEET.write_text(render_sheet(rows), encoding="utf-8")
     print(f"sheet: {len(rows)}문항 → {_SHEET}", flush=True)
@@ -128,12 +131,17 @@ def _cmd_evaluate(args: argparse.Namespace) -> None:
         if not records:
             continue
         first = {r["id"]: r for r in records if r["rep"] == 0}
-        ids = [i["id"] for i in items if i["id"] in first]
+        confirmed_ids = {i["id"] for i in items}
+        done = sum(i["id"] in first for i in items)
+        if done < len(items):
+            print(f"evaluate: {model} 미완료 — 1회차 {done}/{len(items)}건, 제외", flush=True)
+            continue
+        ids = [i["id"] for i in items]
         scored = [
             score_row(i["expected"], LlmSuggestion(**first[i["id"]]["got"]) if first[i["id"]]["got"] else None)
-            for i in items if i["id"] in first
+            for i in items
         ]
-        ms = [r["ms"] for r in records]
+        ms = [r["ms"] for r in records if r["id"] in confirmed_ids]
         summary[model] = {**summarize(scored), "p50_ms": percentile(ms, 50), "p95_ms": percentile(ms, 95),
                           "per_row_both": [s["both"] for s in scored], "ids": ids}
     _SUMMARY.parent.mkdir(parents=True, exist_ok=True)
@@ -152,6 +160,7 @@ def main() -> None:
     parser.add_argument("--model", choices=list(_MODELS))
     parser.add_argument("--repeat", type=int, default=3)
     parser.add_argument("--out", default=None, help="masters 출력 경로")
+    parser.add_argument("--force", action="store_true", help="sheet: 기존 검수 시트 덮어쓰기")
     args = parser.parse_args()
     _COMMANDS[args.command](args)
 
