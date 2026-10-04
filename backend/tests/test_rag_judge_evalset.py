@@ -51,3 +51,27 @@ def test_annotate_sheet_overwrites_previous_claude_verdict_but_keeps_human_memo_
     twice = annotate_sheet(once, {"funding:P1": Judgment(verdict="O", reason="재판정")})
     assert "판정: O  # claude: 재판정\n" in twice
     assert "첫 판정" not in twice
+
+
+def test_정답이_여럿인_행은_사건_단위로_판정하라고_알린다():
+    from apps.rag.adapter.inbound.cli.judge_evalset import _Item, build_user_message
+    from apps.rag.adapter.inbound.cli.review_evalset import ProgramCard
+
+    card = ProgramCard("a", "야시장 개장", "한겨레", None, "상권", "2026-09-01", "요약", "http://u")
+    multi = build_user_message(_Item("news:a", "망원시장 밤에 장 서?", card, answers=3))
+    single = build_user_message(_Item("news:a", "망원시장 밤에 장 서?", card))
+    assert "같은 사건 기사 3건" in multi
+    assert "같은 사건 기사" not in single
+
+
+def test_판정_파일을_읽어_시트_기입용_판정으로_바꾼다():
+    from apps.rag.adapter.inbound.cli.judge_evalset import load_judgments
+
+    got = load_judgments(
+        '{"funding:P1": {"verdict": "O", "reason": "핵심 일치"},'
+        ' "funding:P2": {"verdict": "X", "reason": "유사 공고와 겹침", "better_question": "방산 헬프데스크?"}}'
+    )
+    assert got["funding:P1"] == Judgment(verdict="O", reason="핵심 일치")
+    assert got["funding:P2"].better_question == "방산 헬프데스크?"
+    annotated = annotate_sheet(_SHEET, got)
+    assert parse_sheet(annotated)["funding:P2"][0] == "X"

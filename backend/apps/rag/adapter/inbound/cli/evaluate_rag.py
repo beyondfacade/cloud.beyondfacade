@@ -15,7 +15,7 @@ provider는 검색(query) 임베더만 스왑한다(색인은 이미 완료된 �
 dependencies의 레지스트리(get_rag_search_use_case)를 재사용해 어댑터 구성을 중복하지 않는다.
 
 실행: python -m apps.rag.adapter.inbound.cli.evaluate_rag \
-      --evalset data/eval/rag_evalset.jsonl --provider ollama|fp16|gemini
+      --evalset data/eval/rag_evalset.jsonl --provider bge-m3
 """
 
 import argparse
@@ -23,7 +23,7 @@ import json
 from datetime import datetime
 from pathlib import Path
 
-from apps.rag.dependencies.rag_dependencies import get_rag_search_use_case
+from apps.rag.dependencies.rag_dependencies import INDEX_PROVIDERS, get_rag_search_use_case
 
 # apps/rag/adapter/inbound/cli/evaluate_rag.py → parents[6] == 리포지토리 루트
 # (data/eval/은 backend/ 밖 repo-root 디렉터리 — CLI를 backend/에서 실행해도 경로가 맞아야 한다)
@@ -86,7 +86,7 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--evalset", default="data/eval/rag_evalset.jsonl")
     parser.add_argument(
-        "--provider", default="ollama", choices=["ollama", "fp16", "gemini"]
+        "--provider", default="bge-m3", choices=INDEX_PROVIDERS
     )
     args = parser.parse_args()
 

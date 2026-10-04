@@ -16,8 +16,9 @@ class Fp16Qwen3EmbeddingAdapter(EmbeddingPort):
     MODEL_NAME = "qwen3-embedding-4b-fp16"
     PROVIDER = "local"
 
-    def __init__(self) -> None:
+    def __init__(self, dim: int = EMBEDDING_DIM) -> None:
         self._model = None
+        self._dim = dim
 
     @property
     def model_name(self) -> str:
@@ -37,7 +38,7 @@ class Fp16Qwen3EmbeddingAdapter(EmbeddingPort):
             self._model = SentenceTransformer(
                 "Qwen/Qwen3-Embedding-4B",
                 device="cuda" if torch.cuda.is_available() else "cpu",
-                truncate_dim=EMBEDDING_DIM,
+                truncate_dim=self._dim,
                 model_kwargs={"torch_dtype": torch.float16},
             )
         return self._model

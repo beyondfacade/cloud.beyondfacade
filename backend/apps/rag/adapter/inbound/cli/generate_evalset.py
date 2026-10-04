@@ -8,19 +8,25 @@ rag_chunk를 chunk_id 오름차순으로 결정적으로 표본 추출한다(비
 status=candidate로 적재하고 승격은 judge_evalset(1차) + 사람 검수(review_evalset) 몫이다.
 
 실행: python -m apps.rag.adapter.inbound.cli.generate_evalset --provider claude --source-type funding --limit 110
+어려운 질문(spec 2026-10-04 §3): --hard-kind colloquial|sibling|news_event --limit 20 (--hard-mode claude|export|import, subset=hard)
+키 없이: --hard-mode export --file X → 작성자가 X에 question을 채운 답안 jsonl → --hard-mode import --file Y
 """
 
 import argparse
 import json
 import os
+import re
 import time
 from abc import ABC, abstractmethod
+from dataclasses import dataclass
 from pathlib import Path
 
 from sqlalchemy import select
 
 from apps.funding.adapter.outbound.orms.funding_program_orm import FundingProgramOrm
 from apps.rag.adapter.outbound.orms.rag_chunk_orm import RagChunkOrm
+from apps.rag.domain.entities.rag_chunk_entity import RagHit
+from apps.rag.domain.services.same_event_collapser import same_event
 from core.matrix.grid_oracle_database_manager import session_scope
 
 # apps/rag/adapter/inbound/cli/generate_evalset.py → parents[6] == 리포지토리 루트
@@ -46,6 +52,30 @@ _CLAUDE_SYSTEM = """당신은 정책자금·지역상권 검색(RAG) 평가셋�
 - 문서에 없는 사실을 지어내지 않는다.
 
 출력은 질문 문장 하나뿐이다. 따옴표·설명·번호를 붙이지 않는다."""
+
+_HARD_COMMON = """질문은 이 기준을 만족해야 한다: **질문에 담긴 정보만으로 이 문서가 다른 유사 문서보다 우선적으로 정답이 되어야 한다.**
+- 문서에 없는 사실을 지어내지 않는다.
+- 출력은 질문 문장 하나뿐이다. 따옴표·설명·번호를 붙이지 않는다."""
+
+# 어려운 질문 3종 (spec §3) — 검색 모델의 변별력을 재기 위해 표면 단어 겹침을 일부러 줄인다
+_HARD_SYSTEMS = {
+    "colloquial": f"""당신은 정책자금 검색(RAG) 평가셋의 어려운 질문을 만드는 사람이다.
+가게를 차리려는 사람이 친구에게 묻듯 구어체로 묻는 한국어 질문을 딱 1개 만든다(15~45자).
+- 공고 제목·본문의 핵심 단어(사업명·지원방식 명칭·기관명)를 그대로 쓰지 않고 일상어로 바꿔 말한다.
+- 그래도 지역·대상 조건·지원 내용은 의미로 담아 이 공고를 가리켜야 한다.
+{_HARD_COMMON}""",
+    "sibling": f"""당신은 정책자금 검색(RAG) 평가셋의 어려운 질문을 만드는 사람이다.
+[정답 문서]와 헷갈리기 쉬운 [유사 문서]가 주어진다. [정답 문서]만 가리키는 한국어 질문을 딱 1개 만든다(20~50자).
+- 두 문서를 가르는 조건(대상·지원방식·금액 성격·지역·기간)을 질문에 담는다. [유사 문서]에도 맞는 질문은 실패다.
+- 제목을 그대로 베끼지 않는다.
+{_HARD_COMMON}""",
+    "news_event": f"""당신은 지역 상권 뉴스 검색(RAG) 평가셋의 어려운 질문을 만드는 사람이다.
+이 기사가 다룬 사건을 찾는 한국어 질문을 딱 1개 만든다(15~45자).
+- 헤드라인의 단어를 그대로 쓰지 않고 사건의 내용(무엇이·어디서·어떻게 됐는지)으로 묻는다.
+- 같은 사건을 다룬 다른 언론사 기사도 정답으로 치므로 언론사·기자는 묻지 않는다.
+{_HARD_COMMON}""",
+}
+_HARD_SOURCE = {"colloquial": "funding", "sibling": "funding", "news_event": "news"}
 
 
 class QuestionGenerator(ABC):
@@ -76,7 +106,7 @@ class OllamaGemmaGenerator(QuestionGenerator):
 
 
 class ClaudeGenerator(QuestionGenerator):
-    def __init__(self, model: str) -> None:
+    def __init__(self, model: str, system: str = _CLAUDE_SYSTEM) -> None:
         import anthropic
 
         from core.matrix.grid_keymaker_secret_manager import get_settings
@@ -84,13 +114,14 @@ class ClaudeGenerator(QuestionGenerator):
         os.environ.setdefault("ANTHROPIC_API_KEY", get_settings().anthropic_api_key)
         self._client = anthropic.Anthropic()
         self._model = model
+        self._system = system
 
     def generate(self, source_type: str, content: str) -> str:
         response = self._client.messages.create(
             model=self._model,
             max_tokens=1024,
             output_config={"effort": "low"},
-            system=_CLAUDE_SYSTEM,
+            system=self._system,
             messages=[{"role": "user", "content": f"[{_DOC_LABEL.get(source_type, '문서')}]\n{content}"}],
         )
         if response.stop_reason != "end_turn":
@@ -120,9 +151,126 @@ def build_row(chunk: dict, question: str) -> dict:
     }
 
 
+_TOKEN = re.compile(r"[가-힣A-Za-z0-9]+")
+_SIBLING_MIN_JACCARD = 0.3  # same_event_collapser의 제목 Jaccard 기준과 같은 값
+
+
+@dataclass(frozen=True)
+class HardItem:
+    chunk_id: str
+    prompt_input: str
+    relevant_ids: list[str]
+
+
+def _title_tokens(content: str) -> set[str]:
+    return {t for t in _TOKEN.findall(content.split("\n", 1)[0]) if len(t) >= 2}
+
+
+def _jaccard(a: set[str], b: set[str]) -> float:
+    return len(a & b) / len(a | b) if a and b else 0.0
+
+
+def pick_sibling(chunk: dict, pool: list[dict]) -> dict | None:
+    """제목 토큰이 가장 많이 겹치는 다른 공고(임베딩 모델 무관 — spec §3 모델 중립 선정)."""
+    target = _title_tokens(chunk["content"])
+    scored = [
+        (_jaccard(target, _title_tokens(c["content"])), c["chunk_id"], c)
+        for c in pool
+        if c["chunk_id"] != chunk["chunk_id"]
+    ]
+    scored = [s for s in scored if s[0] >= _SIBLING_MIN_JACCARD]
+    if not scored:
+        return None
+    return min(scored, key=lambda s: (-s[0], s[1]))[2]
+
+
+def select_colloquial(chunks: list[dict], existing: set[str], limit: int) -> list[HardItem]:
+    return [HardItem(c["chunk_id"], c["content"], [c["chunk_id"]]) for c in select_new_chunks(chunks, existing, limit)]
+
+
+def select_sibling(chunks: list[dict], existing: set[str], limit: int) -> list[HardItem]:
+    items: list[HardItem] = []
+    for chunk in select_new_chunks(chunks, existing, len(chunks)):
+        sibling = pick_sibling(chunk, chunks)
+        if sibling is None:
+            continue
+        prompt = f"[정답 문서]\n{chunk['content']}\n\n[유사 문서]\n{sibling['content']}"
+        items.append(HardItem(chunk["chunk_id"], prompt, [chunk["chunk_id"]]))
+        if len(items) == limit:
+            break
+    return items
+
+
+def _hit(chunk: dict) -> RagHit:
+    return RagHit(
+        chunk_id=chunk["chunk_id"], source_type="news", source_id=chunk["chunk_id"].split(":", 1)[1],
+        content=chunk["content"], score=0.0, url=None, org=None, published_at=chunk["published_at"],
+    )
+
+
+def select_news_event(chunks: list[dict], existing: set[str], limit: int) -> list[HardItem]:
+    """같은 사건 기사(same_event: 제목 Jaccard ≥ 0.3·보도일 ±3일)를 정답 묶음으로. 기존 정답과 겹치는 사건은 건너뛴다."""
+    seen = set(existing)
+    items: list[HardItem] = []
+    for chunk in chunks:
+        if chunk["chunk_id"] in seen:
+            continue
+        target = _hit(chunk)
+        cluster = [chunk["chunk_id"]] + sorted(
+            c["chunk_id"] for c in chunks if c["chunk_id"] != chunk["chunk_id"] and same_event(target, _hit(c))
+        )
+        if seen & set(cluster):
+            continue
+        seen |= set(cluster)
+        items.append(HardItem(chunk["chunk_id"], chunk["content"], cluster))
+        if len(items) == limit:
+            break
+    return items
+
+
+_HARD_SELECTORS = {"colloquial": select_colloquial, "sibling": select_sibling, "news_event": select_news_event}
+
+
+def build_hard_row(item: HardItem, question: str, kind: str) -> dict:
+    return {
+        "question": question,
+        "relevant_ids": item.relevant_ids,
+        "source_type": item.chunk_id.split(":", 1)[0],
+        "status": "candidate",
+        "subset": "hard",
+        "hard_kind": kind,
+    }
+
+
+def export_hard_items(items: list[HardItem], kind: str) -> str:
+    """API 키 없이 질문을 쓰는 경로(2026-10-04) — 작성자에게 넘길 문항 jsonl. 지시문은 claude 경로와 같은 _HARD_SYSTEMS."""
+    return "".join(
+        json.dumps(
+            {"chunk_id": i.chunk_id, "hard_kind": kind, "relevant_ids": i.relevant_ids,
+             "system": _HARD_SYSTEMS[kind], "prompt_input": i.prompt_input},
+            ensure_ascii=False,
+        ) + "\n"
+        for i in items
+    )
+
+
+def rows_from_answers(text: str, existing: set[str]) -> list[dict]:
+    """작성된 답안 jsonl → 평가셋 행. 이미 정답으로 쓰인 chunk_id는 건너뛴다(검수 시트가 chunk_id로 항목을 가른다)."""
+    rows = []
+    for line in text.splitlines():
+        if not line.strip():
+            continue
+        a = json.loads(line)
+        if a["chunk_id"] in existing:
+            continue
+        question = a["question"].strip().strip('"“”')
+        rows.append(build_hard_row(HardItem(a["chunk_id"], "", a["relevant_ids"]), question, a["hard_kind"]))
+    return rows
+
+
 def _fetch_chunks(source_type: str) -> list[dict]:
     stmt = (
-        select(RagChunkOrm.chunk_id, RagChunkOrm.content)
+        select(RagChunkOrm.chunk_id, RagChunkOrm.content, RagChunkOrm.published_at)
         .where(RagChunkOrm.source_type == source_type)
         .order_by(RagChunkOrm.chunk_id)
     )
@@ -131,7 +279,10 @@ def _fetch_chunks(source_type: str) -> list[dict]:
             FundingProgramOrm.is_expired.is_(False)
         )
     with session_scope() as session:
-        return [{"chunk_id": row.chunk_id, "content": row.content} for row in session.execute(stmt).all()]
+        return [
+            {"chunk_id": row.chunk_id, "content": row.content, "published_at": row.published_at}
+            for row in session.execute(stmt).all()
+        ]
 
 
 def _existing_ids(path: Path) -> set[str]:
@@ -144,6 +295,50 @@ def _existing_ids(path: Path) -> set[str]:
     }
 
 
+def _all_relevant_ids(path: Path) -> set[str]:
+    if not path.exists():
+        return set()
+    return {
+        cid
+        for line in path.read_text(encoding="utf-8").splitlines()
+        if line.strip()
+        for cid in json.loads(line)["relevant_ids"]
+    }
+
+
+def _run_hard_claude(args, output_path: Path) -> None:
+    kind = args.hard_kind
+    source_type = _HARD_SOURCE[kind]
+    items = _HARD_SELECTORS[kind](_fetch_chunks(source_type), _all_relevant_ids(output_path), args.limit)
+    generator = ClaudeGenerator(args.model or "claude-opus-5", system=_HARD_SYSTEMS[kind])
+    with output_path.open("a", encoding="utf-8") as f:
+        for i, item in enumerate(items, start=1):
+            question = generator.generate(source_type, item.prompt_input)
+            f.write(json.dumps(build_hard_row(item, question, kind), ensure_ascii=False) + "\n")
+            f.flush()
+            print(f"[{i}/{len(items)}] {kind} {item.chunk_id} (정답 {len(item.relevant_ids)}건) -> {question}", flush=True)
+    print(f"generate_evalset: hard/{kind} {len(items)}건 추가 → {output_path}", flush=True)
+
+
+def _run_hard_export(args, output_path: Path) -> None:
+    kind = args.hard_kind
+    items = _HARD_SELECTORS[kind](_fetch_chunks(_HARD_SOURCE[kind]), _all_relevant_ids(output_path), args.limit)
+    Path(args.file).write_text(export_hard_items(items, kind), encoding="utf-8")
+    print(f"generate_evalset: hard/{kind} {len(items)}건 내보냄 → {args.file}", flush=True)
+
+
+def _run_hard_import(args, output_path: Path) -> None:
+    rows = rows_from_answers(Path(args.file).read_text(encoding="utf-8"), _all_relevant_ids(output_path))
+    with output_path.open("a", encoding="utf-8") as f:
+        for row in rows:
+            f.write(json.dumps(row, ensure_ascii=False) + "\n")
+    print(f"generate_evalset: hard/{args.hard_kind} {len(rows)}건 가져옴 ← {args.file} → {output_path}", flush=True)
+
+
+# 어려운 질문 작성 경로 (Strategy) — claude: API 직접 / export·import: 파일로 주고받아 다른 작성자가 쓴다
+_HARD_MODES = {"claude": _run_hard_claude, "export": _run_hard_export, "import": _run_hard_import}
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--provider", default="claude", choices=list(_GENERATORS))
@@ -152,10 +347,16 @@ def main() -> None:
     parser.add_argument("--source-type", default="funding", choices=list(_DOC_LABEL))
     parser.add_argument("--limit", type=int, default=50, help="추가 건수 (기본 50)")
     parser.add_argument("--output", default=_EVALSET)
+    parser.add_argument("--hard-kind", default=None, choices=list(_HARD_SYSTEMS), help="어려운 질문 종류 (--hard-mode claude|export|import)")
+    parser.add_argument("--hard-mode", default="claude", choices=list(_HARD_MODES), help="어려운 질문 작성 경로")
+    parser.add_argument("--file", default=None, help="export/import 파일 경로")
     args = parser.parse_args()
 
     output_path = _REPO_ROOT / args.output
     output_path.parent.mkdir(parents=True, exist_ok=True)
+    if args.hard_kind:
+        _HARD_MODES[args.hard_mode](args, output_path)
+        return
     sample = select_new_chunks(_fetch_chunks(args.source_type), _existing_ids(output_path), args.limit)
     generator = _GENERATORS[args.provider](args)
 

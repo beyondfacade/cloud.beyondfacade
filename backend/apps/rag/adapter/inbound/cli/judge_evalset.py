@@ -9,6 +9,7 @@
 """
 
 import argparse
+import json
 import os
 import re
 from concurrent.futures import ThreadPoolExecutor
@@ -59,6 +60,9 @@ _USER = """[질문]
 요약: {summary}"""
 
 
+_MULTI_NOTE = "\n\n[참고] 이 행은 같은 사건 기사 {n}건을 모두 정답으로 친다. 다른 언론사 기사가 여럿인 것은 X 사유가 아니다 — 사건 단위로 판정한다."
+
+
 class Judgment(BaseModel):
     verdict: Literal["O", "X"]
     reason: str
@@ -70,6 +74,16 @@ class _Item:
     chunk_id: str
     question: str
     card: ProgramCard
+    answers: int = 1
+
+
+def build_user_message(item: _Item) -> str:
+    c = item.card
+    body = _USER.format(
+        question=item.question, title=c.title, org=c.org, target=c.target or "-",
+        field=c.field or "-", period=c.period, summary=(c.summary or "(요약 없음)").replace("\n", " "),
+    )
+    return body + (_MULTI_NOTE.format(n=item.answers) if item.answers > 1 else "")
 
 
 _VERDICT_LINE = re.compile(r"^판정:.*$")
@@ -96,17 +110,18 @@ def annotate_sheet(sheet: str, judgments: dict[str, Judgment]) -> str:
     return "\n".join(out)
 
 
+def load_judgments(text: str) -> dict[str, Judgment]:
+    """판정 파일(json: chunk_id → {verdict, reason, better_question?}) — API 키 없이 다른 판정자가 쓴 결과를 시트에 넣는다."""
+    return {chunk_id: Judgment(**j) for chunk_id, j in json.loads(text).items()}
+
+
 def _judge(client, model: str, item: _Item) -> Judgment:
-    c = item.card
     response = client.messages.parse(
         model=model,
         max_tokens=2048,
         output_config={"effort": "low"},
         system=_SYSTEM,
-        messages=[{"role": "user", "content": _USER.format(
-            question=item.question, title=c.title, org=c.org, target=c.target or "-",
-            field=c.field or "-", period=c.period, summary=(c.summary or "(요약 없음)").replace("\n", " "),
-        )}],
+        messages=[{"role": "user", "content": build_user_message(item)}],
         output_format=Judgment,
     )
     if response.stop_reason != "end_turn" or response.parsed_output is None:
@@ -114,14 +129,11 @@ def _judge(client, model: str, item: _Item) -> Judgment:
     return response.parsed_output
 
 
-def main() -> None:
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--model", default="claude-opus-5")
-    parser.add_argument("--workers", type=int, default=5)
-    parser.add_argument("--evalset", default=_EVALSET)
-    parser.add_argument("--sheet", default=_SHEET)
-    args = parser.parse_args()
+def _judgments_from_file(args) -> tuple[dict[str, Judgment], list[_Item]]:
+    return load_judgments(Path(args.verdicts).read_text(encoding="utf-8")), []
 
+
+def _judgments_from_claude(args) -> tuple[dict[str, Judgment], list[_Item]]:
     import anthropic
 
     from core.matrix.grid_keymaker_secret_manager import get_settings
@@ -131,15 +143,32 @@ def main() -> None:
 
     rows = pending_rows(_load_rows(_REPO_ROOT / args.evalset))
     cards = _fetch_cards([r["relevant_ids"][0] for r in rows])
-    items = [_Item(r["relevant_ids"][0], r["question"], cards[r["relevant_ids"][0].split(":", 1)[1]]) for r in rows]
+    items = [
+        _Item(r["relevant_ids"][0], r["question"], cards[r["relevant_ids"][0].split(":", 1)[1]], len(r["relevant_ids"]))
+        for r in rows
+    ]
 
     with ThreadPoolExecutor(max_workers=args.workers) as pool:
         judgments = dict(zip((i.chunk_id for i in items), pool.map(lambda i: _judge(client, args.model, i), items)))
+    return judgments, items
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--model", default="claude-opus-5")
+    parser.add_argument("--workers", type=int, default=5)
+    parser.add_argument("--evalset", default=_EVALSET)
+    parser.add_argument("--sheet", default=_SHEET)
+    parser.add_argument("--verdicts", default=None, help="판정 파일(json) — 주면 API를 부르지 않는다")
+    args = parser.parse_args()
+
+    source = _judgments_from_file if args.verdicts else _judgments_from_claude
+    judgments, items = source(args)
 
     sheet_path = _REPO_ROOT / args.sheet
     sheet_path.write_text(annotate_sheet(sheet_path.read_text(encoding="utf-8"), judgments), encoding="utf-8")
     o = sum(1 for j in judgments.values() if j.verdict == "O")
-    print(f"claude 판정 {len(judgments)}건 → O {o} / X {len(judgments) - o} → {sheet_path}", flush=True)
+    print(f"판정 {len(judgments)}건 → O {o} / X {len(judgments) - o} → {sheet_path}", flush=True)
     for item in items:
         j = judgments[item.chunk_id]
         print(f"  [{j.verdict}] {item.question}  — {j.reason}" + (f"  → {j.better_question}" if j.better_question else ""))

@@ -1,5 +1,29 @@
 # Backend Version Log
 
+## [v0.65.0] - 2026-10-04
+
+### Changed
+- **운영 임베딩을 bge-m3@1024로 전환** (색인·검색 모두 Ollama bge-m3, 프리픽스 없음). 근거: data/eval/results/embedding-benchmark-2026-10-04/report.md (qwen3와 MRR 동률, GPU 메모리 664MB vs 4.4GB, CPU로도 운영 가능).
+  - 마이그레이션 `c7a3f1e8d204_rag_chunk_embedding_1024` — HNSW 인덱스 drop → `embedding vector(1024)` → 기존 벡터·`embedded_by` NULL → 인덱스 재생성(downgrade는 1536). 차원이 달라 기존 벡터는 변환 불가 — 적용 후 `build_rag_index --full` 전량 재색인 필요.
+  - `RagChunkOrm.embedding` `Vector(1024)`.
+  - `rag_dependencies`: 운영 레지스트리 `{"bge-m3"}` 하나(공개 상수 `INDEX_PROVIDERS`), 검색·색인 기본 provider `bge-m3`. qwen3·gemini 어댑터는 벤치마크용으로 남기고 운영 레지스트리에서만 제외(1536 출력).
+  - `build_rag_index`·`evaluate_rag` `--provider` choices를 레지스트리에서 가져오고 기본값 `bge-m3`.
+  - 운영 점검 필수 Ollama 모델의 임베딩 항목을 `bge-m3`로. 크론 `scripts/rag-indexer.sh`는 `--provider bge-m3`.
+  - 테스트: `test_rag_bge_m3_cutover.py` 신설, `test_rag_schema`·`test_ops_api` 기대값 갱신. `docs/erd.md` rag_chunk 차원 1024.
+
+## [v0.64.0] - 2026-10-04
+
+### Added
+- **임베딩 모델 평가 하네스** (spec `docs/superpowers/specs/2026-10-04-embedding-benchmark-design.md`) — 9개 조합(bge-m3@1024, qwen3@1536·2560, gemini-001·gemini-2@1024·1536·2560)을 같은 코퍼스·평가셋으로 비교해 로컬용·API용 각 1종을 고른다. 운영 DB·검색 경로는 바꾸지 않는다.
+  - `benchmark_core.py` — MRL 절단·재정규화, 운영 규칙(원천 필터·뉴스 사건 접기) 그대로의 numpy 전수 검색, top-1·nDCG@10·paired bootstrap(n=10000, seed 0).
+  - 어댑터: `OllamaBgeM3EmbeddingAdapter` 신설. qwen3(Ollama·fp16)에 `dim`, Gemini에 `model`·`dim` 인자(기본값은 운영 그대로 1536·`gemini-embedding-001`). gemini-embedding-2는 `task_type`을 받지 않아 질의·문서 프롬프트 프리픽스로 지시한다(모델별 Strategy). Gemini 429 재시도 횟수 `retry_count`.
+  - 어려운 질문: `generate_evalset --hard-kind colloquial|sibling|news_event` — 구어체(핵심어 회피)·유사 공고 구별(제목 토큰 Jaccard ≥ 0.3 짝)·뉴스 사건(같은 사건 기사 묶음 정답). 표본 선정에 임베딩 모델을 쓰지 않는다. 행에 `subset: "hard"`, `hard_kind`. `judge_evalset`은 정답이 여럿인 행에 사건 단위 판정 안내를 붙인다.
+  - API 키 없이 쓰는 경로: `generate_evalset --hard-mode export|import --file` (선정은 같은 결정적 선택기, 질문은 파일로 받아 넣음), `judge_evalset --verdicts` (판정 파일로 시트 기입, API 호출 없음).
+  - `benchmark_embeddings` CLI: `snapshot`(rag_chunk 전량 jsonl + sha256, 만료 공고 포함), `embed --model`(문서 512개 샤드 단위로 이어서 캐시, confirmed 질의 캐시, Gemini는 `count_tokens`로 토큰 실측). 캐시는 `data/eval/cache/embedding-benchmark/`(커밋 안 함). 캐시 무결성: 원자적 쓰기, 코퍼스 sha 불일치 시 중단, 질의 텍스트·벡터 수 검증.
+  - `latency --model`: confirmed 질문 × 3회 질의 지연 p50/p95(워밍업 제외). 로컬은 `gemma4:12b`를 먼저 올리고 측정 전후 `/api/ps`로 동시 상주·nvidia-smi 사용량 확인, API는 429 재시도 횟수와 `--rpm` 기준 effective 지연.
+  - `evaluate`: 9조합 지표(전체·base/hard·원천·hard 종류별) → 판정(그룹별 MRR 1위, bootstrap 동률이면 낮은 차원·짧은 p95, 로컬은 동시 상주·p95 ≤ 500ms 게이트와 기준선 qwen3@1536 대비 유의할 때만 교체) → `data/eval/results/embedding-benchmark-YYYY-MM-DD/`(`results.json`·`report.md`).
+- 평가 결과: 로컬 qwen3@1536 현행 유지(bge-m3@1024와 동률), API gemini-001@1024(규칙상; 001은 2028-05-14 단종 예정, 동률인 gemini-2@1024가 실무 대안) — data/eval/results/embedding-benchmark-2026-10-04/report.md
+
 ## [v0.63.0] - 2026-09-30
 
 ### Changed

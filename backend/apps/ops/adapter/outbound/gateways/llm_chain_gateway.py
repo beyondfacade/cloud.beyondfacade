@@ -1,6 +1,6 @@
 from apps.ops.app.dtos.healthcare_dto import LlmRouteDto
 from apps.ops.app.ports.output.healthcare_port import LlmChainPort
-from apps.rag.adapter.outbound.embeddings.ollama_qwen3_adapter import OllamaQwen3EmbeddingAdapter
+from apps.rag.adapter.outbound.embeddings.ollama_bge_m3_adapter import OllamaBgeM3EmbeddingAdapter
 from core.matrix.grid_keymaker_secret_manager import get_settings
 
 # agent/dependencies/analysis_dependencies.py 의 hybrid 배선(_hybrid·_local)과 같아야 한다
@@ -25,5 +25,5 @@ class LlmChainGateway(LlmChainPort):
     def required_ollama_models(self) -> list[tuple[str, str]]:
         return [
             (FALLBACK_MODEL, "분석 폴백 LLM"),
-            (OllamaQwen3EmbeddingAdapter.OLLAMA_MODEL, "RAG 검색 임베딩"),
+            (OllamaBgeM3EmbeddingAdapter.OLLAMA_MODEL, "RAG 검색 임베딩"),
         ]
