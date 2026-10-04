@@ -5,6 +5,7 @@
 
 import logging
 import time
+from abc import ABC, abstractmethod
 
 from google import genai
 from google.genai import errors, types
@@ -15,6 +16,48 @@ from core.matrix.grid_keymaker_secret_manager import get_settings
 LOGGER = logging.getLogger("beyondfacade.rag.embedding")
 
 EMBEDDING_DIM = 1536
+
+
+class _TaskFormat(ABC):
+    """모델별 검색 작업 지시 방식 — 001은 task_type 파라미터, 2는 프롬프트 프리픽스(task_type 미지원)."""
+
+    @abstractmethod
+    def contents(self, texts: list[str], task_type: str) -> list[str]: ...
+
+    @abstractmethod
+    def config(self, task_type: str, dim: int) -> types.EmbedContentConfig: ...
+
+
+class _TaskTypeParam(_TaskFormat):
+    def contents(self, texts: list[str], task_type: str) -> list[str]:
+        return texts
+
+    def config(self, task_type: str, dim: int) -> types.EmbedContentConfig:
+        return types.EmbedContentConfig(task_type=task_type, output_dimensionality=dim)
+
+
+def _document_prefix(text: str) -> str:
+    return f"title: {text.split(chr(10), 1)[0]} | text: {text}"
+
+
+class _PromptPrefix(_TaskFormat):
+    # ai.google.dev embeddings 문서(2026-10-04 확인)의 비대칭 검색 형식
+    _PREFIX = {
+        "RETRIEVAL_QUERY": lambda text: f"task: search result | query: {text}",
+        "RETRIEVAL_DOCUMENT": _document_prefix,
+    }
+
+    def contents(self, texts: list[str], task_type: str) -> list[str]:
+        return [self._PREFIX[task_type](t) for t in texts]
+
+    def config(self, task_type: str, dim: int) -> types.EmbedContentConfig:
+        return types.EmbedContentConfig(output_dimensionality=dim)
+
+
+_TASK_FORMATS: dict[str, _TaskFormat] = {
+    "gemini-embedding-001": _TaskTypeParam(),
+    "gemini-embedding-2": _PromptPrefix(),
+}
 _GEMINI_BATCH_LIMIT = 100
 
 # 429의 출처는 우리 호출량이 아니라 gemini-embedding 베이스 모델의 전역 공용 풀이다
@@ -32,13 +75,17 @@ class GeminiEmbeddingAdapter(EmbeddingPort):
     MODEL_NAME = "gemini-embedding-001"
     PROVIDER = "gemini"
 
-    def __init__(self, api_key: str | None = None) -> None:
+    def __init__(self, api_key: str | None = None, model: str = MODEL_NAME, dim: int = EMBEDDING_DIM) -> None:
         self._client = genai.Client(api_key=api_key or get_settings().gemini_api_key)
+        self._model = model
+        self._dim = dim
+        self._format = _TASK_FORMATS[model]
+        self.retry_count = 0
 
     @property
     def model_name(self) -> str:
         """모델명."""
-        return self.MODEL_NAME
+        return self._model
 
     @property
     def provider(self) -> str:
@@ -61,11 +108,8 @@ class GeminiEmbeddingAdapter(EmbeddingPort):
             try:
                 return self._client.models.embed_content(
                     model=self.model_name,
-                    contents=batch,
-                    config=types.EmbedContentConfig(
-                        task_type=task_type,
-                        output_dimensionality=EMBEDDING_DIM,
-                    ),
+                    contents=self._format.contents(batch, task_type),
+                    config=self._format.config(task_type, self._dim),
                 )
             except errors.ClientError as exc:
                 delay = min(_RETRY_BASE_DELAY * 2**attempt, _RETRY_MAX_DELAY)
@@ -78,6 +122,7 @@ class GeminiEmbeddingAdapter(EmbeddingPort):
                         )
                     raise
                 time.sleep(delay)
+                self.retry_count += 1
                 waited += delay
                 attempt += 1
 
