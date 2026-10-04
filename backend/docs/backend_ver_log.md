@@ -9,6 +9,7 @@
   - 로컬 관문 추출기 `OllamaIntentLlmAdapter`(Gemini 폴백과 같은 지시문·스키마, Ollama format, null은 JSON Schema 유니온 타입). 운영 배선에는 넣지 않음.
   - 관문 벤치 CLI `benchmark_intent`(masters·sheet·apply·run·evaluate)와 채점(정답·null·지어내기·스키마).
   - 리포트 채점(숫자 지어내기 대조·판정 일치·LLM 작성 절·블라인드 판정자 묶음).
+  - 리포트 벤치 CLI `benchmark_report`(freeze·run·score·judge-export·judge-import·vram·residency·evaluate): facts를 파일로 고정해 모든 모델에 같은 입력, 게이트·동률(VRAM 우선) 판정, 결과 보고서. 판정자 묶음은 본문의 모델·회사명을 [모델]로 가린다.
 
 ## [v0.65.1] - 2026-10-04
 

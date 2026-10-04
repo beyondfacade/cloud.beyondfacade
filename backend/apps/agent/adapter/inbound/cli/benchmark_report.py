@@ -1,0 +1,472 @@
+"""리포트 작성 LLM 평가 CLI — 로컬 후보와 Gemini를 같은 고정 facts로 재 모델을 고른다 (Driving Adapter).
+
+운영 경로는 건드리지 않는다. facts를 한 번 모아 파일로 고정(freeze)하고, 모델마다 같은 facts로
+AnalysisInteractor를 돌려 시나리오·회차 단위 jsonl로 캐시한 뒤(run) 채점·판정한다.
+
+실행 순서 (backend/에서):
+  python -m apps.agent.adapter.inbound.cli.benchmark_report freeze
+  python -m apps.agent.adapter.inbound.cli.benchmark_report run --model qwen3.5:4b [--repeat 3]
+  python -m apps.agent.adapter.inbound.cli.benchmark_report score
+  python -m apps.agent.adapter.inbound.cli.benchmark_report judge-export
+  python -m apps.agent.adapter.inbound.cli.benchmark_report judge-import --file PATH
+  python -m apps.agent.adapter.inbound.cli.benchmark_report vram
+  python -m apps.agent.adapter.inbound.cli.benchmark_report residency --report-model R --intent-model I
+  python -m apps.agent.adapter.inbound.cli.benchmark_report evaluate
+"""
+
+import argparse
+import json
+import subprocess
+import time
+from collections.abc import Callable, Iterable
+from dataclasses import dataclass
+from datetime import date
+from pathlib import Path
+from statistics import mean
+
+import httpx
+
+from apps.agent.adapter.inbound.cli.agent_eval_scoring import check_rule_keywords
+from apps.agent.adapter.inbound.cli.report_bench_scoring import (
+    intent_gates,
+    judge_packets,
+    llm_sections,
+    mask_model_names,
+    render_llm_report,
+    report_gates,
+    unmatched_numbers,
+    verdict_matches,
+)
+from apps.agent.adapter.outbound.gateways.event_analog_facts_gateway import EventAnalogFactsGateway
+from apps.agent.adapter.outbound.gateways.finance_facts_gateway import FinanceFactsGateway
+from apps.agent.adapter.outbound.gateways.funding_facts_gateway import FundingFactsGateway
+from apps.agent.adapter.outbound.gateways.region_facts_gateway import RegionFactsGateway
+from apps.agent.adapter.outbound.gateways.verdict_facts_gateway import VerdictFactsGateway
+from apps.agent.adapter.outbound.llm.gemini_llm_adapter import GeminiLLMAdapter
+from apps.agent.adapter.outbound.llm.ollama_llm_adapter import OllamaLLMAdapter
+from apps.agent.app.ports.output.agent_port import LLMGatewayPort
+from apps.agent.app.use_cases.agent_tools import build_tools
+from apps.agent.app.use_cases.analysis_interactor import _SECTIONS, AnalysisInteractor, _fallback_section
+from apps.agent.app.use_cases.report_facts import ReportFactsCollector
+from apps.agent.domain.entities.agent_event_entity import AgentEvent
+from apps.agent.domain.services.section_stream import concat_sections
+from apps.rag.dependencies.rag_dependencies import get_rag_search_use_case
+from core.matrix.grid_benchmark_manager import paired_bootstrap_ci, percentile, pick_winner, resident_models
+from core.matrix.grid_keymaker_secret_manager import get_settings
+
+# apps/agent/adapter/inbound/cli/benchmark_report.py → parents[6] == 리포지토리 루트
+_REPO_ROOT = Path(__file__).resolve().parents[6]
+_SCENARIOS = _REPO_ROOT / "data/eval/report_scenarios.jsonl"
+_FACTS_DIR = _REPO_ROOT / "data/eval/report_facts"
+_CACHE = _REPO_ROOT / "data/eval/cache/llm-benchmark"
+_RUNS = _CACHE / "report"
+_JUDGE = _CACHE / "judge"
+_INTENT_SUMMARY = _CACHE / "intent_summary.json"
+_VRAM = _CACHE / "vram.json"
+_RESIDENCY = _CACHE / "residency.json"
+_RESULTS_ROOT = _REPO_ROOT / "data/eval/results"
+
+_JUDGE_SEED = 0
+_TEMPERATURE = 0.3  # 운영 리포트 호출과 같게
+_OLLAMA_KEEP_ALIVE = "10m"
+_MIB = 1024 * 1024
+_BGE = "bge-m3"
+_INTENT_ONLY_LOCAL = ("qwen3.5:2b-q4_K_M",)  # 관문 전용 후보 — VRAM만 잰다
+
+
+@dataclass(frozen=True)
+class ReportModel:
+    name: str
+    llm: Callable[[], LLMGatewayPort]
+    tools: bool
+    local: bool
+
+
+def _ollama(name: str, think: bool | None, tools: bool = True) -> ReportModel:
+    return ReportModel(name, lambda: OllamaLLMAdapter(model=name, think=think, temperature=_TEMPERATURE), tools, True)
+
+
+REPORT_MODELS: dict[str, ReportModel] = {m.name: m for m in (
+    _ollama("gemma4:12b", False),
+    _ollama("gemma4:e4b", False),
+    _ollama("kanana1.5:8b-q4km", None),
+    _ollama("qwen3.5:9b", False),
+    _ollama("qwen3.5:4b", False),
+    # Ollama 템플릿에 도구 처리가 없다 — 도구 없이 돌리는 참고 비교군(라이선스 NC)
+    _ollama("exaone3.5:7.8b", None, tools=False),
+    ReportModel("gemini-2.5-flash", lambda: GeminiLLMAdapter(model="gemini-2.5-flash"), True, False),
+)}
+_NOTES = {False: "온라인 비교군"}  # local 여부별 비고
+_NO_TOOL_NOTE = "도구 없음(참고 비교군, 라이선스 NC)"
+
+
+class FrozenFacts:
+    """얼려 둔 facts — ReportFactsCollector.collect를 대신해 AnalysisInteractor의 facts 자리에 들어간다."""
+
+    def __init__(self, facts_by_key: dict[tuple[str, str], dict]):
+        self._facts = facts_by_key
+
+    def collect(self, region: str, industry: str, budget: int | None = None, question: str | None = None) -> dict:
+        return self._facts[(region, industry)]
+
+
+# ── 입출력 ─────────────────────────────────────────────────
+
+def _read_jsonl(path: Path) -> list[dict]:
+    if not path.exists():
+        return []
+    return [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines() if line.strip()]
+
+
+def _read_json(path: Path, default=None):
+    return json.loads(path.read_text(encoding="utf-8")) if path.exists() else default
+
+
+def _write_json(path: Path, data) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
+
+
+def _safe(model: str) -> str:
+    return model.replace(":", "_").replace("/", "_")
+
+
+def _run_path(model: str) -> Path:
+    return _RUNS / f"{_safe(model)}.jsonl"
+
+
+def _score_path(model: str) -> Path:
+    return _RUNS / f"score_{_safe(model)}.json"
+
+
+def _scenarios() -> list[dict]:
+    return _read_jsonl(_SCENARIOS)
+
+
+def _facts_of(scenario_id: str) -> dict:
+    return json.loads((_FACTS_DIR / f"{scenario_id}.json").read_text(encoding="utf-8"))
+
+
+# ── 순수 로직 ──────────────────────────────────────────────
+
+def collect_run(events: Iterable[AgentEvent], clock: Callable[[], float] = time.perf_counter) -> dict:
+    """이벤트 스트림 → {first_ms, total_ms, sections, tool_calls}.
+
+    시계는 facts 이벤트 수신을 0으로, 첫 report_delta까지(first_ms)·report_done까지(total_ms)를 잰다.
+    """
+    start: float | None = None
+    first_ms = total_ms = None
+    sections: dict[str, str] = {}
+    tool_calls: list[dict] = []
+    for event in events:
+        if event.type == "facts":
+            start = clock()
+        elif event.type == "tool_call":
+            tool_calls.append(event.payload)
+        elif event.type == "report_delta":
+            if first_ms is None and start is not None:
+                first_ms = (clock() - start) * 1000
+            section = event.payload["section"]
+            sections[section] = sections.get(section, "") + event.payload["markdown"]
+        elif event.type == "report_done" and start is not None:
+            total_ms = (clock() - start) * 1000
+    return {"first_ms": first_ms, "total_ms": total_ms, "sections": sections, "tool_calls": tool_calls}
+
+
+def _report_text(sections: dict[str, str]) -> str:
+    return concat_sections(sections.items(), order=[name for name, _ in _SECTIONS])
+
+
+def score_run(record: dict, facts: dict) -> dict:
+    """한 회차 채점 — 완주(6절 모두 LLM 작성 & 오류 없음)·판정 일치·지어낸 숫자·규칙 키워드."""
+    sections = record["sections"]
+    fallbacks = {name: _fallback_section(name, title, facts) for name, title in _SECTIONS}
+    written = llm_sections(sections, fallbacks)
+    text = _report_text(sections)
+    return {
+        "complete": not record.get("error") and written >= {name for name, _ in _SECTIONS},
+        "verdict_ok": bool(sections.get("verdict")) and verdict_matches(sections["verdict"], facts.get("verdict", {})),
+        "unmatched": unmatched_numbers(text, facts),
+        "rule_hits": check_rule_keywords(text),
+    }
+
+
+def _p95(values: list[float | None]) -> float | None:
+    clean = [v for v in values if v is not None]
+    return percentile(clean, 95) if clean else None
+
+
+# ── 명령 ───────────────────────────────────────────────────
+
+def _collector() -> tuple[ReportFactsCollector, RegionFactsGateway, object]:
+    """analysis_dependencies.build_analysis_use_case와 같은 생성자 인자."""
+    region_facts = RegionFactsGateway()
+    rag_search = get_rag_search_use_case()
+    collector = ReportFactsCollector(
+        region_facts=region_facts,
+        verdict_facts=VerdictFactsGateway(),
+        funding_facts=FundingFactsGateway(),
+        news_search=rag_search,
+        analog_facts=EventAnalogFactsGateway(),
+    )
+    return collector, region_facts, rag_search
+
+
+def _cmd_freeze(args: argparse.Namespace) -> None:
+    collector, _, _ = _collector()
+    for s in _scenarios():
+        path = _FACTS_DIR / f"{s['id']}.json"
+        if path.exists() and not args.force:
+            continue
+        _write_json(path, collector.collect(s["region_code"], s["industry_id"], None, s["question"]))
+        print(f"freeze: {s['id']} → {path}", flush=True)
+
+
+def _ollama_post(path: str, body: dict) -> dict:
+    response = httpx.post(f"{get_settings().ollama_base_url}{path}", json=body, timeout=300.0)
+    response.raise_for_status()
+    return response.json()
+
+
+def _ollama_ps() -> list[dict]:
+    response = httpx.get(f"{get_settings().ollama_base_url}/api/ps", timeout=30.0)
+    response.raise_for_status()
+    return response.json().get("models", [])
+
+
+def _load(model: str, keep_alive: str | int = _OLLAMA_KEEP_ALIVE) -> None:
+    """빈 프롬프트로 모델을 올린다(keep_alive 0이면 내린다). 임베딩 모델도 같은 경로로 올라간다."""
+    _ollama_post("/api/generate", {"model": model, "prompt": "", "keep_alive": keep_alive, "stream": False})
+
+
+def _unload_all() -> None:
+    for m in _ollama_ps():
+        _load(m["name"], 0)
+
+
+def _cmd_run(args: argparse.Namespace) -> None:
+    model = REPORT_MODELS[args.model]
+    llm = model.llm()
+    if model.local:
+        _load(model.name)  # 워밍업 — 모델 로드 시간은 지연에서 제외
+    path = _run_path(model.name)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    done = {(r["id"], r["rep"]) for r in _read_jsonl(path)}
+    _, region_facts, rag_search = _collector()
+    tools = build_tools(region_facts, rag_search, FinanceFactsGateway(), None) if model.tools else []
+    for rep in range(args.repeat):
+        for s in _scenarios():
+            if (s["id"], rep) in done:
+                continue
+            frozen = FrozenFacts({(s["region_code"], s["industry_id"]): _facts_of(s["id"])})
+            interactor = AnalysisInteractor(llm=llm, tools=tools, facts=frozen)
+            error = None
+            events: list[AgentEvent] = []
+
+            def stream():
+                for event in interactor.run(s["region_code"], s["industry_id"], s["question"]):
+                    events.append(event)
+                    yield event
+
+            try:
+                got = collect_run(stream())
+            except Exception as exc:  # 모델·전송 실패도 한 회차의 결과다 — 완주 게이트가 걸러낸다
+                error = f"{type(exc).__name__}: {exc}"
+                got = collect_run(events)
+            usage = interactor.last_usage
+            row = {"id": s["id"], "rep": rep, **got, "error": error,
+                   "usage": {"input_tokens": usage.input_tokens, "output_tokens": usage.output_tokens}}
+            with path.open("a", encoding="utf-8") as f:
+                f.write(json.dumps(row, ensure_ascii=False) + "\n")
+            print(f"run: {model.name} {s['id']} rep{rep} total={got['total_ms']} error={error}", flush=True)
+
+
+def _cmd_score(args: argparse.Namespace) -> None:
+    facts = {s["id"]: _facts_of(s["id"]) for s in _scenarios()}
+    for name in REPORT_MODELS:
+        records = _read_jsonl(_run_path(name))
+        if not records:
+            continue
+        runs = [{**r, **score_run(r, facts[r["id"]])} for r in records]
+        n = len(runs)
+        summary = {
+            "model": name, "n": n,
+            "completion": sum(r["complete"] for r in runs) / n,
+            "verdict_match": sum(r["verdict_ok"] for r in runs) / n,
+            "fabrication": sum(bool(r["unmatched"]) for r in runs) / n,
+            "rule_violations_keyword": sum(len(r["rule_hits"]) for r in runs),
+            "first_p95_ms": _p95([r["first_ms"] for r in runs]),
+            "total_p95_ms": _p95([r["total_ms"] for r in runs]),
+            "runs": [{k: r[k] for k in ("id", "rep", "complete", "verdict_ok", "unmatched", "rule_hits",
+                                        "first_ms", "total_ms", "error")} for r in runs],
+        }
+        _write_json(_score_path(name), summary)
+        print(f"score: {name} → {_score_path(name)}", flush=True)
+
+
+def _first_rep_reports() -> dict[str, dict[str, str]]:
+    """{시나리오 id: {모델: 1회차 본문}} — 본문의 모델명은 가린다."""
+    out: dict[str, dict[str, str]] = {}
+    for name in REPORT_MODELS:
+        for r in _read_jsonl(_run_path(name)):
+            if r["rep"] == 0 and r["sections"]:
+                out.setdefault(r["id"], {})[name] = mask_model_names(_report_text(r["sections"]))
+    return out
+
+
+def _cmd_judge_export(args: argparse.Namespace) -> None:
+    _JUDGE.mkdir(parents=True, exist_ok=True)
+    mapping: dict[str, dict[str, str]] = {}
+    for sid, reports in _first_rep_reports().items():
+        packet, mapping[sid] = judge_packets(sid, _facts_of(sid), reports, _JUDGE_SEED)
+        (_JUDGE / f"packet_{sid}.md").write_text(packet, encoding="utf-8")
+    _write_json(_JUDGE / "mapping.json", mapping)
+    print(f"judge-export: {len(mapping)}개 시나리오 → {_JUDGE}", flush=True)
+
+
+def _cmd_judge_import(args: argparse.Namespace) -> None:
+    mapping = _read_json(_JUDGE / "mapping.json")
+    judged = json.loads(Path(args.file).read_text(encoding="utf-8"))
+    scores: dict[str, dict[str, dict]] = {}
+    for sid, by_blind in judged.items():
+        for blind, score in by_blind.items():
+            scores.setdefault(mapping[sid][blind], {})[sid] = score
+    _write_json(_JUDGE / "scores.json", scores)
+    print(f"judge-import: {len(scores)}개 모델 → {_JUDGE / 'scores.json'}", flush=True)
+
+
+def _gpu_used_mib() -> int | None:
+    try:
+        out = subprocess.run(["nvidia-smi", "--query-gpu=memory.used", "--format=csv,noheader,nounits"],
+                             capture_output=True, text=True, check=True).stdout
+        return int(out.strip().splitlines()[0])
+    except (OSError, subprocess.CalledProcessError, ValueError, IndexError):
+        return None
+
+
+def _entry(ps: list[dict], model: str) -> dict | None:
+    return next((m for m in ps if m["name"] in (model, f"{model}:latest")), None)
+
+
+def _cmd_vram(args: argparse.Namespace) -> None:
+    models = [n for n, m in REPORT_MODELS.items() if m.local] + list(_INTENT_ONLY_LOCAL)
+    vram: dict[str, float] = {}
+    for model in models:
+        _unload_all()
+        _load(model)
+        entry = _entry(_ollama_ps(), model)
+        if entry is None:
+            print(f"vram: {model} /api/ps 에 없음 — 건너뜀", flush=True)
+            continue
+        vram[model] = entry["size_vram"] / _MIB
+        print(f"vram: {model} {vram[model]:.0f} MiB", flush=True)
+    _unload_all()
+    _write_json(_VRAM, vram)
+
+
+def _cmd_residency(args: argparse.Namespace) -> None:
+    _unload_all()
+    wanted = list(dict.fromkeys([args.report_model, args.intent_model, _BGE]))  # 같은 모델이면 한 번만
+    for model in wanted:
+        if model == _BGE:
+            _ollama_post("/api/embed", {"model": _BGE, "input": "ping", "keep_alive": _OLLAMA_KEEP_ALIVE})
+        else:
+            _load(model)
+    ps = _ollama_ps()
+    present = resident_models({"models": ps})
+    sizes = {m: {"size_mib": e["size"] / _MIB, "vram_mib": e["size_vram"] / _MIB}
+             for m in wanted if (e := _entry(ps, m))}
+    ok = all(m in present or f"{m}:latest" in present for m in wanted)
+    result = {"report_model": args.report_model, "intent_model": args.intent_model, "same_model": len(wanted) == 2,
+              "ok": ok, "used_mib": _gpu_used_mib(), "sizes": sizes}
+    _write_json(_RESIDENCY, result)
+    print(f"residency: ok={ok} {result['used_mib']} MiB", flush=True)
+
+
+def _report_block(scenario_ids: list[str]) -> dict:
+    judge = _read_json(_JUDGE / "scores.json", {})
+    vram = _read_json(_VRAM, {})
+    rows, per_row, score_by, p95_by, eligible = [], {}, {}, {}, []
+    for name, model in REPORT_MODELS.items():
+        score = _read_json(_score_path(name))
+        if score is None:
+            continue
+        mine = judge.get(name, {})
+        judged = all(sid in mine for sid in scenario_ids)
+        quality = [mine[sid]["faithfulness"] + mine[sid]["fluency"] for sid in scenario_ids] if judged else []
+        judge_violations = sum(len(mine[sid].get("violations", [])) for sid in scenario_ids if sid in mine)
+        merged = {**score, "rule_violations": score["rule_violations_keyword"] + judge_violations}
+        latency = {k: score[k] if score[k] is not None else float("inf") for k in ("first_p95_ms", "total_p95_ms")}
+        gates = report_gates(merged, latency)
+        gates["all"] = all(gates.values())
+        note = _NOTES.get(model.local, "") or ("" if model.tools else _NO_TOOL_NOTE)
+        rows.append({"model": name, "vram_mib": vram.get(name), "quality": mean(quality) if quality else None,
+                     "completion": score["completion"], "verdict_match": score["verdict_match"],
+                     "fabrication": score["fabrication"], "rule_violations": merged["rule_violations"],
+                     "first_p95_ms": score["first_p95_ms"], "total_p95_ms": score["total_p95_ms"],
+                     "gates": gates, "note": note, "local": model.local})
+        if gates["all"] and model.local and judged and name in vram:
+            eligible.append(name)
+            per_row[name], score_by[name], p95_by[name] = quality, quality, score["total_p95_ms"]
+    return _pick(rows, per_row, score_by, {m: vram[m] for m in eligible}, p95_by, eligible)
+
+
+def _pick(rows: list[dict], per_row: dict, score_by: dict, vram_by: dict, p95_by: dict, eligible: list[str]) -> dict:
+    block = {"rows": rows, "per_row": per_row, "winner": None, "tied": []}
+    if eligible:
+        block["winner"], block["tied"] = pick_winner(score_by, vram_by, p95_by, eligible)
+        best = max(eligible, key=lambda m: mean(score_by[m]))
+        block["ci_vs_best"] = {m: paired_bootstrap_ci(score_by[best], score_by[m]) for m in eligible if m != best}
+    return block
+
+
+def _intent_block() -> dict:
+    summary = _read_json(_INTENT_SUMMARY, {})
+    vram = _read_json(_VRAM, {})
+    rows, per_row, vram_by, p95_by, eligible = [], {}, {}, {}, []
+    for name, s in summary.items():
+        gates = intent_gates(s)
+        gates["all"] = all(gates.values())
+        local = name in REPORT_MODELS and REPORT_MODELS[name].local or name in _INTENT_ONLY_LOCAL
+        rows.append({"model": name, "vram_mib": vram.get(name), "both": s["both"], "region": s["region"],
+                     "industry": s["industry"], "budget": s["budget"], "schema_rate": s["schema_rate"],
+                     "fabrication_rate": s["fabrication_rate"], "p95_ms": s["p95_ms"], "gates": gates,
+                     "note": "" if local else "온라인 비교군", "local": local})
+        if gates["all"] and local and name in vram:
+            eligible.append(name)
+            per_row[name], vram_by[name], p95_by[name] = s["per_row_both"], vram[name], s["p95_ms"]
+    return _pick(rows, per_row, per_row, vram_by, p95_by, eligible)
+
+
+def _cmd_evaluate(args: argparse.Namespace) -> None:
+    ids = [s["id"] for s in _scenarios()]
+    results = {"date": date.today().isoformat(), "report": _report_block(ids), "intent": _intent_block(),
+               "residency": _read_json(_RESIDENCY)}
+    out = _RESULTS_ROOT / f"llm-benchmark-{results['date']}"
+    _write_json(out / "results.json", results)
+    (out / "report.md").write_text(render_llm_report(results), encoding="utf-8")
+    print(f"evaluate: 리포트 승자 {results['report']['winner']} · 관문 승자 {results['intent']['winner']} → {out}",
+          flush=True)
+
+
+_COMMANDS: dict[str, Callable] = {
+    "freeze": _cmd_freeze, "run": _cmd_run, "score": _cmd_score, "judge-export": _cmd_judge_export,
+    "judge-import": _cmd_judge_import, "vram": _cmd_vram, "residency": _cmd_residency, "evaluate": _cmd_evaluate,
+}
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("command", choices=list(_COMMANDS))
+    parser.add_argument("--model", choices=list(REPORT_MODELS))
+    parser.add_argument("--repeat", type=int, default=3)
+    parser.add_argument("--file", default=None, help="judge-import: 판정 json 경로")
+    parser.add_argument("--report-model", default=None)
+    parser.add_argument("--intent-model", default=None)
+    parser.add_argument("--force", action="store_true", help="freeze: 기존 facts 덮어쓰기")
+    args = parser.parse_args()
+    _COMMANDS[args.command](args)
+
+
+if __name__ == "__main__":
+    main()

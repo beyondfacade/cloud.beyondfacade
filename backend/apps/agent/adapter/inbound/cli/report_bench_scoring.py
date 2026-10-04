@@ -172,3 +172,103 @@ def judge_packets(
     for blind, model in mapping.items():
         parts += ["", f"## 리포트 {blind}", reports[model]]
     return "\n".join(parts) + "\n", mapping
+
+
+# ── 판정자에게 보이는 본문의 모델명 가리기 ─────────────────
+
+_MODEL_NAMES = ("LG AI", "LG", "gemma", "qwen", "kanana", "exaone", "gemini", "Kakao", "카카오",
+                "Google", "구글", "Alibaba", "알리바바")
+# 영문 이름은 앞뒤가 영문자가 아닐 때만(algorithm 같은 단어 보호), 뒤에 붙은 버전 꼬리("4:12b")까지 함께 가린다.
+_MASK_RE = re.compile(
+    r"(?<![A-Za-z])(?:" + "|".join(re.escape(n) for n in sorted(_MODEL_NAMES, key=len, reverse=True)) + r")"
+    r"(?![A-Za-z])(?:[-:]?\d[\w.:\-]*(?<![.:\-]))?",
+    re.IGNORECASE,
+)
+
+
+def mask_model_names(text: str) -> str:
+    """판정자가 모델·회사를 짐작하지 못하게 이름을 [모델]로 바꾼다(대소문자 무시)."""
+    return _MASK_RE.sub("[모델]", text)
+
+
+# ── 게이트 ─────────────────────────────────────────────────
+
+REPORT_LIMITS = {"completion": 0.95, "verdict_match": 1.0, "fabrication": 0.05,
+                 "first_p95_ms": 5000, "total_p95_ms": 60000}
+INTENT_LIMITS = {"schema_rate": 0.98, "fabrication_rate": 0.05, "p95_ms": 3000}
+
+
+def report_gates(score: dict, latency: dict) -> dict[str, bool]:
+    return {
+        "completion": score["completion"] >= REPORT_LIMITS["completion"],
+        "verdict_match": score["verdict_match"] >= REPORT_LIMITS["verdict_match"],
+        "fabrication": score["fabrication"] <= REPORT_LIMITS["fabrication"],
+        "rules": score["rule_violations"] == 0,
+        "latency": latency["first_p95_ms"] <= REPORT_LIMITS["first_p95_ms"]
+        and latency["total_p95_ms"] <= REPORT_LIMITS["total_p95_ms"],
+    }
+
+
+def intent_gates(summary: dict) -> dict[str, bool]:
+    return {
+        "schema": summary["schema_rate"] >= INTENT_LIMITS["schema_rate"],
+        "fabrication": summary["fabrication_rate"] <= INTENT_LIMITS["fabrication_rate"],
+        "latency": summary["p95_ms"] <= INTENT_LIMITS["p95_ms"],
+    }
+
+
+# ── 결과 보고서 ────────────────────────────────────────────
+
+def _cell(row: dict, key: str, fmt: str = "{}") -> str:
+    value = row.get(key)
+    return "-" if value is None else fmt.format(value)
+
+
+def _ox(flag: bool) -> str:
+    return "O" if flag else "X"
+
+
+def _table(headers: list[str], rows: list[list[str]]) -> list[str]:
+    lines = ["| " + " | ".join(headers) + " |", "|" + "---|" * len(headers)]
+    return lines + ["| " + " | ".join(r) + " |" for r in rows]
+
+
+def _report_row(r: dict) -> list[str]:
+    return [r["model"], _cell(r, "vram_mib"), _cell(r, "quality", "{:.2f}"), _cell(r, "completion", "{:.2f}"),
+            _cell(r, "verdict_match", "{:.2f}"), _cell(r, "fabrication", "{:.2f}"), _cell(r, "rule_violations"),
+            _cell(r, "first_p95_ms", "{:.0f}"), _cell(r, "total_p95_ms", "{:.0f}"),
+            _ox(r["gates"]["all"]), r.get("note", "")]
+
+
+def _intent_row(r: dict) -> list[str]:
+    return [r["model"], _cell(r, "vram_mib"), _cell(r, "both", "{:.3f}"), _cell(r, "region", "{:.3f}"),
+            _cell(r, "industry", "{:.3f}"), _cell(r, "budget", "{:.3f}"), _cell(r, "schema_rate", "{:.3f}"),
+            _cell(r, "fabrication_rate", "{:.3f}"), _cell(r, "p95_ms", "{:.0f}"), _ox(r["gates"]["all"])]
+
+
+def _verdict_line(role: str, block: dict) -> str:
+    if block.get("winner") is None:
+        return f"- {role}: **없음** — 게이트를 통과한 로컬 모델이 없다"
+    return f"- {role}: **{block['winner']}** — 동률 {', '.join(block['tied'])}"
+
+
+def _residency_line(residency: dict | None) -> str:
+    if not residency or residency.get("ok") is None:
+        return "- 동시 상주: 미측정"
+    return f"- 동시 상주: {_ox(residency['ok'])} ({residency.get('used_mib', '-')} MiB)"
+
+
+def render_llm_report(results: dict) -> str:
+    """역할별 표·판정·한계 마크다운. 온라인 행도 표에는 싣지만 판정 대상이 아니다(note로 표시)."""
+    lines = [f"# LLM 모델 평가 결과 ({results['date']})", "", "## 리포트 작성", ""]
+    lines += _table(["모델", "VRAM(MiB)", "품질", "완주", "판정 일치", "지어내기", "규칙", "첫 글자 p95(ms)",
+                     "완료 p95(ms)", "게이트", "비고"], [_report_row(r) for r in results["report"]["rows"]])
+    lines += ["", "## 의도 관문", ""]
+    lines += _table(["모델", "VRAM(MiB)", "동시 정답", "지역", "업종", "예산", "스키마", "지어내기", "p95(ms)", "게이트"],
+                    [_intent_row(r) for r in results["intent"]["rows"]])
+    lines += ["", "## 판정", "", _verdict_line("리포트", results["report"]), _verdict_line("관문", results["intent"]),
+              _residency_line(results.get("residency")), "", "## 한계", "",
+              "- 숫자 대조는 오탐이 있을 수 있다(불일치 목록으로 사람이 확인).",
+              "- 품질 판정자도 LLM이다(모델명은 가렸지만 문체로 짐작할 수 있다).",
+              "- 리포트 시나리오는 12건이라 표본이 작다."]
+    return "\n".join(lines) + "\n"
