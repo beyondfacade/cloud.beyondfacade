@@ -68,8 +68,8 @@ _RESULTS_ROOT = _REPO_ROOT / "data/eval/results"
 
 _JUDGE_SEED = 0
 _TEMPERATURE = 0.3  # 운영 리포트 호출과 같게
-# facts JSON이 Ollama 기본 컨텍스트를 넘어 조용히 잘리지 않게 명시한다(Task 7에서 facts 크기를 재고 조정).
-BENCH_NUM_CTX = 16384
+# 첫 턴 프롬프트 실측 최대 14,143토큰(도구 포함, 2026-10-05) + 출력·도구 턴 여유 — Ollama 기본 컨텍스트는 ~2k에서 잘린다
+BENCH_NUM_CTX = 32768
 _LOCAL_OPTIONS = {"num_ctx": BENCH_NUM_CTX}  # vram·residency도 같은 옵션으로 올려야 VRAM이 실사용을 반영한다
 _OLLAMA_KEEP_ALIVE = "10m"
 _MIB = 1024 * 1024
