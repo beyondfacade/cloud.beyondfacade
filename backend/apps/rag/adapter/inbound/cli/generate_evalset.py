@@ -8,7 +8,7 @@ rag_chunk를 chunk_id 오름차순으로 결정적으로 표본 추출한다(비
 status=candidate로 적재하고 승격은 judge_evalset(1차) + 사람 검수(review_evalset) 몫이다.
 
 실행: python -m apps.rag.adapter.inbound.cli.generate_evalset --provider claude --source-type funding --limit 110
-어려운 질문(spec 2026-10-04 §3): --hard-kind colloquial|sibling|news_event --limit 20 (claude 전용, subset=hard)
+어려운 질문(spec 2026-10-04 §3): --hard-kind colloquial|sibling|news_event --limit 20 (--hard-mode claude|export|import, subset=hard)
 키 없이: --hard-mode export --file X → 작성자가 X에 question을 채운 답안 jsonl → --hard-mode import --file Y
 """
 
@@ -347,7 +347,7 @@ def main() -> None:
     parser.add_argument("--source-type", default="funding", choices=list(_DOC_LABEL))
     parser.add_argument("--limit", type=int, default=50, help="추가 건수 (기본 50)")
     parser.add_argument("--output", default=_EVALSET)
-    parser.add_argument("--hard-kind", default=None, choices=list(_HARD_SYSTEMS), help="어려운 질문 종류 (claude 전용)")
+    parser.add_argument("--hard-kind", default=None, choices=list(_HARD_SYSTEMS), help="어려운 질문 종류 (--hard-mode claude|export|import)")
     parser.add_argument("--hard-mode", default="claude", choices=list(_HARD_MODES), help="어려운 질문 작성 경로")
     parser.add_argument("--file", default=None, help="export/import 파일 경로")
     args = parser.parse_args()

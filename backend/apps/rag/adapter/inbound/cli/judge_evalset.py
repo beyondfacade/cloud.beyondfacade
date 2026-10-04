@@ -168,7 +168,7 @@ def main() -> None:
     sheet_path = _REPO_ROOT / args.sheet
     sheet_path.write_text(annotate_sheet(sheet_path.read_text(encoding="utf-8"), judgments), encoding="utf-8")
     o = sum(1 for j in judgments.values() if j.verdict == "O")
-    print(f"claude 판정 {len(judgments)}건 → O {o} / X {len(judgments) - o} → {sheet_path}", flush=True)
+    print(f"판정 {len(judgments)}건 → O {o} / X {len(judgments) - o} → {sheet_path}", flush=True)
     for item in items:
         j = judgments[item.chunk_id]
         print(f"  [{j.verdict}] {item.question}  — {j.reason}" + (f"  → {j.better_question}" if j.better_question else ""))
