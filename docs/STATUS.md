@@ -206,9 +206,10 @@ main이 전진하면 다시 낡는다 — 배포 전 재빌드가 규칙.
   마이그레이션 `c7a3f1e8d204` 적용·8,905건 전량 재색인(101초) 후 운영 평가(confirmed 233): Hit@5 0.983 / MRR 0.930 (전환 전 qwen3 운영 0.991 / 0.930, `data/eval/results/rag_bge-m3_20261004_231013.json`). 기존 테이블 백업 `data/backups/rag_chunk_qwen1536_20261004.dump`(gitignore).
 - 두뇌 비교(`data/eval/results/agent_compare.md`)로 리포트는 **혼합(Gemini 우선·로컬 폴백)** 채택 완료.
 
-### 4-4-1. 도커 컨테이너에서 호스트 Ollama 접근 불가 (10/4 확인, 미해결)
-`beyondfacade-api`(8200) 컨테이너 안에서 Ollama 어댑터 기본 주소가 `http://127.0.0.1:11434`라 호스트 Ollama에 닿지 못한다(ConnectError).
-RAG 검색과 Ollama LLM 폴백이 컨테이너에서 동작하지 않는다. bge-m3 전환과 무관한 기존 문제이며, 코드는 아직 고치지 않았다.
+### 4-4-1. 도커 컨테이너에서 호스트 Ollama 접근 불가 — 10/4 해소 (v0.65.1)
+`beyondfacade-api`(8200) 컨테이너에서 Ollama 어댑터 기본 주소 `http://127.0.0.1:11434`로는 호스트 Ollama에 닿지 못했다(ConnectError, bge-m3 전환 전부터 있던 문제).
+`Settings.ollama_base_url`(env `OLLAMA_BASE_URL`, 기본 127.0.0.1)로 바꾸고 compose에 `OLLAMA_BASE_URL=http://host.docker.internal:11434` + `extra_hosts: host-gateway`를 넣었다.
+재빌드 후 컨테이너에서 RAG 검색 3건·운영 점검 Ollama 도달(모델 12개) 확인.
 
 ### 4-5. 외부 대기·자료 한계 (코드로 못 푸는 것)
 - 주민등록 인구 2026.07분 공표 후 1파일 추가
