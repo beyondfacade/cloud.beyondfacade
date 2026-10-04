@@ -6,6 +6,7 @@
 - **임베딩 모델 평가 하네스** (spec `docs/superpowers/specs/2026-10-04-embedding-benchmark-design.md`) — 9개 조합(bge-m3@1024, qwen3@1536·2560, gemini-001·gemini-2@1024·1536·2560)을 같은 코퍼스·평가셋으로 비교해 로컬용·API용 각 1종을 고른다. 운영 DB·검색 경로는 바꾸지 않는다.
   - `benchmark_core.py` — MRL 절단·재정규화, 운영 규칙(원천 필터·뉴스 사건 접기) 그대로의 numpy 전수 검색, top-1·nDCG@10·paired bootstrap(n=10000, seed 0).
   - 어댑터: `OllamaBgeM3EmbeddingAdapter` 신설. qwen3(Ollama·fp16)에 `dim`, Gemini에 `model`·`dim` 인자(기본값은 운영 그대로 1536·`gemini-embedding-001`). gemini-embedding-2는 `task_type`을 받지 않아 질의·문서 프롬프트 프리픽스로 지시한다(모델별 Strategy). Gemini 429 재시도 횟수 `retry_count`.
+  - 어려운 질문: `generate_evalset --hard-kind colloquial|sibling|news_event` — 구어체(핵심어 회피)·유사 공고 구별(제목 토큰 Jaccard ≥ 0.3 짝)·뉴스 사건(같은 사건 기사 묶음 정답). 표본 선정에 임베딩 모델을 쓰지 않는다. 행에 `subset: "hard"`, `hard_kind`. `judge_evalset`은 정답이 여럿인 행에 사건 단위 판정 안내를 붙인다.
 
 ## [v0.63.0] - 2026-09-30
 

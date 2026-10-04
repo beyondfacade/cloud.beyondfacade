@@ -51,3 +51,14 @@ def test_annotate_sheet_overwrites_previous_claude_verdict_but_keeps_human_memo_
     twice = annotate_sheet(once, {"funding:P1": Judgment(verdict="O", reason="재판정")})
     assert "판정: O  # claude: 재판정\n" in twice
     assert "첫 판정" not in twice
+
+
+def test_정답이_여럿인_행은_사건_단위로_판정하라고_알린다():
+    from apps.rag.adapter.inbound.cli.judge_evalset import _Item, build_user_message
+    from apps.rag.adapter.inbound.cli.review_evalset import ProgramCard
+
+    card = ProgramCard("a", "야시장 개장", "한겨레", None, "상권", "2026-09-01", "요약", "http://u")
+    multi = build_user_message(_Item("news:a", "망원시장 밤에 장 서?", card, answers=3))
+    single = build_user_message(_Item("news:a", "망원시장 밤에 장 서?", card))
+    assert "같은 사건 기사 3건" in multi
+    assert "같은 사건 기사" not in single
