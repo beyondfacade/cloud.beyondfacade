@@ -41,8 +41,8 @@
 
 ## i008 (landmark)
 입력: 광장시장 근처에 국밥집 내고 싶은데 3천 정도 있어요
-정답: region=종로5.6가동 industry=korean_food budget=30000000
-판정: O
+정답: region=종로1.2.3.4가동 industry=korean_food budget=30000000
+판정: O  # 사용자 수정: 광장시장 주소 예지동 6-1 → 종로1·2·3·4가동 관할
 
 ## i009 (landmark)
 입력: 을지로 노가리골목에서 호프집 하려고요
