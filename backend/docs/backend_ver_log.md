@@ -7,6 +7,7 @@
   - 공통 통계를 `core/matrix/grid_benchmark_manager.py`로 올렸다(bootstrap·백분위·상주 확인·동률 판정). rag 임베딩 하네스도 여기서 가져온다.
   - Ollama LLM 어댑터에 `think`·`temperature` 인자(지정할 때만 요청에 실림, 기본값은 기존 요청 그대로).
   - 로컬 관문 추출기 `OllamaIntentLlmAdapter`(Gemini 폴백과 같은 지시문·스키마, Ollama format, null은 JSON Schema 유니온 타입). 운영 배선에는 넣지 않음.
+  - 관문 벤치 CLI `benchmark_intent`(masters·sheet·apply·run·evaluate)와 채점(정답·null·지어내기·스키마).
 
 ## [v0.65.1] - 2026-10-04
 
