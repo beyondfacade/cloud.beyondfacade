@@ -46,7 +46,12 @@ from apps.agent.adapter.outbound.llm.gemini_llm_adapter import GeminiLLMAdapter
 from apps.agent.adapter.outbound.llm.ollama_llm_adapter import OllamaLLMAdapter
 from apps.agent.app.ports.output.agent_port import LLMGatewayPort
 from apps.agent.app.use_cases.agent_tools import build_tools
-from apps.agent.app.use_cases.analysis_interactor import _SECTIONS, AnalysisInteractor, _fallback_section
+from apps.agent.app.use_cases.analysis_interactor import (
+    _SECTIONS,
+    SYSTEM_PROMPT,
+    AnalysisInteractor,
+    _fallback_section,
+)
 from apps.agent.app.use_cases.report_facts import ReportFactsCollector
 from apps.agent.domain.entities.agent_event_entity import AgentEvent
 from apps.agent.domain.services.section_stream import concat_sections
@@ -185,16 +190,29 @@ def _written_sections(sections: dict[str, str], facts: dict) -> set[str]:
     return llm_sections(sections, fallbacks)
 
 
-def score_run(record: dict, facts: dict, question: str | None = None) -> dict:
+def _tool_spec_text() -> str:
+    """모델에 노출되는 도구 정의(이름·설명·스키마)를 한 덩어리 글로 — 모델이 여기서 가져온 숫자는 지어낸 게 아니다."""
+    specs = [t.spec for t in build_tools(None, None, None, None)]  # 정의만 읽는다 — 게이트웨이는 호출되지 않음
+    return json.dumps(
+        [{"name": s.name, "description": s.description, "input_schema": s.input_schema} for s in specs],
+        ensure_ascii=False,
+    )
+
+
+def score_run(record: dict, facts: dict, question: str | None = None, tools_given: bool = True) -> dict:
     """한 회차 채점 — 완주(6절 모두 LLM 작성 & 오류 없음)·판정 일치·지어낸 숫자·규칙 키워드.
 
-    숫자 근거는 facts뿐 아니라 사용자 질문과 도구 결과(자금 계산·RAG 재검색)다.
+    숫자 근거는 facts뿐 아니라 사용자 질문·도구 결과(자금 계산·RAG 재검색)·시스템 프롬프트·
+    모델이 받은 도구 설명이다(도구 없는 모델은 도구 설명 제외).
     판정 일치는 판정 절을 LLM이 썼을 때만 본다(폴백 문구는 facts로 쓴 것이라 모델 평가가 아니다).
     """
     sections = record["sections"]
     written = _written_sections(sections, facts)
     text = _report_text(sections)
-    grounding = {"facts": facts, "question": question, "tool_results": record.get("tool_results", [])}
+    grounding = {
+        "facts": facts, "question": question, "tool_results": record.get("tool_results", []),
+        "system_prompt": SYSTEM_PROMPT, "tool_specs": _tool_spec_text() if tools_given else "",
+    }
     return {
         "complete": not record.get("error") and written >= {name for name, _ in _SECTIONS},
         "verdict_ok": "verdict" in written and verdict_matches(sections["verdict"], facts.get("verdict", {})),
@@ -318,7 +336,7 @@ def _cmd_score(args: argparse.Namespace) -> None:
         records = _read_jsonl(_run_path(name))
         if not records:
             continue
-        runs = [{**r, **score_run(r, facts[r["id"]], questions[r["id"]])} for r in records]
+        runs = [{**r, **score_run(r, facts[r["id"]], questions[r["id"]], REPORT_MODELS[name].tools)} for r in records]
         n = len(runs)
         summary = {
             "model": name, "n": n,

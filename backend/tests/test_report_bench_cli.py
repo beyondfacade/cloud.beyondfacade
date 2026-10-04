@@ -13,6 +13,7 @@ from apps.agent.adapter.inbound.cli.report_bench_scoring import (
     render_llm_report,
     report_gates,
 )
+from apps.agent.app.use_cases.analysis_interactor import SYSTEM_PROMPT
 from apps.agent.domain.entities.agent_event_entity import AgentEvent
 
 
@@ -156,3 +157,11 @@ def test_VRAM_미측정은_제외_사유로_남는다():
     ids = ["a"]
     block = build_report_block({"qwen3.5:4b": _score()}, {"qwen3.5:4b": _judge([4], ids)}, {}, ids)
     assert block["rows"][0]["excluded"] == "VRAM 미측정"
+
+
+def test_시스템_프롬프트에_있는_숫자는_지어낸_것이_아니다():
+    facts = {"verdict": {"available": True, "verdict_code": "red"}}
+    record = {"sections": {"verdict": "비추천입니다. 13가지 항목을 입력으로 봤습니다"}, "error": None}
+    assert "13개" in SYSTEM_PROMPT
+    assert score_run(record, facts)["unmatched"] == []
+    assert score_run(record, facts, tools_given=False)["unmatched"] == []
