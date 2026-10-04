@@ -2,6 +2,7 @@
 
 from apps.agent.adapter.inbound.cli.benchmark_report import (
     REPORT_MODELS,
+    build_report_block,
     FrozenFacts,
     collect_run,
     score_run,
@@ -95,3 +96,63 @@ def test_한_회차_채점_완주_판정_숫자():
     assert got["verdict_ok"] is True
     assert got["unmatched"] == ["12.3%"]
     assert score_run({"sections": {}, "error": "boom"}, facts)["verdict_ok"] is False
+
+
+def test_도구_결과와_질문에만_있는_숫자는_지어낸_것이_아니다():
+    facts = {"verdict": {"available": True, "verdict_code": "red"}}
+    record = {"sections": {"verdict": "비추천입니다. 월 상환액 3,456,000원, 예산 5000만원"}, "error": None,
+              "tool_results": ['{"monthly_payment": 3456000}']}
+    assert score_run(record, facts, "예산 5000만원으로 가능할까요?")["unmatched"] == []
+    assert score_run({**record, "tool_results": []}, facts, None)["unmatched"] != []
+
+
+def test_판정_절을_LLM이_안_썼으면_판정_일치는_거짓():
+    facts = {"verdict": {"available": True, "verdict_code": "red"}}
+    from apps.agent.app.use_cases.analysis_interactor import _fallback_section
+    fb = _fallback_section("verdict", "판정", facts)
+    assert score_run({"sections": {"verdict": fb}, "error": None}, facts)["verdict_ok"] is False
+
+
+def test_모델명을_가려도_한국어_조사는_남는다():
+    assert mask_model_names("Gemma4:12b와 Qwen3.5:4b는") == "[모델]와 [모델]는"
+
+
+def _score(**kw):
+    base = {"completion": 1.0, "verdict_match": 1.0, "fabrication": 0.0, "rule_violations_keyword": 0,
+            "first_p95_ms": 1000, "total_p95_ms": 10000}
+    return {**base, **kw}
+
+
+def _judge(model_scores, ids, viol=()):
+    return {sid: {"faithfulness": f, "fluency": f, "violations": list(viol)} for sid, f in zip(ids, model_scores)}
+
+
+def test_판정_대상_게이트_탈락과_온라인과_판정_부분은_제외():
+    ids = ["a", "b"]
+    scores = {"qwen3.5:4b": _score(), "qwen3.5:9b": _score(fabrication=0.5),
+              "gemma4:e4b": _score(), "gemini-2.5-flash": _score()}
+    judge = {"qwen3.5:4b": _judge([4, 4], ids), "qwen3.5:9b": _judge([5, 5], ids),
+             "gemma4:e4b": _judge([5], ids[:1]), "gemini-2.5-flash": _judge([5, 5], ids)}
+    vram = {"qwen3.5:4b": 3400, "qwen3.5:9b": 6600, "gemma4:e4b": 9600}
+    block = build_report_block(scores, judge, vram, ids)
+    why = {r["model"]: r["excluded"] for r in block["rows"]}
+    assert block["winner"] == "qwen3.5:4b"
+    assert why["qwen3.5:4b"] is None
+    assert why["qwen3.5:9b"] == "게이트 탈락: fabrication"
+    assert why["gemma4:e4b"] == "판정 미완료 1/2"
+    assert "온라인" in why["gemini-2.5-flash"]
+
+
+def test_규칙_위반은_키워드와_판정자_보고를_합친다():
+    ids = ["a", "b"]
+    scores = {"qwen3.5:4b": _score(rule_violations_keyword=0)}
+    judge = {"qwen3.5:4b": _judge([4, 4], ids, viol=["차별 표현"])}
+    block = build_report_block(scores, judge, {"qwen3.5:4b": 3400}, ids)
+    row = block["rows"][0]
+    assert row["rule_violations"] == 2 and row["gates"]["rules"] is False and block["winner"] is None
+
+
+def test_VRAM_미측정은_제외_사유로_남는다():
+    ids = ["a"]
+    block = build_report_block({"qwen3.5:4b": _score()}, {"qwen3.5:4b": _judge([4], ids)}, {}, ids)
+    assert block["rows"][0]["excluded"] == "VRAM 미측정"

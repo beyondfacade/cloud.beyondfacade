@@ -19,7 +19,7 @@ import json
 import subprocess
 import time
 from collections.abc import Callable, Iterable
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from datetime import date
 from pathlib import Path
 from statistics import mean
@@ -68,6 +68,9 @@ _RESULTS_ROOT = _REPO_ROOT / "data/eval/results"
 
 _JUDGE_SEED = 0
 _TEMPERATURE = 0.3  # 운영 리포트 호출과 같게
+# facts JSON이 Ollama 기본 컨텍스트를 넘어 조용히 잘리지 않게 명시한다(Task 7에서 facts 크기를 재고 조정).
+BENCH_NUM_CTX = 16384
+_LOCAL_OPTIONS = {"num_ctx": BENCH_NUM_CTX}  # vram·residency도 같은 옵션으로 올려야 VRAM이 실사용을 반영한다
 _OLLAMA_KEEP_ALIVE = "10m"
 _MIB = 1024 * 1024
 _BGE = "bge-m3"
@@ -83,7 +86,7 @@ class ReportModel:
 
 
 def _ollama(name: str, think: bool | None, tools: bool = True) -> ReportModel:
-    return ReportModel(name, lambda: OllamaLLMAdapter(model=name, think=think, temperature=_TEMPERATURE), tools, True)
+    return ReportModel(name, lambda: OllamaLLMAdapter(model=name, think=think, temperature=_TEMPERATURE, num_ctx=BENCH_NUM_CTX), tools, True)
 
 
 REPORT_MODELS: dict[str, ReportModel] = {m.name: m for m in (
@@ -177,16 +180,25 @@ def _report_text(sections: dict[str, str]) -> str:
     return concat_sections(sections.items(), order=[name for name, _ in _SECTIONS])
 
 
-def score_run(record: dict, facts: dict) -> dict:
-    """한 회차 채점 — 완주(6절 모두 LLM 작성 & 오류 없음)·판정 일치·지어낸 숫자·규칙 키워드."""
-    sections = record["sections"]
+def _written_sections(sections: dict[str, str], facts: dict) -> set[str]:
     fallbacks = {name: _fallback_section(name, title, facts) for name, title in _SECTIONS}
-    written = llm_sections(sections, fallbacks)
+    return llm_sections(sections, fallbacks)
+
+
+def score_run(record: dict, facts: dict, question: str | None = None) -> dict:
+    """한 회차 채점 — 완주(6절 모두 LLM 작성 & 오류 없음)·판정 일치·지어낸 숫자·규칙 키워드.
+
+    숫자 근거는 facts뿐 아니라 사용자 질문과 도구 결과(자금 계산·RAG 재검색)다.
+    판정 일치는 판정 절을 LLM이 썼을 때만 본다(폴백 문구는 facts로 쓴 것이라 모델 평가가 아니다).
+    """
+    sections = record["sections"]
+    written = _written_sections(sections, facts)
     text = _report_text(sections)
+    grounding = {"facts": facts, "question": question, "tool_results": record.get("tool_results", [])}
     return {
         "complete": not record.get("error") and written >= {name for name, _ in _SECTIONS},
-        "verdict_ok": bool(sections.get("verdict")) and verdict_matches(sections["verdict"], facts.get("verdict", {})),
-        "unmatched": unmatched_numbers(text, facts),
+        "verdict_ok": "verdict" in written and verdict_matches(sections["verdict"], facts.get("verdict", {})),
+        "unmatched": unmatched_numbers(text, grounding),
         "rule_hits": check_rule_keywords(text),
     }
 
@@ -234,9 +246,12 @@ def _ollama_ps() -> list[dict]:
     return response.json().get("models", [])
 
 
-def _load(model: str, keep_alive: str | int = _OLLAMA_KEEP_ALIVE) -> None:
-    """빈 프롬프트로 모델을 올린다(keep_alive 0이면 내린다). 임베딩 모델도 같은 경로로 올라간다."""
-    _ollama_post("/api/generate", {"model": model, "prompt": "", "keep_alive": keep_alive, "stream": False})
+def _load(model: str, keep_alive: str | int = _OLLAMA_KEEP_ALIVE, options: dict | None = None) -> None:
+    """빈 프롬프트로 모델을 올린다(keep_alive 0이면 내린다). 로컬 LLM은 벤치와 같은 options로 올린다."""
+    body = {"model": model, "prompt": "", "keep_alive": keep_alive, "stream": False}
+    if options:
+        body["options"] = options
+    _ollama_post("/api/generate", body)
 
 
 def _unload_all() -> None:
@@ -244,21 +259,32 @@ def _unload_all() -> None:
         _load(m["name"], 0)
 
 
+def _recording(run: Callable[[dict], str], sink: list[str]) -> Callable[[dict], str]:
+    """도구 실행을 감싸 결과 문자열을 sink에 남긴다."""
+    def wrapped(arguments: dict) -> str:
+        result = run(arguments)
+        sink.append(result)
+        return result
+    return wrapped
+
+
 def _cmd_run(args: argparse.Namespace) -> None:
     model = REPORT_MODELS[args.model]
     llm = model.llm()
     if model.local:
-        _load(model.name)  # 워밍업 — 모델 로드 시간은 지연에서 제외
+        _load(model.name, options=_LOCAL_OPTIONS)  # 워밍업 — 모델 로드 시간은 지연에서 제외
     path = _run_path(model.name)
     path.parent.mkdir(parents=True, exist_ok=True)
     done = {(r["id"], r["rep"]) for r in _read_jsonl(path)}
     _, region_facts, rag_search = _collector()
-    tools = build_tools(region_facts, rag_search, FinanceFactsGateway(), None) if model.tools else []
+    base_tools = build_tools(region_facts, rag_search, FinanceFactsGateway(), None) if model.tools else []
     for rep in range(args.repeat):
         for s in _scenarios():
             if (s["id"], rep) in done:
                 continue
             frozen = FrozenFacts({(s["region_code"], s["industry_id"]): _facts_of(s["id"])})
+            tool_results: list[str] = []  # 리포트 숫자의 근거 — 도구가 돌려준 결과를 그대로 모은다
+            tools = [replace(t, run=_recording(t.run, tool_results)) for t in base_tools]
             interactor = AnalysisInteractor(llm=llm, tools=tools, facts=frozen)
             error = None
             events: list[AgentEvent] = []
@@ -272,9 +298,12 @@ def _cmd_run(args: argparse.Namespace) -> None:
                 got = collect_run(stream())
             except Exception as exc:  # 모델·전송 실패도 한 회차의 결과다 — 완주 게이트가 걸러낸다
                 error = f"{type(exc).__name__}: {exc}"
-                got = collect_run(events)
+                got = {**collect_run(events), "first_ms": None, "total_ms": None}  # 중단된 회차의 시간은 의미 없다
             usage = interactor.last_usage
-            row = {"id": s["id"], "rep": rep, **got, "error": error,
+            if not error and usage.output_tokens == 0 and not _written_sections(got["sections"], _facts_of(s["id"])):
+                error = "no_llm_output"
+                print(f"run: 경고 {model.name} {s['id']} rep{rep} LLM 출력 없음", flush=True)
+            row = {"id": s["id"], "rep": rep, **got, "error": error, "tool_results": tool_results,
                    "usage": {"input_tokens": usage.input_tokens, "output_tokens": usage.output_tokens}}
             with path.open("a", encoding="utf-8") as f:
                 f.write(json.dumps(row, ensure_ascii=False) + "\n")
@@ -282,12 +311,14 @@ def _cmd_run(args: argparse.Namespace) -> None:
 
 
 def _cmd_score(args: argparse.Namespace) -> None:
-    facts = {s["id"]: _facts_of(s["id"]) for s in _scenarios()}
+    scenarios = _scenarios()
+    facts = {s["id"]: _facts_of(s["id"]) for s in scenarios}
+    questions = {s["id"]: s["question"] for s in scenarios}
     for name in REPORT_MODELS:
         records = _read_jsonl(_run_path(name))
         if not records:
             continue
-        runs = [{**r, **score_run(r, facts[r["id"]])} for r in records]
+        runs = [{**r, **score_run(r, facts[r["id"]], questions[r["id"]])} for r in records]
         n = len(runs)
         summary = {
             "model": name, "n": n,
@@ -327,7 +358,7 @@ def _cmd_judge_export(args: argparse.Namespace) -> None:
 def _cmd_judge_import(args: argparse.Namespace) -> None:
     mapping = _read_json(_JUDGE / "mapping.json")
     judged = json.loads(Path(args.file).read_text(encoding="utf-8"))
-    scores: dict[str, dict[str, dict]] = {}
+    scores: dict[str, dict[str, dict]] = _read_json(_JUDGE / "scores.json", {})  # 이어 넣기 — 덮어쓰지 않는다
     for sid, by_blind in judged.items():
         for blind, score in by_blind.items():
             scores.setdefault(mapping[sid][blind], {})[sid] = score
@@ -352,16 +383,20 @@ def _cmd_vram(args: argparse.Namespace) -> None:
     models = [n for n, m in REPORT_MODELS.items() if m.local] + list(_INTENT_ONLY_LOCAL)
     vram: dict[str, float] = {}
     for model in models:
-        _unload_all()
-        _load(model)
-        entry = _entry(_ollama_ps(), model)
+        try:
+            _unload_all()
+            _load(model, options=_LOCAL_OPTIONS)
+            entry = _entry(_ollama_ps(), model)
+        except httpx.HTTPError as exc:
+            print(f"vram: {model} 로드 실패 — 건너뜀 ({exc})", flush=True)
+            continue
         if entry is None:
             print(f"vram: {model} /api/ps 에 없음 — 건너뜀", flush=True)
             continue
         vram[model] = entry["size_vram"] / _MIB
+        _write_json(_VRAM, vram)  # 모델마다 저장 — 중간에 끊겨도 잰 값은 남는다
         print(f"vram: {model} {vram[model]:.0f} MiB", flush=True)
     _unload_all()
-    _write_json(_VRAM, vram)
 
 
 def _cmd_residency(args: argparse.Namespace) -> None:
@@ -371,44 +406,64 @@ def _cmd_residency(args: argparse.Namespace) -> None:
         if model == _BGE:
             _ollama_post("/api/embed", {"model": _BGE, "input": "ping", "keep_alive": _OLLAMA_KEEP_ALIVE})
         else:
-            _load(model)
+            _load(model, options=_LOCAL_OPTIONS)
     ps = _ollama_ps()
     present = resident_models({"models": ps})
     sizes = {m: {"size_mib": e["size"] / _MIB, "vram_mib": e["size_vram"] / _MIB}
              for m in wanted if (e := _entry(ps, m))}
-    ok = all(m in present or f"{m}:latest" in present for m in wanted)
+    # 셋 다 올라 있고, 각각 전부 GPU에 있어야 한다(부분 CPU 오프로드는 상주 실패)
+    ok = all((m in present or f"{m}:latest" in present) and e["size_vram"] == e["size"]
+             for m in wanted if (e := _entry(ps, m)) is not None) and len(sizes) == len(wanted)
     result = {"report_model": args.report_model, "intent_model": args.intent_model, "same_model": len(wanted) == 2,
               "ok": ok, "used_mib": _gpu_used_mib(), "sizes": sizes}
     _write_json(_RESIDENCY, result)
     print(f"residency: ok={ok} {result['used_mib']} MiB", flush=True)
 
 
-def _report_block(scenario_ids: list[str]) -> dict:
-    judge = _read_json(_JUDGE / "scores.json", {})
-    vram = _read_json(_VRAM, {})
-    rows, per_row, score_by, p95_by, eligible = [], {}, {}, {}, []
-    for name, model in REPORT_MODELS.items():
-        score = _read_json(_score_path(name))
-        if score is None:
-            continue
+def _exclusion(local: bool, gates: dict[str, bool], judged: int | None, total: int, vram: float | None) -> str | None:
+    """판정 대상에서 빠진 이유 — 대상이면 None. judged가 None이면 판정 개수를 따지지 않는다(관문)."""
+    if not local:
+        return "온라인 비교군(판정 대상 아님)"
+    failed = [k for k, ok in gates.items() if not ok and k != "all"]
+    if failed:
+        return "게이트 탈락: " + ", ".join(failed)
+    if judged is not None and judged < total:
+        return f"판정 미완료 {judged}/{total}"
+    if vram is None:
+        return "VRAM 미측정"
+    return None
+
+
+def build_report_block(scores: dict[str, dict], judge: dict, vram: dict, scenario_ids: list[str]) -> dict:
+    """리포트 역할 판정 — 게이트 통과 & 로컬 & 판정 완료 & VRAM 측정된 모델 중 pick_winner."""
+    rows, per_row, p95_by, eligible = [], {}, {}, []
+    for name, score in scores.items():
+        model = REPORT_MODELS[name]
         mine = judge.get(name, {})
-        judged = all(sid in mine for sid in scenario_ids)
-        quality = [mine[sid]["faithfulness"] + mine[sid]["fluency"] for sid in scenario_ids] if judged else []
+        judged = sum(sid in mine for sid in scenario_ids)
+        quality = [mine[sid]["faithfulness"] + mine[sid]["fluency"] for sid in scenario_ids] \
+            if judged == len(scenario_ids) else []
         judge_violations = sum(len(mine[sid].get("violations", [])) for sid in scenario_ids if sid in mine)
         merged = {**score, "rule_violations": score["rule_violations_keyword"] + judge_violations}
         latency = {k: score[k] if score[k] is not None else float("inf") for k in ("first_p95_ms", "total_p95_ms")}
         gates = report_gates(merged, latency)
         gates["all"] = all(gates.values())
+        excluded = _exclusion(model.local, gates, judged, len(scenario_ids), vram.get(name))
         note = _NOTES.get(model.local, "") or ("" if model.tools else _NO_TOOL_NOTE)
         rows.append({"model": name, "vram_mib": vram.get(name), "quality": mean(quality) if quality else None,
                      "completion": score["completion"], "verdict_match": score["verdict_match"],
                      "fabrication": score["fabrication"], "rule_violations": merged["rule_violations"],
                      "first_p95_ms": score["first_p95_ms"], "total_p95_ms": score["total_p95_ms"],
-                     "gates": gates, "note": note, "local": model.local})
-        if gates["all"] and model.local and judged and name in vram:
+                     "gates": gates, "note": note, "local": model.local, "excluded": excluded})
+        if excluded is None:
             eligible.append(name)
-            per_row[name], score_by[name], p95_by[name] = quality, quality, score["total_p95_ms"]
-    return _pick(rows, per_row, score_by, {m: vram[m] for m in eligible}, p95_by, eligible)
+            per_row[name], p95_by[name] = quality, score["total_p95_ms"]
+    return _pick(rows, per_row, per_row, {m: vram[m] for m in eligible}, p95_by, eligible)
+
+
+def _report_block(scenario_ids: list[str]) -> dict:
+    scores = {name: score for name in REPORT_MODELS if (score := _read_json(_score_path(name))) is not None}
+    return build_report_block(scores, _read_json(_JUDGE / "scores.json", {}), _read_json(_VRAM, {}), scenario_ids)
 
 
 def _pick(rows: list[dict], per_row: dict, score_by: dict, vram_by: dict, p95_by: dict, eligible: list[str]) -> dict:
@@ -431,7 +486,8 @@ def _intent_block() -> dict:
         rows.append({"model": name, "vram_mib": vram.get(name), "both": s["both"], "region": s["region"],
                      "industry": s["industry"], "budget": s["budget"], "schema_rate": s["schema_rate"],
                      "fabrication_rate": s["fabrication_rate"], "p95_ms": s["p95_ms"], "gates": gates,
-                     "note": "" if local else "온라인 비교군", "local": local})
+                     "note": "" if local else "온라인 비교군", "local": local,
+                     "excluded": _exclusion(local, gates, None, 0, vram.get(name))})
         if gates["all"] and local and name in vram:
             eligible.append(name)
             per_row[name], vram_by[name], p95_by[name] = s["per_row_both"], vram[name], s["p95_ms"]

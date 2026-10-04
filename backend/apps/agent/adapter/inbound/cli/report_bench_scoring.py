@@ -181,7 +181,7 @@ _MODEL_NAMES = ("LG AI", "LG", "gemma", "qwen", "kanana", "exaone", "gemini", "K
 # 영문 이름은 앞뒤가 영문자가 아닐 때만(algorithm 같은 단어 보호), 뒤에 붙은 버전 꼬리("4:12b")까지 함께 가린다.
 _MASK_RE = re.compile(
     r"(?<![A-Za-z])(?:" + "|".join(re.escape(n) for n in sorted(_MODEL_NAMES, key=len, reverse=True)) + r")"
-    r"(?![A-Za-z])(?:[-:]?\d[\w.:\-]*(?<![.:\-]))?",
+    r"(?![A-Za-z])(?:[-:]?\d[A-Za-z0-9.:\-]*(?<![.:\-]))?",
     re.IGNORECASE,
 )
 
@@ -248,7 +248,8 @@ def _intent_row(r: dict) -> list[str]:
 
 def _verdict_line(role: str, block: dict) -> str:
     if block.get("winner") is None:
-        return f"- {role}: **없음** — 게이트를 통과한 로컬 모델이 없다"
+        reasons = "; ".join(f"{r['model']}({r['excluded']})" for r in block.get("rows", []) if r.get("excluded"))
+        return f"- {role}: **없음** — {reasons or '게이트를 통과한 로컬 모델이 없다'}"
     return f"- {role}: **{block['winner']}** — 동률 {', '.join(block['tied'])}"
 
 

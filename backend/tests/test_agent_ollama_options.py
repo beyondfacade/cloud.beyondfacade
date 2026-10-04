@@ -37,3 +37,17 @@ def test_스트림도_같은_옵션을_싣는다():
     adapter = OllamaLLMAdapter(model="m", base_url="http://x", transport=httpx.MockTransport(handler), think=False, temperature=0.3)
     list(adapter.stream([], []))
     assert bodies[0]["think"] is False and bodies[0]["options"] == {"temperature": 0.3}
+
+
+def test_num_ctx를_주면_options에_실린다():
+    bodies = []
+    adapter = OllamaLLMAdapter(model="m", base_url="http://x", transport=_capture(bodies), num_ctx=16384)
+    adapter.chat([], [])
+    assert bodies[0]["options"] == {"num_ctx": 16384}
+
+
+def test_temperature와_num_ctx를_함께_싣는다():
+    bodies = []
+    adapter = OllamaLLMAdapter(model="m", base_url="http://x", transport=_capture(bodies), temperature=0.3, num_ctx=8192)
+    adapter.chat([], [])
+    assert bodies[0]["options"] == {"temperature": 0.3, "num_ctx": 8192}
