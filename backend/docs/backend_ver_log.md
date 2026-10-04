@@ -20,7 +20,8 @@
   - 판정자 묶음 머리에 채점 기준표(`data/eval/report_judge_rubric.md`)와 전체 사실 묶음 경로를 적고, 요약이 앞 3,000자에서 잘렸음을 명시.
 
 ### Added (결과)
-- **LLM 모델 평가 결과**(2026-10-05, `data/eval/results/llm-benchmark-2026-10-05/report.md`) — 리포트: 엄격 게이트 통과 로컬 모델 없음(참고 품질 gemma4:12b 6.00 ≈ e4b 5.42, Gemini 6.67). 관문: gemma4:12b 로컬 유일 통과(0.887, Gemini 0.988). 운영 Ollama 폴백 num_ctx 미지정으로 약 2k 토큰만 읽는 문제 발견(운영 미수정, STATUS §4-4-2).
+- **LLM 모델 평가 결과**(2026-10-05, `data/eval/results/llm-benchmark-2026-10-05/report.md`·`notes.md`) — 리포트: 엄격 게이트 통과 로컬 모델 없음(참고 품질 gemma4:12b 6.00 ≈ e4b 5.42, Gemini 6.67). 관문: 엄격 게이트 통과 로컬 모델 없음(Gemini 0.988만 통과). 운영 Ollama 폴백 num_ctx 미지정으로 약 2k 토큰만 읽는 문제 발견(운영 미수정, STATUS §4-4-2).
+- **정정**: 관문 지어내기를 스펙 범위(missing·out_of_scope 26건)로 다시 세어 gemma4:12b 0.039 → 0.077로 게이트 탈락 — 앞서 적은 '관문 gemma4:12b 로컬 유일 통과'는 철회. 로컬 채택 전 프롬프트·형식 작업 후 재측정 필요(트레이드오프는 notes.md).
 
 ## [v0.65.1] - 2026-10-04
 

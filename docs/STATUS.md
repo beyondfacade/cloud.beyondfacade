@@ -204,8 +204,9 @@ main이 전진하면 다시 낡는다 — 배포 전 재빌드가 규칙.
   gemini-2 1회 색인 약 $0.31(표준), gemini-001은 가격표에 없음. 보고서: `data/eval/results/embedding-benchmark-2026-10-04/report.md`.
   **최종 결정(10/4): 운영 임베딩을 bge-m3@1024(Ollama, 색인·질의 동일)로 전환** — qwen3@1536과 MRR 동률(0.940 vs 0.935, +0.005 [−0.018, +0.028]), GPU 메모리 664MB vs 4.4GB, CPU만으로도 운영 가능(질의 p95 149ms, GPU 대비 코사인 ≥0.99998).
   마이그레이션 `c7a3f1e8d204` 적용·8,905건 전량 재색인(101초) 후 운영 평가(confirmed 233): Hit@5 0.983 / MRR 0.930 (전환 전 qwen3 운영 0.991 / 0.930, `data/eval/results/rag_bge-m3_20261004_231013.json`). 기존 테이블 백업 `data/backups/rag_chunk_qwen1536_20261004.dump`(gitignore).
-- **LLM 모델 평가(10/5)** — 평가셋: 리포트 12 시나리오×3회, 관문 80건(confirmed). 결과: 리포트는 엄격 게이트를 통과한 로컬 모델 없음(Gemini도 규칙 게이트 탈락, 주로 신뢰 등급 표기), 관문은 gemma4:12b가 로컬 유일 통과(동시 정답 0.887, Gemini 0.988).
-  운영 버그(미해결): 운영 Ollama 폴백(`analysis_dependencies._local`)이 num_ctx 없이 호출해 Ollama 0.31.2 기본값으로 약 2k 토큰만 읽는다(§4-4-2). 보고서: `data/eval/results/llm-benchmark-2026-10-05/report.md`(spec `docs/superpowers/specs/2026-10-04-llm-benchmark-design.md`).
+- **LLM 모델 평가(10/5)** — 평가셋: 리포트 12 시나리오×3회, 관문 80건(confirmed). 결과: **두 역할 모두 엄격 게이트를 통과한 로컬 모델 없음**. 리포트는 로컬 전원 탈락(Gemini도 규칙 게이트 탈락, 주로 신뢰 등급 표기). 관문은 스펙 범위(missing·out_of_scope 26건) 지어내기로 gemma4:12b 0.077 탈락(이전 범위 0.039 — 서울 밖 지명을 서울 동으로 채움 2건), Gemini는 통과(0.988).
+  참고(결정 아님): 리포트 품질 12b 6.00 vs e4b 5.42 동률(+0.58 [−0.17, +1.25]) → VRAM 우선 e4b, 관문 로컬 최고 12b(0.887). 로컬 채택 전 프롬프트·형식 작업(신뢰 등급 태그, 공고 번호·URL 그대로 옮기기) 후 재측정 필요 — 트레이드오프는 `notes.md`.
+  운영 버그(미해결): 운영 Ollama 폴백(`analysis_dependencies._local`)이 num_ctx 없이 호출해 Ollama 0.31.2 기본값으로 약 2k 토큰만 읽는다(§4-4-2). 보고서: `data/eval/results/llm-benchmark-2026-10-05/report.md`·`notes.md`(spec `docs/superpowers/specs/2026-10-04-llm-benchmark-design.md`).
 - 두뇌 비교(`data/eval/results/agent_compare.md`)로 리포트는 **혼합(Gemini 우선·로컬 폴백)** 채택 완료.
 
 ### 4-4-1. 도커 컨테이너에서 호스트 Ollama 접근 불가 — 10/4 해소 (v0.65.1)
@@ -214,7 +215,7 @@ main이 전진하면 다시 낡는다 — 배포 전 재빌드가 규칙.
 재빌드 후 컨테이너에서 RAG 검색 3건·운영 점검 Ollama 도달(모델 12개) 확인.
 
 ### 4-4-2. 운영 Ollama 폴백 컨텍스트 잘림 — 10/5 발견, 미해결
-`analysis_dependencies._local`이 num_ctx를 지정하지 않아 Ollama 0.31.2 기본 컨텍스트로 호출된다. 실측: 입력 약 17k 토큰 프롬프트에서 gemma4:12b·qwen3.5:4b 모두 prompt_eval_count 약 2,050 — facts 대부분이 잘린 채 리포트를 쓴다. 벤치마크는 num_ctx 32,768로 측정(첫 턴 프롬프트 최대 14,143 토큰). 수정 후보: 폴백 어댑터에 num_ctx 지정(어댑터는 인자 지원, v0.66.0). 운영 배선 변경이라 사용자 결정 대기.
+`analysis_dependencies._local`이 num_ctx를 지정하지 않아 Ollama 0.31.2 기본 컨텍스트로 호출된다. 실측: 리포트 프롬프트에서 gemma4:12b·qwen3.5:4b 모두 prompt_eval_count 약 2,050 — facts 대부분이 잘린 채 리포트를 쓴다(당시 입력은 약 17k 토큰으로 추정만 함). 실제 첫 턴 프롬프트는 num_ctx 32,768에서 13.1k~14.1k 토큰으로 실측(도구 없이 13,111, 도구 포함 14,143). 벤치마크는 num_ctx 32,768로 측정. 수정 후보: 폴백 어댑터에 num_ctx 지정(어댑터는 인자 지원, v0.66.0). 운영 배선 변경이라 사용자 결정 대기.
 
 ### 4-5. 외부 대기·자료 한계 (코드로 못 푸는 것)
 - 주민등록 인구 2026.07분 공표 후 1파일 추가
