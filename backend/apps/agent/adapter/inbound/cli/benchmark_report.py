@@ -38,6 +38,7 @@ from apps.agent.adapter.inbound.cli.report_bench_scoring import (
     report_gates,
     unmatched_numbers,
     verdict_matches,
+    verdict_states_grade,
 )
 from apps.agent.adapter.outbound.gateways.event_analog_facts_gateway import EventAnalogFactsGateway
 from apps.agent.adapter.outbound.gateways.finance_facts_gateway import FinanceFactsGateway
@@ -82,6 +83,11 @@ _OLLAMA_KEEP_ALIVE = "10m"
 _MIB = 1024 * 1024
 _BGE = "bge-m3"
 _INTENT_ONLY_LOCAL = ("qwen3.5:2b-q4_K_M",)  # 관문 전용 후보 — VRAM만 잰다
+_ONLINE = "gemini-2.5-flash"
+# Gemini 2.5 Flash 유료 티어 단가(1M 토큰당, 출력은 생각 토큰 포함) — 바뀌면 확인일·출처와 함께 고친다
+_GEMINI_PRICE = {"input": 0.30, "output": 2.50}
+_GEMINI_PRICE_CHECKED = "2026-10-05"
+_GEMINI_PRICE_SOURCE = "https://ai.google.dev/gemini-api/docs/pricing"
 
 
 @dataclass(frozen=True)
@@ -104,7 +110,7 @@ REPORT_MODELS: dict[str, ReportModel] = {m.name: m for m in (
     _ollama("qwen3.5:4b", False),
     # Ollama 템플릿에 도구 처리가 없다 — 도구 없이 돌리는 참고 비교군(라이선스 NC)
     _ollama("exaone3.5:7.8b", None, tools=False),
-    ReportModel("gemini-2.5-flash", lambda: GeminiLLMAdapter(model="gemini-2.5-flash"), True, False),
+    ReportModel(_ONLINE, lambda: GeminiLLMAdapter(model=_ONLINE), True, False),
 )}
 _NOTES = {False: "온라인 비교군"}  # local 여부별 비고
 _NO_TOOL_NOTE = "도구 없음(참고 비교군, 라이선스 NC)"
@@ -218,6 +224,7 @@ def score_run(record: dict, facts: dict, question: str | None = None, tools_give
     return {
         "complete": not record.get("error") and written >= {name for name, _ in _SECTIONS},
         "verdict_ok": "verdict" in written and verdict_matches(sections["verdict"], facts.get("verdict", {})),
+        "verdict_graded": "verdict" in written and verdict_states_grade(sections["verdict"]),
         "unmatched": unmatched_numbers(text, grounding),
         "rule_hits": check_rule_keywords(text),
     }
@@ -344,6 +351,9 @@ def _cmd_score(args: argparse.Namespace) -> None:
             "model": name, "n": n,
             "completion": sum(r["complete"] for r in runs) / n,
             "verdict_match": sum(r["verdict_ok"] for r in runs) / n,
+            # 참고 — LLM이 쓴 판정 절에 등급 말이 없는 회차 수(모순은 아니지만 등급을 생략)
+            "verdict_no_grade": sum("verdict" in _written_sections(r["sections"], facts[r["id"]])
+                                    and not r["verdict_graded"] for r in runs),
             "fabrication": sum(bool(r["unmatched"]) for r in runs) / n,
             "rule_violations_keyword": sum(len(r["rule_hits"]) for r in runs),
             "first_p95_ms": _p95([r["first_ms"] for r in runs]),
@@ -472,7 +482,8 @@ def build_report_block(scores: dict[str, dict], judge: dict, vram: dict, scenari
         excluded = _exclusion(model.local, gates, judged, len(scenario_ids), vram.get(name))
         note = _NOTES.get(model.local, "") or ("" if model.tools else _NO_TOOL_NOTE)
         rows.append({"model": name, "vram_mib": vram.get(name), "quality": mean(quality) if quality else None,
-                     "completion": score["completion"], "verdict_match": score["verdict_match"],
+                     "n": score.get("n"), "completion": score["completion"], "verdict_match": score["verdict_match"],
+                     "verdict_no_grade": score.get("verdict_no_grade"),
                      "fabrication": score["fabrication"], "rule_violations": merged["rule_violations"],
                      "first_p95_ms": score["first_p95_ms"], "total_p95_ms": score["total_p95_ms"],
                      "gates": gates, "note": note, "local": model.local, "excluded": excluded})
@@ -481,23 +492,30 @@ def build_report_block(scores: dict[str, dict], judge: dict, vram: dict, scenari
             per_row[name], p95_by[name] = quality, score["total_p95_ms"]
         if model.local and quality:
             ref_quality[name], ref_p95[name] = quality, score["total_p95_ms"]
-        if model.local and mine:
+        if mine:  # 위반 유형은 온라인 비교군도 함께 센다
             ref_violations[name] = dict(Counter(classify_violation(v) for sid in scenario_ids if sid in mine
                                                 for v in mine[sid].get("violations", [])))
     block = _pick(rows, per_row, per_row, {m: vram[m] for m in eligible}, p95_by, eligible)
-    block["reference"] = _reference(rows, ref_quality, ref_p95, ref_violations, vram)
+    block["reference"] = {**_reference(rows, ref_quality, ref_p95, vram, "quality"),
+                          "scenario_ids": scenario_ids, "per_scenario": ref_quality, "violations": ref_violations}
     return block
 
 
-def _reference(rows: list[dict], quality: dict, p95_by: dict, violations: dict, vram: dict) -> dict:
-    """참고 순위 — 판정 완료한 로컬 모델 전부를 평균 품질로 줄 세우고, VRAM이 잰 모델끼리 pick_winner."""
+def _reference(rows: list[dict], score_by: dict, p95_by: dict, vram: dict, metric: str) -> dict:
+    """참고 순위 — 게이트와 무관하게 받은 로컬 모델 전부를 평균 점수로 줄 세운다.
+
+    1위(best) 대비 문항별 paired bootstrap 구간(ci_vs_best: 평균 차, 하한, 상한)을 남기고,
+    VRAM을 잰 모델끼리 pick_winner(동률이면 VRAM 작은 쪽).
+    """
     by_name = {r["model"]: r for r in rows}
-    ranking = [{"model": m, "quality": mean(q), "vram_mib": vram.get(m),
-                "failed": [k for k, ok in by_name[m]["gates"].items() if not ok and k != "all"]}
-               for m, q in sorted(quality.items(), key=lambda kv: -mean(kv[1]))]
-    measured = [m for m in quality if m in vram]
-    winner, tied = pick_winner(quality, vram, p95_by, measured) if measured else (None, [])
-    return {"ranking": ranking, "winner": winner, "tied": tied, "violations": violations}
+    order = sorted(score_by, key=lambda m: -mean(score_by[m]))
+    ranking = [{"model": m, metric: mean(score_by[m]), "vram_mib": vram.get(m),
+                "failed": [k for k, ok in by_name[m]["gates"].items() if not ok and k != "all"]} for m in order]
+    best = order[0] if order else None
+    ci = {m: list(paired_bootstrap_ci(score_by[best], score_by[m])) for m in order[1:]}
+    measured = [m for m in order if m in vram]
+    winner, tied = pick_winner(score_by, vram, p95_by, measured) if measured else (None, [])
+    return {"ranking": ranking, "best": best, "ci_vs_best": ci, "winner": winner, "tied": tied}
 
 
 def _report_block(scenario_ids: list[str]) -> dict:
@@ -515,28 +533,51 @@ def _pick(rows: list[dict], per_row: dict, score_by: dict, vram_by: dict, p95_by
 
 
 def _intent_block() -> dict:
-    summary = _read_json(_INTENT_SUMMARY, {})
-    vram = _read_json(_VRAM, {})
+    return build_intent_block(_read_json(_INTENT_SUMMARY, {}), _read_json(_VRAM, {}))
+
+
+def build_intent_block(summary: dict[str, dict], vram: dict) -> dict:
+    """관문 역할 판정 + 참고 순위(게이트와 무관하게 로컬 전부, 동시 정답 기준)."""
     rows, per_row, vram_by, p95_by, eligible = [], {}, {}, {}, []
+    ref_both, ref_p95 = {}, {}
     for name, s in summary.items():
         gates = intent_gates(s)
         gates["all"] = all(gates.values())
         local = name in REPORT_MODELS and REPORT_MODELS[name].local or name in _INTENT_ONLY_LOCAL
         rows.append({"model": name, "vram_mib": vram.get(name), "both": s["both"], "region": s["region"],
                      "industry": s["industry"], "budget": s["budget"], "schema_rate": s["schema_rate"],
-                     "fabrication_rate": s["fabrication_rate"], "p95_ms": s["p95_ms"], "gates": gates,
+                     "fabrication_rate": s["fabrication_rate"], "fabrication_any_null": s.get("fabrication_any_null"),
+                     "p95_ms": s["p95_ms"], "gates": gates,
                      "note": "" if local else "온라인 비교군", "local": local,
                      "excluded": _exclusion(local, gates, None, 0, vram.get(name))})
         if gates["all"] and local and name in vram:
             eligible.append(name)
             per_row[name], vram_by[name], p95_by[name] = s["per_row_both"], vram[name], s["p95_ms"]
-    return _pick(rows, per_row, per_row, vram_by, p95_by, eligible)
+        if local:
+            ref_both[name], ref_p95[name] = s["per_row_both"], s["p95_ms"]
+    block = _pick(rows, per_row, per_row, vram_by, p95_by, eligible)
+    block["reference"] = {**_reference(rows, ref_both, ref_p95, vram, "both"),
+                          "ids": next(iter(summary.values()))["ids"] if summary else [],
+                          "per_row_both": {name: s["per_row_both"] for name, s in summary.items()}}
+    return block
+
+
+def gemini_cost(records: list[dict]) -> dict:
+    """Gemini 리포트 캐시의 usage 평균 → 리포트 1건 토큰·비용(USD)."""
+    n = len(records)
+    mean_in = sum(r["usage"]["input_tokens"] for r in records) / n
+    mean_out = sum(r["usage"]["output_tokens"] for r in records) / n
+    usd = (mean_in * _GEMINI_PRICE["input"] + mean_out * _GEMINI_PRICE["output"]) / 1_000_000
+    return {"model": _ONLINE, "n": n, "mean_input_tokens": mean_in, "mean_output_tokens": mean_out,
+            "usd_per_report": usd, "price_per_1m_usd": _GEMINI_PRICE,
+            "checked": _GEMINI_PRICE_CHECKED, "source": _GEMINI_PRICE_SOURCE}
 
 
 def _cmd_evaluate(args: argparse.Namespace) -> None:
     ids = [s["id"] for s in _scenarios()]
+    gemini_runs = _read_jsonl(_run_path(_ONLINE))
     results = {"date": date.today().isoformat(), "report": _report_block(ids), "intent": _intent_block(),
-               "residency": _read_json(_RESIDENCY)}
+               "residency": _read_json(_RESIDENCY), "cost": gemini_cost(gemini_runs) if gemini_runs else None}
     out = _RESULTS_ROOT / f"llm-benchmark-{results['date']}"
     _write_json(out / "results.json", results)
     (out / "report.md").write_text(render_llm_report(results), encoding="utf-8")

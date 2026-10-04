@@ -2,9 +2,11 @@
 
 from apps.agent.adapter.inbound.cli.benchmark_report import (
     REPORT_MODELS,
+    build_intent_block,
     build_report_block,
     FrozenFacts,
     collect_run,
+    gemini_cost,
     score_run,
 )
 from apps.agent.adapter.inbound.cli.report_bench_scoring import (
@@ -183,3 +185,72 @@ def test_참고_순위는_게이트와_별개로_로컬_전부를_줄_세우고_
     md = render_llm_report(results)
     assert "## 참고 순위 (게이트와 별개)" in md and "채택 결정이 아니다" in md
     assert "참고 1위(동률 시 VRAM 작은 쪽): **qwen3.5:4b**" in md and "| 3401 |" in md
+
+
+def test_한_회차_채점은_판정_절에_등급_말이_있는지_남긴다():
+    facts = {"verdict": {"available": True, "verdict_code": "red"}}
+    assert score_run({"sections": {"verdict": "비추천입니다."}, "error": None}, facts)["verdict_graded"] is True
+    assert score_run({"sections": {"verdict": "신중히 보세요."}, "error": None}, facts)["verdict_graded"] is False
+
+
+def test_참고_순위는_시나리오별_품질과_1위_대비_bootstrap_구간을_남기고_위반_유형에_온라인도_넣는다():
+    ids = ["a", "b"]
+    scores = {"qwen3.5:4b": _score(fabrication=0.5), "qwen3.5:9b": _score(), "gemini-2.5-flash": _score()}
+    judge = {"qwen3.5:4b": _judge([5, 4], ids), "qwen3.5:9b": _judge([3, 3], ids),
+             "gemini-2.5-flash": _judge([5, 5], ids, viol=["표기 누락"])}
+    ref = build_report_block(scores, judge, {"qwen3.5:4b": 3400, "qwen3.5:9b": 6600}, ids)["reference"]
+    assert ref["scenario_ids"] == ids
+    assert ref["per_scenario"] == {"qwen3.5:4b": [10, 8], "qwen3.5:9b": [6, 6]}
+    assert ref["best"] == "qwen3.5:4b" and list(ref["ci_vs_best"]) == ["qwen3.5:9b"]
+    assert ref["ci_vs_best"]["qwen3.5:9b"][0] == 3.0
+    assert ref["violations"]["gemini-2.5-flash"] == {"신뢰 등급 표기": 2}
+
+
+def test_리포트_행에_판정_등급_생략_건수():
+    ids = ["a"]
+    block = build_report_block({"qwen3.5:4b": _score(verdict_no_grade=3)}, {"qwen3.5:4b": _judge([4], ids)},
+                               {"qwen3.5:4b": 3400}, ids)
+    assert block["rows"][0]["verdict_no_grade"] == 3
+
+
+def _intent(both, fab=0.0, p95=1000.0):
+    return {"both": sum(both) / len(both), "region": 1.0, "industry": 1.0, "budget": 1.0, "schema_rate": 1.0,
+            "fabrication_rate": fab, "fabrication_any_null": fab / 2, "p95_ms": p95, "per_row_both": both,
+            "ids": [f"i{n}" for n in range(len(both))]}
+
+
+def test_관문_블록은_게이트와_별개로_로컬_참고_순위와_문항별_점수를_남긴다():
+    summary = {"gemma4:12b": _intent([1.0, 1.0, 0.0], fab=0.077), "gemma4:e4b": _intent([1.0, 0.0, 0.0], fab=0.2),
+               "gemini-2.5-flash": _intent([1.0, 1.0, 1.0])}
+    block = build_intent_block(summary, {"gemma4:12b": 8034, "gemma4:e4b": 3158})
+    assert block["winner"] is None
+    ref = block["reference"]
+    assert ref["per_row_both"]["gemma4:12b"] == [1.0, 1.0, 0.0] and "gemini-2.5-flash" in ref["per_row_both"]
+    assert [r["model"] for r in ref["ranking"]] == ["gemma4:12b", "gemma4:e4b"]
+    assert ref["best"] == "gemma4:12b" and "gemma4:e4b" in ref["ci_vs_best"] and ref["winner"] in ref["tied"]
+    assert {r["model"]: r["fabrication_any_null"] for r in block["rows"]}["gemma4:12b"] == 0.0385
+
+
+def test_Gemini_리포트_비용은_캐시_토큰_평균에서_계산한다():
+    records = [{"usage": {"input_tokens": 1_000_000, "output_tokens": 0}},
+               {"usage": {"input_tokens": 0, "output_tokens": 1_000_000}}]
+    cost = gemini_cost(records)
+    assert cost["mean_input_tokens"] == 500_000 and cost["mean_output_tokens"] == 500_000
+    assert abs(cost["usd_per_report"] - (0.15 + 1.25)) < 1e-9
+    assert cost["checked"] == "2026-10-05" and cost["source"] == "https://ai.google.dev/gemini-api/docs/pricing"
+
+
+def test_보고서는_판정_모순_없음_등급_생략_비용_notes_링크를_싣는다():
+    row = {"model": "qwen3.5:4b", "vram_mib": 3400, "quality": 7.2, "gates": {"all": True}, "verdict_match": 1.0,
+           "verdict_no_grade": 3, "n": 36}
+    results = {"date": "2026-10-05", "report": {"rows": [row], "winner": None, "tied": []},
+               "intent": {"rows": [{"model": "m", "gates": {"all": False}, "fabrication_any_null": 0.039}],
+                          "winner": None},
+               "residency": None,
+               "cost": {"model": "gemini-2.5-flash", "n": 36, "mean_input_tokens": 14085.2,
+                        "mean_output_tokens": 1942.4, "usd_per_report": 0.0091, "price_per_1m_usd":
+                        {"input": 0.30, "output": 2.50}, "checked": "2026-10-05",
+                        "source": "https://ai.google.dev/gemini-api/docs/pricing"}}
+    md = render_llm_report(results)
+    assert "판정 모순 없음" in md and "| 3/36 |" in md and "0.039" in md
+    assert "$0.0091" in md and "[notes.md](notes.md)" in md

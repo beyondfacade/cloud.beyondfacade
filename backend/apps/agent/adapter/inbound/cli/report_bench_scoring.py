@@ -25,6 +25,8 @@ _EPS = 1e-6
 VERDICT_LABELS = {"red": "비추천", "orange": "조건부", "clear": "경고 없음", "insufficient": "판정 보류"}
 
 _FACTS_JSON_LIMIT = 3000
+RUBRIC_PATH = "data/eval/report_judge_rubric.md"  # 리포지토리 루트 기준
+FACTS_DIR = "data/eval/report_facts"
 
 
 # ── 숫자 추출 ──────────────────────────────────────────────
@@ -151,6 +153,12 @@ def verdict_matches(verdict_section_md: str, verdict_facts: dict) -> bool:
     return not any(w in text for g, words in _SQUASHED_SYNONYMS.items() if g != group for w in words)
 
 
+def verdict_states_grade(verdict_section_md: str) -> bool:
+    """판정 절이 어느 등급이든 등급 말(동의어)을 쓰는가 — 생략 건수를 세는 참고 지표."""
+    text = _squash(verdict_section_md)
+    return any(w in text for words in _SQUASHED_SYNONYMS.values() for w in words)
+
+
 # ── LLM 작성 절 ────────────────────────────────────────────
 
 def llm_sections(deltas: dict[str, str], fallbacks: dict[str, str]) -> set[str]:
@@ -171,7 +179,10 @@ def judge_packets(
     random.Random(f"{seed}:{scenario_id}").shuffle(models)
     mapping = {chr(ord("A") + i): model for i, model in enumerate(models)}
     facts_json = json.dumps(facts, ensure_ascii=False, indent=1)[:_FACTS_JSON_LIMIT]
-    parts = [f"# 시나리오 {scenario_id}", "", "## 사실 묶음(요약)", "```json", facts_json, "```"]
+    parts = [f"# 시나리오 {scenario_id}", "",
+             f"채점 기준: `{RUBRIC_PATH}` · 전체 사실 묶음: `{FACTS_DIR}/{scenario_id}.json`", "",
+             f"## 사실 묶음(요약 — 앞 {_FACTS_JSON_LIMIT:,}자에서 잘림, 대조는 위 전체 파일로)",
+             "```json", facts_json, "```"]
     for blind, model in mapping.items():
         parts += ["", f"## 리포트 {blind}", reports[model]]
     return "\n".join(parts) + "\n", mapping
@@ -236,9 +247,14 @@ def _table(headers: list[str], rows: list[list[str]]) -> list[str]:
     return lines + ["| " + " | ".join(r) + " |" for r in rows]
 
 
+def _no_grade(r: dict) -> str:
+    return "-" if r.get("verdict_no_grade") is None else f"{r['verdict_no_grade']}/{r.get('n', '-')}"
+
+
 def _report_row(r: dict) -> list[str]:
     return [r["model"], _cell(r, "vram_mib", "{:.0f}"), _cell(r, "quality", "{:.2f}"), _cell(r, "completion", "{:.2f}"),
-            _cell(r, "verdict_match", "{:.2f}"), _cell(r, "fabrication", "{:.2f}"), _cell(r, "rule_violations"),
+            _cell(r, "verdict_match", "{:.2f}"), _no_grade(r), _cell(r, "fabrication", "{:.2f}"),
+            _cell(r, "rule_violations"),
             _cell(r, "first_p95_ms", "{:.0f}"), _cell(r, "total_p95_ms", "{:.0f}"),
             _ox(r["gates"]["all"]), r.get("note", "")]
 
@@ -246,7 +262,8 @@ def _report_row(r: dict) -> list[str]:
 def _intent_row(r: dict) -> list[str]:
     return [r["model"], _cell(r, "vram_mib", "{:.0f}"), _cell(r, "both", "{:.3f}"), _cell(r, "region", "{:.3f}"),
             _cell(r, "industry", "{:.3f}"), _cell(r, "budget", "{:.3f}"), _cell(r, "schema_rate", "{:.3f}"),
-            _cell(r, "fabrication_rate", "{:.3f}"), _cell(r, "p95_ms", "{:.0f}"), _ox(r["gates"]["all"])]
+            _cell(r, "fabrication_rate", "{:.3f}"), _cell(r, "fabrication_any_null", "{:.3f}"),
+            _cell(r, "p95_ms", "{:.0f}"), _ox(r["gates"]["all"])]
 
 
 # 판정자 위반 문장 → 유형. 위에서부터 첫 일치, 아무것도 안 맞으면 마지막 "기타".
@@ -263,6 +280,22 @@ def classify_violation(text: str) -> str:
     return next((kind for kind, words in _VIOLATION_KEYWORDS.items() if any(w in text for w in words)), "기타")
 
 
+def _ci(ci: list[float] | None) -> str:
+    """1위 − 이 모델(평균, 하한, 상한). 1위 자신은 '-'."""
+    return "-" if ci is None else f"{ci[0]:+.2f} [{ci[1]:+.2f}, {ci[2]:+.2f}]"
+
+
+def _cost_lines(cost: dict | None) -> list[str]:
+    if not cost:
+        return []
+    price = cost["price_per_1m_usd"]
+    return ["", "## 비용 (온라인 비교군)", "",
+            f"- {cost['model']} 리포트 1건 평균 토큰(캐시 {cost['n']}건): 입력 {cost['mean_input_tokens']:,.0f} / "
+            f"출력 {cost['mean_output_tokens']:,.0f}",
+            f"- 단가 입력 ${price['input']:.2f} / 출력 ${price['output']:.2f} (1M 토큰당, 확인 {cost['checked']}, "
+            f"{cost['source']}) → 리포트 1건 약 ${cost['usd_per_report']:.4f}"]
+
+
 def _reference_lines(report: dict) -> list[str]:
     ref = report.get("reference")
     if not ref:
@@ -272,9 +305,11 @@ def _reference_lines(report: dict) -> list[str]:
         lines += ["엄격 게이트를 통과한 로컬 리포트 모델이 없어 아래는 참고용이며 채택 결정이 아니다.", ""]
     if ref.get("winner"):
         lines += [f"- 참고 1위(동률 시 VRAM 작은 쪽): **{ref['winner']}** — 동률 {{{', '.join(ref['tied'])}}}", ""]
-    lines += _table(["순위", "모델", "품질", "VRAM(MiB)", "게이트 탈락"],
-                    [[str(i), r["model"], _cell(r, "quality", "{:.2f}"), _cell(r, "vram_mib", "{:.0f}"),
-                      ", ".join(r["failed"]) or "-"] for i, r in enumerate(ref["ranking"], 1)])
+    ci = ref.get("ci_vs_best", {})
+    lines += _table(["순위", "모델", "품질", "1위 대비 차이 [95% 구간]", "VRAM(MiB)", "게이트 탈락"],
+                    [[str(i), r["model"], _cell(r, "quality", "{:.2f}"), _ci(ci.get(r["model"])),
+                      _cell(r, "vram_mib", "{:.0f}"), ", ".join(r["failed"]) or "-"]
+                     for i, r in enumerate(ref["ranking"], 1)])
     lines += ["", "### 판정자 위반 유형 내역", ""]
     lines += _table(["모델", *VIOLATION_TYPES],
                     [[m, *(str(counts.get(k, 0)) for k in VIOLATION_TYPES)] for m, counts in ref["violations"].items()])
@@ -297,16 +332,21 @@ def _residency_line(residency: dict | None) -> str:
 def render_llm_report(results: dict) -> str:
     """역할별 표·판정·한계 마크다운. 온라인 행도 표에는 싣지만 판정 대상이 아니다(note로 표시)."""
     lines = [f"# LLM 모델 평가 결과 ({results['date']})", "", "## 리포트 작성", ""]
-    lines += _table(["모델", "VRAM(MiB)", "품질", "완주", "판정 일치", "지어내기", "규칙", "첫 글자 p95(ms)",
-                     "완료 p95(ms)", "게이트", "비고"], [_report_row(r) for r in results["report"]["rows"]])
+    lines += _table(["모델", "VRAM(MiB)", "품질", "완주", "판정 모순 없음", "판정 등급 생략", "지어내기", "규칙",
+                     "첫 글자 p95(ms)", "완료 p95(ms)", "게이트", "비고"],
+                    [_report_row(r) for r in results["report"]["rows"]])
     lines += ["", "## 의도 관문", ""]
-    lines += _table(["모델", "VRAM(MiB)", "동시 정답", "지역", "업종", "예산", "스키마", "지어내기", "p95(ms)", "게이트"],
+    lines += _table(["모델", "VRAM(MiB)", "동시 정답", "지역", "업종", "예산", "스키마", "지어내기",
+                     "지어내기(null 칸 전체, 참고)", "p95(ms)", "게이트"],
                     [_intent_row(r) for r in results["intent"]["rows"]])
     lines += ["", "## 판정", "", _verdict_line("리포트", results["report"]), _verdict_line("관문", results["intent"]),
               _residency_line(results.get("residency"))]
     lines += _reference_lines(results["report"])
+    lines += _cost_lines(results.get("cost"))
     lines += ["", "## 한계", "",
-              "- 숫자 대조는 오탐이 있을 수 있다(불일치 목록으로 사람이 확인).",
+              "- 숫자 대조는 관대하게 맞춘다(프롬프트·도구 설명 숫자도 근거, 복합 금액 허용폭이 넓음) — 지어내기 비율은 하한이다. "
+              "오탐도 있을 수 있다(불일치 목록으로 사람이 확인).",
               "- 품질 판정자도 LLM이다(모델명은 가렸지만 문체로 짐작할 수 있다).",
-              "- 리포트 시나리오는 12건이라 표본이 작다."]
+              "- 리포트 시나리오는 12건이라 표본이 작다.",
+              "", "해설·결론·측정 메모는 [notes.md](notes.md)(수기, evaluate가 덮어쓰지 않음)."]
     return "\n".join(lines) + "\n"

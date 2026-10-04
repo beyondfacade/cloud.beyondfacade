@@ -21,10 +21,17 @@ def test_실패는_스키마_불통과():
     assert r["schema_ok"] is False and r["both"] == 0.0 and r["fabricated"] is False
 
 
-def test_요약의_지어내기_분모는_null_칸이_있는_행():
-    rows = [score_row(E, LlmSuggestion("서교동", "cafe", 1)), score_row({"region_name": "a", "industry_id": "b", "budget_krw": 1}, LlmSuggestion("a", "b", 1))]
-    s = summarize(rows)
-    assert s["fabrication_rate"] == 1.0 and s["both"] == 1.0 and s["n"] == 2
+def test_요약의_지어내기_분모는_missing_out_of_scope_행():
+    rows = [score_row(E, LlmSuggestion("서교동", "cafe", 1)), score_row(E, LlmSuggestion("서교동", "cafe", None)),
+            score_row({"region_name": "a", "industry_id": "b", "budget_krw": 1}, LlmSuggestion("a", "b", 1))]
+    s = summarize(rows, ["missing", "out_of_scope", "budget"])
+    assert s["fabrication_rate"] == 0.5 and s["both"] == 1.0 and s["n"] == 3
+
+
+def test_missing_아닌_행의_null_칸은_지어내기_분모에_안_들어가고_참고_지표에만_잡힘():
+    rows = [score_row(E, LlmSuggestion("서교동", "cafe", 1)), score_row(E, LlmSuggestion("서교동", "cafe", None))]
+    s = summarize(rows, ["landmark", "missing"])
+    assert s["fabrication_rate"] == 0.0 and s["fabrication_any_null"] == 0.5
 
 
 def test_검수_시트_왕복과_정답_수정():

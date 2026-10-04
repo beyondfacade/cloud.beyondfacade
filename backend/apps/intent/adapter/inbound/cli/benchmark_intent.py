@@ -142,7 +142,7 @@ def _cmd_evaluate(args: argparse.Namespace) -> None:
             for i in items
         ]
         ms = [r["ms"] for r in records if r["id"] in confirmed_ids]
-        summary[model] = {**summarize(scored), "p50_ms": percentile(ms, 50), "p95_ms": percentile(ms, 95),
+        summary[model] = {**summarize(scored, [i["kind"] for i in items]), "p50_ms": percentile(ms, 50), "p95_ms": percentile(ms, 95),
                           "per_row_both": [s["both"] for s in scored], "ids": ids}
     _SUMMARY.parent.mkdir(parents=True, exist_ok=True)
     _SUMMARY.write_text(json.dumps(summary, ensure_ascii=False, indent=2), encoding="utf-8")

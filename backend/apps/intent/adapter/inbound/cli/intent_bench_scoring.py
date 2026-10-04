@@ -19,13 +19,23 @@ def score_row(expected: dict, got: LlmSuggestion | None) -> dict:
             "null_slots": null_slots, "fabricated": fabricated}
 
 
-def summarize(rows: list[dict]) -> dict:
+# 스펙 §4-2 — 지어내기 게이트 분모는 null이어야 할 칸을 묻는 유형(missing·out_of_scope)만
+_FABRICATION_KINDS = frozenset({"missing", "out_of_scope"})
+
+
+def _fabrication(rows: list[dict]) -> float:
+    return sum(r["fabricated"] for r in rows) / len(rows) if rows else 0.0
+
+
+def summarize(rows: list[dict], kinds: list[str]) -> dict:
+    """kinds — rows와 같은 순서의 평가셋 kind."""
     n = len(rows)
-    with_null = [r for r in rows if r["null_slots"] > 0]
     avg = lambda key: sum(r[key] for r in rows) / n if n else 0.0  # noqa: E731
     return {"n": n, "schema_rate": avg("schema_ok"), "both": avg("both"), "region": avg("region"),
             "industry": avg("industry"), "budget": avg("budget"),
-            "fabrication_rate": sum(r["fabricated"] for r in with_null) / len(with_null) if with_null else 0.0}
+            "fabrication_rate": _fabrication([r for r, k in zip(rows, kinds) if k in _FABRICATION_KINDS]),
+            # 참고 — 이전 범위(정답에 null 칸이 있는 모든 행)
+            "fabrication_any_null": _fabrication([r for r in rows if r["null_slots"] > 0])}
 
 
 def _fmt(v) -> str:

@@ -7,6 +7,7 @@ from apps.agent.adapter.inbound.cli.report_bench_scoring import (
     unmatched_numbers,
     classify_violation,
     verdict_matches,
+    verdict_states_grade,
 )
 
 
@@ -101,3 +102,15 @@ def test_위반_문장을_유형으로_분류한다():
     assert classify_violation("재난기(2022) 폐업률 상승을 왜곡") == "재난기"
     assert classify_violation("외국인 손님을 비하") == "차별"
     assert classify_violation("섹션 구분 없음") == "기타"
+
+
+def test_판정자_묶음_머리는_기준표와_전체_facts_경로를_알리고_요약이_잘렸다고_말한다():
+    md, _ = judge_packets("s03", {"k": "x" * 5000}, {"gemma4:12b": "글"}, seed=0)
+    assert "data/eval/report_judge_rubric.md" in md and "data/eval/report_facts/s03.json" in md
+    assert "앞 3,000자" in md and "x" * 3001 not in md
+
+
+def test_판정_절에_등급_말이_있는지():
+    assert verdict_states_grade("이 조합은 비추천입니다.") is True
+    assert verdict_states_grade("판정을 내리지 않습니다.") is True
+    assert verdict_states_grade("상권 변화가 큽니다. 신중히 보세요.") is False
