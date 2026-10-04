@@ -3,6 +3,7 @@
 import httpx
 
 from apps.rag.app.ports.output.rag_port import EmbeddingPort
+from core.matrix.grid_keymaker_secret_manager import get_settings
 
 QUERY_PROMPT = "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: "
 
@@ -16,20 +17,20 @@ class OllamaQwen3EmbeddingAdapter(EmbeddingPort):
     DIMENSIONS = 1536
     BATCH_SIZE = 50
 
-    def __init__(self, base_url: str = "http://127.0.0.1:11434", transport=None, dim: int = DIMENSIONS):
+    def __init__(self, base_url: str | None = None, transport=None, dim: int = DIMENSIONS):
         """
         Ollama 임베딩 어댑터 초기화.
 
         Args:
-            base_url: Ollama 서버 URL (기본값: http://127.0.0.1:11434)
+            base_url: Ollama 서버 URL (기본값: 설정 OLLAMA_BASE_URL)
             transport: httpx.Transport (테스트용 MockTransport 주입 가능)
             dim: 출력 차원 (기본 1536 = 운영 스키마). 벤치마크는 2560으로 받아 잘라 쓴다.
         """
-        self.base_url = base_url
+        self.base_url = base_url or get_settings().ollama_base_url
         self._dim = dim
         # 기본 httpx 타임아웃(5s)은 콜드스타트(모델 로드·GPU 상주 모델 교체) 실측 초과 —
         # 색인 배치는 최초 요청에서 모델 로딩을 겸하므로 넉넉히 잡는다.
-        self.client = httpx.Client(base_url=base_url, transport=transport, timeout=120.0)
+        self.client = httpx.Client(base_url=self.base_url, transport=transport, timeout=120.0)
 
     @property
     def model_name(self) -> str:

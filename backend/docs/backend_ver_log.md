@@ -1,5 +1,14 @@
 # Backend Version Log
 
+## [v0.65.1] - 2026-10-04
+
+### Fixed
+- **컨테이너(`beyondfacade-api`)에서 호스트 Ollama에 접속하지 못하던 문제** — RAG 검색·에이전트 LLM 폴백·운영 점검이 모두 `127.0.0.1:11434`를 하드코딩해 컨테이너 안에서는 자기 자신을 가리켰다(bge-m3 전환 전부터 존재).
+  - `Settings.ollama_base_url`(`OLLAMA_BASE_URL`, 기본 `http://127.0.0.1:11434`) 추가. `OllamaLLMAdapter`·`OllamaBgeM3EmbeddingAdapter`·`OllamaQwen3EmbeddingAdapter`·`OllamaStatusGateway`가 `base_url` 미지정 시 이 설정을 쓴다(명시 인자 우선). 운영 점검 DTO의 `base_url`은 해석된 주소를 보고한다.
+  - `docker-compose.yml` backend: `OLLAMA_BASE_URL=http://host.docker.internal:11434` + `extra_hosts: host.docker.internal:host-gateway`.
+  - CLI 전용(`benchmark_embeddings`·`generate_evalset`)은 호스트에서 실행하므로 그대로 둔다.
+  - 테스트: `test_ollama_base_url.py` 신설.
+
 ## [v0.65.0] - 2026-10-04
 
 ### Changed

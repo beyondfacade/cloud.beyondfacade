@@ -4,14 +4,14 @@ import httpx
 
 from apps.ops.app.dtos.healthcare_dto import OllamaModelDto, OllamaStatusDto
 from apps.ops.app.ports.output.healthcare_port import OllamaStatusPort
+from core.matrix.grid_keymaker_secret_manager import get_settings
 
-_DEFAULT_BASE_URL = "http://127.0.0.1:11434"  # 에이전트·RAG Ollama 어댑터 기본값과 같다
 
 
 class OllamaStatusGateway(OllamaStatusPort):
-    def __init__(self, base_url: str = _DEFAULT_BASE_URL, transport: httpx.BaseTransport | None = None) -> None:
-        self._base_url = base_url
-        self._client = httpx.Client(base_url=base_url, transport=transport, timeout=2.0)
+    def __init__(self, base_url: str | None = None, transport: httpx.BaseTransport | None = None) -> None:
+        self._base_url = base_url or get_settings().ollama_base_url  # 에이전트·RAG Ollama 어댑터와 같은 설정
+        self._client = httpx.Client(base_url=self._base_url, transport=transport, timeout=2.0)
 
     def read(self) -> OllamaStatusDto:
         started = time.perf_counter()

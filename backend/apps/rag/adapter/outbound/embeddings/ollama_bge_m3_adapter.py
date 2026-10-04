@@ -6,6 +6,7 @@ Ollama가 정규화된 벡터를 돌려준다(2026-10-04 실측 노름 1.0, F16)
 import httpx
 
 from apps.rag.app.ports.output.rag_port import EmbeddingPort
+from core.matrix.grid_keymaker_secret_manager import get_settings
 
 
 class OllamaBgeM3EmbeddingAdapter(EmbeddingPort):
@@ -14,9 +15,9 @@ class OllamaBgeM3EmbeddingAdapter(EmbeddingPort):
     OLLAMA_MODEL = "bge-m3"
     BATCH_SIZE = 50
 
-    def __init__(self, base_url: str = "http://127.0.0.1:11434", transport=None):
+    def __init__(self, base_url: str | None = None, transport=None):
         # 콜드스타트(모델 로드) 대비 — ollama_qwen3_adapter와 같은 120초
-        self.client = httpx.Client(base_url=base_url, transport=transport, timeout=120.0)
+        self.client = httpx.Client(base_url=base_url or get_settings().ollama_base_url, transport=transport, timeout=120.0)
 
     @property
     def model_name(self) -> str:
