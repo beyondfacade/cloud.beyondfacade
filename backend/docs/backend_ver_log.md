@@ -1,5 +1,11 @@
 # Backend Version Log
 
+## [v0.64.0] - 2026-10-04
+
+### Added
+- **임베딩 모델 평가 하네스** (spec `docs/superpowers/specs/2026-10-04-embedding-benchmark-design.md`) — 9개 조합(bge-m3@1024, qwen3@1536·2560, gemini-001·gemini-2@1024·1536·2560)을 같은 코퍼스·평가셋으로 비교해 로컬용·API용 각 1종을 고른다. 운영 DB·검색 경로는 바꾸지 않는다.
+  - `benchmark_core.py` — MRL 절단·재정규화, 운영 규칙(원천 필터·뉴스 사건 접기) 그대로의 numpy 전수 검색, top-1·nDCG@10·paired bootstrap(n=10000, seed 0).
+
 ## [v0.63.0] - 2026-09-30
 
 ### Changed

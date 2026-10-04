@@ -18,19 +18,32 @@ from core.matrix.grid_keymaker_secret_manager import get_settings
 
 _BACKEND_DIR = Path(__file__).resolve().parents[1]
 _TEST_DB_SUFFIX = "_test"
+_dev_url = None
+_test_url = None
 
-# get_settings()·get_engine() 은 lru_cache — 어떤 테스트도 DB 에 붙기 전에 환경변수를 바꾼다 (환경변수 > .env)
-_dev_url = make_url(get_settings().database_url)
-_test_url = _dev_url.set(database=f"{_dev_url.database}{_TEST_DB_SUFFIX}")
-os.environ["DATABASE_URL"] = _test_url.render_as_string(hide_password=False)
-# TestClient는 http라 Secure 쿠키를 돌려보내지 않고, 구글은 테스트마다 가짜로 주입한다 — 개발 .env 값에 흔들리지 않게 고정
-os.environ["ADMIN_COOKIE_SECURE"] = "false"
-for _key in ("GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET"):
-    os.environ[_key] = ""
-get_settings.cache_clear()
+
+def pytest_configure(config: pytest.Config) -> None:
+    """순수 로직 테스트를 위한 marker 등록 및 환경변수 초기화."""
+    global _dev_url, _test_url
+    config.addinivalue_line("markers", "no_db: 데이터베이스 없이 실행 가능한 순수 로직 테스트")
+    # get_settings()·get_engine() 은 lru_cache — 어떤 테스트도 DB 에 붙기 전에 환경변수를 바꾼다 (환경변수 > .env)
+    try:
+        _dev_url = make_url(get_settings().database_url)
+        _test_url = _dev_url.set(database=f"{_dev_url.database}{_TEST_DB_SUFFIX}")
+        os.environ["DATABASE_URL"] = _test_url.render_as_string(hide_password=False)
+    except Exception:
+        # DB 설정이 없어도 no_db 테스트는 통과할 수 있도록
+        pass
+    # TestClient는 http라 Secure 쿠키를 돌려보내지 않고, 구글은 테스트마다 가짜로 주입한다 — 개발 .env 값에 흔들리지 않게 고정
+    os.environ["ADMIN_COOKIE_SECURE"] = "false"
+    for _key in ("GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET"):
+        os.environ[_key] = ""
+    get_settings.cache_clear()
 
 
 def _create_database_if_missing() -> None:
+    if _dev_url is None or _test_url is None:
+        return
     engine = create_engine(_dev_url.set(database="postgres"), isolation_level="AUTOCOMMIT")
     try:
         with engine.connect() as connection:
@@ -44,7 +57,13 @@ def _create_database_if_missing() -> None:
 
 
 @pytest.fixture(scope="session", autouse=True)
-def test_database() -> None:
+def test_database(request) -> None:
+    """DB 초기화 — no_db 마크가 있는 테스트만 있으면 스킵."""
+    # 세션에 no_db 마크가 없는 테스트가 있으면 DB 초기화 필요
+    has_non_no_db_tests = any("no_db" not in item.keywords for item in request.session.items)
+    if not has_non_no_db_tests:
+        return
+
     database = make_url(get_settings().database_url).database
     assert database.endswith(_TEST_DB_SUFFIX), f"테스트가 개발 DB({database})를 가리킨다 — 중단"
 

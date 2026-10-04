@@ -3,6 +3,11 @@
 relevant는 동치 집합(뉴스 같은 사건 기사 여럿) — 하나라도 top-k에 있으면 Hit 1.0, MRR은 첫 적중 순위.
 """
 
+import pytest
+
+# 순수 로직 테스트 — DB 불필요
+pytestmark = pytest.mark.no_db
+
 from apps.rag.adapter.inbound.cli.evaluate_rag import hit_at_k, mrr
 
 
