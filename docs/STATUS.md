@@ -198,6 +198,10 @@ main이 전진하면 다시 낡는다 — 배포 전 재빌드가 규칙.
   **9/25 v0.38.0 — 뉴스 검색 시점 같은 사건 접기 적용**(제목 Jaccard 0.3·3일 창, 뉴스만 top_k×10 후 접기). 뉴스 40문항
   top-5의 같은 사건 기사 평균 2.98→2.00, 5/5 문항 12→4, Hit 손실 0. 더 공격적인 규칙(임계 완화·앵커·임베딩 코사인·
   요약 J)은 전부 Hit을 깎아 기각. 남은 대형 보도자료 4건은 수집 시 사건 클러스터링이 필요(후속).
+- **임베딩 모델 평가(10/4)** — 9조합(bge-m3, qwen3, gemini-001, gemini-2 × 차원)을 같은 코퍼스·평가셋으로 비교(spec `docs/superpowers/specs/2026-10-04-embedding-benchmark-design.md`).
+  평가셋 재검수 후 confirmed 233(base 179 + hard 54) / rejected 27 — 9/24 수치와 직접 비교 불가.
+  로컬: **qwen3@1536 유지**(bge-m3@1024와 bootstrap 동률, 교체 근거 없음). API: **gemini-001@1024**(Gemini 6조합 동률 → 최저 차원).
+  gemini-2 1회 색인 약 $0.31(표준), gemini-001은 가격표에 없음. 보고서: `data/eval/results/embedding-benchmark-2026-10-04/report.md`.
 - 두뇌 비교(`data/eval/results/agent_compare.md`)로 리포트는 **혼합(Gemini 우선·로컬 폴백)** 채택 완료.
 
 ### 4-5. 외부 대기·자료 한계 (코드로 못 푸는 것)

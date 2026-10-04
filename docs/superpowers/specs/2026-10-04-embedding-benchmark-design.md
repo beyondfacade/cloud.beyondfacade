@@ -47,7 +47,7 @@
 ## 4. 코퍼스 스냅샷
 
 - `rag_chunk` 전량(만료 공고 포함)을 `chunk_id, source_type, content`로 jsonl에 고정하고 sha256을 기록한다. 9개 조합이 같은 텍스트를 임베딩한다는 보장이다.
-- 만료 공고를 빼지 않는 이유: 9/24 이후 만료된 confirmed 정답이 사라지면 문항이 무효가 된다. 만료 공고는 모델 중립적인 방해 문서로 남는다. 운영 필터와의 차이는 보고서에 적는다.
+- 만료 공고를 빼지 않는 이유: 9/24 이후 만료된 confirmed 정답이 사라지면 문항이 무효가 된다. 만료 공고는 모델 중립적인 방해 문서로 남는다. 운영 필터와의 차이는 보고서에 적는다. → F16(10/4 `ollama show bge-m3` 확인).
 
 ## 5. 구성 요소
 
@@ -97,9 +97,9 @@
 
 ## 9. 확인 사항 (구현 중 해소)
 
-1. gemini-embedding-2가 `task_type`과 `output_dimensionality`를 001과 같이 받는지 — 공식 문서로 확인하고, 다르면 해당 어댑터만 분기한다(Strategy).
-2. Ollama `bge-m3`의 실제 양자화 — `ollama show`로 확인해 보고서에 적는다.
-3. Gemini 2종 × 8.9k청크 색인 시 429 — 기존 재시도 정책을 그대로 쓰고 발생 횟수를 기록한다.
+1. gemini-embedding-2가 `task_type`과 `output_dimensionality`를 001과 같이 받는지 — 공식 문서로 확인하고, 다르면 해당 어댑터만 분기한다(Strategy). → 해소(10/4): gemini-embedding-2는 task_type 미지원, 프롬프트 프리픽스로 대체(Task 2).
+2. Ollama `bge-m3`의 실제 양자화 — `ollama show`로 확인해 보고서에 적는다. → F16(10/4 `ollama show bge-m3` 확인).
+3. Gemini 2종 × 8.9k청크 색인 시 429 — 기존 재시도 정책을 그대로 쓰고 발생 횟수를 기록한다. → 재시도 0회(latency.json, 두 모델 모두).
 
 ## 10. 범위 밖
 
