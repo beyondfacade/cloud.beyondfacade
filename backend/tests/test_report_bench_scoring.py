@@ -55,3 +55,25 @@ def test_판정자_묶음은_모델명을_가리고_결정적이다():
     md2, map2 = judge_packets("s01", {"k": 1}, {"gemma4:12b": "글1", "qwen3.5:4b": "글2"}, seed=0)
     assert map1 == map2 and set(map1.values()) == {"gemma4:12b", "qwen3.5:4b"}
     assert "gemma4" not in md1 and "qwen" not in md1
+
+
+def test_복합_금액은_한_토큰으로_합산해_맞춘다():
+    assert unmatched_numbers("보증금 1억 2천만원", {"a": 120_000_000}) == []
+    assert unmatched_numbers("보증금 1억2천만원", {"a": 120_000_000}) == []
+    assert unmatched_numbers("보증금 1억 2천만원", {"a": 150_000_000}) == ["1억 2천만"]
+
+
+def test_부호는_보지_않고_퍼센트p도_퍼센트로_본다():
+    assert unmatched_numbers("-2.1%p", {"d": -0.021}) == []
+    assert unmatched_numbers("2.1%p 감소", {"d": -2.1}) == []
+
+
+def test_판정_동의어를_인정하고_다른_등급_핵심_라벨은_모순():
+    assert verdict_matches("### 판정\n주황 등급입니다", {"available": True, "verdict_code": "orange"})
+    assert verdict_matches("경고가 없습니다", {"available": True, "verdict_code": "clear"})
+    assert not verdict_matches("조건부지만 비추천에 가깝다", {"available": True, "verdict_code": "orange"})
+    assert verdict_matches("판정 없음 — 자료 부족", {"available": False})
+
+
+def test_연령대와_순위는_사실값이_아니다():
+    assert unmatched_numbers("20대 비중이 높고 12위", {}) == []

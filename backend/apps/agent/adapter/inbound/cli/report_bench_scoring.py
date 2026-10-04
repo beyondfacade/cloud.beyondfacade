@@ -9,48 +9,67 @@ import json
 import random
 import re
 
-_NUMBER_RE = re.compile(r"(\d[\d,]*(?:\.\d+)?)\s*(%|퍼센트|억|천만|백만|만|천)?")
+_N = r"\d[\d,]*(?:\.\d+)?"
+# 복합 금액("1억 2천만")을 먼저 한 토큰으로 잡고, 아니면 숫자+선택 단위.
+_NUMBER_RE = re.compile(
+    rf"(?:(?P<c1>{_N})\s*억\s*(?P<c2>{_N})\s*(?P<cu>천만|백만|만|천)"
+    rf"|(?P<n>{_N})\s*(?P<u>%p|%|퍼센트|억|천만|백만|만|천)?)"
+)
 _UNIT_MULT = {"억": 1e8, "천만": 1e7, "백만": 1e6, "만": 1e4, "천": 1e3}
-_PERCENT_UNITS = {"%", "퍼센트"}
+_PERCENT_UNITS = {"%", "%p", "퍼센트"}
 _SMALL_INT_MAX = 10
 _YEAR_RANGE = range(1990, 2101)
+_NON_FACT_SUFFIXES = "대위"  # 연령대("20대")·순위("12위")는 사실값이 아니다
+_EPS = 1e-6
 
 VERDICT_LABELS = {"red": "비추천", "orange": "조건부", "clear": "경고 없음", "insufficient": "판정 보류"}
-_ASSERTIVE_LABELS = ("비추천", "조건부", "경고 없음")  # 자료가 없을 때 쓰면 안 되는 단정 라벨
 
 _FACTS_JSON_LIMIT = 3000
 
 
 # ── 숫자 추출 ──────────────────────────────────────────────
 
-def _split_token(m: re.Match) -> tuple[str, str, str | None]:
-    """정규식 매치 → (원문 토큰, 숫자부, 단위). 숫자부 끝 쉼표는 문장부호라 뗀다."""
-    num = m.group(1).rstrip(",")
-    unit = m.group(2)
-    if m.group(1) != num:  # 쉼표를 뗐다면 단위는 숫자에 붙은 게 아니다
-        return num, num, None
-    return m.group(0).strip(), num, unit
+def _num(text: str) -> float:
+    return float(text.replace(",", ""))
 
 
 def _decimals(num_part: str) -> int:
     return len(num_part.split(".")[1]) if "." in num_part else 0
 
 
-def _tokens(text: str) -> list[tuple[str, float, str, str | None]]:
-    """(원문 토큰, 정규화 값, 숫자부, 단위). 단위 없는 정수 ≤10과 연도는 버린다."""
+def _tokens(text: str) -> list[tuple[str, float, float, str | None]]:
+    """(원문 토큰, 정규화 값, 표시 정밀도의 절반 폭, 단위).
+
+    - 숫자부 끝 쉼표는 문장부호라 뗀다(그러면 단위는 붙지 않은 것으로 본다).
+    - 단위 없는 정수 ≤10, 연도(1990~2100), 뒤에 대·위가 붙은 정수는 버린다.
+    - 복합 금액은 합산한 한 토큰이며 정밀도는 가장 작은 단위(예: 천만이면 0.5×1e7)다.
+    """
     out = []
     for m in _NUMBER_RE.finditer(text):
-        raw, num, unit = _split_token(m)
-        value = float(num.replace(",", ""))
-        if unit is None and value.is_integer() and "." not in num:
-            if value <= _SMALL_INT_MAX or int(value) in _YEAR_RANGE:
+        if m.group("c1") is not None:
+            mult = _UNIT_MULT[m.group("cu")]
+            value = _num(m.group("c1")) * 1e8 + _num(m.group("c2")) * mult
+            half = 0.5 * 10 ** (-_decimals(m.group("c2"))) * mult
+            out.append((m.group(0).strip(), value, half, "복합"))
+            continue
+        num, unit = m.group("n"), m.group("u")
+        if num.endswith(","):
+            num, unit = num.rstrip(","), None
+            raw = num
+        else:
+            raw = m.group(0).strip()
+        shown = _num(num)
+        if unit is None and "." not in num:
+            suffix = text[m.end():m.end() + 1]
+            if shown <= _SMALL_INT_MAX or int(shown) in _YEAR_RANGE or (suffix and suffix in _NON_FACT_SUFFIXES):
                 continue
-        out.append((raw, value * _UNIT_MULT.get(unit, 1), num, unit))
+        mult = _UNIT_MULT.get(unit, 1)
+        out.append((raw, shown * mult, 0.5 * 10 ** (-_decimals(num)) * mult, unit))
     return out
 
 
 def extract_numbers(text: str) -> list[tuple[str, float]]:
-    """(원문 토큰, 정규화 값). 억·만 등은 배수를 곱하고 %·퍼센트는 값 그대로 둔다."""
+    """(원문 토큰, 정규화 값). 억·만 등은 배수를 곱하고 %·퍼센트는 값 그대로 둔다. 부호는 보지 않는다."""
     return [(raw, value) for raw, value, _, _ in _tokens(text)]
 
 
@@ -71,48 +90,62 @@ def fact_numbers(facts: object) -> list[float]:
 
 # ── 숫자 대조 ──────────────────────────────────────────────
 
-def _token_matches(num_part: str, unit: str | None, facts_values: list[float]) -> bool:
+def _token_matches(value: float, half: float, unit: str | None, facts_values: list[float]) -> bool:
     """보고서 토큰 하나가 facts 값 중 하나와 맞는가.
 
     규칙(오탐 '지어냄'을 줄이는 쪽으로 관대하게):
-    - 비교는 보고서 토큰의 표시 소수 자릿수 d 로 반올림한 값끼리: |a-b| <= 0.5*10**-d.
-    - 단위 토큰(억·만 등)은 facts 값을 배수로 나눈 값(f/배수)이 숫자부와 맞으면 일치
-      (facts 312,000,000 ↔ "3.1억", facts 2,500,000 ↔ "250만").
-    - 퍼센트 토큰은 facts 값 f 와 f*100(비율→퍼센트) 둘 다 후보.
-    - 단위 없는 토큰은 f 그대로만 비교.
+    - 부호는 비교하지 않는다(보고서는 "감소" 같은 말로 부호를 표현) — 양쪽 절댓값 비교.
+    - 표시 정밀도의 절반 폭 안이면 일치: |fact − value| <= half
+      (단위 토큰은 폭에 배수를 곱함: "3.1억" ↔ 312,000,000, "250만" ↔ 2,500,000).
+    - 퍼센트 토큰(%·%p·퍼센트)은 facts 값 f 와 f*100(비율→퍼센트) 둘 다 후보.
+    - 복합 금액("1억 2천만")은 가장 작은 단위 정밀도로 합산값 전체를 비교.
     """
-    d = _decimals(num_part)
-    tol = 0.5 * 10 ** (-d) + 1e-9
-    shown = float(num_part.replace(",", ""))
-    if unit in _PERCENT_UNITS:
-        candidates = lambda f: (f, f * 100)  # noqa: E731
-    elif unit in _UNIT_MULT:
-        candidates = lambda f: (f / _UNIT_MULT[unit],)  # noqa: E731
-    else:
-        candidates = lambda f: (f,)  # noqa: E731
-    return any(abs(c - shown) <= tol for f in facts_values for c in candidates(f))
+    value = abs(value)
+    for f in facts_values:
+        candidates = (f, f * 100) if unit in _PERCENT_UNITS else (f,)
+        if any(abs(abs(c) - value) <= half + _EPS for c in candidates):
+            return True
+    return False
 
 
 def unmatched_numbers(report_md: str, facts: dict) -> list[str]:
     """보고서 숫자 중 facts의 어떤 값과도 맞지 않는 토큰(중복 제거, 등장 순서)."""
     facts_values = fact_numbers(facts)
     out: list[str] = []
-    for raw, _, num, unit in _tokens(report_md):
-        if raw not in out and not _token_matches(num, unit, facts_values):
+    for raw, value, half, unit in _tokens(report_md):
+        if raw not in out and not _token_matches(value, half, unit, facts_values):
             out.append(raw)
     return out
 
 
 # ── 판정 일치 ──────────────────────────────────────────────
 
+# 판정별 동의어 — 앞 두 개가 '핵심 라벨'(다른 등급 모순 검사용). 공백은 제거 후 비교.
+_VERDICT_SYNONYMS = {
+    "red": ("비추천", "빨강", "레드", "red"),
+    "orange": ("조건부", "주황", "오렌지", "orange"),
+    "clear": ("경고없", "경고가없", "위험신호가없", "clear"),
+    "unavailable": ("판정없음", "판정보류", "보류", "판정할수없", "판정하지않"),
+}
+_CORE_COUNT = 2
+
+
 def verdict_matches(verdict_section_md: str, verdict_facts: dict) -> bool:
-    """판정 절이 facts 판정과 같은 라벨만 말하는가. 자료가 없으면 단정 라벨이 없어야 한다."""
-    if not verdict_facts.get("available"):
-        return not any(label in verdict_section_md for label in _ASSERTIVE_LABELS)
-    expected = VERDICT_LABELS.get(verdict_facts.get("verdict_code"))
-    if expected is None or expected not in verdict_section_md:
+    """판정 절이 facts 판정을 (동의어로라도) 말하고 다른 등급의 핵심 라벨은 없는가.
+
+    자료가 없으면(available False) 비추천·조건부·경고 없음 계열 핵심 라벨이 없어야 한다.
+    """
+    text = re.sub(r"\s+", "", verdict_section_md).lower()
+    code = verdict_facts.get("verdict_code") if verdict_facts.get("available") else "unavailable"
+    if code == "insufficient":
+        code = "unavailable"
+    if code not in _VERDICT_SYNONYMS:
         return False
-    return not any(l != expected and l in verdict_section_md for l in VERDICT_LABELS.values())
+    foreign_core = [w for k, ws in _VERDICT_SYNONYMS.items() if k not in (code, "unavailable")
+                    for w in ws[:_CORE_COUNT]]
+    if any(w in text for w in foreign_core):
+        return False
+    return any(w in text for w in _VERDICT_SYNONYMS[code])
 
 
 # ── LLM 작성 절 ────────────────────────────────────────────
