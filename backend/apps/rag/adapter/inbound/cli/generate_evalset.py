@@ -9,6 +9,7 @@ status=candidate로 적재하고 승격은 judge_evalset(1차) + 사람 검수(r
 
 실행: python -m apps.rag.adapter.inbound.cli.generate_evalset --provider claude --source-type funding --limit 110
 어려운 질문(spec 2026-10-04 §3): --hard-kind colloquial|sibling|news_event --limit 20 (claude 전용, subset=hard)
+키 없이: --hard-mode export --file X → 작성자가 X에 question을 채운 답안 jsonl → --hard-mode import --file Y
 """
 
 import argparse
@@ -241,6 +242,32 @@ def build_hard_row(item: HardItem, question: str, kind: str) -> dict:
     }
 
 
+def export_hard_items(items: list[HardItem], kind: str) -> str:
+    """API 키 없이 질문을 쓰는 경로(2026-10-04) — 작성자에게 넘길 문항 jsonl. 지시문은 claude 경로와 같은 _HARD_SYSTEMS."""
+    return "".join(
+        json.dumps(
+            {"chunk_id": i.chunk_id, "hard_kind": kind, "relevant_ids": i.relevant_ids,
+             "system": _HARD_SYSTEMS[kind], "prompt_input": i.prompt_input},
+            ensure_ascii=False,
+        ) + "\n"
+        for i in items
+    )
+
+
+def rows_from_answers(text: str, existing: set[str]) -> list[dict]:
+    """작성된 답안 jsonl → 평가셋 행. 이미 정답으로 쓰인 chunk_id는 건너뛴다(검수 시트가 chunk_id로 항목을 가른다)."""
+    rows = []
+    for line in text.splitlines():
+        if not line.strip():
+            continue
+        a = json.loads(line)
+        if a["chunk_id"] in existing:
+            continue
+        question = a["question"].strip().strip('"“”')
+        rows.append(build_hard_row(HardItem(a["chunk_id"], "", a["relevant_ids"]), question, a["hard_kind"]))
+    return rows
+
+
 def _fetch_chunks(source_type: str) -> list[dict]:
     stmt = (
         select(RagChunkOrm.chunk_id, RagChunkOrm.content, RagChunkOrm.published_at)
@@ -279,7 +306,7 @@ def _all_relevant_ids(path: Path) -> set[str]:
     }
 
 
-def _run_hard(args, output_path: Path) -> None:
+def _run_hard_claude(args, output_path: Path) -> None:
     kind = args.hard_kind
     source_type = _HARD_SOURCE[kind]
     items = _HARD_SELECTORS[kind](_fetch_chunks(source_type), _all_relevant_ids(output_path), args.limit)
@@ -293,6 +320,25 @@ def _run_hard(args, output_path: Path) -> None:
     print(f"generate_evalset: hard/{kind} {len(items)}건 추가 → {output_path}", flush=True)
 
 
+def _run_hard_export(args, output_path: Path) -> None:
+    kind = args.hard_kind
+    items = _HARD_SELECTORS[kind](_fetch_chunks(_HARD_SOURCE[kind]), _all_relevant_ids(output_path), args.limit)
+    Path(args.file).write_text(export_hard_items(items, kind), encoding="utf-8")
+    print(f"generate_evalset: hard/{kind} {len(items)}건 내보냄 → {args.file}", flush=True)
+
+
+def _run_hard_import(args, output_path: Path) -> None:
+    rows = rows_from_answers(Path(args.file).read_text(encoding="utf-8"), _all_relevant_ids(output_path))
+    with output_path.open("a", encoding="utf-8") as f:
+        for row in rows:
+            f.write(json.dumps(row, ensure_ascii=False) + "\n")
+    print(f"generate_evalset: hard/{args.hard_kind} {len(rows)}건 가져옴 ← {args.file} → {output_path}", flush=True)
+
+
+# 어려운 질문 작성 경로 (Strategy) — claude: API 직접 / export·import: 파일로 주고받아 다른 작성자가 쓴다
+_HARD_MODES = {"claude": _run_hard_claude, "export": _run_hard_export, "import": _run_hard_import}
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--provider", default="claude", choices=list(_GENERATORS))
@@ -302,12 +348,14 @@ def main() -> None:
     parser.add_argument("--limit", type=int, default=50, help="추가 건수 (기본 50)")
     parser.add_argument("--output", default=_EVALSET)
     parser.add_argument("--hard-kind", default=None, choices=list(_HARD_SYSTEMS), help="어려운 질문 종류 (claude 전용)")
+    parser.add_argument("--hard-mode", default="claude", choices=list(_HARD_MODES), help="어려운 질문 작성 경로")
+    parser.add_argument("--file", default=None, help="export/import 파일 경로")
     args = parser.parse_args()
 
     output_path = _REPO_ROOT / args.output
     output_path.parent.mkdir(parents=True, exist_ok=True)
     if args.hard_kind:
-        _run_hard(args, output_path)
+        _HARD_MODES[args.hard_mode](args, output_path)
         return
     sample = select_new_chunks(_fetch_chunks(args.source_type), _existing_ids(output_path), args.limit)
     generator = _GENERATORS[args.provider](args)

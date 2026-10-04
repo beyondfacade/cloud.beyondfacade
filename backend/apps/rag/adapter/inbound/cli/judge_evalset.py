@@ -9,6 +9,7 @@
 """
 
 import argparse
+import json
 import os
 import re
 from concurrent.futures import ThreadPoolExecutor
@@ -109,6 +110,11 @@ def annotate_sheet(sheet: str, judgments: dict[str, Judgment]) -> str:
     return "\n".join(out)
 
 
+def load_judgments(text: str) -> dict[str, Judgment]:
+    """판정 파일(json: chunk_id → {verdict, reason, better_question?}) — API 키 없이 다른 판정자가 쓴 결과를 시트에 넣는다."""
+    return {chunk_id: Judgment(**j) for chunk_id, j in json.loads(text).items()}
+
+
 def _judge(client, model: str, item: _Item) -> Judgment:
     response = client.messages.parse(
         model=model,
@@ -123,14 +129,11 @@ def _judge(client, model: str, item: _Item) -> Judgment:
     return response.parsed_output
 
 
-def main() -> None:
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--model", default="claude-opus-5")
-    parser.add_argument("--workers", type=int, default=5)
-    parser.add_argument("--evalset", default=_EVALSET)
-    parser.add_argument("--sheet", default=_SHEET)
-    args = parser.parse_args()
+def _judgments_from_file(args) -> tuple[dict[str, Judgment], list[_Item]]:
+    return load_judgments(Path(args.verdicts).read_text(encoding="utf-8")), []
 
+
+def _judgments_from_claude(args) -> tuple[dict[str, Judgment], list[_Item]]:
     import anthropic
 
     from core.matrix.grid_keymaker_secret_manager import get_settings
@@ -147,6 +150,20 @@ def main() -> None:
 
     with ThreadPoolExecutor(max_workers=args.workers) as pool:
         judgments = dict(zip((i.chunk_id for i in items), pool.map(lambda i: _judge(client, args.model, i), items)))
+    return judgments, items
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--model", default="claude-opus-5")
+    parser.add_argument("--workers", type=int, default=5)
+    parser.add_argument("--evalset", default=_EVALSET)
+    parser.add_argument("--sheet", default=_SHEET)
+    parser.add_argument("--verdicts", default=None, help="판정 파일(json) — 주면 API를 부르지 않는다")
+    args = parser.parse_args()
+
+    source = _judgments_from_file if args.verdicts else _judgments_from_claude
+    judgments, items = source(args)
 
     sheet_path = _REPO_ROOT / args.sheet
     sheet_path.write_text(annotate_sheet(sheet_path.read_text(encoding="utf-8"), judgments), encoding="utf-8")

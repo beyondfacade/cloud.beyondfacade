@@ -62,3 +62,16 @@ def test_정답이_여럿인_행은_사건_단위로_판정하라고_알린다()
     single = build_user_message(_Item("news:a", "망원시장 밤에 장 서?", card))
     assert "같은 사건 기사 3건" in multi
     assert "같은 사건 기사" not in single
+
+
+def test_판정_파일을_읽어_시트_기입용_판정으로_바꾼다():
+    from apps.rag.adapter.inbound.cli.judge_evalset import load_judgments
+
+    got = load_judgments(
+        '{"funding:P1": {"verdict": "O", "reason": "핵심 일치"},'
+        ' "funding:P2": {"verdict": "X", "reason": "유사 공고와 겹침", "better_question": "방산 헬프데스크?"}}'
+    )
+    assert got["funding:P1"] == Judgment(verdict="O", reason="핵심 일치")
+    assert got["funding:P2"].better_question == "방산 헬프데스크?"
+    annotated = annotate_sheet(_SHEET, got)
+    assert parse_sheet(annotated)["funding:P2"][0] == "X"

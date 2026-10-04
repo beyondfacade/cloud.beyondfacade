@@ -122,3 +122,39 @@ def test_검수_반영은_subset과_hard_kind를_보존한다():
     out = apply_verdicts([row], {"news:a": ("O", "q2")})
     assert out[0]["subset"] == "hard" and out[0]["hard_kind"] == "news_event"
     assert out[0]["status"] == "confirmed" and out[0]["question"] == "q2"
+
+
+def test_내보내기는_문항마다_지시문과_입력과_정답_묶음을_싣는다():
+    import json
+
+    from apps.rag.adapter.inbound.cli.generate_evalset import _HARD_SYSTEMS, export_hard_items
+
+    out = export_hard_items([HardItem("news:a", "기사 본문", ["news:a", "news:b"])], "news_event")
+    row = json.loads(out.splitlines()[0])
+    assert row == {
+        "chunk_id": "news:a", "hard_kind": "news_event", "relevant_ids": ["news:a", "news:b"],
+        "system": _HARD_SYSTEMS["news_event"], "prompt_input": "기사 본문",
+    }
+
+
+def test_답안_가져오기는_어려운_질문_행을_만들고_기존_정답과_따옴표를_정리한다():
+    import json
+
+    from apps.rag.adapter.inbound.cli.generate_evalset import rows_from_answers
+
+    text = "\n".join([
+        json.dumps({"chunk_id": "funding:A", "hard_kind": "colloquial", "relevant_ids": ["funding:A"],
+                    "question": ' "가게 인테리어 비용 빌려주는 데 있어?" '}, ensure_ascii=False),
+        json.dumps({"chunk_id": "funding:B", "hard_kind": "colloquial", "relevant_ids": ["funding:B"],
+                    "question": "이미 있는 공고"}, ensure_ascii=False),
+        "",
+    ])
+    rows = rows_from_answers(text, existing={"funding:B"})
+    assert rows == [{
+        "question": "가게 인테리어 비용 빌려주는 데 있어?",
+        "relevant_ids": ["funding:A"],
+        "source_type": "funding",
+        "status": "candidate",
+        "subset": "hard",
+        "hard_kind": "colloquial",
+    }]
