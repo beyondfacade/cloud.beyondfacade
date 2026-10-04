@@ -5,6 +5,7 @@
 ### Added
 - **LLM 모델 평가 하네스** (spec `docs/superpowers/specs/2026-10-04-llm-benchmark-design.md`) — 리포트 작성·의도 관문 두 역할에서 로컬 후보를 같은 입력으로 재고, 게이트 통과 모델 중 동률이면 VRAM이 작은 쪽을 고른다. 운영 경로는 바꾸지 않는다.
   - 공통 통계를 `core/matrix/grid_benchmark_manager.py`로 올렸다(bootstrap·백분위·상주 확인·동률 판정). rag 임베딩 하네스도 여기서 가져온다.
+  - Ollama LLM 어댑터에 `think`·`temperature` 인자(지정할 때만 요청에 실림, 기본값은 기존 요청 그대로).
 
 ## [v0.65.1] - 2026-10-04
 

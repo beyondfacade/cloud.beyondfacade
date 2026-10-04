@@ -19,7 +19,14 @@ from core.matrix.grid_keymaker_secret_manager import get_settings
 class OllamaLLMAdapter(LLMGatewayPort):
     """Ollama /api/chat 기반 LLM 어댑터."""
 
-    def __init__(self, model: str = "gemma3:12b", base_url: str | None = None, transport=None):
+    def __init__(
+        self,
+        model: str = "gemma3:12b",
+        base_url: str | None = None,
+        transport=None,
+        think: bool | None = None,
+        temperature: float | None = None,
+    ):
         """
         Ollama LLM 어댑터 초기화.
 
@@ -27,20 +34,33 @@ class OllamaLLMAdapter(LLMGatewayPort):
             model: Ollama 모델명 (기본값: gemma3:12b)
             base_url: Ollama 서버 URL (기본값: 설정 OLLAMA_BASE_URL)
             transport: httpx.Transport (테스트용 MockTransport 주입 가능)
+            think: 추론(thinking) 사용 여부 (기본값: None — 요청에 싣지 않음)
+            temperature: 샘플링 온도 (기본값: None — 요청에 싣지 않음)
         """
         self.model_name = model
+        self._think = think
+        self._temperature = temperature
         self.client = httpx.Client(base_url=base_url or get_settings().ollama_base_url, transport=transport, timeout=120.0)
+
+    def _body(self, messages: list[dict], tools: list[LLMToolSpec], stream: bool) -> dict:
+        """요청 바디 — think·temperature는 지정했을 때만 싣는다(미지정이면 지금과 같은 요청)."""
+        body = {
+            "model": self.model_name,
+            "messages": messages,
+            "tools": [_to_ollama_tool(tool) for tool in tools],
+            "stream": stream,
+        }
+        if self._think is not None:
+            body["think"] = self._think
+        if self._temperature is not None:
+            body["options"] = {"temperature": self._temperature}
+        return body
 
     def chat(self, messages: list[dict], tools: list[LLMToolSpec]) -> LLMTurn:
         """메시지 히스토리와 도구 목록을 받아 한 턴 응답을 반환."""
         response = self.client.post(
             "/api/chat",
-            json={
-                "model": self.model_name,
-                "messages": messages,
-                "tools": [_to_ollama_tool(tool) for tool in tools],
-                "stream": False,
-            },
+            json=self._body(messages, tools, stream=False),
         )
         response.raise_for_status()
         data = response.json()
@@ -70,12 +90,7 @@ class OllamaLLMAdapter(LLMGatewayPort):
         with self.client.stream(
             "POST",
             "/api/chat",
-            json={
-                "model": self.model_name,
-                "messages": messages,
-                "tools": [_to_ollama_tool(tool) for tool in tools],
-                "stream": True,
-            },
+            json=self._body(messages, tools, stream=True),
         ) as response:
             response.raise_for_status()
             for line in response.iter_lines():
