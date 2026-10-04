@@ -1,0 +1,12 @@
+{"id": "s01", "region_code": "1120072000", "industry_id": "korean_food", "question": null, "tags": ["red"]}
+{"id": "s02", "region_code": "1135056000", "industry_id": "billiard", "question": null, "tags": ["red"]}
+{"id": "s03", "region_code": "1129057500", "industry_id": "snack", "question": null, "tags": ["orange"]}
+{"id": "s04", "region_code": "1138063100", "industry_id": "korean_food", "question": null, "tags": ["orange"]}
+{"id": "s05", "region_code": "1123061000", "industry_id": "cafe", "question": null, "tags": ["clear"]}
+{"id": "s06", "region_code": "1130566000", "industry_id": "karaoke", "question": null, "tags": ["clear"]}
+{"id": "s07", "region_code": "1147058000", "industry_id": "snack", "question": null, "tags": ["insufficient"]}
+{"id": "s08", "region_code": "1156067000", "industry_id": "billiard", "question": null, "tags": ["insufficient"]}
+{"id": "s09", "region_code": "1126057500", "industry_id": "convenience_store", "question": null, "tags": ["partial", "convenience_store"]}
+{"id": "s10", "region_code": "1159051000", "industry_id": "childcare", "question": null, "tags": ["partial", "childcare"]}
+{"id": "s11", "region_code": "1165057000", "industry_id": "cafe", "question": "은행 대출 받아서 차려도 될까요?", "tags": ["red", "finance_rule", "finance_tool"]}
+{"id": "s12", "region_code": "1162066500", "industry_id": "snack", "question": "외국인이 많은 동네인데 괜찮을까요?", "tags": ["orange", "discrimination_rule"]}
