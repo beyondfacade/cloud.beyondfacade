@@ -1,0 +1,81 @@
+{"id": "i001", "text": "홍대입구역 근처에서 카페 하나 열고 싶어요", "kind": "landmark", "expected": {"region_name": "서교동", "industry_id": "cafe", "budget_krw": null}, "status": "candidate"}
+{"id": "i002", "text": "가로수길에 파스타 가게 내려고 하는데 어때요?", "kind": "landmark", "expected": {"region_name": "신사동", "industry_id": "western_food", "budget_krw": null}, "status": "candidate"}
+{"id": "i003", "text": "연트럴파크 근처 술집 창업 고민 중입니다", "kind": "landmark", "expected": {"region_name": "연남동", "industry_id": "pub", "budget_krw": null}, "status": "candidate"}
+{"id": "i004", "text": "해방촌에서 작은 초밥집 열고 싶어요", "kind": "landmark", "expected": {"region_name": "용산2가동", "industry_id": "japanese_food", "budget_krw": null}, "status": "candidate"}
+{"id": "i005", "text": "익선동 한옥거리에 카페 차리면 어떨까요", "kind": "landmark", "expected": {"region_name": "종로1.2.3.4가동", "industry_id": "cafe", "budget_krw": null}, "status": "candidate"}
+{"id": "i006", "text": "여의도 직장인 상대로 한식 백반집 열 생각이에요", "kind": "landmark", "expected": {"region_name": "여의동", "industry_id": "korean_food", "budget_krw": null}, "status": "candidate"}
+{"id": "i007", "text": "문래창작촌 근처에 양식 비스트로 어때요", "kind": "landmark", "expected": {"region_name": "문래동", "industry_id": "western_food", "budget_krw": null}, "status": "candidate"}
+{"id": "i008", "text": "광장시장 근처에 국밥집 내고 싶은데 3천 정도 있어요", "kind": "landmark", "expected": {"region_name": "종로5.6가동", "industry_id": "korean_food", "budget_krw": 30000000}, "status": "candidate"}
+{"id": "i009", "text": "을지로 노가리골목에서 호프집 하려고요", "kind": "landmark", "expected": {"region_name": "을지로동", "industry_id": "pub", "budget_krw": null}, "status": "candidate"}
+{"id": "i010", "text": "건대입구 맛의거리에서 치킨집 창업 상담 받고 싶어요", "kind": "landmark", "expected": {"region_name": "화양동", "industry_id": "chicken", "budget_krw": null}, "status": "candidate"}
+{"id": "i011", "text": "신촌 연세로 쪽 PC방 자리 알아보는 중이에요", "kind": "landmark", "expected": {"region_name": "신촌동", "industry_id": "pc_bang", "budget_krw": null}, "status": "candidate"}
+{"id": "i012", "text": "가산디지털단지 근처에 헬스장 열면 수요 있을까요", "kind": "landmark", "expected": {"region_name": "가산동", "industry_id": "gym", "budget_krw": null}, "status": "candidate"}
+{"id": "i013", "text": "코엑스 근처에서 돈카츠집 하고 싶습니다", "kind": "landmark", "expected": {"region_name": "삼성1동", "industry_id": "japanese_food", "budget_krw": null}, "status": "candidate"}
+{"id": "i014", "text": "서래마을에 브런치 양식당 내려고 해요, 예산 2억", "kind": "landmark", "expected": {"region_name": "반포4동", "industry_id": "western_food", "budget_krw": 200000000}, "status": "candidate"}
+{"id": "i015", "text": "연남동에서 커피집 하나 해볼까 하는데요", "kind": "industry_slang", "expected": {"region_name": "연남동", "industry_id": "cafe", "budget_krw": null}, "status": "candidate"}
+{"id": "i016", "text": "합정동 피시방 창업 어떤가요", "kind": "industry_slang", "expected": {"region_name": "합정동", "industry_id": "pc_bang", "budget_krw": null}, "status": "candidate"}
+{"id": "i017", "text": "한남동에 미장원 차리고 싶어요", "kind": "industry_slang", "expected": {"region_name": "한남동", "industry_id": "hair_salon", "budget_krw": null}, "status": "candidate"}
+{"id": "i018", "text": "공덕동에 통닭집 자리 보고 있어요", "kind": "industry_slang", "expected": {"region_name": "공덕동", "industry_id": "chicken", "budget_krw": null}, "status": "candidate"}
+{"id": "i019", "text": "서교동 쪽에서 포차 하나 해보려고요", "kind": "industry_slang", "expected": {"region_name": "서교동", "industry_id": "pub", "budget_krw": null}, "status": "candidate"}
+{"id": "i020", "text": "신림동에 국밥집 내면 장사 될까요?", "kind": "industry_slang", "expected": {"region_name": "신림동", "industry_id": "korean_food", "budget_krw": null}, "status": "candidate"}
+{"id": "i021", "text": "화곡1동에서 복덕방 하려는데요", "kind": "industry_slang", "expected": {"region_name": "화곡제1동", "industry_id": "real_estate", "budget_krw": null}, "status": "candidate"}
+{"id": "i022", "text": "대치4동에 보습학원 열고 싶습니다", "kind": "industry_slang", "expected": {"region_name": "대치4동", "industry_id": "academy", "budget_krw": null}, "status": "candidate"}
+{"id": "i023", "text": "잠실본동에서 코인노래방 해볼까 해요", "kind": "industry_slang", "expected": {"region_name": "잠실본동", "industry_id": "karaoke", "budget_krw": null}, "status": "candidate"}
+{"id": "i024", "text": "청담동에 중국집 차리면 어떨까요", "kind": "industry_slang", "expected": {"region_name": "청담동", "industry_id": "chinese_food", "budget_krw": null}, "status": "candidate"}
+{"id": "i025", "text": "망원1동 떡볶이집 창업 문의드려요", "kind": "industry_slang", "expected": {"region_name": "망원제1동", "industry_id": "snack", "budget_krw": null}, "status": "candidate"}
+{"id": "i026", "text": "쌍문1동 근처에 포켓볼 치는 데 차리면 어떨까요", "kind": "industry_slang", "expected": {"region_name": "쌍문제1동", "industry_id": "billiard", "budget_krw": null}, "status": "candidate"}
+{"id": "i027", "text": "상계6.7동에 가정어린이집 열려고 합니다", "kind": "industry_slang", "expected": {"region_name": "상계6.7동", "industry_id": "childcare", "budget_krw": null}, "status": "candidate"}
+{"id": "i028", "text": "성내1동에서 피트니스센터 창업하려고요", "kind": "industry_slang", "expected": {"region_name": "성내제1동", "industry_id": "gym", "budget_krw": null}, "status": "candidate"}
+{"id": "i029", "text": "연희동에서 카페 하려는데 5천 정도 생각해요", "kind": "budget", "expected": {"region_name": "연희동", "industry_id": "cafe", "budget_krw": 50000000}, "status": "candidate"}
+{"id": "i030", "text": "을지로동 호프집, 예산은 1억 2천이에요", "kind": "budget", "expected": {"region_name": "을지로동", "industry_id": "pub", "budget_krw": 120000000}, "status": "candidate"}
+{"id": "i031", "text": "삼천만원으로 신당동에서 분식집 가능할까요?", "kind": "budget", "expected": {"region_name": "신당동", "industry_id": "snack", "budget_krw": 30000000}, "status": "candidate"}
+{"id": "i032", "text": "방배본동 미용실 창업, 3천5백 있어요", "kind": "budget", "expected": {"region_name": "방배본동", "industry_id": "hair_salon", "budget_krw": 35000000}, "status": "candidate"}
+{"id": "i033", "text": "반포4동에 양식 레스토랑, 2억 안쪽으로요", "kind": "budget", "expected": {"region_name": "반포4동", "industry_id": "western_food", "budget_krw": 200000000}, "status": "candidate"}
+{"id": "i034", "text": "상도1동 편의점 8천만 원이면 될까요", "kind": "budget", "expected": {"region_name": "상도제1동", "industry_id": "convenience_store", "budget_krw": 80000000}, "status": "candidate"}
+{"id": "i035", "text": "보광동에서 일식집 하는데 4500만원 있습니다", "kind": "budget", "expected": {"region_name": "보광동", "industry_id": "japanese_food", "budget_krw": 45000000}, "status": "candidate"}
+{"id": "i036", "text": "홍제1동 치킨집, 딱 1억 있어요", "kind": "budget", "expected": {"region_name": "홍제제1동", "industry_id": "chicken", "budget_krw": 100000000}, "status": "candidate"}
+{"id": "i037", "text": "도화동 한식당 차리는데 칠천 정도요", "kind": "budget", "expected": {"region_name": "도화동", "industry_id": "korean_food", "budget_krw": 70000000}, "status": "candidate"}
+{"id": "i038", "text": "하계1동 PC방, 1.5억 예산입니다", "kind": "budget", "expected": {"region_name": "하계1동", "industry_id": "pc_bang", "budget_krw": 150000000}, "status": "candidate"}
+{"id": "i039", "text": "성북동에 카페 낼 건데 6천만원 선이에요", "kind": "budget", "expected": {"region_name": "성북동", "industry_id": "cafe", "budget_krw": 60000000}, "status": "candidate"}
+{"id": "i040", "text": "천호2동 노래방 창업 2억5천 가능할까요", "kind": "budget", "expected": {"region_name": "천호제2동", "industry_id": "karaoke", "budget_krw": 250000000}, "status": "candidate"}
+{"id": "i041", "text": "길동 헬스장 창업비로 9천만원 잡고 있어요", "kind": "budget", "expected": {"region_name": "길동", "industry_id": "gym", "budget_krw": 90000000}, "status": "candidate"}
+{"id": "i042", "text": "수서동 학원 개원 예산 오천만 원입니다", "kind": "budget", "expected": {"region_name": "수서동", "industry_id": "academy", "budget_krw": 50000000}, "status": "candidate"}
+{"id": "i043", "text": "카페 창업하려면 어디가 좋을까요?", "kind": "missing", "expected": {"region_name": null, "industry_id": "cafe", "budget_krw": null}, "status": "candidate"}
+{"id": "i044", "text": "연남동 요즘 상권 어때요?", "kind": "missing", "expected": {"region_name": "연남동", "industry_id": null, "budget_krw": null}, "status": "candidate"}
+{"id": "i045", "text": "예산 1억으로 할 수 있는 거 추천해주세요", "kind": "missing", "expected": {"region_name": null, "industry_id": null, "budget_krw": 100000000}, "status": "candidate"}
+{"id": "i046", "text": "서교동에서 치킨집 하고 싶어요", "kind": "missing", "expected": {"region_name": "서교동", "industry_id": "chicken", "budget_krw": null}, "status": "candidate"}
+{"id": "i047", "text": "3천만원 있는데 편의점 해볼까요", "kind": "missing", "expected": {"region_name": null, "industry_id": "convenience_store", "budget_krw": 30000000}, "status": "candidate"}
+{"id": "i048", "text": "합정동에 5천 정도로 뭐 할 수 있을까요", "kind": "missing", "expected": {"region_name": "합정동", "industry_id": null, "budget_krw": 50000000}, "status": "candidate"}
+{"id": "i049", "text": "창업 상담 좀 받고 싶어요", "kind": "missing", "expected": {"region_name": null, "industry_id": null, "budget_krw": null}, "status": "candidate"}
+{"id": "i050", "text": "헬스장 차리면 망할까요?", "kind": "missing", "expected": {"region_name": null, "industry_id": "gym", "budget_krw": null}, "status": "candidate"}
+{"id": "i051", "text": "이태원1동에 가게 하나 내고 싶어요", "kind": "missing", "expected": {"region_name": "이태원제1동", "industry_id": null, "budget_krw": null}, "status": "candidate"}
+{"id": "i052", "text": "분식집 예산 4천이면 충분한가요", "kind": "missing", "expected": {"region_name": null, "industry_id": "snack", "budget_krw": 40000000}, "status": "candidate"}
+{"id": "i053", "text": "강남 쪽에서 술집 하려고요", "kind": "missing", "expected": {"region_name": null, "industry_id": "pub", "budget_krw": null}, "status": "candidate"}
+{"id": "i054", "text": "청파동에 부동산 사무실 열려고 합니다", "kind": "missing", "expected": {"region_name": "청파동", "industry_id": "real_estate", "budget_krw": null}, "status": "candidate"}
+{"id": "i055", "text": "아직 업종은 못 정했고 2억 정도 있어요", "kind": "missing", "expected": {"region_name": null, "industry_id": null, "budget_krw": 200000000}, "status": "candidate"}
+{"id": "i056", "text": "부산 해운대에서 카페 하고 싶어요", "kind": "out_of_scope", "expected": {"region_name": null, "industry_id": "cafe", "budget_krw": null}, "status": "candidate"}
+{"id": "i057", "text": "분당 정자동 치킨집 창업, 5천 있어요", "kind": "out_of_scope", "expected": {"region_name": null, "industry_id": "chicken", "budget_krw": 50000000}, "status": "candidate"}
+{"id": "i058", "text": "인천 송도에 학원 내려는데요", "kind": "out_of_scope", "expected": {"region_name": null, "industry_id": "academy", "budget_krw": null}, "status": "candidate"}
+{"id": "i059", "text": "일산 라페스타 쪽 호프집 어떨까요", "kind": "out_of_scope", "expected": {"region_name": null, "industry_id": "pub", "budget_krw": null}, "status": "candidate"}
+{"id": "i060", "text": "수원역 근처 PC방, 1억 예산이에요", "kind": "out_of_scope", "expected": {"region_name": null, "industry_id": "pc_bang", "budget_krw": 100000000}, "status": "candidate"}
+{"id": "i061", "text": "연남동에서 꽃집 하고 싶어요", "kind": "out_of_scope", "expected": {"region_name": "연남동", "industry_id": null, "budget_krw": null}, "status": "candidate"}
+{"id": "i062", "text": "망원2동 세탁소 창업 3천만원 있어요", "kind": "out_of_scope", "expected": {"region_name": "망원제2동", "industry_id": null, "budget_krw": 30000000}, "status": "candidate"}
+{"id": "i063", "text": "한남동에 반려동물 미용샵 차리려고요", "kind": "out_of_scope", "expected": {"region_name": "한남동", "industry_id": null, "budget_krw": null}, "status": "candidate"}
+{"id": "i064", "text": "서교동에 네일샵 내고 싶은데 4천 있어요", "kind": "out_of_scope", "expected": {"region_name": "서교동", "industry_id": null, "budget_krw": 40000000}, "status": "candidate"}
+{"id": "i065", "text": "제주 애월에 카페 하려고 2억 모았어요", "kind": "out_of_scope", "expected": {"region_name": null, "industry_id": "cafe", "budget_krw": 200000000}, "status": "candidate"}
+{"id": "i066", "text": "대치1동에 약국 개업하려고 합니다", "kind": "out_of_scope", "expected": {"region_name": "대치1동", "industry_id": null, "budget_krw": null}, "status": "candidate"}
+{"id": "i067", "text": "하남 미사에서 꽃집 하려는데 예산 3천", "kind": "out_of_scope", "expected": {"region_name": null, "industry_id": null, "budget_krw": 30000000}, "status": "candidate"}
+{"id": "i068", "text": "경기도 광명 철산동에 헬스장 어때요", "kind": "out_of_scope", "expected": {"region_name": null, "industry_id": "gym", "budget_krw": null}, "status": "candidate"}
+{"id": "i069", "text": "전에 강남에서 했는데 이번엔 연남동에서 카페 5천 정도로 다시 해보려고요", "kind": "compound", "expected": {"region_name": "연남동", "industry_id": "cafe", "budget_krw": 50000000}, "status": "candidate"}
+{"id": "i070", "text": "치킨집 접고 이번엔 서교동에서 호프집, 예산은 1억 정도예요", "kind": "compound", "expected": {"region_name": "서교동", "industry_id": "pub", "budget_krw": 100000000}, "status": "candidate"}
+{"id": "i071", "text": "친구는 부산에서 하는데 저는 망원1동에서 분식집 3천으로 해보려고요", "kind": "compound", "expected": {"region_name": "망원제1동", "industry_id": "snack", "budget_krw": 30000000}, "status": "candidate"}
+{"id": "i072", "text": "작년에 2억 날렸고 지금은 7천 있어요. 공덕동 한식당 어떨까요", "kind": "compound", "expected": {"region_name": "공덕동", "industry_id": "korean_food", "budget_krw": 70000000}, "status": "candidate"}
+{"id": "i073", "text": "카페랑 고민했는데 결국 합정동에 일식집으로 정했어요, 1억 2천", "kind": "compound", "expected": {"region_name": "합정동", "industry_id": "japanese_food", "budget_krw": 120000000}, "status": "candidate"}
+{"id": "i074", "text": "홍대 말고 연희동 쪽에서 미용실 열 건데 예산 4천5백이요", "kind": "compound", "expected": {"region_name": "연희동", "industry_id": "hair_salon", "budget_krw": 45000000}, "status": "candidate"}
+{"id": "i075", "text": "원래 분당에서 학원 했는데 대치4동으로 옮겨서 2억 정도로 하려고요", "kind": "compound", "expected": {"region_name": "대치4동", "industry_id": "academy", "budget_krw": 200000000}, "status": "candidate"}
+{"id": "i076", "text": "권리금 빼고 보증금 포함 6천, 화양동 PC방 가능할까요?", "kind": "compound", "expected": {"region_name": "화양동", "industry_id": "pc_bang", "budget_krw": 60000000}, "status": "candidate"}
+{"id": "i077", "text": "여의도 회사 그만두고 문래동에서 양식 비스트로, 8천 정도 생각 중", "kind": "compound", "expected": {"region_name": "문래동", "industry_id": "western_food", "budget_krw": 80000000}, "status": "candidate"}
+{"id": "i078", "text": "가로수길은 너무 비싸서 성북동에 카페 차리려고요, 3천5백 있습니다", "kind": "compound", "expected": {"region_name": "성북동", "industry_id": "cafe", "budget_krw": 35000000}, "status": "candidate"}
+{"id": "i079", "text": "중국집 하던 자리 인수해서 신당동에서 치킨집 하려고 해요, 1억 안쪽", "kind": "compound", "expected": {"region_name": "신당동", "industry_id": "chicken", "budget_krw": 100000000}, "status": "candidate"}
+{"id": "i080", "text": "헬스장이랑 당구장 중에 당구장으로 마음 굳혔어요. 길동, 6천", "kind": "compound", "expected": {"region_name": "길동", "industry_id": "billiard", "budget_krw": 60000000}, "status": "candidate"}
+{"id": "i081", "text": "인천에서 3년 장사했고 이제 목5동에서 부동산 중개사무소 2천으로", "kind": "compound", "expected": {"region_name": "목5동", "industry_id": "real_estate", "budget_krw": 20000000}, "status": "candidate"}
