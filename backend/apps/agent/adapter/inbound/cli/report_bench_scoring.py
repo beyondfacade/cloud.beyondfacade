@@ -120,32 +120,35 @@ def unmatched_numbers(report_md: str, facts: dict) -> list[str]:
 
 # ── 판정 일치 ──────────────────────────────────────────────
 
-# 판정별 동의어 — 앞 두 개가 '핵심 라벨'(다른 등급 모순 검사용). 공백은 제거 후 비교.
+# 판정 그룹별 동의어(공백 제거·소문자 기준으로 비교). 그룹 하나가 한 등급의 표현이다.
 _VERDICT_SYNONYMS = {
-    "red": ("비추천", "빨강", "레드", "red"),
-    "orange": ("조건부", "주황", "오렌지", "orange"),
-    "clear": ("경고없", "경고가없", "위험신호가없", "clear"),
-    "unavailable": ("판정없음", "판정보류", "보류", "판정할수없", "판정하지않"),
+    "red": ("비추천", "빨강", "빨간", "레드", "red", "적색"),
+    "orange": ("조건부", "주황", "오렌지", "orange", "'주의' 등급", "주의 등급"),
+    "clear": ("경고 없", "경고가 없", "위험 신호가 없", "위험 신호도 켜지지 않", "clear"),
+    "unavailable": ("판정 없음", "판정 보류", "판정할 수 없", "판정하지 않", "판정을 내리지 않", "insufficient"),
 }
-_CORE_COUNT = 2
+_VERDICT_GROUP = {"insufficient": "unavailable"}  # verdict_code → 동의어 그룹(나머지는 코드가 곧 그룹)
+
+
+def _squash(text: str) -> str:
+    return re.sub(r"\s+", "", text).lower()
+
+
+_SQUASHED_SYNONYMS = {group: tuple(_squash(w) for w in words) for group, words in _VERDICT_SYNONYMS.items()}
 
 
 def verdict_matches(verdict_section_md: str, verdict_facts: dict) -> bool:
-    """판정 절이 facts 판정을 (동의어로라도) 말하고 다른 등급의 핵심 라벨은 없는가.
+    """판정 절이 facts 판정과 모순되지 않는가 — 다른 등급의 동의어를 단정하지 않으면 통과.
 
-    자료가 없으면(available False) 비추천·조건부·경고 없음 계열 핵심 라벨이 없어야 한다.
+    등급 말을 아예 안 쓴 절(생략)은 모순이 아니다. 판정 자료가 없으면(available False)
+    unavailable 그룹이 기대 등급이며, 비추천·조건부·경고 없음 계열 말은 모두 모순이다.
     """
-    text = re.sub(r"\s+", "", verdict_section_md).lower()
+    text = _squash(verdict_section_md)
     code = verdict_facts.get("verdict_code") if verdict_facts.get("available") else "unavailable"
-    if code == "insufficient":
-        code = "unavailable"
-    if code not in _VERDICT_SYNONYMS:
+    group = _VERDICT_GROUP.get(code, code)
+    if group not in _SQUASHED_SYNONYMS:
         return False
-    foreign_core = [w for k, ws in _VERDICT_SYNONYMS.items() if k not in (code, "unavailable")
-                    for w in ws[:_CORE_COUNT]]
-    if any(w in text for w in foreign_core):
-        return False
-    return any(w in text for w in _VERDICT_SYNONYMS[code])
+    return not any(w in text for g, words in _SQUASHED_SYNONYMS.items() if g != group for w in words)
 
 
 # ── LLM 작성 절 ────────────────────────────────────────────
@@ -234,16 +237,48 @@ def _table(headers: list[str], rows: list[list[str]]) -> list[str]:
 
 
 def _report_row(r: dict) -> list[str]:
-    return [r["model"], _cell(r, "vram_mib"), _cell(r, "quality", "{:.2f}"), _cell(r, "completion", "{:.2f}"),
+    return [r["model"], _cell(r, "vram_mib", "{:.0f}"), _cell(r, "quality", "{:.2f}"), _cell(r, "completion", "{:.2f}"),
             _cell(r, "verdict_match", "{:.2f}"), _cell(r, "fabrication", "{:.2f}"), _cell(r, "rule_violations"),
             _cell(r, "first_p95_ms", "{:.0f}"), _cell(r, "total_p95_ms", "{:.0f}"),
             _ox(r["gates"]["all"]), r.get("note", "")]
 
 
 def _intent_row(r: dict) -> list[str]:
-    return [r["model"], _cell(r, "vram_mib"), _cell(r, "both", "{:.3f}"), _cell(r, "region", "{:.3f}"),
+    return [r["model"], _cell(r, "vram_mib", "{:.0f}"), _cell(r, "both", "{:.3f}"), _cell(r, "region", "{:.3f}"),
             _cell(r, "industry", "{:.3f}"), _cell(r, "budget", "{:.3f}"), _cell(r, "schema_rate", "{:.3f}"),
             _cell(r, "fabrication_rate", "{:.3f}"), _cell(r, "p95_ms", "{:.0f}"), _ox(r["gates"]["all"])]
+
+
+# 판정자 위반 문장 → 유형. 위에서부터 첫 일치, 아무것도 안 맞으면 마지막 "기타".
+VIOLATION_TYPES = ("신뢰 등급 표기", "금융", "재난기", "차별", "기타")
+_VIOLATION_KEYWORDS = {
+    "신뢰 등급 표기": ("신뢰", "표기", "확인된 사실", "참고 신호", "태그"),
+    "금융": ("금융", "대출", "은행", "금리", "한도", "상품", "예상치"),
+    "재난기": ("재난", "2020", "2021", "2022", "코로나", "팬데믹"),
+    "차별": ("차별", "외국인", "혐오", "비하"),
+}
+
+
+def classify_violation(text: str) -> str:
+    return next((kind for kind, words in _VIOLATION_KEYWORDS.items() if any(w in text for w in words)), "기타")
+
+
+def _reference_lines(report: dict) -> list[str]:
+    ref = report.get("reference")
+    if not ref:
+        return []
+    lines = ["", "## 참고 순위 (게이트와 별개)", ""]
+    if report.get("winner") is None:
+        lines += ["엄격 게이트를 통과한 로컬 리포트 모델이 없어 아래는 참고용이며 채택 결정이 아니다.", ""]
+    if ref.get("winner"):
+        lines += [f"- 참고 1위(동률 시 VRAM 작은 쪽): **{ref['winner']}** — 동률 {{{', '.join(ref['tied'])}}}", ""]
+    lines += _table(["순위", "모델", "품질", "VRAM(MiB)", "게이트 탈락"],
+                    [[str(i), r["model"], _cell(r, "quality", "{:.2f}"), _cell(r, "vram_mib", "{:.0f}"),
+                      ", ".join(r["failed"]) or "-"] for i, r in enumerate(ref["ranking"], 1)])
+    lines += ["", "### 판정자 위반 유형 내역", ""]
+    lines += _table(["모델", *VIOLATION_TYPES],
+                    [[m, *(str(counts.get(k, 0)) for k in VIOLATION_TYPES)] for m, counts in ref["violations"].items()])
+    return lines
 
 
 def _verdict_line(role: str, block: dict) -> str:
@@ -268,7 +303,9 @@ def render_llm_report(results: dict) -> str:
     lines += _table(["모델", "VRAM(MiB)", "동시 정답", "지역", "업종", "예산", "스키마", "지어내기", "p95(ms)", "게이트"],
                     [_intent_row(r) for r in results["intent"]["rows"]])
     lines += ["", "## 판정", "", _verdict_line("리포트", results["report"]), _verdict_line("관문", results["intent"]),
-              _residency_line(results.get("residency")), "", "## 한계", "",
+              _residency_line(results.get("residency"))]
+    lines += _reference_lines(results["report"])
+    lines += ["", "## 한계", "",
               "- 숫자 대조는 오탐이 있을 수 있다(불일치 목록으로 사람이 확인).",
               "- 품질 판정자도 LLM이다(모델명은 가렸지만 문체로 짐작할 수 있다).",
               "- 리포트 시나리오는 12건이라 표본이 작다."]

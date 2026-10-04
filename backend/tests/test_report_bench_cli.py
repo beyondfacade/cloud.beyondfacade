@@ -165,3 +165,21 @@ def test_시스템_프롬프트에_있는_숫자는_지어낸_것이_아니다()
     assert "13개" in SYSTEM_PROMPT
     assert score_run(record, facts)["unmatched"] == []
     assert score_run(record, facts, tools_given=False)["unmatched"] == []
+
+
+def test_참고_순위는_게이트와_별개로_로컬_전부를_줄_세우고_위반_유형을_센다():
+    ids = ["a", "b"]
+    scores = {"qwen3.5:4b": _score(fabrication=0.5), "qwen3.5:9b": _score(), "gemini-2.5-flash": _score()}
+    judge = {"qwen3.5:4b": _judge([5, 5], ids, viol=["금리 예상치 고지 없음"]),
+             "qwen3.5:9b": _judge([3, 3], ids, viol=["표기 누락"]),
+             "gemini-2.5-flash": _judge([5, 5], ids)}
+    block = build_report_block(scores, judge, {"qwen3.5:4b": 3400.7, "qwen3.5:9b": 6600}, ids)
+    ref = block["reference"]
+    assert [r["model"] for r in ref["ranking"]] == ["qwen3.5:4b", "qwen3.5:9b"]
+    assert ref["ranking"][0]["failed"] == ["fabrication", "rules"] and ref["winner"] == "qwen3.5:4b"
+    assert ref["violations"]["qwen3.5:4b"] == {"금융": 2}
+    results = {"date": "2026-10-04", "report": {**block, "winner": None}, "intent": {"rows": [], "winner": None},
+               "residency": None}
+    md = render_llm_report(results)
+    assert "## 참고 순위 (게이트와 별개)" in md and "채택 결정이 아니다" in md
+    assert "참고 1위(동률 시 VRAM 작은 쪽): **qwen3.5:4b**" in md and "| 3401 |" in md

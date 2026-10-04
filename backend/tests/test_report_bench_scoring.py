@@ -5,6 +5,7 @@ from apps.agent.adapter.inbound.cli.report_bench_scoring import (
     judge_packets,
     llm_sections,
     unmatched_numbers,
+    classify_violation,
     verdict_matches,
 )
 
@@ -31,17 +32,32 @@ def test_소수_단위_토큰은_표시_자릿수로_반올림해_맞춘다():
     assert unmatched_numbers("매출 3.1억", {"sales": 312000000}) == []
 
 
-def test_판정_일치는_기대_라벨만_있어야():
+def test_판정_일치는_다른_등급을_단정할_때만_거짓():
     v = {"available": True, "verdict_code": "orange"}
     assert verdict_matches("### 판정\n조건부입니다.", v)
     assert not verdict_matches("### 판정\n비추천입니다.", v)
     assert not verdict_matches("### 판정\n조건부지만 비추천에 가깝다", v)
 
 
-def test_판정_자료가_없으면_단정_라벨이_없어야():
+def test_판정_자료가_없으면_등급_단정이_없어야():
     v = {"available": False}
     assert verdict_matches("### 판정\n판정 보류입니다.", v)
+    assert verdict_matches("판정을 내리지 않습니다", v)
     assert not verdict_matches("### 판정\n경고 없음", v)
+
+
+def test_실제_출력_표현은_모순이_아니다():
+    assert verdict_matches("'주의' 등급입니다", {"available": True, "verdict_code": "orange"})
+    assert verdict_matches("`insufficient` 등급으로 판정되었고 `shrinking` 신호 1개가 있다",
+                           {"available": True, "verdict_code": "insufficient"})
+    assert verdict_matches("`빨간불` 켜진 상권입니다", {"available": True, "verdict_code": "red"})
+    assert verdict_matches("두 개의 강력한 위험 신호가 켜져 있습니다", {"available": True, "verdict_code": "red"})
+    assert verdict_matches("등급을 알려드릴 수 없습니다 판정을 내리지 않습니다", {"available": False})
+
+
+def test_판정_없음을_말하면_등급_판정과_모순():
+    assert not verdict_matches("**판정 없음**: 자료 부족", {"available": True, "verdict_code": "red"})
+    assert not verdict_matches("판정 없음. 판정이 부여되지 않았습니다.", {"available": True, "verdict_code": "clear"})
 
 
 def test_폴백과_같은_절은_LLM_작성이_아니다():
@@ -77,3 +93,11 @@ def test_판정_동의어를_인정하고_다른_등급_핵심_라벨은_모순(
 
 def test_연령대와_순위는_사실값이_아니다():
     assert unmatched_numbers("20대 비중이 높고 12위", {}) == []
+
+
+def test_위반_문장을_유형으로_분류한다():
+    assert classify_violation("[확인된 사실]·[참고 신호] 표기를 전혀 하지 않음") == "신뢰 등급 표기"
+    assert classify_violation("금리·한도를 언급하면서 '예상치' 고지 없음") == "금융"
+    assert classify_violation("재난기(2022) 폐업률 상승을 왜곡") == "재난기"
+    assert classify_violation("외국인 손님을 비하") == "차별"
+    assert classify_violation("섹션 구분 없음") == "기타"

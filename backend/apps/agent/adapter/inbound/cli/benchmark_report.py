@@ -18,6 +18,7 @@ import argparse
 import json
 import subprocess
 import time
+from collections import Counter
 from collections.abc import Callable, Iterable
 from dataclasses import dataclass, replace
 from datetime import date
@@ -29,6 +30,7 @@ import httpx
 from apps.agent.adapter.inbound.cli.agent_eval_scoring import check_rule_keywords
 from apps.agent.adapter.inbound.cli.report_bench_scoring import (
     intent_gates,
+    classify_violation,
     judge_packets,
     llm_sections,
     mask_model_names,
@@ -455,6 +457,7 @@ def _exclusion(local: bool, gates: dict[str, bool], judged: int | None, total: i
 def build_report_block(scores: dict[str, dict], judge: dict, vram: dict, scenario_ids: list[str]) -> dict:
     """리포트 역할 판정 — 게이트 통과 & 로컬 & 판정 완료 & VRAM 측정된 모델 중 pick_winner."""
     rows, per_row, p95_by, eligible = [], {}, {}, []
+    ref_quality, ref_p95, ref_violations = {}, {}, {}  # 참고 순위 — 게이트와 무관하게 로컬 전부
     for name, score in scores.items():
         model = REPORT_MODELS[name]
         mine = judge.get(name, {})
@@ -476,7 +479,25 @@ def build_report_block(scores: dict[str, dict], judge: dict, vram: dict, scenari
         if excluded is None:
             eligible.append(name)
             per_row[name], p95_by[name] = quality, score["total_p95_ms"]
-    return _pick(rows, per_row, per_row, {m: vram[m] for m in eligible}, p95_by, eligible)
+        if model.local and quality:
+            ref_quality[name], ref_p95[name] = quality, score["total_p95_ms"]
+        if model.local and mine:
+            ref_violations[name] = dict(Counter(classify_violation(v) for sid in scenario_ids if sid in mine
+                                                for v in mine[sid].get("violations", [])))
+    block = _pick(rows, per_row, per_row, {m: vram[m] for m in eligible}, p95_by, eligible)
+    block["reference"] = _reference(rows, ref_quality, ref_p95, ref_violations, vram)
+    return block
+
+
+def _reference(rows: list[dict], quality: dict, p95_by: dict, violations: dict, vram: dict) -> dict:
+    """참고 순위 — 판정 완료한 로컬 모델 전부를 평균 품질로 줄 세우고, VRAM이 잰 모델끼리 pick_winner."""
+    by_name = {r["model"]: r for r in rows}
+    ranking = [{"model": m, "quality": mean(q), "vram_mib": vram.get(m),
+                "failed": [k for k, ok in by_name[m]["gates"].items() if not ok and k != "all"]}
+               for m, q in sorted(quality.items(), key=lambda kv: -mean(kv[1]))]
+    measured = [m for m in quality if m in vram]
+    winner, tied = pick_winner(quality, vram, p95_by, measured) if measured else (None, [])
+    return {"ranking": ranking, "winner": winner, "tied": tied, "violations": violations}
 
 
 def _report_block(scenario_ids: list[str]) -> dict:
