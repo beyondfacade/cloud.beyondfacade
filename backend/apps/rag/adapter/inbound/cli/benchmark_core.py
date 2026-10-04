@@ -14,6 +14,7 @@ import numpy as np
 from apps.rag.adapter.inbound.cli.evaluate_rag import hit_at_k, mrr
 from apps.rag.domain.entities.rag_chunk_entity import RagHit
 from apps.rag.domain.services.same_event_collapser import Collapser, collapse_same_event
+from core.matrix.grid_benchmark_manager import paired_bootstrap_ci, percentile, pick_winner, resident_models
 
 # rag_interactor._COLLAPSERS·_COLLAPSE_FETCH_FACTOR와 같아야 한다 (운영 검색 재현)
 COLLAPSERS: dict[str, Collapser] = {"news": collapse_same_event}
@@ -80,28 +81,6 @@ def ndcg_at_k(relevant: set[str], ranked: list[str], k: int = 10) -> float:
     return dcg / ideal if ideal else 0.0
 
 
-def paired_bootstrap_ci(
-    a: list[float], b: list[float], n: int = 10_000, seed: int = 0
-) -> tuple[float, float, float]:
-    """문항별 점수 차이(a−b)의 평균과 95% 구간. 하한 ≤ 0 ≤ 상한이면 동률."""
-    if len(a) != len(b):
-        raise ValueError(f"문항 수가 다르다: {len(a)} != {len(b)}")
-    x = np.asarray(a, dtype=np.float64) - np.asarray(b, dtype=np.float64)
-    rng = np.random.default_rng(seed)
-    means = x[rng.integers(0, len(x), size=(n, len(x)))].mean(axis=1)
-    lo, hi = np.quantile(means, [0.025, 0.975])
-    return float(x.mean()), float(lo), float(hi)
-
-
-def percentile(samples: list[float], q: float) -> float:
-    return float(np.percentile(np.asarray(samples, dtype=np.float64), q))
-
-
-def resident_models(ps_json: dict) -> set[str]:
-    """Ollama /api/ps 응답 → 지금 메모리에 올라 있는 모델 이름."""
-    return {m["name"] for m in ps_json.get("models", [])}
-
-
 _DEPTH = 10  # MRR·nDCG 모두 상위 10 기준 (기존 evaluate_rag의 MRR은 상위 5 — 보고서에 명시)
 _METRICS = ("top1", "hit5", "mrr", "ndcg10")
 
@@ -139,16 +118,6 @@ def aggregate(scored: list[dict]) -> dict[str, dict[str, float]]:
         key: {"n": len(items), **{m: mean(i[m] for i in items) for m in _METRICS}}
         for key, items in groups.items()
     }
-
-
-def pick_winner(
-    mrr_by: dict[str, list[float]], dims: dict[str, int], p95: dict[str, float | None], eligible: list[str]
-) -> tuple[str, list[str]]:
-    """평균 MRR 1위와 bootstrap 동률인 조합 중 (낮은 차원, 짧은 p95, 이름) 최소."""
-    best = max(eligible, key=lambda c: (mean(mrr_by[c]), -dims[c]))
-    tied = sorted(c for c in eligible if c == best or paired_bootstrap_ci(mrr_by[best], mrr_by[c])[1] <= 0)
-    winner = min(tied, key=lambda c: (dims[c], p95.get(c) or float("inf"), c))
-    return winner, tied
 
 
 def _model_of(config: str) -> str:
