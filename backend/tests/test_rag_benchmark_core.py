@@ -5,9 +5,6 @@ from datetime import datetime
 import numpy as np
 import pytest
 
-# 순수 로직 테스트 — DB 불필요
-pytestmark = pytest.mark.no_db
-
 from apps.rag.adapter.inbound.cli.benchmark_core import (
     CorpusRow,
     ndcg_at_k,
