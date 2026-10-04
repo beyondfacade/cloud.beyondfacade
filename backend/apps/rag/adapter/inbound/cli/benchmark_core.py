@@ -94,3 +94,8 @@ def paired_bootstrap_ci(
 
 def percentile(samples: list[float], q: float) -> float:
     return float(np.percentile(np.asarray(samples, dtype=np.float64), q))
+
+
+def resident_models(ps_json: dict) -> set[str]:
+    """Ollama /api/ps 응답 → 지금 메모리에 올라 있는 모델 이름."""
+    return {m["name"] for m in ps_json.get("models", [])}

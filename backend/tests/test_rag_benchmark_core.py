@@ -11,6 +11,7 @@ from apps.rag.adapter.inbound.cli.benchmark_core import (
     paired_bootstrap_ci,
     percentile,
     rank_chunk_ids,
+    resident_models,
     top1,
     top_scored,
     truncate_normalize,
@@ -100,3 +101,9 @@ def test_bootstrap_길이가_다르면_에러():
 
 def test_백분위():
     assert percentile([10.0, 20.0, 30.0, 40.0, 50.0], 50) == 30.0
+
+
+def test_상주_모델_이름을_모은다():
+    ps = {"models": [{"name": "gemma4:12b", "size_vram": 1}, {"name": "bge-m3:latest", "size_vram": 1}]}
+    assert resident_models(ps) == {"gemma4:12b", "bge-m3:latest"}
+    assert resident_models({}) == set()

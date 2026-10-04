@@ -15,14 +15,17 @@ import argparse
 import hashlib
 import json
 import os
+import subprocess
+import time
 from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
 
+import httpx
 import numpy as np
 
-from apps.rag.adapter.inbound.cli.benchmark_core import CorpusRow
+from apps.rag.adapter.inbound.cli.benchmark_core import CorpusRow, percentile, resident_models
 from apps.rag.adapter.outbound.embeddings.fp16_qwen3_adapter import Fp16Qwen3EmbeddingAdapter
 from apps.rag.adapter.outbound.embeddings.gemini_embedding_adapter import GeminiEmbeddingAdapter
 from apps.rag.adapter.outbound.embeddings.ollama_bge_m3_adapter import OllamaBgeM3EmbeddingAdapter
@@ -242,13 +245,69 @@ def _cmd_embed(args) -> None:
     print(f"embed {spec.name}: 문서 샤드 {len(todo)}개 새로, 질의 {len(new)}건 새로 (총 토큰 {sum(tokens.values())})", flush=True)
 
 
-_COMMANDS: dict[str, Callable] = {"snapshot": _cmd_snapshot, "embed": _cmd_embed}
+_OLLAMA = "http://127.0.0.1:11434"
+_LLM_RESIDENT = "gemma4:12b"  # 분석 폴백 LLM — 운영에서 임베더와 같이 GPU에 올라간다
+_LATENCY_REPEATS = 3
+
+
+def _ollama_load_pair(ollama_model: str) -> None:
+    """LLM과 임베더를 둘 다 올린다(keep_alive 10분)."""
+    with httpx.Client(base_url=_OLLAMA, timeout=300.0) as client:
+        client.post("/api/generate", json={"model": _LLM_RESIDENT, "prompt": "", "keep_alive": "10m"}).raise_for_status()
+        client.post("/api/embed", json={"model": ollama_model, "input": ["상주 확인"], "keep_alive": "10m"}).raise_for_status()
+
+
+def _ollama_resident(ollama_model: str) -> tuple[bool, int]:
+    """지금 둘 다 상주하는지(읽기만 — 다시 올리지 않는다) + nvidia-smi 사용 메모리(MiB)."""
+    with httpx.Client(base_url=_OLLAMA, timeout=30.0) as client:
+        names = resident_models(client.get("/api/ps").json())
+    used = subprocess.run(
+        ["nvidia-smi", "--query-gpu=memory.used", "--format=csv,noheader,nounits"],
+        capture_output=True, text=True, check=True,
+    ).stdout.split()[0]
+    llm_up = any(n.startswith(_LLM_RESIDENT) for n in names)
+    emb_up = any(n.split(":")[0] == ollama_model.split(":")[0] for n in names)
+    return llm_up and emb_up, int(used)
+
+
+def _cmd_latency(args) -> None:
+    """질의 임베딩 지연 p50/p95 (confirmed 질문 × 3회, 네트워크 포함). 로컬은 gemma4 동시 상주를 먼저 만든다."""
+    spec = MODELS[args.model]
+    questions = [r["question"] for r in confirmed_rows(_load_evalset())]
+    embedder = spec.query_embedder()
+    embedder.embed_query("워밍업")  # 콜드스타트(모델 로드)는 지연에서 뺀다
+    coexist, vram = (None, None)
+    if spec.ollama_model:
+        _ollama_load_pair(spec.ollama_model)
+        coexist, vram = _ollama_resident(spec.ollama_model)
+    samples: list[float] = []
+    for _ in range(_LATENCY_REPEATS):
+        for q in questions:
+            started = time.perf_counter()
+            embedder.embed_query(q)
+            samples.append((time.perf_counter() - started) * 1000)
+    if spec.ollama_model:  # 측정 중에 LLM이 밀려났는지 다시 본다 (읽기만)
+        coexist = coexist and _ollama_resident(spec.ollama_model)[0]
+    p50 = percentile(samples, 50)
+    result = {
+        "model": spec.name, "n": len(samples), "p50_ms": p50, "p95_ms": percentile(samples, 95),
+        "coexist": coexist, "vram_used_mib": vram,
+        "retry_429": getattr(embedder, "retry_count", None),
+        "effective_p50_ms": max(p50, 60000 / args.rpm) if args.rpm else None,
+    }
+    (_CACHE / spec.name).mkdir(parents=True, exist_ok=True)
+    _save_text(_CACHE / spec.name / "latency.json", json.dumps(result, ensure_ascii=False, indent=2))
+    print(f"latency {spec.name}: p50 {p50:.0f}ms p95 {result['p95_ms']:.0f}ms 동시상주={coexist} VRAM={vram}MiB", flush=True)
+
+
+_COMMANDS: dict[str, Callable] = {"snapshot": _cmd_snapshot, "embed": _cmd_embed, "latency": _cmd_latency}
 
 
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("command", choices=list(_COMMANDS))
     parser.add_argument("--model", choices=list(MODELS))
+    parser.add_argument("--rpm", type=float, default=None, help="API 분당 한도 — effective 지연 = max(p50, 60000/RPM)")
     args = parser.parse_args()
     _COMMANDS[args.command](args)
 
