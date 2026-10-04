@@ -16,7 +16,7 @@ LOGGER = logging.getLogger("beyondfacade.intent.llm")
 
 _TIMEOUT_MS = 10000  # Gemini가 허용하는 최소 deadline이 10초다 — 3초는 400 INVALID_ARGUMENT
 
-_SCHEMA = {
+INTENT_SCHEMA = {
     "type": "object",
     "properties": {
         "region_name": {"type": "string", "nullable": True},
@@ -52,9 +52,9 @@ class GeminiIntentLlmAdapter(IntentLlmPort):
                 model=self._model,
                 contents=text,
                 config=types.GenerateContentConfig(
-                    system_instruction=_instruction(dictionary),
+                    system_instruction=instruction(dictionary),
                     response_mime_type="application/json",
-                    response_schema=_SCHEMA,
+                    response_schema=INTENT_SCHEMA,
                     temperature=0,
                 ),
             )
@@ -69,7 +69,7 @@ class GeminiIntentLlmAdapter(IntentLlmPort):
             return None
 
 
-def _instruction(dictionary) -> str:
+def instruction(dictionary) -> str:
     region_names = sorted({r.name for r in dictionary.regions})
     industries = ", ".join(f"{k}({v})" for k, v in dictionary.industry_names.items())
     return (
