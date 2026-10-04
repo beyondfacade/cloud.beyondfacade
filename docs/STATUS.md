@@ -120,7 +120,7 @@ git log --oneline -1 main; git status --short
 
 | 테이블 | 행 | 상태 | 비고 |
 |---|---:|---|---|
-| rag_chunk | 7,883 | ✅ | news 5,815(기사 99.8%) + funding 2,068(100%). **전량 `qwen3-embedding-4b-fp16`** — fp16 재색인 완료. `region_code` 컬럼은 0건(미사용) |
+| rag_chunk | 8,905 | ✅ | news 6,640 + funding 2,265. **전량 `bge-m3`**(vector(1024), 10/4 전량 재색인 — GPU 101초). `region_code` 컬럼은 0건(미사용) |
 | analysis_report / llm_usage | 21 / 21 | ✅ | 모델별 gemma3 1 · gemma4 18 · **gemini-2.5-flash 2**(v0.35.0 혼합 배선 이후) |
 
 ## 3. 파이프라인·크론 (전부 오늘 9/24 정상)
@@ -130,7 +130,7 @@ git log --oneline -1 main; git status --short
 | news-poller | 매시 10분 | 09:10 | 신규 4건 |
 | store-collector | 04:20 | 04:32 | 지표 27,829건 재집계 |
 | funding-collector | 05:10 | 05:10 | 신규 36 · 만료 510 |
-| rag-indexer | 05:50 | 05:50 | 증분 188건(fp16, 20초) |
+| rag-indexer | 05:50 | 05:50 | 증분(`--provider bge-m3`, 10/4 전환) |
 | childcare-collector | 월 05:30 | 9/21 | 3,940건 |
 | convenience-collector | 월 05:40 | 9/21 | 9,395건(API 427회) |
 
@@ -202,7 +202,13 @@ main이 전진하면 다시 낡는다 — 배포 전 재빌드가 규칙.
   평가셋 재검수 후 confirmed 233(base 179 + hard 54) / rejected 27 — 9/24 수치와 직접 비교 불가.
   로컬: **qwen3@1536 유지**(bge-m3@1024와 bootstrap 동률, 교체 근거 없음). API: **gemini-001@1024**(규칙상: 6조합 동률 → 1024차원 둘 중 p95 짧은 쪽; 001은 2028-05-14 단종 예정, 동률인 gemini-2@1024가 실무 대안).
   gemini-2 1회 색인 약 $0.31(표준), gemini-001은 가격표에 없음. 보고서: `data/eval/results/embedding-benchmark-2026-10-04/report.md`.
+  **최종 결정(10/4): 운영 임베딩을 bge-m3@1024(Ollama, 색인·질의 동일)로 전환** — qwen3@1536과 MRR 동률(0.940 vs 0.935, +0.005 [−0.018, +0.028]), GPU 메모리 664MB vs 4.4GB, CPU만으로도 운영 가능(질의 p95 149ms, GPU 대비 코사인 ≥0.99998).
+  마이그레이션 `c7a3f1e8d204` 적용·8,905건 전량 재색인(101초) 후 운영 평가(confirmed 233): Hit@5 0.983 / MRR 0.930 (전환 전 qwen3 운영 0.991 / 0.930, `data/eval/results/rag_bge-m3_20261004_231013.json`). 기존 테이블 백업 `data/backups/rag_chunk_qwen1536_20261004.dump`(gitignore).
 - 두뇌 비교(`data/eval/results/agent_compare.md`)로 리포트는 **혼합(Gemini 우선·로컬 폴백)** 채택 완료.
+
+### 4-4-1. 도커 컨테이너에서 호스트 Ollama 접근 불가 (10/4 확인, 미해결)
+`beyondfacade-api`(8200) 컨테이너 안에서 Ollama 어댑터 기본 주소가 `http://127.0.0.1:11434`라 호스트 Ollama에 닿지 못한다(ConnectError).
+RAG 검색과 Ollama LLM 폴백이 컨테이너에서 동작하지 않는다. bge-m3 전환과 무관한 기존 문제이며, 코드는 아직 고치지 않았다.
 
 ### 4-5. 외부 대기·자료 한계 (코드로 못 푸는 것)
 - 주민등록 인구 2026.07분 공표 후 1파일 추가
@@ -269,7 +275,7 @@ main이 전진하면 다시 낡는다 — 배포 전 재빌드가 규칙.
 | 백엔드 dev | uvicorn `--reload` **8201**, cwd `backend/`(메인 체크아웃). 워처가 편집을 놓친 적 2회 → 실호출 전 로그 확인 |
 | 프론트 dev | next **3200**, `NEXT_PUBLIC_API_BASE=/api/backend` → 8201 프록시. 브라우저는 노트북(원격 SSH) |
 | 도커 | 8200 조회 전용, **낡음**(§4-2) |
-| LLM | 리포트 `hybrid`(gemini-2.5-flash → gemma4:12b) · 관문 폴백 gemini-2.5-flash · RAG 임베딩 fp16 로컬 · 쿼리 ollama Q4(혼용 구도) · GPU RTX 5060 Ti 16GB 유휴 |
+| LLM | 리포트 `hybrid`(gemini-2.5-flash → gemma4:12b) · 관문 폴백 gemini-2.5-flash · RAG 임베딩 bge-m3(Ollama, 1024, 색인·질의 동일) · GPU RTX 5060 Ti 16GB 유휴 |
 | 키 | `backend/.env`에 GEMINI·SGIS·VWORLD 등 설정됨(값은 열람하지 않음). **Anthropic 키는 미설정** |
 | git | `main` 단일. 원격 `origin/feature/analysis-api`(병합됨, 삭제는 사용자 결정), 로컬 `feature/frontend-mvp`(병합됨). 작업 트리엔 `docs/jekyll.md`(지킬 세션 산출물)만 |
 

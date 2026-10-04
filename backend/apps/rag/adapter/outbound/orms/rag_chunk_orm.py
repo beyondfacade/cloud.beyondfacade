@@ -28,7 +28,7 @@ class RagChunkOrm(OrmBase):
     source_id: Mapped[str]  # 소스 ID (해당 테이블의 PK)
     content: Mapped[str]  # 청크 텍스트
     embedding: Mapped[Vector | None] = mapped_column(Vector(1024), nullable=True)  # 1024-dim 벡터 (bge-m3)
-    embedded_by: Mapped[str | None]  # 임베딩 모델명 (예: "qwen2.5-text-3b", "all-minilm-l6-v2")
+    embedded_by: Mapped[str | None]  # 임베딩 모델명 (예: "bge-m3")
     published_at: Mapped[datetime | None]  # 원본 발행 시간
     org: Mapped[str | None]  # 발행 기관/출처
     url: Mapped[str | None]  # 원본 URL

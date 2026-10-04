@@ -12,7 +12,7 @@ class EmbeddingPort(ABC):
     @property
     @abstractmethod
     def model_name(self) -> str:
-        """모델명 (예: qwen3-embedding-4b-q4)."""
+        """모델명 (예: bge-m3)."""
 
     @property
     @abstractmethod

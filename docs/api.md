@@ -83,7 +83,7 @@
 
 | 데이터 | 테이블 | 건수 | 비고 |
 |---|---|---:|---|
-| 임베딩 청크 | rag_chunk | 7,980 | news 5,912 + funding 2,068. 전량 `qwen3-embedding-4b-fp16` |
+| 임베딩 청크 | rag_chunk | 8,905 | news 6,640 + funding 2,265. 전량 `bge-m3` |
 | AI 분석 리포트 / LLM 사용량 | analysis_report / llm_usage | 22 / 22 | |
 
 ---

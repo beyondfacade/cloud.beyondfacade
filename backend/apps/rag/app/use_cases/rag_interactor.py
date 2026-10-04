@@ -1,7 +1,7 @@
 """RagIndexInteractor·RagSearchInteractor — 색인/검색 오케스트레이션 (얇은 Application Service).
 
-혼용 구도(§0 설계): 색인 임베더(fp16/ollama/gemini)와 검색 임베더(ollama)는 서로 다른
-EmbeddingPort 구현을 주입받는다 — 두 UseCase가 별개 Interactor인 이유이기도 하다.
+색인·검색 모두 같은 임베더(운영: bge-m3, 1024차원)를 EmbeddingPort로 주입받는다. 두 Interactor는
+같은 포트 계약에만 의존하므로 모델을 바꿔도 코드는 그대로이고, 색인과 질의는 반드시 같은 모델이어야 한다.
 """
 
 from apps.rag.app.ports.input.rag_use_case import RagIndexUseCase, RagSearchUseCase

@@ -10,6 +10,7 @@
   - `build_rag_index`·`evaluate_rag` `--provider` choices를 레지스트리에서 가져오고 기본값 `bge-m3`.
   - 운영 점검 필수 Ollama 모델의 임베딩 항목을 `bge-m3`로. 크론 `scripts/rag-indexer.sh`는 `--provider bge-m3`.
   - 테스트: `test_rag_bge_m3_cutover.py` 신설, `test_rag_schema`·`test_ops_api` 기대값 갱신. `docs/erd.md` rag_chunk 차원 1024.
+  - 적용 결과(10/4): dev DB 마이그레이션 적용, GPU(Ollama) 전량 재색인 8,905건(funding 2,265 + news 6,640)·101초·전부 `embedded_by=bge-m3`, 운영 평가 Hit@5 0.983 / MRR 0.930(confirmed 233), 기존 테이블 백업 `data/backups/rag_chunk_qwen1536_20261004.dump`, 도커 `beyondfacade-api` 재빌드. 미해결: 컨테이너 안 Ollama 어댑터 기본 주소가 `127.0.0.1:11434`라 호스트 Ollama에 닿지 못함(RAG 검색·Ollama LLM 폴백 ConnectError, 기존 문제).
 
 ## [v0.64.0] - 2026-10-04
 

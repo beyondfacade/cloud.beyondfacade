@@ -1,3 +1,3 @@
-# 색인(fp16) 전용 — 도커 이미지 제외, 로컬 새벽 배치만
+# 임베딩 벤치마크 전용(qwen3 fp16 색인) — 운영은 Ollama bge-m3라 불필요. 도커 이미지 제외
 sentence-transformers==5.6.1
 torch
