@@ -134,7 +134,7 @@ def test_헬스케어_스냅샷은_LLM_경로와_필수_모델과_RAG_집계를_
     assert routes["ollama"]["available"] is True  # 가짜 Ollama에 gemma4:12b 설치됨
     required = {m["name"]: m for m in body["required_models"]}
     assert required["gemma4:12b"]["loaded"] is True
-    assert required["qwen3-embedding:4b"]["installed"] is False
+    assert required["bge-m3"]["installed"] is False
     assert body["usage_24h"]["window_hours"] == 24
     assert isinstance(body["rag"]["total_chunks"], int)
 

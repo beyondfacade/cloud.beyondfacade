@@ -1,5 +1,16 @@
 # Backend Version Log
 
+## [v0.65.0] - 2026-10-04
+
+### Changed
+- **운영 임베딩을 bge-m3@1024로 전환** (색인·검색 모두 Ollama bge-m3, 프리픽스 없음). 근거: data/eval/results/embedding-benchmark-2026-10-04/report.md (qwen3와 MRR 동률, GPU 메모리 664MB vs 4.4GB, CPU로도 운영 가능).
+  - 마이그레이션 `c7a3f1e8d204_rag_chunk_embedding_1024` — HNSW 인덱스 drop → `embedding vector(1024)` → 기존 벡터·`embedded_by` NULL → 인덱스 재생성(downgrade는 1536). 차원이 달라 기존 벡터는 변환 불가 — 적용 후 `build_rag_index --full` 전량 재색인 필요.
+  - `RagChunkOrm.embedding` `Vector(1024)`.
+  - `rag_dependencies`: 운영 레지스트리 `{"bge-m3"}` 하나(공개 상수 `INDEX_PROVIDERS`), 검색·색인 기본 provider `bge-m3`. qwen3·gemini 어댑터는 벤치마크용으로 남기고 운영 레지스트리에서만 제외(1536 출력).
+  - `build_rag_index`·`evaluate_rag` `--provider` choices를 레지스트리에서 가져오고 기본값 `bge-m3`.
+  - 운영 점검 필수 Ollama 모델의 임베딩 항목을 `bge-m3`로. 크론 `scripts/rag-indexer.sh`는 `--provider bge-m3`.
+  - 테스트: `test_rag_bge_m3_cutover.py` 신설, `test_rag_schema`·`test_ops_api` 기대값 갱신. `docs/erd.md` rag_chunk 차원 1024.
+
 ## [v0.64.0] - 2026-10-04
 
 ### Added

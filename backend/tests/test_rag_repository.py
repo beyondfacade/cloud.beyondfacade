@@ -14,8 +14,8 @@ _PREFIX = "test:"
 _FUNDING_PREFIX = "test-rag-repo-"
 
 # 결정적 축 벡터 — e0·e1은 직교(orthogonal), 코사인 거리 1(score 0.0); 자기 자신은 거리 0(score 1.0)
-_E0 = [1.0] + [0.0] * 1535
-_E1 = [0.0, 1.0] + [0.0] * 1534
+_E0 = [1.0] + [0.0] * 1023
+_E1 = [0.0, 1.0] + [0.0] * 1022
 
 
 def _chunk(chunk_id: str, source_type: str, source_id: str, embedding: list[float]) -> RagChunk:

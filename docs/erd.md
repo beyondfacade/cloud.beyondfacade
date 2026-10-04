@@ -680,7 +680,7 @@ erDiagram
         string source_type "news / funding"
         string source_id "원천 PK - 다형 참조, IX(source_type, source_id)"
         string content
-        vector embedding "vector(1536) - nullable"
+        vector embedding "vector(1024) - nullable"
         string embedded_by "nullable - 임베딩 모델명"
         datetime published_at "nullable"
         string org "nullable"
@@ -947,7 +947,7 @@ erDiagram
 
 | 구분 | 내용 |
 |---|---|
-| **추가** | `rag_chunk` — RAG 검색 청크(pgvector 1536차원). §2 초안에 없던 검색 계층 |
+| **추가** | `rag_chunk` — RAG 검색 청크(pgvector 1024차원). §2 초안에 없던 검색 계층 |
 | **추가** | `region_industry_verdict`(판정) · `apt_trade_count`(주택 보조) · admin 7테이블 · `host_metric_sample` · `llm_call_event` — §2 초안에 없던 판정·관리자·운영 계층 (2026-10-01 반영) |
 | **미구현** | `funding_program_industry`(공고↔업종 M:N) — 테이블 없음. `sales_estimate`(추정매출)는 `region_commerce_sales`로 구현됨(2026-09-23) |
 | **스키마 변경** | `region_industry_metric` — 대리키 `id`·`subcategory_id`·`survival_rate_3y` 없음, `period`(YYYYQ) → `year`(int), PK = (region_code, industry_id, year) 복합키 |
