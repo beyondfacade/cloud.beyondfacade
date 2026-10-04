@@ -14,6 +14,7 @@ spec: docs/superpowers/specs/2026-10-04-embedding-benchmark-design.md
 import argparse
 import hashlib
 import json
+import os
 from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import datetime
@@ -144,7 +145,38 @@ def load_corpus() -> list[CorpusRow]:
     return corpus_from_jsonl((_CACHE / "corpus.jsonl").read_text(encoding="utf-8"))
 
 
+def _atomic_write(path: Path, write: Callable) -> None:
+    """임시 파일에 쓴 뒤 교체한다 — 중간에 죽어도 최종 이름에는 온전한 파일만 남는다."""
+    tmp = path.with_name(path.name + ".tmp")
+    with open(tmp, "wb") as f:
+        write(f)
+    os.replace(tmp, path)
+
+
+def _save_npy(path: Path, array: np.ndarray) -> None:
+    _atomic_write(path, lambda f: np.save(f, array))
+
+
+def _save_text(path: Path, text: str) -> None:
+    _atomic_write(path, lambda f: f.write(text.encode("utf-8")))
+
+
+def _check_corpus_sha(model: str, record: bool) -> None:
+    """모델 캐시가 현재 코퍼스 스냅샷으로 만든 것인지 확인한다. record면 처음 만들 때 sha를 남긴다."""
+    current = (_CACHE / "corpus.sha256").read_text(encoding="utf-8").strip()
+    path = _CACHE / model / "corpus.sha256"
+    if path.exists():
+        if path.read_text(encoding="utf-8").strip() != current:
+            raise RuntimeError(
+                f"{model} 캐시가 현재 코퍼스와 다릅니다(snapshot 재실행?). "
+                f"{_CACHE / model} 를 지우고 다시 embed 하세요."
+            )
+    elif record:
+        _save_text(path, current + "\n")
+
+
 def load_doc_matrix(model: str) -> np.ndarray:
+    _check_corpus_sha(model, record=False)
     shards = sorted((_CACHE / model).glob("docs_*.npy"))
     return np.concatenate([np.load(p) for p in shards], axis=0)
 
@@ -152,6 +184,8 @@ def load_doc_matrix(model: str) -> np.ndarray:
 def load_query_vectors(model: str) -> dict[str, np.ndarray]:
     texts = json.loads((_CACHE / model / "queries.json").read_text(encoding="utf-8"))
     matrix = np.load(_CACHE / model / "queries.npy")
+    if len(texts) != len(matrix):
+        raise ValueError(f"{model} 질의 캐시가 어긋났습니다: 텍스트 {len(texts)}개, 벡터 {len(matrix)}개")
     return dict(zip(texts, matrix))
 
 
@@ -181,6 +215,7 @@ def _cmd_embed(args) -> None:
     out = _CACHE / spec.name
     out.mkdir(parents=True, exist_ok=True)
     corpus = load_corpus()
+    _check_corpus_sha(spec.name, record=True)
 
     done = {int(p.stem.split("_")[1]) for p in out.glob("docs_*.npy")}
     tokens_path = out / "tokens.json"
@@ -189,9 +224,10 @@ def _cmd_embed(args) -> None:
     embedder = spec.doc_embedder() if todo else None
     for start in todo:
         texts = [r.content for r in corpus[start : start + _SHARD]]
-        np.save(out / f"docs_{start:06d}.npy", np.asarray(embedder.embed_documents(texts), dtype=np.float32))
-        tokens[str(start)] = spec.token_counter(texts)
-        tokens_path.write_text(json.dumps(tokens), encoding="utf-8")
+        vectors = np.asarray(embedder.embed_documents(texts), dtype=np.float32)
+        tokens[str(start)] = spec.token_counter(texts)  # 샤드 저장 전에 센다 — 실패하면 샤드도 안 남는다
+        _save_text(tokens_path, json.dumps(tokens))
+        _save_npy(out / f"docs_{start:06d}.npy", vectors)
         print(f"embed {spec.name} docs {start}~{start + len(texts) - 1} / {len(corpus)}", flush=True)
 
     q_texts_path, q_vecs_path = out / "queries.json", out / "queries.npy"
@@ -200,9 +236,9 @@ def _cmd_embed(args) -> None:
     if new:
         q_embedder = spec.query_embedder()
         vecs = np.asarray([q_embedder.embed_query(q) for q in new], dtype=np.float32)
-        old = np.load(q_vecs_path) if q_vecs_path.exists() else np.zeros((0, vecs.shape[1]), dtype=np.float32)
-        np.save(q_vecs_path, np.concatenate([old, vecs], axis=0))
-        q_texts_path.write_text(json.dumps(cached + new, ensure_ascii=False), encoding="utf-8")
+        old = np.load(q_vecs_path)[: len(cached)] if q_vecs_path.exists() else np.zeros((0, vecs.shape[1]), dtype=np.float32)
+        _save_npy(q_vecs_path, np.concatenate([old, vecs], axis=0))
+        _save_text(q_texts_path, json.dumps(cached + new, ensure_ascii=False))
     print(f"embed {spec.name}: 문서 샤드 {len(todo)}개 새로, 질의 {len(new)}건 새로 (총 토큰 {sum(tokens.values())})", flush=True)
 
 
