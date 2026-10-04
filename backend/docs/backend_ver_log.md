@@ -9,6 +9,7 @@
   - 어려운 질문: `generate_evalset --hard-kind colloquial|sibling|news_event` — 구어체(핵심어 회피)·유사 공고 구별(제목 토큰 Jaccard ≥ 0.3 짝)·뉴스 사건(같은 사건 기사 묶음 정답). 표본 선정에 임베딩 모델을 쓰지 않는다. 행에 `subset: "hard"`, `hard_kind`. `judge_evalset`은 정답이 여럿인 행에 사건 단위 판정 안내를 붙인다.
   - `benchmark_embeddings` CLI: `snapshot`(rag_chunk 전량 jsonl + sha256, 만료 공고 포함), `embed --model`(문서 512개 샤드 단위로 이어서 캐시, confirmed 질의 캐시, Gemini는 `count_tokens`로 토큰 실측). 캐시는 `data/eval/cache/embedding-benchmark/`(커밋 안 함). 캐시 무결성: 원자적 쓰기, 코퍼스 sha 불일치 시 중단, 질의 텍스트·벡터 수 검증.
   - `latency --model`: confirmed 질문 × 3회 질의 지연 p50/p95(워밍업 제외). 로컬은 `gemma4:12b`를 먼저 올리고 측정 전후 `/api/ps`로 동시 상주·nvidia-smi 사용량 확인, API는 429 재시도 횟수와 `--rpm` 기준 effective 지연.
+  - `evaluate`: 9조합 지표(전체·base/hard·원천·hard 종류별) → 판정(그룹별 MRR 1위, bootstrap 동률이면 낮은 차원·짧은 p95, 로컬은 동시 상주·p95 ≤ 500ms 게이트와 기준선 qwen3@1536 대비 유의할 때만 교체) → `data/eval/results/embedding-benchmark-YYYY-MM-DD/`(`results.json`·`report.md`).
 
 ## [v0.63.0] - 2026-09-30
 

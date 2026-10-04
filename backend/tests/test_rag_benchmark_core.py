@@ -7,11 +7,16 @@ import pytest
 
 from apps.rag.adapter.inbound.cli.benchmark_core import (
     CorpusRow,
+    aggregate,
+    decide,
     ndcg_at_k,
     paired_bootstrap_ci,
     percentile,
+    pick_winner,
     rank_chunk_ids,
+    render_report,
     resident_models,
+    score_rows,
     top1,
     top_scored,
     truncate_normalize,
@@ -107,3 +112,84 @@ def test_상주_모델_이름을_모은다():
     ps = {"models": [{"name": "gemma4:12b", "size_vram": 1}, {"name": "bge-m3:latest", "size_vram": 1}]}
     assert resident_models(ps) == {"gemma4:12b", "bge-m3:latest"}
     assert resident_models({}) == set()
+
+
+def test_행_점수는_원천_안에서만_찾고_메타를_싣는다():
+    corpus = [
+        CorpusRow("funding:a", "funding", "청년 창업\n.", None),
+        CorpusRow("news:x", "news", "다른 사건\n.", datetime(2026, 9, 1)),
+        CorpusRow("funding:b", "funding", "수출 바우처\n.", None),
+    ]
+    docs = np.array([[0.6, 0.8], [1.0, 0.0], [0.0, 1.0]])
+    rows = [{"question": "q", "relevant_ids": ["funding:a"], "source_type": "funding", "status": "confirmed",
+             "subset": "hard", "hard_kind": "colloquial"}]
+    out = score_rows(docs, {"q": np.array([1.0, 0.0])}, corpus, rows, dim=2)
+    assert out[0]["top1"] == 1.0 and out[0]["mrr"] == 1.0  # news:x가 더 가깝지만 원천이 달라 제외
+    assert (out[0]["subset"], out[0]["hard_kind"]) == ("hard", "colloquial")
+
+
+def test_subset이_없는_기존_행은_base로_센다():
+    scored = [
+        {"source_type": "funding", "subset": "base", "hard_kind": None, "top1": 1.0, "hit5": 1.0, "mrr": 1.0, "ndcg10": 1.0},
+        {"source_type": "news", "subset": "hard", "hard_kind": "news_event", "top1": 0.0, "hit5": 1.0, "mrr": 0.5, "ndcg10": 0.5},
+    ]
+    agg = aggregate(scored)
+    assert agg["all"]["mrr"] == 0.75 and agg["all"]["n"] == 2
+    assert agg["subset:base"]["mrr"] == 1.0
+    assert agg["hard:news_event"]["top1"] == 0.0
+    assert "hard:None" not in agg
+
+
+def test_동률이면_낮은_차원이_이긴다():
+    mrr = {"g@1024": [1.0, 0.5] * 20, "g@2560": [1.0, 0.5] * 20}
+    winner, tied = pick_winner(mrr, {"g@1024": 1024, "g@2560": 2560}, {}, ["g@2560", "g@1024"])
+    assert winner == "g@1024" and tied == ["g@1024", "g@2560"]
+
+
+def test_유의하게_높으면_차원이_커도_이긴다():
+    mrr = {"g@1024": [0.5] * 40, "g@2560": [1.0] * 40}
+    winner, tied = pick_winner(mrr, {"g@1024": 1024, "g@2560": 2560}, {}, ["g@1024", "g@2560"])
+    assert winner == "g@2560" and tied == ["g@2560"]
+
+
+def _decide(local_mrr, lat):
+    mrr = {"qwen3@1536": [0.5] * 40, "bge-m3@1024": local_mrr, "gemini-2@1536": [0.9] * 40}
+    dims = {"qwen3@1536": 1536, "bge-m3@1024": 1024, "gemini-2@1536": 1536}
+    groups = {"qwen3@1536": "local", "bge-m3@1024": "local", "gemini-2@1536": "api"}
+    return decide(mrr, dims, groups, lat, baseline="qwen3@1536")
+
+
+_OK = {"coexist": True, "p95_ms": 100.0}
+
+
+def test_로컬_1위가_기준선보다_유의하게_나으면_교체():
+    out = _decide([1.0] * 40, {"qwen3": _OK, "bge-m3": _OK})
+    assert out["local"]["choice"] == "bge-m3@1024" and out["local"]["replace"] is True
+    assert out["api"]["choice"] == "gemini-2@1536"
+
+
+def test_로컬_1위가_유의하지_않으면_기준선_유지():
+    out = _decide([0.5] * 40, {"qwen3": _OK, "bge-m3": _OK})
+    assert out["local"]["choice"] == "qwen3@1536" and out["local"]["replace"] is False
+
+
+def test_게이트를_못_넘은_로컬_조합은_후보에서_빠진다():
+    out = _decide([1.0] * 40, {"qwen3": _OK, "bge-m3": {"coexist": True, "p95_ms": 900.0}})
+    assert out["local"]["choice"] == "qwen3@1536"
+    assert out["local"]["gate_failed"] == ["bge-m3@1024"]
+
+
+def test_보고서에_9조합_표와_판정이_들어간다():
+    results = {
+        "date": "2026-10-04", "corpus": {"chunks": 3, "sha256": "abc"}, "rows": 2,
+        "configs": {"qwen3@1536": {"group": "local", "dim": 1536, "agg": {
+            "all": {"n": 2, "top1": 1.0, "hit5": 1.0, "mrr": 1.0, "ndcg10": 1.0},
+            "subset:hard": {"n": 1, "top1": 1.0, "hit5": 1.0, "mrr": 1.0, "ndcg10": 1.0}},
+            "latency": {"p50_ms": 30.0, "p95_ms": 50.0, "coexist": True, "vram_used_mib": 9000}, "tokens": 0}},
+        "decision": {"local": {"choice": "qwen3@1536", "replace": False, "winner": "qwen3@1536", "tied": ["qwen3@1536"],
+                               "gate_failed": [], "vs_baseline": [0.0, 0.0, 0.0]},
+                     "api": {"choice": None, "winner": None, "tied": [], "gate_failed": []}},
+    }
+    md = render_report(results)
+    assert "| qwen3@1536 | local | 1536 | 1.000 | 1.000 | 1.000 | 1.000 | 1.000 | 30 | 50 | O |" in md
+    assert "로컬: **qwen3@1536** (현행 유지)" in md

@@ -25,7 +25,15 @@ from pathlib import Path
 import httpx
 import numpy as np
 
-from apps.rag.adapter.inbound.cli.benchmark_core import CorpusRow, percentile, resident_models
+from apps.rag.adapter.inbound.cli.benchmark_core import (
+    CorpusRow,
+    aggregate,
+    decide,
+    percentile,
+    render_report,
+    resident_models,
+    score_rows,
+)
 from apps.rag.adapter.outbound.embeddings.fp16_qwen3_adapter import Fp16Qwen3EmbeddingAdapter
 from apps.rag.adapter.outbound.embeddings.gemini_embedding_adapter import GeminiEmbeddingAdapter
 from apps.rag.adapter.outbound.embeddings.ollama_bge_m3_adapter import OllamaBgeM3EmbeddingAdapter
@@ -300,7 +308,49 @@ def _cmd_latency(args) -> None:
     print(f"latency {spec.name}: p50 {p50:.0f}ms p95 {result['p95_ms']:.0f}ms 동시상주={coexist} VRAM={vram}MiB", flush=True)
 
 
-_COMMANDS: dict[str, Callable] = {"snapshot": _cmd_snapshot, "embed": _cmd_embed, "latency": _cmd_latency}
+def _load_latency(model: str) -> dict:
+    path = _CACHE / model / "latency.json"
+    return json.loads(path.read_text(encoding="utf-8")) if path.exists() else {}
+
+
+def _cmd_evaluate(args) -> None:
+    corpus = load_corpus()
+    rows = confirmed_rows(_load_evalset())
+    configs: dict[str, dict] = {}
+    mrr_by: dict[str, list[float]] = {}
+    for model, dim in CONFIGS:
+        key = config_key(model, dim)
+        scored = score_rows(load_doc_matrix(model), load_query_vectors(model), corpus, rows, dim)
+        mrr_by[key] = [s["mrr"] for s in scored]
+        tokens_path = _CACHE / model / "tokens.json"
+        configs[key] = {
+            "group": MODELS[model].group, "dim": dim, "agg": aggregate(scored), "latency": _load_latency(model),
+            "tokens": sum(json.loads(tokens_path.read_text(encoding="utf-8")).values()) if tokens_path.exists() else 0,
+        }
+        print(f"evaluate {key}: MRR {configs[key]['agg']['all']['mrr']:.3f}", flush=True)
+
+    latency = {m: _load_latency(m) for m in MODELS}
+    decision = decide(
+        mrr_by, {k: c["dim"] for k, c in configs.items()}, {k: c["group"] for k, c in configs.items()},
+        latency, baseline=config_key(*BASELINE),
+    )
+    date = datetime.now().strftime("%Y-%m-%d")
+    results = {
+        "date": date,
+        "corpus": {"chunks": len(corpus), "sha256": (_CACHE / "corpus.sha256").read_text().strip()},
+        "rows": len(rows), "configs": configs, "decision": decision, "per_row_mrr": mrr_by,
+    }
+    out = _REPO_ROOT / f"data/eval/results/embedding-benchmark-{date}"
+    out.mkdir(parents=True, exist_ok=True)
+    (out / "results.json").write_text(json.dumps(results, ensure_ascii=False, indent=2), encoding="utf-8")
+    (out / "report.md").write_text(render_report(results), encoding="utf-8")
+    (out / "corpus.jsonl.sha256").write_text(results["corpus"]["sha256"] + "\n", encoding="utf-8")
+    print(f"evaluate: 로컬 {decision['local']['choice']} / API {decision['api']['choice']} → {out}", flush=True)
+
+
+_COMMANDS: dict[str, Callable] = {
+    "snapshot": _cmd_snapshot, "embed": _cmd_embed, "latency": _cmd_latency, "evaluate": _cmd_evaluate,
+}
 
 
 def main() -> None:
