@@ -1,0 +1,221 @@
+"""임베딩 모델 평가 CLI — 9개 조합을 같은 코퍼스·평가셋으로 재고 로컬용·API용 각 1종을 고른다 (Driving Adapter).
+
+spec: docs/superpowers/specs/2026-10-04-embedding-benchmark-design.md
+운영 DB·검색 경로는 건드리지 않는다. 코퍼스를 jsonl로 고정하고 모델별 최대 차원 벡터를 .npy로 1회 캐시한 뒤,
+차원별로 잘라 numpy 전수 검색한다(benchmark_core).
+
+실행 순서 (backend/에서):
+  python -m apps.rag.adapter.inbound.cli.benchmark_embeddings snapshot
+  python -m apps.rag.adapter.inbound.cli.benchmark_embeddings embed --model bge-m3|qwen3|gemini-001|gemini-2
+  python -m apps.rag.adapter.inbound.cli.benchmark_embeddings latency --model ...
+  python -m apps.rag.adapter.inbound.cli.benchmark_embeddings evaluate
+"""
+
+import argparse
+import hashlib
+import json
+from collections.abc import Callable
+from dataclasses import dataclass
+from datetime import datetime
+from pathlib import Path
+
+import numpy as np
+
+from apps.rag.adapter.inbound.cli.benchmark_core import CorpusRow
+from apps.rag.adapter.outbound.embeddings.fp16_qwen3_adapter import Fp16Qwen3EmbeddingAdapter
+from apps.rag.adapter.outbound.embeddings.gemini_embedding_adapter import GeminiEmbeddingAdapter
+from apps.rag.adapter.outbound.embeddings.ollama_bge_m3_adapter import OllamaBgeM3EmbeddingAdapter
+from apps.rag.adapter.outbound.embeddings.ollama_qwen3_adapter import OllamaQwen3EmbeddingAdapter
+from apps.rag.app.ports.output.rag_port import EmbeddingPort
+
+# apps/rag/adapter/inbound/cli/benchmark_embeddings.py → parents[6] == 리포지토리 루트
+_REPO_ROOT = Path(__file__).resolve().parents[6]
+_CACHE = _REPO_ROOT / "data/eval/cache/embedding-benchmark"
+_EVALSET = _REPO_ROOT / "data/eval/rag_evalset.jsonl"
+_SHARD = 512
+
+
+def _gemini_tokens(model: str) -> Callable[[list[str]], int]:
+    def count(texts: list[str]) -> int:
+        from google import genai
+
+        from core.matrix.grid_keymaker_secret_manager import get_settings
+
+        client = genai.Client(api_key=get_settings().gemini_api_key)
+        return client.models.count_tokens(model=model, contents=texts).total_tokens
+
+    return count
+
+
+def _no_tokens(texts: list[str]) -> int:
+    return 0  # 로컬 모델은 API 과금 대상이 아니다
+
+
+@dataclass(frozen=True)
+class ModelSpec:
+    name: str
+    group: str  # "local" | "api"
+    max_dim: int
+    doc_embedder: Callable[[], EmbeddingPort]
+    query_embedder: Callable[[], EmbeddingPort]
+    ollama_model: str | None  # 동시 상주 확인 대상 (API는 None)
+    token_counter: Callable[[list[str]], int]
+
+
+# 레지스트리 — 모델 이름 → 색인·질의 어댑터 (spec §2 표). qwen3는 운영 혼용 구도(색인 fp16 / 질의 Q4) 그대로.
+MODELS: dict[str, ModelSpec] = {
+    "bge-m3": ModelSpec("bge-m3", "local", 1024, OllamaBgeM3EmbeddingAdapter, OllamaBgeM3EmbeddingAdapter,
+                        "bge-m3", _no_tokens),
+    "qwen3": ModelSpec("qwen3", "local", 2560, lambda: Fp16Qwen3EmbeddingAdapter(dim=2560),
+                       lambda: OllamaQwen3EmbeddingAdapter(dim=2560), "qwen3-embedding:4b", _no_tokens),
+    "gemini-001": ModelSpec("gemini-001", "api", 3072,
+                            lambda: GeminiEmbeddingAdapter(model="gemini-embedding-001", dim=3072),
+                            lambda: GeminiEmbeddingAdapter(model="gemini-embedding-001", dim=3072),
+                            None, _gemini_tokens("gemini-embedding-001")),
+    "gemini-2": ModelSpec("gemini-2", "api", 3072,
+                          lambda: GeminiEmbeddingAdapter(model="gemini-embedding-2", dim=3072),
+                          lambda: GeminiEmbeddingAdapter(model="gemini-embedding-2", dim=3072),
+                          None, _gemini_tokens("gemini-embedding-2")),
+}
+
+CONFIGS: list[tuple[str, int]] = [
+    ("bge-m3", 1024), ("qwen3", 1536), ("qwen3", 2560),
+    ("gemini-001", 1024), ("gemini-001", 1536), ("gemini-001", 2560),
+    ("gemini-2", 1024), ("gemini-2", 1536), ("gemini-2", 2560),
+]
+BASELINE = ("qwen3", 1536)
+
+
+def config_key(model: str, dim: int) -> str:
+    return f"{model}@{dim}"
+
+
+# ── 순수 헬퍼 ────────────────────────────────────────────────────────────
+
+
+def corpus_to_jsonl(rows: list[CorpusRow]) -> str:
+    return "".join(
+        json.dumps(
+            {"chunk_id": r.chunk_id, "source_type": r.source_type, "content": r.content,
+             "published_at": r.published_at.isoformat() if r.published_at else None},
+            ensure_ascii=False,
+        ) + "\n"
+        for r in rows
+    )
+
+
+def corpus_from_jsonl(text: str) -> list[CorpusRow]:
+    rows = []
+    for line in text.splitlines():
+        if not line.strip():
+            continue
+        d = json.loads(line)
+        published = datetime.fromisoformat(d["published_at"]) if d["published_at"] else None
+        rows.append(CorpusRow(d["chunk_id"], d["source_type"], d["content"], published))
+    return rows
+
+
+def pending_shards(total: int, shard: int, done: set[int]) -> list[int]:
+    return [start for start in range(0, total, shard) if start not in done]
+
+
+def missing_queries(cached: list[str], wanted: list[str]) -> list[str]:
+    have = set(cached)
+    out: list[str] = []
+    for q in wanted:
+        if q not in have:
+            have.add(q)
+            out.append(q)
+    return out
+
+
+def confirmed_rows(rows: list[dict]) -> list[dict]:
+    return [r for r in rows if r["status"] == "confirmed"]
+
+
+# ── 파일·DB (어댑터 경계) ────────────────────────────────────────────────
+
+
+def _load_evalset() -> list[dict]:
+    return [json.loads(line) for line in _EVALSET.read_text(encoding="utf-8").splitlines() if line.strip()]
+
+
+def load_corpus() -> list[CorpusRow]:
+    return corpus_from_jsonl((_CACHE / "corpus.jsonl").read_text(encoding="utf-8"))
+
+
+def load_doc_matrix(model: str) -> np.ndarray:
+    shards = sorted((_CACHE / model).glob("docs_*.npy"))
+    return np.concatenate([np.load(p) for p in shards], axis=0)
+
+
+def load_query_vectors(model: str) -> dict[str, np.ndarray]:
+    texts = json.loads((_CACHE / model / "queries.json").read_text(encoding="utf-8"))
+    matrix = np.load(_CACHE / model / "queries.npy")
+    return dict(zip(texts, matrix))
+
+
+def _cmd_snapshot(args) -> None:
+    """rag_chunk 전량(만료 공고 포함 — spec §4)을 chunk_id 순서로 고정한다."""
+    from sqlalchemy import select
+
+    from apps.rag.adapter.outbound.orms.rag_chunk_orm import RagChunkOrm
+    from core.matrix.grid_oracle_database_manager import session_scope
+
+    stmt = select(
+        RagChunkOrm.chunk_id, RagChunkOrm.source_type, RagChunkOrm.content, RagChunkOrm.published_at
+    ).order_by(RagChunkOrm.chunk_id)
+    with session_scope() as session:
+        rows = [CorpusRow(r.chunk_id, r.source_type, r.content, r.published_at) for r in session.execute(stmt).all()]
+    text = corpus_to_jsonl(rows)
+    _CACHE.mkdir(parents=True, exist_ok=True)
+    (_CACHE / "corpus.jsonl").write_text(text, encoding="utf-8")
+    digest = hashlib.sha256(text.encode("utf-8")).hexdigest()
+    (_CACHE / "corpus.sha256").write_text(digest + "\n", encoding="utf-8")
+    print(f"snapshot: {len(rows)}청크 sha256={digest[:12]} → {_CACHE}", flush=True)
+
+
+def _cmd_embed(args) -> None:
+    """문서는 샤드 단위로 이어서, 질의는 confirmed 문항 중 캐시에 없는 것만 임베딩한다."""
+    spec = MODELS[args.model]
+    out = _CACHE / spec.name
+    out.mkdir(parents=True, exist_ok=True)
+    corpus = load_corpus()
+
+    done = {int(p.stem.split("_")[1]) for p in out.glob("docs_*.npy")}
+    tokens_path = out / "tokens.json"
+    tokens: dict[str, int] = json.loads(tokens_path.read_text()) if tokens_path.exists() else {}
+    todo = pending_shards(len(corpus), _SHARD, done)
+    embedder = spec.doc_embedder() if todo else None
+    for start in todo:
+        texts = [r.content for r in corpus[start : start + _SHARD]]
+        np.save(out / f"docs_{start:06d}.npy", np.asarray(embedder.embed_documents(texts), dtype=np.float32))
+        tokens[str(start)] = spec.token_counter(texts)
+        tokens_path.write_text(json.dumps(tokens), encoding="utf-8")
+        print(f"embed {spec.name} docs {start}~{start + len(texts) - 1} / {len(corpus)}", flush=True)
+
+    q_texts_path, q_vecs_path = out / "queries.json", out / "queries.npy"
+    cached = json.loads(q_texts_path.read_text(encoding="utf-8")) if q_texts_path.exists() else []
+    new = missing_queries(cached, [r["question"] for r in confirmed_rows(_load_evalset())])
+    if new:
+        q_embedder = spec.query_embedder()
+        vecs = np.asarray([q_embedder.embed_query(q) for q in new], dtype=np.float32)
+        old = np.load(q_vecs_path) if q_vecs_path.exists() else np.zeros((0, vecs.shape[1]), dtype=np.float32)
+        np.save(q_vecs_path, np.concatenate([old, vecs], axis=0))
+        q_texts_path.write_text(json.dumps(cached + new, ensure_ascii=False), encoding="utf-8")
+    print(f"embed {spec.name}: 문서 샤드 {len(todo)}개 새로, 질의 {len(new)}건 새로 (총 토큰 {sum(tokens.values())})", flush=True)
+
+
+_COMMANDS: dict[str, Callable] = {"snapshot": _cmd_snapshot, "embed": _cmd_embed}
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("command", choices=list(_COMMANDS))
+    parser.add_argument("--model", choices=list(MODELS))
+    args = parser.parse_args()
+    _COMMANDS[args.command](args)
+
+
+if __name__ == "__main__":
+    main()
