@@ -120,3 +120,9 @@
 2. gemma4·qwen3.5에서 `think: false`가 실제로 thinking을 끄는지 — 응답에 thinking 필드가 비는지 확인.
 3. Ollama `format`(JSON 스키마)이 각 후보에서 동작하는지 — 0단계 프로토콜 호환에서 확인, 안 되면 해당 모델은 관문 게이트 1로 판정.
 4. gemini-2.5-flash 가격 — 공식 가격표(확인일·URL)로.
+
+### 해소 결과 (2026-10-05)
+1. kanana1.5 라이선스 — Hugging Face 모델 카드(kakaocorp/kanana-1.5-8b-instruct-2505)에 apache-2.0로 표기. `ollama show --license`는 출력이 없어 모델 카드만 확인.
+2. `think: false` — 동작함. 어떤 모델의 어떤 절에도 thinking 텍스트가 없었다.
+3. Ollama `format` — Gemini `nullable`은 무시된다(문자열 "null" 관측). type 합집합(["string","null"])을 써야 한다.
+4. gemini-2.5-flash 가격 — 입력 $0.30 / 출력 $2.50 per 1M 토큰(Standard, 확인일 2026-10-05, https://ai.google.dev/gemini-api/docs/pricing).

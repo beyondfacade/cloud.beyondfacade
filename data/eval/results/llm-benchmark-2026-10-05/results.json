@@ -1,0 +1,521 @@
+{
+  "date": "2026-10-05",
+  "report": {
+    "rows": [
+      {
+        "model": "gemma4:12b",
+        "vram_mib": 8034.039999008179,
+        "quality": 6,
+        "completion": 0.9166666666666666,
+        "verdict_match": 1.0,
+        "fabrication": 0.3888888888888889,
+        "rule_violations": 12,
+        "first_p95_ms": 8292.257852270268,
+        "total_p95_ms": 37056.05334500433,
+        "gates": {
+          "completion": false,
+          "verdict_match": true,
+          "fabrication": false,
+          "rules": false,
+          "latency": false,
+          "all": false
+        },
+        "note": "",
+        "local": true,
+        "excluded": "게이트 탈락: completion, fabrication, rules, latency"
+      },
+      {
+        "model": "gemma4:e4b",
+        "vram_mib": 3157.6199979782104,
+        "quality": 5.416666666666667,
+        "completion": 1.0,
+        "verdict_match": 0.9444444444444444,
+        "fabrication": 0.027777777777777776,
+        "rule_violations": 7,
+        "first_p95_ms": 11858.351505477913,
+        "total_p95_ms": 21009.860117483186,
+        "gates": {
+          "completion": true,
+          "verdict_match": false,
+          "fabrication": true,
+          "rules": false,
+          "latency": false,
+          "all": false
+        },
+        "note": "",
+        "local": true,
+        "excluded": "게이트 탈락: verdict_match, rules, latency"
+      },
+      {
+        "model": "kanana1.5:8b-q4km",
+        "vram_mib": 8779.51999950409,
+        "quality": 3.75,
+        "completion": 1.0,
+        "verdict_match": 0.9444444444444444,
+        "fabrication": 0.4722222222222222,
+        "rule_violations": 19,
+        "first_p95_ms": 4277.082615735708,
+        "total_p95_ms": 31013.104916230077,
+        "gates": {
+          "completion": true,
+          "verdict_match": false,
+          "fabrication": false,
+          "rules": false,
+          "latency": true,
+          "all": false
+        },
+        "note": "",
+        "local": true,
+        "excluded": "게이트 탈락: verdict_match, fabrication, rules"
+      },
+      {
+        "model": "qwen3.5:9b",
+        "vram_mib": 6423.739998817444,
+        "quality": 4.666666666666667,
+        "completion": 0.7777777777777778,
+        "verdict_match": 0.6944444444444444,
+        "fabrication": 0.16666666666666666,
+        "rule_violations": 14,
+        "first_p95_ms": 5417.190217325697,
+        "total_p95_ms": 17224.43448595004,
+        "gates": {
+          "completion": false,
+          "verdict_match": false,
+          "fabrication": false,
+          "rules": false,
+          "latency": false,
+          "all": false
+        },
+        "note": "",
+        "local": true,
+        "excluded": "게이트 탈락: completion, verdict_match, fabrication, rules, latency"
+      },
+      {
+        "model": "qwen3.5:4b",
+        "vram_mib": 4074.31999874115,
+        "quality": 4.5,
+        "completion": 0.9444444444444444,
+        "verdict_match": 0.5833333333333334,
+        "fabrication": 0.08333333333333333,
+        "rule_violations": 13,
+        "first_p95_ms": 3670.931469008792,
+        "total_p95_ms": 10888.818593259202,
+        "gates": {
+          "completion": false,
+          "verdict_match": false,
+          "fabrication": false,
+          "rules": false,
+          "latency": true,
+          "all": false
+        },
+        "note": "",
+        "local": true,
+        "excluded": "게이트 탈락: completion, verdict_match, fabrication, rules"
+      },
+      {
+        "model": "exaone3.5:7.8b",
+        "vram_mib": 8696.659998893738,
+        "quality": 3.5,
+        "completion": 1.0,
+        "verdict_match": 0.8888888888888888,
+        "fabrication": 0.19444444444444445,
+        "rule_violations": 21,
+        "first_p95_ms": 4540.727979270741,
+        "total_p95_ms": 31034.709619765636,
+        "gates": {
+          "completion": true,
+          "verdict_match": false,
+          "fabrication": false,
+          "rules": false,
+          "latency": true,
+          "all": false
+        },
+        "note": "도구 없음(참고 비교군, 라이선스 NC)",
+        "local": true,
+        "excluded": "게이트 탈락: verdict_match, fabrication, rules"
+      },
+      {
+        "model": "gemini-2.5-flash",
+        "vram_mib": null,
+        "quality": 6.666666666666667,
+        "completion": 1.0,
+        "verdict_match": 1.0,
+        "fabrication": 0.027777777777777776,
+        "rule_violations": 11,
+        "first_p95_ms": 1536.8216457718518,
+        "total_p95_ms": 14244.245883222902,
+        "gates": {
+          "completion": true,
+          "verdict_match": true,
+          "fabrication": true,
+          "rules": false,
+          "latency": true,
+          "all": false
+        },
+        "note": "온라인 비교군",
+        "local": false,
+        "excluded": "온라인 비교군(판정 대상 아님)"
+      }
+    ],
+    "per_row": {},
+    "winner": null,
+    "tied": [],
+    "reference": {
+      "ranking": [
+        {
+          "model": "gemma4:12b",
+          "quality": 6,
+          "vram_mib": 8034.039999008179,
+          "failed": [
+            "completion",
+            "fabrication",
+            "rules",
+            "latency"
+          ]
+        },
+        {
+          "model": "gemma4:e4b",
+          "quality": 5.416666666666667,
+          "vram_mib": 3157.6199979782104,
+          "failed": [
+            "verdict_match",
+            "rules",
+            "latency"
+          ]
+        },
+        {
+          "model": "qwen3.5:9b",
+          "quality": 4.666666666666667,
+          "vram_mib": 6423.739998817444,
+          "failed": [
+            "completion",
+            "verdict_match",
+            "fabrication",
+            "rules",
+            "latency"
+          ]
+        },
+        {
+          "model": "qwen3.5:4b",
+          "quality": 4.5,
+          "vram_mib": 4074.31999874115,
+          "failed": [
+            "completion",
+            "verdict_match",
+            "fabrication",
+            "rules"
+          ]
+        },
+        {
+          "model": "kanana1.5:8b-q4km",
+          "quality": 3.75,
+          "vram_mib": 8779.51999950409,
+          "failed": [
+            "verdict_match",
+            "fabrication",
+            "rules"
+          ]
+        },
+        {
+          "model": "exaone3.5:7.8b",
+          "quality": 3.5,
+          "vram_mib": 8696.659998893738,
+          "failed": [
+            "verdict_match",
+            "fabrication",
+            "rules"
+          ]
+        }
+      ],
+      "winner": "gemma4:e4b",
+      "tied": [
+        "gemma4:12b",
+        "gemma4:e4b"
+      ],
+      "violations": {
+        "gemma4:12b": {
+          "신뢰 등급 표기": 10,
+          "기타": 2
+        },
+        "gemma4:e4b": {
+          "신뢰 등급 표기": 6,
+          "기타": 1
+        },
+        "kanana1.5:8b-q4km": {
+          "재난기": 1,
+          "신뢰 등급 표기": 12,
+          "금융": 4,
+          "기타": 2
+        },
+        "qwen3.5:9b": {
+          "신뢰 등급 표기": 11,
+          "기타": 3
+        },
+        "qwen3.5:4b": {
+          "신뢰 등급 표기": 9,
+          "기타": 2,
+          "금융": 2
+        },
+        "exaone3.5:7.8b": {
+          "신뢰 등급 표기": 11,
+          "금융": 6,
+          "기타": 4
+        }
+      }
+    }
+  },
+  "intent": {
+    "rows": [
+      {
+        "model": "gemma4:12b",
+        "vram_mib": 8034.039999008179,
+        "both": 0.8875,
+        "region": 0.8875,
+        "industry": 0.9875,
+        "budget": 0.95,
+        "schema_rate": 1.0,
+        "fabrication_rate": 0.0392156862745098,
+        "p95_ms": 1300.12316852808,
+        "gates": {
+          "schema": true,
+          "fabrication": true,
+          "latency": true,
+          "all": true
+        },
+        "note": "",
+        "local": true,
+        "excluded": null
+      },
+      {
+        "model": "gemma4:e4b",
+        "vram_mib": 3157.6199979782104,
+        "both": 0.7625,
+        "region": 0.7875,
+        "industry": 0.975,
+        "budget": 0.7625,
+        "schema_rate": 1.0,
+        "fabrication_rate": 0.1568627450980392,
+        "p95_ms": 753.5906018922105,
+        "gates": {
+          "schema": true,
+          "fabrication": false,
+          "latency": true,
+          "all": false
+        },
+        "note": "",
+        "local": true,
+        "excluded": "게이트 탈락: fabrication"
+      },
+      {
+        "model": "kanana1.5:8b-q4km",
+        "vram_mib": 8779.51999950409,
+        "both": 0.4875,
+        "region": 0.55,
+        "industry": 0.9,
+        "budget": 0.35,
+        "schema_rate": 1.0,
+        "fabrication_rate": 0.5686274509803921,
+        "p95_ms": 606.0752258985303,
+        "gates": {
+          "schema": true,
+          "fabrication": false,
+          "latency": true,
+          "all": false
+        },
+        "note": "",
+        "local": true,
+        "excluded": "게이트 탈락: fabrication"
+      },
+      {
+        "model": "qwen3.5:9b",
+        "vram_mib": 6423.739998817444,
+        "both": 0.625,
+        "region": 0.675,
+        "industry": 0.875,
+        "budget": 0.675,
+        "schema_rate": 1.0,
+        "fabrication_rate": 0.09803921568627451,
+        "p95_ms": 957.3666769661941,
+        "gates": {
+          "schema": true,
+          "fabrication": false,
+          "latency": true,
+          "all": false
+        },
+        "note": "",
+        "local": true,
+        "excluded": "게이트 탈락: fabrication"
+      },
+      {
+        "model": "qwen3.5:4b",
+        "vram_mib": 4074.31999874115,
+        "both": 0.65,
+        "region": 0.7375,
+        "industry": 0.8875,
+        "budget": 0.7625,
+        "schema_rate": 1.0,
+        "fabrication_rate": 0.1568627450980392,
+        "p95_ms": 703.9219019934535,
+        "gates": {
+          "schema": true,
+          "fabrication": false,
+          "latency": true,
+          "all": false
+        },
+        "note": "",
+        "local": true,
+        "excluded": "게이트 탈락: fabrication"
+      },
+      {
+        "model": "qwen3.5:2b-q4_K_M",
+        "vram_mib": 1989.759997367859,
+        "both": 0.0125,
+        "region": 0.075,
+        "industry": 0.1625,
+        "budget": 0.6125,
+        "schema_rate": 1.0,
+        "fabrication_rate": 0.29411764705882354,
+        "p95_ms": 434.42230242071673,
+        "gates": {
+          "schema": true,
+          "fabrication": false,
+          "latency": true,
+          "all": false
+        },
+        "note": "",
+        "local": true,
+        "excluded": "게이트 탈락: fabrication"
+      },
+      {
+        "model": "gemini-2.5-flash",
+        "vram_mib": null,
+        "both": 0.9875,
+        "region": 0.9875,
+        "industry": 1.0,
+        "budget": 0.95,
+        "schema_rate": 1.0,
+        "fabrication_rate": 0.0,
+        "p95_ms": 2637.135697825575,
+        "gates": {
+          "schema": true,
+          "fabrication": true,
+          "latency": true,
+          "all": true
+        },
+        "note": "온라인 비교군",
+        "local": false,
+        "excluded": "온라인 비교군(판정 대상 아님)"
+      }
+    ],
+    "per_row": {
+      "gemma4:12b": [
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        0.0,
+        0.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        0.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        0.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    "winner": "gemma4:12b",
+    "tied": [
+      "gemma4:12b"
+    ],
+    "ci_vs_best": {}
+  },
+  "residency": {
+    "report_model": "gemma4:e4b",
+    "intent_model": "gemma4:12b",
+    "same_model": false,
+    "ok": true,
+    "used_mib": 14661,
+    "sizes": {
+      "gemma4:e4b": {
+        "size_mib": 3157.6199979782104,
+        "vram_mib": 3157.6199979782104
+      },
+      "gemma4:12b": {
+        "size_mib": 8034.039999008179,
+        "vram_mib": 8034.039999008179
+      },
+      "bge-m3": {
+        "size_mib": 633.2399988174438,
+        "vram_mib": 633.2399988174438
+      }
+    }
+  }
+}
