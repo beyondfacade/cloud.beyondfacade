@@ -218,6 +218,7 @@ def test_저장되는_report_md는_조각을_섹션별로_이어_붙인_글이�
             yield AgentEvent("report_delta", {"section": "verdict", "markdown": "비추천."})
             yield AgentEvent("report_delta", {"section": "funding", "markdown": "공고 2건."})
             yield AgentEvent("report_delta", {"section": "reasons", "markdown": "폐업률이 높다."})
+            yield AgentEvent("report_delta", {"section": "answer", "markdown": "해석."})  # 해석은 맨 끝에 온다
             yield AgentEvent("report_done", {"report_id": "x", "citations": []})
 
     app.dependency_overrides.clear()  # 오버라이드가 있으면 영속화 경로를 건너뛴다
@@ -230,4 +231,4 @@ def test_저장되는_report_md는_조각을_섹션별로_이어_붙인_글이�
     ]
     client.get(f"/analysis/{analysis_id}/events")
 
-    assert saved["report_md"] == "🔴 비추천.\n\n폐업률이 높다.\n\n공고 2건."
+    assert saved["report_md"] == "해석.\n\n🔴 비추천.\n\n폐업률이 높다.\n\n공고 2건."

@@ -14,9 +14,9 @@ LLM은 마커를 한 덩어리로 주지 않는다 — `[SECT` / `ION:verdict]`�
 import re
 from collections.abc import Iterable
 
-# 저장·표시 기준 섹션 순서 (설계서 §5 계약 표). 인터랙터 `_SECTIONS`의 키 순서와 같다 —
-# 조각은 도착 순서가 뒤섞일 수 있어도 저장본은 늘 이 순서여야 한다.
-SECTION_ORDER = ("verdict", "reasons", "analogs", "conditions", "alternatives", "funding")
+# 저장·표시 기준 섹션 순서 — 맨 위 해석(answer) 다음에 코드 6개 절(report_sections.SECTION_TITLES 순서).
+# 해석은 6개 절보다 늦게 도착하지만 저장본은 화면처럼 맨 위다. answer 없는 옛 저장본은 그대로다.
+SECTION_ORDER = ("answer", "verdict", "reasons", "analogs", "conditions", "alternatives", "funding")
 
 _MARKER = re.compile(r"\[SECTION:(\w+)\]")
 

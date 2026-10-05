@@ -7,7 +7,13 @@
 - **해석 단락 가드** `guard_answer`(`report_guards.py`) — LLM 해석(answer) 한 단락에 링크·공고 번호 제거(`UrlStripper`) → 판정 모순 검사(`verdict_contradiction`, 모순이면 단락 전체 실패) → 숫자가 든 문장 삭제(`drop_digit_sentences`, 문장 끝 `.!?` + 공백 기준)를 차례로 건다. 결과 `GuardedAnswer`는 지운 문장 수·지운 링크 수·모순 구절을 남긴다(벤치 지표).
 
 ### Changed
+- **리포트 구조: 사실은 코드, 해석은 LLM 한 단락** (`analysis_interactor.py` 전면 교체) — 사실 수집 직후 코드가 쓴 6개 절을 `report_delta`(절당 한 조각)로 곧바로 내보내고, LLM은 맨 위 해석(`answer`) 한 단락(3~5문장, 숫자·링크·공고 번호 금지, 질문이 없으면 총평)만 쓴다. 해석 입력은 원본 facts JSON이 아니라 질문 + 코드가 쓴 6개 절 그대로(약 14k → 2k 토큰대). 해석은 비스트리밍 `chat()`으로 끝까지 받아 `guard_answer`를 거쳐 한 번에 내보낸다. 판정 모순·가드 뒤 빈 단락·호출 실패면 다음 모델로 넘기고(운영 hybrid: Gemini → 로컬 gemma4:12b, `_RETRY_REGISTRY`; 첫 모델이 이미 로컬로 답했으면 같은 모델을 다시 부르지 않는다), 그래도 안 되면 코드 한 줄 "질문에 대한 해석을 만들지 못했습니다. 아래 사실을 직접 확인해 주세요."로 맺는다. 시도 기록은 `last_answer_attempts`.
+- SSE 순서: `agent_status`·`facts` → 코드 6개 절 → `answer` → `report_done`. 인용은 `facts.news`로 코드가 만든 참고 신호(제목 = 기사 첫 줄, 링크 없는 기사 제외)만.
+- 저장 순서 `SECTION_ORDER`에 `answer`를 맨 앞에 — 저장 리포트(`report_md`)도 화면처럼 해석이 맨 위다. answer 없는 옛 저장본은 그대로다.
 - 코드 섹션 문장 다듬기 — 시간대 자료 부족 이유의 내부 코드(동코드·업종 id) 숨김, 올해 부분연도 폐업률에 "(올해 현재까지)" 표기, "접수 상시 접수" 중복 제거, 동네 유형 흐름 이름 중복 제거, 유사 사례 고정 문장 속 업종 id를 업종 이름으로 치환. 평가셋 150건 전수에서 동코드·업종 id 노출 0건.
+
+### Removed
+- 리포트 경로의 도구 루프(턴 한도·벽시계 예산·`_FINAL_REQUEST`·도구 인자 검사·재프롬프트·도구 인용·스테이지 개폐) — 평가 252회에서 도구 호출 0회였고 자금 계획은 별도 화면이다. 옛 6개 절 시스템 프롬프트와 LLM 절 폴백(`_fallback_section`·`guarded_fallback_section`)도 함께.
 
 ## [v0.67.2] - 2026-10-05
 

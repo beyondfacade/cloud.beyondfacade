@@ -138,8 +138,8 @@ def test_concat_sections는_모르는_섹션도_버리지_않는다():
     assert concat_sections(chunks) == "판정.\n\n미지의 절."
 
 
-def test_섹션_순서_상수는_인터랙터_계약과_같다():
-    """두 벌이 어긋나면 저장 순서와 방출 순서가 갈린다."""
-    from apps.agent.app.use_cases.analysis_interactor import _SECTIONS
+def test_섹션_순서_상수는_해석_다음_코드_절_순서다():
+    """두 벌이 어긋나면 저장 순서와 방출 순서가 갈린다 — 해석은 늦게 오지만 저장본은 맨 위다."""
+    from apps.agent.domain.services.report_sections import SECTION_TITLES
 
-    assert tuple(name for name, _ in _SECTIONS) == SECTION_ORDER
+    assert SECTION_ORDER == ("answer", *SECTION_TITLES)

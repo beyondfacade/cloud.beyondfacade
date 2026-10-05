@@ -9,7 +9,6 @@ from collections.abc import Callable
 from apps.agent.adapter.outbound.gateways.event_analog_facts_gateway import (
     EventAnalogFactsGateway,
 )
-from apps.agent.adapter.outbound.gateways.finance_facts_gateway import FinanceFactsGateway
 from apps.agent.adapter.outbound.gateways.funding_facts_gateway import FundingFactsGateway
 from apps.agent.adapter.outbound.gateways.region_facts_gateway import RegionFactsGateway
 from apps.agent.adapter.outbound.gateways.verdict_facts_gateway import VerdictFactsGateway
@@ -22,7 +21,6 @@ from apps.agent.adapter.outbound.repositories.analysis_repository import (
 from apps.agent.adapter.outbound.repositories.llm_call_repository import SqlAlchemyLlmCallRecorder
 from apps.agent.app.ports.input.analysis_use_case import AnalysisUseCase
 from apps.agent.app.ports.output.agent_port import LLMGatewayPort
-from apps.agent.app.use_cases.agent_tools import build_tools
 from apps.agent.app.use_cases.analysis_interactor import AnalysisInteractor
 from apps.agent.app.use_cases.report_facts import ReportFactsCollector
 from apps.agent.domain.services.report_sampling import REPORT_SEED, REPORT_TEMPERATURE
@@ -64,28 +62,31 @@ _LLM_REGISTRY: dict[str, Callable[[], LLMGatewayPort]] = {
     "gemini": _gemini,
 }
 
+# 해석이 가드에 걸리면(판정 모순·숫자만 남은 단락) 다음 모델 — 운영 hybrid만 로컬로 한 번 더 쓴다(설계서 §5).
+# 단일 모델 직접 지정(벤치·run_agent_eval)은 그 모델만 평가한다.
+_RETRY_REGISTRY: dict[str, Callable[[], LLMGatewayPort]] = {"hybrid": _local}
+
 
 def build_analysis_use_case(model: str = "hybrid", budget: int | None = None) -> AnalysisUseCase:
     """요청 스코프 AnalysisInteractor — last_usage 누적이 요청 간에 섞이지 않게.
 
-    세션 예산(원)은 여기서 도구와 facts 수집기 둘 다에 심는다 — finance 도구의 자기자본
-    기본값이자 `facts.budget`이다(설계서 §5-2·§3-1).
+    세션 예산(원)은 facts 수집기에 심는다 — `facts.budget`이다(그래도 한다면 절의 자금 계획 안내).
     """
     try:
         llm_factory = _LLM_REGISTRY[model]
     except KeyError as error:
         raise ValueError(f"지원하지 않는 모델: {model}") from error
-    region_facts = RegionFactsGateway()
-    rag_search = get_rag_search_use_case()
-    tools = build_tools(region_facts, rag_search, FinanceFactsGateway(), budget)
     facts = ReportFactsCollector(
-        region_facts=region_facts,
+        region_facts=RegionFactsGateway(),
         verdict_facts=VerdictFactsGateway(),
         funding_facts=FundingFactsGateway(),
-        news_search=rag_search,
+        news_search=get_rag_search_use_case(),
         analog_facts=EventAnalogFactsGateway(),
     )
-    return AnalysisInteractor(llm=llm_factory(), tools=tools, facts=facts, budget=budget)
+    retry = _RETRY_REGISTRY.get(model)
+    return AnalysisInteractor(
+        llm=llm_factory(), facts=facts, budget=budget, retry_llm=retry() if retry else None
+    )
 
 
 def get_analysis_use_case() -> AnalysisUseCase:
