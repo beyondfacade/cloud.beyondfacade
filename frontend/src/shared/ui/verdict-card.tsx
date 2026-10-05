@@ -66,6 +66,11 @@ export function VerdictCard({ verdict, industryLabel }: { verdict: RegionIndustr
               <span className="shrink-0 text-[11px]" style={{ color: s.level === "strong" ? "var(--danger)" : "var(--warn)" }}>
                 {LEVEL_LABEL[s.level]}
               </span>
+              {s.band_label && (
+                <span className="shrink-0 rounded border border-[var(--border)] px-1 text-[11px] text-[var(--text-primary)]">
+                  {s.band_label}
+                </span>
+              )}
               <span className="shrink-0 rounded border border-[var(--border)] px-1 text-[10px] text-[var(--text-secondary)]">
                 {SOURCE_LABEL[s.source]}
               </span>
