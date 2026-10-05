@@ -335,36 +335,57 @@ def _funding(facts: dict) -> str:
 
 # ── 자료 부족 동네 — 해석 첫 문장은 코드가 쓴다 ─────────────
 
+# 계산하지 못한 판정 신호 키 → 첫 문장에 쓸 짧은 항목명(숫자 없이). 없는 키는 신호 이름으로 쓴다.
+_MISSING_SIGNAL_LABELS = {
+    "net_outflow": "폐업·개업 흐름",
+    "survival_cliff": "개업 점포 생존율",
+    "early_closure": "폐업 점포 영업 기간",
+    "saturation": "점포 밀도",
+}
+# 수집하지 못한 사실 키 → 짧은 항목명. 이 순서로 적는다(이유 원문·내부 코드는 첫 문장에 쓰지 않는다).
+_MISSING_FACT_LABELS = {
+    "metrics_history": "연도별 폐업률",
+    "shocks": "외부 충격",
+    "analogs": "유사 사례",
+    "hour_gap": "시간대별 매출",
+    "profile": "동네 유형",
+    "commerce_change": "상권 영업 기간",
+    "alternatives": "대안 동네·업종",
+    "funding_candidates": "지원사업 후보",
+}
+# 판정 자료가 있는가 → 고정 첫 문장 (판정 보류는 부족한 자료를, 판정을 내리지 않는 업종은 그 사실을 말한다)
+_SCARCE_LEADS = {
+    True: lambda subject, items: (
+        f"{FACT} {subject} 자료가 부족해 진입 판단을 내리기 어렵습니다 — 부족한 자료: {', '.join(items)}."
+    ),
+    False: lambda subject, items: (
+        f"{FACT} {subject} 경고 판정을 내리는 업종이 아니어서 진입 판단을 내리지 않습니다 — 아래 사실만 참고하세요."
+    ),
+}
+
 
 def scarcity(facts: dict) -> list[str] | None:
-    """자료 부족 동네(판정을 내리지 않는 업종·판정 보류)면 부족한 자료 이름 목록, 아니면 None.
+    """자료 부족 동네(판정을 내리지 않는 업종·판정 보류)면 부족한 자료의 짧은 항목명 목록, 아니면 None.
 
-    목록: 계산하지 못한 판정 신호의 이름 → 수집하지 못한 사실 항목의 이유(내부 코드는 `_hours`처럼 콜론 앞까지).
-    둘 다 없으면 판정 자체의 이유 하나.
+    목록: 계산하지 못한 판정 신호 → 수집하지 못한 사실 항목. 판정을 내리지 않는 업종이면 빌 수 있다.
     """
     verdict = facts.get("verdict") or {}
     if verdict.get("available") and verdict.get("verdict_code") != "insufficient":
         return None
     signals = [
-        _SIGNAL_LABELS.get(s.get("key"), s.get("key"))
+        _MISSING_SIGNAL_LABELS.get(s.get("key"), _SIGNAL_LABELS.get(s.get("key"), s.get("key")))
         for s in verdict.get("signals") or []
         if s.get("level") == "unavailable"
     ]
-    reasons = [
-        reason.split(":")[0].strip()
-        for key, value in facts.items()
-        if key != "verdict" and (reason := _missing_reason(value)) is not None
-    ]
-    return list(dict.fromkeys([*signals, *reasons])) or [verdict.get("reason") or "이유 미상"]
+    items = [label for key, label in _MISSING_FACT_LABELS.items() if _missing_reason(facts.get(key)) is not None]
+    return list(dict.fromkeys([*signals, *items]))
 
 
 def scarce_lead(facts: dict, missing_items: list[str]) -> str:
-    """자료 부족 동네 해석의 고정 첫 문장 — 결론("판단하기 어렵다")은 틀리면 안 되므로 코드가 쓴다. 숫자는 쓰지 않는다."""
+    """자료 부족 동네 해석의 고정 첫 문장 — 결론은 틀리면 안 되므로 코드가 쓴다. 숫자는 쓰지 않는다."""
     region, industry = _names(facts)
-    return (
-        f"{FACT} {region} {industry}{_topic(industry)} 자료가 부족해 진입 판단을 내리기 어렵습니다 — "
-        f"부족한 자료: {', '.join(missing_items)}."
-    )
+    available = bool((facts.get("verdict") or {}).get("available"))
+    return _SCARCE_LEADS[available](f"{region} {industry}{_topic(industry)}", missing_items)
 
 
 # 절 이름 → 작성 함수 (dict 디스패치)

@@ -65,7 +65,7 @@ from apps.agent.app.use_cases.report_facts import ReportFactsCollector
 from apps.agent.domain.entities.agent_event_entity import AgentEvent
 from apps.agent.domain.services.report_guards import blank_names, contradicts_verdict
 from apps.agent.domain.services.report_sampling import REPORT_SEED, REPORT_TEMPERATURE
-from apps.agent.domain.services.report_sections import build_sections, scarcity
+from apps.agent.domain.services.report_sections import build_sections, scarce_lead, scarcity
 from apps.agent.domain.services.section_stream import concat_sections
 from apps.rag.dependencies.rag_dependencies import get_rag_search_use_case
 from core.matrix.grid_benchmark_manager import paired_bootstrap_ci, percentile, pick_winner, resident_models
@@ -225,9 +225,12 @@ def score_run(record: dict, facts: dict) -> dict:
     """
     answer = record["sections"].get("answer", "")
     attempts = record.get("answer_attempts") or []
+    missing = scarcity(facts)
+    # 자료 부족 동네는 LLM이 실패하면 코드 첫 문장만 남는다 — 그것도 폴백이다
+    fallbacks = {ANSWER_FALLBACK, *([scarce_lead(facts, missing)] if missing is not None else [])}
     return {
         "complete": not record.get("error") and bool(answer),
-        "fallback": answer == ANSWER_FALLBACK,
+        "fallback": answer in fallbacks,
         "verdict_ok": not contradicts_verdict(answer, facts.get("verdict")),
         "digits": len(_DIGITS.findall(blank_names(answer, region_names(facts)))),
         "removed_sentences": sum(a.get("removed_sentences", 0) for a in attempts),

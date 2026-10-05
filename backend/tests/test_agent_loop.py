@@ -226,7 +226,7 @@ def test_자료_부족_동네는_코드_첫_문장_뒤에_현장_확인_단락�
     assert _deltas(events)["answer"] == f"{lead} {_CHECK}"
     [(messages, _)] = llm.calls
     assert messages[0]["content"] == SCARCE_SYSTEM_PROMPT
-    assert "부족한 자료: 순유출, 생존 절벽, 조기 폐업, 시간대 어긋남 자료가 없다" in messages[1]["content"]
+    assert "부족한 자료: 폐업·개업 흐름, 개업 점포 생존율, 폐업 점포 영업 기간, 시간대별 매출" in messages[1]["content"]
 
 
 def test_자료_부족_동네에서_LLM이_끝내_실패하면_코드_첫_문장만_낸다():

@@ -90,6 +90,7 @@ def test_첫_글자_지연은_해석_단락이_나온_시각이다():
 
 def test_해석_채점은_가드_뒤_숫자_모순_폴백과_지운_문장을_센다():
     from apps.agent.app.use_cases.analysis_interactor import ANSWER_FALLBACK
+    from apps.agent.domain.services.report_sections import scarce_lead, scarcity
 
     facts = {"verdict": {"available": True, "verdict_code": "red"}}
     attempts = [{"model": "a", "removed_sentences": 2, "contradiction": "판정은 **경고 없음"},
@@ -98,10 +99,15 @@ def test_해석_채점은_가드_뒤_숫자_모순_폴백과_지운_문장을_�
     ok = score_run({"sections": {"answer": "신중히 보세요. 대안을 먼저 보세요."}, "answer_attempts": attempts,
                     "error": None}, facts)
     fallback = score_run({"sections": {"answer": ANSWER_FALLBACK}, "error": None}, facts)
+    scarce = {"region": {"name": "신월3동", "industry_name": "분식"},
+              "verdict": {"available": True, "verdict_code": "insufficient",
+                          "signals": [{"key": "net_outflow", "level": "unavailable"}]}}
+    lead_only = score_run({"sections": {"answer": scarce_lead(scarce, scarcity(scarce))}, "error": None}, scarce)
 
     assert ok == {"complete": True, "fallback": False, "verdict_ok": True, "digits": 0, "removed_sentences": 3,
                   "raw_contradiction": True, "rule_hits": []}
     assert fallback["fallback"] is True and fallback["removed_sentences"] == 0
+    assert lead_only["fallback"] is True  # 자료 부족 동네에서 LLM이 실패해 코드 첫 문장만 남았다
 
 
 def test_해석_숫자_지표는_분석_동과_대안_동_이름의_숫자를_세지_않는다():
