@@ -51,6 +51,8 @@ class SignalResult:
     percentile: float | None  # 나쁜 방향 백분위 0~100. 이진 신호·unavailable은 None
     evidence: str  # 근거 한 문장 (설계서 §3-4)
     source: str  # store | metric | neighborhood
+    band: str | None = None  # very_bad | bad | normal | good | very_good. 이진·unavailable·옛 행은 None
+    band_label: str | None = None  # 예: "밀집 매우 높은 편"
 
 
 @dataclass(frozen=True)

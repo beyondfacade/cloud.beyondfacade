@@ -13,6 +13,7 @@ from apps.verdict.domain.entities.region_industry_verdict_entity import (
     LEVEL_UNAVAILABLE,
     SignalResult,
 )
+from apps.verdict.domain.services.risk_band import band_of
 from apps.verdict.domain.services.thresholds import VerdictThresholds, level_of, percentile_rank
 from apps.verdict.domain.services.tobacco_gap import TOBACCO_GAP_RADIUS_M
 
@@ -49,7 +50,7 @@ class SignalInput:
 
 
 def _top(percentile: float) -> int:
-    """'서울 상위 N%' 표기 — 백분위 65 → 상위 35%. 0%는 말이 안 되니 최소 1."""
+    """'나쁜 쪽에서 N번째쯤' 표기 — 백분위 65 → 35번째쯤. 0번째는 말이 안 되니 최소 1."""
     return max(1, round(100 - percentile))
 
 
@@ -57,9 +58,24 @@ def _quarter_label(year_quarter: str | None) -> str:
     return f"{year_quarter[:4]}년 {year_quarter[4]}분기" if year_quarter else "분기 미상"
 
 
+_BAND_WORDS = {
+    "very_bad": lambda s: f"매우 {s.bad_word} 편",
+    "bad": lambda s: f"{s.bad_word} 편",
+    "normal": lambda s: "보통",
+    "good": lambda s: f"{s.good_word} 편",
+    "very_good": lambda s: f"매우 {s.good_word} 편",
+}
+
+
 class Signal(ABC):
     key: str
     source: str
+    measure: str  # 재는 것 — 등급 라벨 앞머리
+    bad_word: str  # 나쁜 쪽 관형형 ("높은")
+    good_word: str  # 좋은 쪽 관형형 ("낮은")
+
+    def band_label(self, band: str) -> str:
+        return f"{self.measure} {_BAND_WORDS[band](self)}"
 
     @abstractmethod
     def raw_value(self, i: SignalInput, t: VerdictThresholds) -> float | None:
@@ -70,7 +86,7 @@ class Signal(ABC):
         """나쁜 방향이 커지도록 부호를 맞춘 값 — 백분위는 이 값으로 낸다."""
 
     @abstractmethod
-    def evidence(self, i: SignalInput, value: float, percentile: float) -> str:
+    def evidence(self, i: SignalInput, value: float) -> str:
         """근거 한 문장 — 숫자와 비교 기준을 반드시 넣는다 (설계서 §3-4)."""
 
     @abstractmethod
@@ -82,15 +98,24 @@ class Signal(ABC):
         if value is None:
             return SignalResult(self.key, LEVEL_UNAVAILABLE, None, None, self.unavailable_reason(i, t), self.source)
         percentile = percentile_rank(self.worse(value), distribution)
+        band = band_of(percentile, t)
+        label = self.band_label(band)
+        evidence = (
+            f"{self.evidence(i, value)} — {label}"
+            f"(서울 {i.industry_name} 동을 100곳으로 치면 {self.bad_word} 쪽에서 {_top(percentile)}번째쯤)"
+        )
         return SignalResult(
-            self.key, level_of(percentile, t), value, round(percentile, 1),
-            self.evidence(i, value, percentile), self.source,
+            self.key, level_of(percentile, t), value, round(percentile, 1), evidence, self.source,
+            band=band, band_label=label,
         )
 
 
 class NetOutflowSignal(Signal):
     key = "net_outflow"
     source = "store"
+    measure = "순유출"
+    bad_word = "많은"
+    good_word = "적은"
 
     def raw_value(self, i, t):
         if i.start_store_count < t.min_sample:
@@ -100,10 +125,10 @@ class NetOutflowSignal(Signal):
     def worse(self, value):
         return value
 
-    def evidence(self, i, value, percentile):
+    def evidence(self, i, value):
         return (
             f"지난 12개월 폐업 {i.closed_12m}곳, 개업 {i.opened_12m}곳 "
-            f"(순유출률 {value * 100:+.0f}%, 서울 {i.industry_name} 상위 {_top(percentile)}%)"
+            f"(순유출률 {value * 100:+.0f}%)"
         )
 
     def unavailable_reason(self, i, t):
@@ -113,6 +138,9 @@ class NetOutflowSignal(Signal):
 class SurvivalCliffSignal(Signal):
     key = "survival_cliff"
     source = "store"
+    measure = "생존율"
+    bad_word = "낮은"
+    good_word = "높은"
 
     def raw_value(self, i, t):
         if i.cohort_size < t.min_sample:
@@ -122,10 +150,10 @@ class SurvivalCliffSignal(Signal):
     def worse(self, value):
         return -value  # 낮을수록 나쁨
 
-    def evidence(self, i, value, percentile):
+    def evidence(self, i, value):
         return (
             f"3년 전 개업한 {i.industry_name} {i.cohort_size}곳 중 {i.cohort_survived}곳만 남음 "
-            f"(생존율 {value * 100:.0f}%, 서울 {i.industry_name} 하위 {_top(percentile)}%)"
+            f"(생존율 {value * 100:.0f}%)"
         )
 
     def unavailable_reason(self, i, t):
@@ -135,6 +163,9 @@ class SurvivalCliffSignal(Signal):
 class EarlyClosureSignal(Signal):
     key = "early_closure"
     source = "store"
+    measure = "폐업 점포 영업 기간"
+    bad_word = "짧은"
+    good_word = "긴"
 
     def raw_value(self, i, t):
         if i.closed_3y_count < t.min_sample or i.closed_3y_median_months is None:
@@ -144,11 +175,8 @@ class EarlyClosureSignal(Signal):
     def worse(self, value):
         return -value  # 짧을수록 나쁨
 
-    def evidence(self, i, value, percentile):
-        return (
-            f"최근 3년 폐업 {i.industry_name}의 영업 기간 중위 {value:.0f}개월 "
-            f"(서울 {i.industry_name} 하위 {_top(percentile)}%)"
-        )
+    def evidence(self, i, value):
+        return f"최근 3년 폐업 {i.industry_name}의 영업 기간 중위 {value:.0f}개월"
 
     def unavailable_reason(self, i, t):
         return f"표본 부족 — 최근 3년 폐업 {i.closed_3y_count}곳 ({t.min_sample}곳 미만)"
@@ -157,6 +185,9 @@ class EarlyClosureSignal(Signal):
 class SaturationSignal(Signal):
     key = "saturation"
     source = "metric"
+    measure = "밀집"
+    bad_word = "높은"
+    good_word = "낮은"
 
     def raw_value(self, i, t):
         if i.resident_total is None or i.resident_total < t.min_population or i.latest_store_count is None:
@@ -166,8 +197,8 @@ class SaturationSignal(Signal):
     def worse(self, value):
         return value
 
-    def evidence(self, i, value, percentile):
-        return f"상주인구 1,000명당 {i.industry_name} {value:.1f}곳 (서울 상위 {_top(percentile)}%)"
+    def evidence(self, i, value):
+        return f"상주인구 1,000명당 {i.industry_name} {value:.1f}곳"
 
     def unavailable_reason(self, i, t):
         if i.latest_store_count is None:
@@ -189,7 +220,7 @@ class ShrinkingSignal(Signal):
     def worse(self, value):
         return value
 
-    def evidence(self, i, value, percentile):
+    def evidence(self, i, value):
         return f"서울시 상권변화지표 '{i.change_name}' ({_quarter_label(i.change_quarter)}, 동 전체 기준)"
 
     def unavailable_reason(self, i, t):
@@ -206,7 +237,7 @@ class ShrinkingSignal(Signal):
                 and i.closed_months < i.seoul_closed_months
             )
             level = LEVEL_STRONG if faster_than_seoul else LEVEL_ON
-        return SignalResult(self.key, level, value, None, self.evidence(i, value, 0.0), self.source)
+        return SignalResult(self.key, level, value, None, self.evidence(i, value), self.source)
 
 
 class ClosureRateSignal(Signal):
@@ -214,6 +245,9 @@ class ClosureRateSignal(Signal):
 
     key = "closure_rate"
     source = "commerce"
+    measure = "폐업률"
+    bad_word = "높은"
+    good_word = "낮은"
 
     def raw_value(self, i, t):
         if i.start_store_count < t.min_sample:
@@ -223,10 +257,10 @@ class ClosureRateSignal(Signal):
     def worse(self, value):
         return value
 
-    def evidence(self, i, value, percentile):
+    def evidence(self, i, value):
         return (
             f"지난 4분기 폐업 {i.closed_12m:,}곳 (4분기 전 점포 {i.start_store_count:,}곳의 {value * 100:.0f}%, "
-            f"서울 {i.industry_name} 상위 {_top(percentile)}%, 서울시 상권분석 집계)"
+            f"서울시 상권분석 집계)"
         )
 
     def unavailable_reason(self, i, t):
@@ -238,6 +272,9 @@ class TobaccoGapSignal(Signal):
 
     key = "tobacco_gap"
     source = "tobacco"
+    measure = "담배소매인 반경 안 상가 비율"
+    bad_word = "높은"
+    good_word = "낮은"
 
     def raw_value(self, i, t):
         if i.gap_candidates < t.min_gap_candidates:
@@ -247,10 +284,10 @@ class TobaccoGapSignal(Signal):
     def worse(self, value):
         return value
 
-    def evidence(self, i, value, percentile):
+    def evidence(self, i, value):
         return (
             f"이 동 상가 자리 {i.gap_candidates:,}곳 중 {value * 100:.0f}%가 영업 중인 담배소매인 "
-            f"{TOBACCO_GAP_RADIUS_M:.0f}m 안 — 새 담배소매인 지정이 어렵다 (서울 상위 {_top(percentile)}%)"
+            f"{TOBACCO_GAP_RADIUS_M:.0f}m 안 — 새 담배소매인 지정이 어렵다"
         )
 
     def unavailable_reason(self, i, t):
@@ -271,8 +308,8 @@ class SourcedSignal(Signal):
     def worse(self, value):
         return self._inner.worse(value)
 
-    def evidence(self, i, value, percentile):
-        return self._inner.evidence(i, value, percentile)
+    def evidence(self, i, value):
+        return self._inner.evidence(i, value)
 
     def unavailable_reason(self, i, t):
         return self._inner.unavailable_reason(i, t)
@@ -295,7 +332,7 @@ class UnsupportedSignal(Signal):
     def worse(self, value):
         return value
 
-    def evidence(self, i, value, percentile):
+    def evidence(self, i, value):
         return self._reason
 
     def unavailable_reason(self, i, t):
@@ -307,6 +344,9 @@ class TradePerOfficeSignal(Signal):
 
     key = "trade_per_office"
     source = "molit"
+    measure = "사무소당 거래"
+    bad_word = "적은"
+    good_word = "많은"
 
     def raw_value(self, i, t):
         if i.trade_12m is None or i.latest_store_count is None or i.latest_store_count < t.min_sample:
@@ -316,10 +356,10 @@ class TradePerOfficeSignal(Signal):
     def worse(self, value):
         return -value
 
-    def evidence(self, i, value, percentile):
+    def evidence(self, i, value):
         return (
             f"지난 12개월 아파트 매매 {i.trade_12m:,.0f}건 ÷ 중개사무소 {i.latest_store_count}곳 = 사무소당 {value:.1f}건 "
-            f"(서울 {i.industry_name} 하위 {_top(percentile)}%, 국토부 실거래가)"
+            f"(국토부 실거래가)"
         )
 
     def unavailable_reason(self, i, t):

@@ -84,7 +84,8 @@ def test_백분위로_레벨이_정해지고_근거_문장에_숫자와_비교_�
     assert result.level == LEVEL_OFF
     assert result.percentile == 65.0
     assert "폐업 41곳" in result.evidence and "개업 28곳" in result.evidence
-    assert "서울 한식 상위 35%" in result.evidence
+    assert result.evidence.endswith("(순유출률 +13%) — 순유출 보통(서울 한식 동을 100곳으로 치면 많은 쪽에서 35번째쯤)")
+    assert (result.band, result.band_label) == ("normal", "순유출 보통")
     strong = NetOutflowSignal().evaluate(_input(closed_12m=60), T, distribution)  # 0.32 → 100
     assert strong.level == LEVEL_STRONG
 
@@ -99,3 +100,11 @@ def test_상권축소는_이진이고_서울보다_빨리_닫히면_strong():
     on = signal.evaluate(_input(closed_months=None), T, [])
     assert on.level == LEVEL_ON and on.percentile is None
     assert "2026년 2분기" in on.evidence and "동 전체 기준" in on.evidence
+
+
+def test_포화_근거는_등급_낱말과_높은_쪽_순번을_쓴다():
+    result = SaturationSignal().evaluate(_input(), T, [float(i) for i in range(1, 11)])  # 9.4 → 9개가 작다 → 90
+    assert result.evidence == (
+        "상주인구 1,000명당 한식 9.4곳 — 밀집 매우 높은 편(서울 한식 동을 100곳으로 치면 높은 쪽에서 10번째쯤)"
+    )
+    assert (result.band, result.band_label) == ("very_bad", "밀집 매우 높은 편")

@@ -10,6 +10,8 @@ class SignalResultResponse(BaseModel):
     percentile: float | None
     evidence: str
     source: str
+    band: str | None = None
+    band_label: str | None = None
 
 
 class RegionIndustryVerdictResponse(BaseModel):
