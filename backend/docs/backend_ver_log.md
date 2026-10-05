@@ -1,5 +1,10 @@
 # Backend Version Log
 
+## [v0.68.0] - 2026-10-05
+
+### Added
+- **리포트 코드 섹션 모듈** `apps/agent/domain/services/report_sections.py`(순수 모듈, 설계서 `docs/superpowers/specs/2026-10-05-report-code-first-design.md`) — 판정·왜 안 되나·유사 사례·그래도 한다면·대안 동네·업종·대안 업종 지원사업 6개 절을 facts만으로 쓴다(절 이름 → 작성 함수 dict 디스패치). 숫자마다 범위(동·업종 이름, "서울 동 상권 전체 기준값", "업종 무관", 분기)를 붙이고, 자료가 없으면 "자료 부족 — 이유"를 쓰며, 신뢰 태그(`[확인된 사실]`·`[참고 신호]`)는 코드가 붙인다. 시간대 문장 `hour_gap_sentence`는 프론트 `hour-gap-sentence.ts`와 같은 규칙(두 최대 구간의 위치)이며 같은 세 입력에 같은 문장을 내는지 테스트로 고정했다.
+
 ## [v0.67.2] - 2026-10-05
 
 ### Added

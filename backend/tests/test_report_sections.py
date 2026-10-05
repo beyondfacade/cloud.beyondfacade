@@ -1,0 +1,185 @@
+"""report_sections — 리포트 6개 절을 facts만으로 쓰는 순수 모듈 (LLM·DB 없음)."""
+
+import json
+from pathlib import Path
+
+from apps.agent.domain.services.report_guards import FUNDING_DISCLAIMER
+from apps.agent.domain.services.report_sections import (
+    SECTION_TITLES,
+    build_sections,
+    hour_gap_sentence,
+)
+
+# 평가셋 고정 facts(송정동 한식) — 테스트마다 다룰 키만 바꿔 끼운다
+_BASE = json.loads(
+    (Path(__file__).resolve().parents[2] / "data/eval/report_facts_150/e001.json").read_text(encoding="utf-8")
+)
+_UNAVAILABLE = {"available": False, "reason": "판정 대상 업종이 아니다 — 이 업종은 판정을 내리지 않는다"}
+
+
+def _signal(key: str, level: str, evidence: str, advisory: bool = False) -> dict:
+    return {"key": key, "level": level, "evidence": evidence, "advisory": advisory}
+
+
+_RED = {
+    "available": True,
+    "verdict_code": "red",
+    "on_count": 2,
+    "strong_count": 2,
+    "computed_at": "2026-10-04T19:34:24+00:00",
+    "signals": [
+        _signal("net_outflow", "strong", "지난 12개월 폐업 16곳, 개업 8곳 (순유출률 +20%, 서울 한식 상위 1%)"),
+        _signal("survival_cliff", "unavailable", "표본 부족 — 3년 전 개업 코호트 1곳 (10곳 미만)"),
+        _signal("saturation", "off", "상주인구 1,000명당 한식 3.4곳 (서울 상위 61%)"),
+        _signal("shrinking", "strong", "서울시 상권변화지표 '상권축소' (2026년 2분기, 동 전체 기준)", advisory=True),
+    ],
+}
+
+
+def _body(section: str, **facts) -> str:
+    """제목 줄을 뗀 절 본문."""
+    return build_sections({**_BASE, **facts})[section].split("\n\n", 1)[1]
+
+
+def _band(hour_band: str, footfall: float, sales: float) -> dict:
+    return {"hour_band": hour_band, "footfall_intensity": footfall, "sales_intensity": sales, "gap": sales - footfall}
+
+
+def test_여섯_절을_계약_순서로_제목과_함께_쓴다():
+    sections = build_sections(_BASE)
+
+    assert list(sections) == ["verdict", "reasons", "analogs", "conditions", "alternatives", "funding"]
+    assert all(sections[name].startswith(f"### {title}\n\n") for name, title in SECTION_TITLES.items())
+
+
+def test_판정은_등급_라벨과_켜진_신호_수와_자료_부족_신호_수를_쓴다():
+    assert _body("verdict", verdict=_RED) == (
+        "[확인된 사실] 송정동 한식 판정: **비추천** — 경고 신호 3개 중 2개 켜짐(강한 신호 2개), "
+        "1개는 자료 부족으로 계산하지 못함. 산출 2026-10-04."
+    )
+
+
+def test_판정을_내리지_않는_업종은_자료_부족과_이유를_쓴다():
+    assert _body("verdict", verdict=_UNAVAILABLE) == (
+        "[확인된 사실] 송정동 한식 판정: 자료 부족 — 판정 대상 업종이 아니다 — 이 업종은 판정을 내리지 않는다"
+    )
+
+
+def test_왜_안_되나는_켜진_신호_참고_신호_표본_부족을_쓰고_꺼진_신호는_뺀다():
+    history = [
+        {"year": 2019, "store_count": 41, "closure_rate": 0.0278},
+        {"year": 2021, "store_count": 42, "closure_rate": 0.0976},
+        {"year": 2026, "store_count": 33, "closure_rate": None},
+        {"year": 2025, "store_count": 42, "closure_rate": 0.1905},
+    ]
+    shocks = [{"name": "최저임금 인상 — 2019년 시급 8,350원(+10.9%)", "start_date": "2019-01-01", "industry_specific": False}]
+
+    assert _body("reasons", verdict=_RED, metrics_history=history, shocks=shocks) == (
+        "- [확인된 사실] 순유출(송정동 한식): 지난 12개월 폐업 16곳, 개업 8곳 (순유출률 +20%, 서울 한식 상위 1%)\n"
+        "- [확인된 사실] 생존 절벽(송정동 한식): 표본 부족 — 3년 전 개업 코호트 1곳 (10곳 미만)\n"
+        "- [확인된 사실] 참고 — 상권 축소: 서울시 상권변화지표 '상권축소' (2026년 2분기, 동 전체 기준)\n\n"
+        "[확인된 사실] 송정동 한식 연간 폐업률: 2019년 2.8% → 2025년 19.1%(점포 41곳 → 42곳). "
+        "2020~2022년 폐업률은 재난지원금·손실보상으로 폐업이 늦춰져 왜곡됐을 수 있습니다.\n\n"
+        "[확인된 사실] 외부 충격(한식 전용 기록은 없어 전 업종 공통 충격): 최저임금 인상(2019년)."
+    )
+
+
+def test_연도별_폐업률이_없으면_자료_부족이라고_쓴다():
+    body = _body("reasons", verdict=_RED, metrics_history={"available": False, "reason": "조회 실패"}, shocks=[])
+
+    assert "[확인된 사실] 송정동 한식 연간 폐업률: 자료 부족 — 조회 실패" in body
+    assert "[확인된 사실] 외부 충격(한식): 자료 부족 — 기록 없음" in body
+
+
+def test_유사_사례는_질문_속_유형부터_고정_문장을_옮기고_소식이_있을_때만_참고_신호를_붙인다():
+    analogs = {
+        "categories": [
+            {"category": "minimum_wage", "reason": "current"},
+            {"category": "pandemic", "reason": "question"},
+        ],
+        "current_events": [{"category": "minimum_wage", "summary_sentence": "최저임금 문장.", "overlap_sentence": None}],
+        "analogs": [
+            {"category": "pandemic", "summary_sentence": "코로나 문장.", "overlap_sentence": "겹친 정책 문장."},
+            {"category": "pandemic", "summary_sentence": None, "overlap_sentence": None},  # 대표가 아닌 사례
+        ],
+        "outlooks": [{"category": "pandemic", "condition_sentence": None, "recommended_sentence": "강세 업종 문장."}],
+        "recent_news": [
+            {"category": "pandemic", "article_count": 2, "sentence": "최근 30일 영업제한 관련 뉴스는 2건입니다."},
+            {"category": "minimum_wage", "article_count": 0, "sentence": "최근 30일 같은 조치 소식은 없습니다."},
+        ],
+    }
+
+    assert _body("analogs", analogs=analogs) == (
+        "[확인된 사실] 코로나 문장. 겹친 정책 문장. 강세 업종 문장. "
+        "[참고 신호] 최근 30일 영업제한 관련 뉴스는 2건입니다.\n\n"
+        "[확인된 사실] 최저임금 문장."
+    )
+
+
+def test_시간대_문장은_프론트와_같은_입력에_같은_문장을_낸다():
+    # frontend/src/features/agent-report/lib/hour-gap-sentence.test.ts 와 같은 세 입력·같은 기대 문장
+    cafe = [_band("00_06", 0.3, 0.05), _band("06_11", 1.0, 0.7), _band("11_14", 1.39, 2.99),
+            _band("14_17", 1.4, 1.6), _band("17_21", 1.1, 1.2), _band("21_24", 0.5, 0.35)]
+    assert hour_gap_sentence(cafe) == "사람은 오후(14~17시)에 가장 많고, 돈은 점심(11~14시)에 돕니다."
+    assert hour_gap_sentence([_band("06_11", 0.8, 0.6), _band("17_21", 1.6, 1.9)]) == "사람과 돈이 저녁(17~21시)에 같이 몰립니다."
+    assert hour_gap_sentence([_band("06_11", 1.5, 1.2), _band("11_14", 1.6, 1.1)]) == (
+        "사람은 점심(11~14시)에 가장 많고, 돈은 아침(06~11시)에 돕니다."
+    )
+
+
+def test_그래도_한다면은_시간대_부족_이유와_상권_전체_기준값의_범위를_쓴다():
+    change = {"available": True, "year_quarter": "20262", "change_name": "정체", "operating_months": 124.0,
+              "closed_months": 54.0, "seoul": {"operating_months": 118.0, "closed_months": 54.0}}
+    profile = {"year_quarter": "20262", "type_name": "주거형", "type_reason": "직장인구가 상주인구보다 적습니다.",
+               "time_label_name": "밤(21~06시)", "peak_block_name": "밤(21~06시)", "trough_block_name": "저녁(17~21시)"}
+
+    body = _body("conditions", hour_gap={"available": False, "reason": "시간대 어긋남 자료가 없다"},
+                 profile=profile, commerce_change=change, budget=None)
+
+    assert body == (
+        "[확인된 사실] 시간대(송정동 한식): 자료 부족 — 시간대 어긋남 자료가 없다\n\n"
+        "[확인된 사실] 동네 유형(송정동, 2026년 2분기): 주거형 — 직장인구가 상주인구보다 적습니다. "
+        "사람 흐름: 밤(21~06시) — 가장 많은 때 밤(21~06시), 가장 적은 때 저녁(17~21시).\n\n"
+        "[확인된 사실] 상권 영업 기간(송정동 상권 전체·업종 무관, 2026년 2분기): 영업 중 점포 평균 124개월, "
+        "폐업 점포 평균 54개월 — 서울 동 상권 전체 기준값은 118개월·54개월입니다. 상권변화지표: 정체."
+    )
+
+
+def test_예산이_있으면_자금_계획_화면_안내를_한_줄_덧붙인다():
+    body = _body("conditions", hour_gap={"available": False, "reason": "없음"}, profile={"available": False, "reason": "없음"},
+                 commerce_change={"available": False, "reason": "없음"}, budget=50_000_000)
+
+    assert body.endswith("[확인된 사실] 입력한 예산으로 총 준비자금·조달 필요액·손익분기 매출을 계산하려면 자금 계획 화면을 이용하세요.")
+
+
+def test_대안은_두_축을_각_최대_3개까지_등급_라벨_그대로_쓴다():
+    alternatives = {
+        "available": True,
+        "industries": [{"industry_name": "카페", "verdict_code": "clear"}, {"industry_name": "미용실", "verdict_code": "orange"}],
+        "regions": [{"region_name": n, "verdict_code": "clear"} for n in ("부암동", "평창동", "교남동", "청운효자동")],
+    }
+
+    assert _body("alternatives", alternatives=alternatives) == (
+        "[확인된 사실] 같은 동네(송정동)의 다른 업종\n- 카페 (경고 없음)\n- 미용실 (조건부)\n\n"
+        "[확인된 사실] 같은 업종(한식)의 다른 동네\n- 부암동 (경고 없음)\n- 평창동 (경고 없음)\n- 교남동 (경고 없음)"
+    )
+    assert _body("alternatives", alternatives=_UNAVAILABLE).startswith("[확인된 사실] 대안(송정동 한식): 자료 부족 — ")
+
+
+def test_지원사업은_공고_제목_원문과_해당_가능성과_예상치_고지를_쓴다():
+    candidates = [
+        {"title": "[서울] 2026년 새 길 여는 폐업지원 사업 모집 공고", "org": "서울특별시", "deadline": None,
+         "apply_period": "예산 소진시까지", "url": "https://www.bizinfo.go.kr/x?pblancId=PBLN_1"},
+        {"title": "창업기업 모집 공고", "org": "중소벤처기업부", "deadline": "2026-10-06", "apply_period": "2026-09-01 ~ 2026-10-06"},
+    ]
+
+    body = _body("funding", funding_candidates=candidates)
+
+    assert body == (
+        "[확인된 사실] 송정동 한식 조건으로 찾은 공고 후보입니다 — 자격 확정이 아니라 해당 가능성이며, "
+        "지원 대상은 공고 원문에서 확인해야 합니다.\n\n"
+        "- 「[서울] 2026년 새 길 여는 폐업지원 사업 모집 공고」 — 서울특별시, 접수 예산 소진시까지\n"
+        "- 「창업기업 모집 공고」 — 중소벤처기업부, 마감 2026-10-06\n\n"
+        f"{FUNDING_DISCLAIMER}"
+    )
+    assert "http" not in body and "PBLN_" not in body
