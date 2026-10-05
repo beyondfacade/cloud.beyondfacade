@@ -385,7 +385,7 @@ def test_시나리오_세트_인자가_시나리오_파일과_facts_폴더를_�
         monkeypatch.setattr(br, name, getattr(br, name))
     seen = []
     monkeypatch.setitem(br._COMMANDS, "score", lambda args: seen.append((br._SCENARIOS.name, br._FACTS_DIR.name)))
-    for argv in (["score"], ["score", "--scenario-set", "150"]):
+    for argv in (["score", "--cache-tag", "t"], ["score", "--cache-tag", "t", "--scenario-set", "150"]):
         monkeypatch.setattr(sys, "argv", ["benchmark_report", *argv])
         br.main()
     assert seen == [("report_scenarios.jsonl", "report_facts"), ("report_scenarios_150.jsonl", "report_facts_150")]
