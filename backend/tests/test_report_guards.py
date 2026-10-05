@@ -7,6 +7,8 @@ from apps.agent.domain.services.report_guards import (
     UrlStripper,
     contradicts_verdict,
     disclaimer_suffix,
+    drop_digit_sentences,
+    guard_answer,
     guard_section,
     strip_links,
     verdict_contradiction,
@@ -441,3 +443,22 @@ def test_긴_공백도_선형_시간에_처리한다():
     guarded = guard_section("reasons", text, "왜 안 되나")
     assert time.perf_counter() - started < 0.5
     assert whole == streamed and guarded.endswith("뒤 끝")
+
+
+# --- 해석(answer) 단락 숫자 가드 (2026-10-05 코드 우선 구조) ---
+
+
+def test_숫자가_든_문장만_지우고_지운_수를_센다():
+    assert drop_digit_sentences("폐업이 많습니다. 폐업률은 31%입니다. 대안을 보세요.") == ("폐업이 많습니다. 대안을 보세요.", 1)
+
+
+def test_판정과_모순된_해석은_통과하지_못한다():
+    got = guard_answer("판정은 **경고 없음**입니다. 해 볼 만합니다.", _RED)
+
+    assert got.ok is False and got.contradiction == "판정은 **경고 없음"
+
+
+def test_숫자_문장만_있던_해석은_가드_뒤_비어_통과하지_못한다():
+    got = guard_answer("매출은 1,200만원입니다. 폐업률은 31%입니다.", _RED)
+
+    assert (got.text, got.removed_sentences, got.ok) == ("", 2, False)

@@ -4,6 +4,7 @@
 
 ### Added
 - **리포트 코드 섹션 모듈** `apps/agent/domain/services/report_sections.py`(순수 모듈, 설계서 `docs/superpowers/specs/2026-10-05-report-code-first-design.md`) — 판정·왜 안 되나·유사 사례·그래도 한다면·대안 동네·업종·대안 업종 지원사업 6개 절을 facts만으로 쓴다(절 이름 → 작성 함수 dict 디스패치). 숫자마다 범위(동·업종 이름, "서울 동 상권 전체 기준값", "업종 무관", 분기)를 붙이고, 자료가 없으면 "자료 부족 — 이유"를 쓰며, 신뢰 태그(`[확인된 사실]`·`[참고 신호]`)는 코드가 붙인다. 시간대 문장 `hour_gap_sentence`는 프론트 `hour-gap-sentence.ts`와 같은 규칙(두 최대 구간의 위치)이며 같은 세 입력에 같은 문장을 내는지 테스트로 고정했다.
+- **해석 단락 가드** `guard_answer`(`report_guards.py`) — LLM 해석(answer) 한 단락에 링크·공고 번호 제거(`UrlStripper`) → 판정 모순 검사(`verdict_contradiction`, 모순이면 단락 전체 실패) → 숫자가 든 문장 삭제(`drop_digit_sentences`, 문장 끝 `.!?` + 공백 기준)를 차례로 건다. 결과 `GuardedAnswer`는 지운 문장 수·지운 링크 수·모순 구절을 남긴다(벤치 지표).
 
 ### Changed
 - 코드 섹션 문장 다듬기 — 시간대 자료 부족 이유의 내부 코드(동코드·업종 id) 숨김, 올해 부분연도 폐업률에 "(올해 현재까지)" 표기, "접수 상시 접수" 중복 제거, 동네 유형 흐름 이름 중복 제거, 유사 사례 고정 문장 속 업종 id를 업종 이름으로 치환. 평가셋 150건 전수에서 동코드·업종 id 노출 0건.

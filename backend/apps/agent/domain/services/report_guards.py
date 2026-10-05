@@ -14,6 +14,7 @@ LLM 평가(2026-10-05)에서 리포트 실패의 상당 부분은 "화면이 이
 import re
 from collections import Counter
 from collections.abc import Callable
+from dataclasses import dataclass
 
 # ── 판정 등급 동의어 (벤치 채점과 같은 단일 원천) ──────────────────
 
@@ -496,3 +497,44 @@ def guard_section(name: str, markdown: str, title: str = "") -> str:
     """한 절 통째로 가드를 씌운다 — 폴백 문구용(판정 대조는 하지 않는다: 폴백이 곧 facts다)."""
     guard = ReportGuard(None, "", {name: title})
     return "".join(text for _, text in [*guard.feed([(name, markdown)]), *guard.close()])
+
+
+# ── 해석(answer) 단락 가드 (설계서 2026-10-05-report-code-first §5) ────────
+
+# 문장 끝 — 마침표·물음표·느낌표 뒤 공백. 한글 문장은 "~다."·"~요."로 끝나고, 소수점("3.5")은 뒤에 공백이 없어 갈리지 않는다.
+_SENTENCE_END = re.compile(r"(?<=[.!?])\s+")
+_DIGIT = re.compile(r"\d")
+
+
+def drop_digit_sentences(text: str) -> tuple[str, int]:
+    """숫자가 든 문장을 통째로 지운다 — (남은 단락, 지운 문장 수). 숫자는 본문 6개 절이 범위와 함께 보여 준다."""
+    sentences = [s for s in _SENTENCE_END.split(text.strip()) if s]
+    kept = [s for s in sentences if not _DIGIT.search(s)]
+    return " ".join(kept), len(sentences) - len(kept)
+
+
+@dataclass(frozen=True)
+class GuardedAnswer:
+    """가드를 거친 해석 단락과 개입 기록 — 벤치가 그대로 남긴다."""
+
+    text: str
+    removed_sentences: int
+    links_stripped: int
+    contradiction: str | None
+
+    @property
+    def ok(self) -> bool:
+        """화면에 낼 수 있는가 — 판정과 모순이 없고, 가드 뒤에도 글이 남았다."""
+        return self.contradiction is None and bool(self.text)
+
+
+def guard_answer(raw: str, verdict_facts: dict | None) -> GuardedAnswer:
+    """해석 단락 통째 가드 — 링크·공고 번호 제거 → 판정 모순 검사 → 숫자 문장 삭제.
+
+    모순은 단락 전체의 실패다(다음 모델로 넘긴다). 스트리밍하지 않으므로 끝까지 모은 글에 한 번 건다.
+    """
+    links = UrlStripper()
+    text = links.feed(raw) + links.flush()
+    contradiction = verdict_contradiction(text, verdict_facts)
+    kept, removed = drop_digit_sentences(text)
+    return GuardedAnswer(kept, removed, links.events["links_stripped"], contradiction)
