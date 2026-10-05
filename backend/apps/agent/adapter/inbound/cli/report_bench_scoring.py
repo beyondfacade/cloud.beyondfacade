@@ -286,15 +286,17 @@ def judge_packets(
 
 
 def answer_packets(
-    scenario_id: str, question: str | None, body: str, answers: dict[str, str], seed: int,
+    scenario_id: str, question: str | None, body: str, answers: dict[str, str], seed: int, lead: str | None = None,
 ) -> tuple[str, dict[str, str]]:
     """해석 판정 묶음 — 질문 + 코드가 쓴 본문 한 벌 + 모델명을 A·B…로 가린 해석들. 순서는 시드로 결정적."""
     models = sorted(answers)
     random.Random(f"{seed}:{scenario_id}").shuffle(models)
     mapping = {chr(ord("A") + i): model for i, model in enumerate(models)}
     parts = [f"# 시나리오 {scenario_id}", "", f"채점 기준: `{ANSWER_RUBRIC_PATH}`", "",
-             f"질문: {question or '(없음 — 총평)'}", "",
-             "## 리포트 본문 (코드가 사실로 쓴 6개 절 — 해석의 유일한 근거)", "", body]
+             f"질문: {question or '(없음 — 총평)'}", ""]
+    if lead:
+        parts += ["## 직접 답과 근거 (코드 — 아래 모든 해석에 공통)", "", lead, ""]
+    parts += ["## 리포트 본문 (코드가 사실로 쓴 6개 절 — 해석의 유일한 근거)", "", body]
     for blind, model in mapping.items():
         parts += ["", f"## 해석 {blind}", answers[model]]
     return "\n".join(parts) + "\n", mapping

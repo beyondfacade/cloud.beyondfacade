@@ -1,5 +1,14 @@
 # Backend Version Log
 
+## [v0.69.0] - 2026-10-06
+
+### Added
+- 질문 유형 분류기(`question_topic.classify`)·질문 직접 답 `answer_lead`(코드가 facts로 쓴다, SSE `answer_lead` 절)·`facts.finance`(자금 사전 채움)·질문 속 예산 파싱·주민/뉴스 줄.
+- 벤치 `freeze --augment` — 얼린 facts에 `finance`와 질문 속 예산만 더한다(`augment_facts`, 나머지 키 불변). `sections-check`가 6개 절과 함께 직접 답도 검사한다. `judge-export` 묶음에 직접 답 절을 모든 해석 위에 한 번 싣는다. 판정 기준표 v2(`report_answer_rubric.md`).
+
+### Changed
+- 해석 지시(질문 있음 2~3문장)·`SECTION_ORDER`(`answer_lead` 맨 앞)·폴백 문장(`LEAD_FALLBACK`)·판정 기준표 v2(`answered`는 답 상자 전체, `core_error`는 해석만). 벤치 `score`는 대안 안내가 뒤에 붙은 폴백 문장도 폴백으로 센다.
+
 ## [v0.68.0] - 2026-10-05
 
 ### Added

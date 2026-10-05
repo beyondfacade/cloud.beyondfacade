@@ -1,6 +1,7 @@
 """리포트 채점 — 숫자 대조·판정 일치·LLM 작성 절·판정자 묶음."""
 
 from apps.agent.adapter.inbound.cli.report_bench_scoring import (
+    answer_packets,
     extract_numbers,
     judge_packets,
     llm_sections,
@@ -209,3 +210,9 @@ def test_해석_판정_묶음은_본문_한_벌과_가린_해석을_싣는다():
     assert sorted(mapping.values()) == ["m1", "m2"]
     assert packet.count("### 판정") == 1 and "질문: (없음 — 총평)" in packet
     assert "해석 하나." in packet and "해석 둘." in packet and "m1" not in packet
+
+
+def test_해석_판정_묶음은_직접_답을_모든_해석_위에_한_번_싣는다():
+    packet, _ = answer_packets("e001", "대출?", "본문", {"m1": "해석1", "m2": "해석2"}, 0, lead="LEAD-본문")
+    assert packet.count("LEAD-본문") == 1
+    assert packet.index("LEAD-본문") < packet.index("## 해석")
