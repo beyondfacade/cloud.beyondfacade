@@ -104,6 +104,15 @@ def test_해석_채점은_가드_뒤_숫자_모순_폴백과_지운_문장을_�
     assert fallback["fallback"] is True and fallback["removed_sentences"] == 0
 
 
+def test_해석_숫자_지표는_분석_동과_대안_동_이름의_숫자를_세지_않는다():
+    facts = {"region": {"name": "상계3.4동"}, "alternatives": {"regions": [{"region_name": "휘경제1동"}]},
+             "verdict": {"available": True, "verdict_code": "red"}}
+
+    got = score_run({"sections": {"answer": "상계3.4동 한식은 신중히 보세요. 휘경제1동을 먼저 보세요."}, "error": None}, facts)
+
+    assert got["digits"] == 0
+
+
 def test_모델명을_가려도_한국어_조사는_남는다():
     assert mask_model_names("Gemma4:12b와 Qwen3.5:4b는") == "[모델]와 [모델]는"
 

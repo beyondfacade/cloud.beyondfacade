@@ -5,10 +5,15 @@ from pathlib import Path
 
 from apps.agent.adapter.outbound.llm.fallback_llm_adapter import FallbackLLMAdapter
 from apps.agent.app.ports.output.agent_port import LLMGatewayPort, LLMTurn, LLMUsage
-from apps.agent.app.use_cases.analysis_interactor import ANSWER_FALLBACK, SYSTEM_PROMPT, AnalysisInteractor
+from apps.agent.app.use_cases.analysis_interactor import (
+    ANSWER_FALLBACK,
+    SCARCE_SYSTEM_PROMPT,
+    SYSTEM_PROMPT,
+    AnalysisInteractor,
+)
 from apps.agent.app.use_cases.report_facts import ReportFactsCollector
 from apps.agent.domain.entities.agent_event_entity import AgentEvent
-from apps.agent.domain.services.report_sections import SECTION_TITLES, build_sections
+from apps.agent.domain.services.report_sections import SECTION_TITLES, build_sections, scarce_lead, scarcity
 
 # 평가셋 고정 facts — 송정동 한식, 판정 red(비추천)
 _FACTS = json.loads(
@@ -202,3 +207,31 @@ def test_운영_hybrid만_로컬_재시도를_붙인다():
 
     assert build_analysis_use_case("hybrid")._retry_llm.model_name == "gemma4:12b"
     assert build_analysis_use_case("gemma3")._retry_llm is None
+
+
+# 평가셋 고정 facts — 신월3동 분식, 판정 보류(자료 부족 동네)
+_SCARCE = json.loads(
+    (Path(__file__).resolve().parents[2] / "data/eval/report_facts_150/e007.json").read_text(encoding="utf-8")
+)
+_CHECK = "저녁 시간대 골목 유동 인구를 직접 세어 보세요. 인근 분식집이 몇 곳이나 영업 중인지 확인하세요."
+
+
+def test_자료_부족_동네는_코드_첫_문장_뒤에_현장_확인_단락을_붙인다():
+    llm = FakeLLM([_CHECK])
+    interactor = AnalysisInteractor(llm=llm, facts=FakeFactsCollector(_SCARCE))
+
+    events = list(interactor.run("1147058000", "snack", "저녁 장사 될까요?"))
+
+    lead = scarce_lead(_SCARCE, scarcity(_SCARCE))
+    assert _deltas(events)["answer"] == f"{lead} {_CHECK}"
+    [(messages, _)] = llm.calls
+    assert messages[0]["content"] == SCARCE_SYSTEM_PROMPT
+    assert "부족한 자료: 순유출, 생존 절벽, 조기 폐업, 시간대 어긋남 자료가 없다" in messages[1]["content"]
+
+
+def test_자료_부족_동네에서_LLM이_끝내_실패하면_코드_첫_문장만_낸다():
+    interactor = AnalysisInteractor(llm=FakeLLM([RuntimeError("429")]), facts=FakeFactsCollector(_SCARCE))
+
+    events = list(interactor.run("1147058000", "snack", None))
+
+    assert _deltas(events)["answer"] == scarce_lead(_SCARCE, scarcity(_SCARCE))

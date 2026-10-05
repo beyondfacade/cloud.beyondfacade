@@ -285,15 +285,25 @@ def judge_packets(
     return "\n".join(parts) + "\n", mapping
 
 
+# 자료 부족 시나리오(report_sections.scarcity) 판정 묶음에 질문 아래 싣는 정답 기준
+SCARCE_JUDGE_NOTE = (
+    '자료 부족 동네 — 진입 판단을 내리지 않는 것이 정답. 해석은 "부족하다고 분명히 말했는가 + '
+    '확인할 것이 본문과 맞고 쓸모 있는가 + 추정 결론이 없는가"로 본다'
+)
+
+
 def answer_packets(
-    scenario_id: str, question: str | None, body: str, answers: dict[str, str], seed: int,
+    scenario_id: str, question: str | None, body: str, answers: dict[str, str], seed: int, scarce: bool = False,
 ) -> tuple[str, dict[str, str]]:
-    """해석 판정 묶음 — 질문 + 코드가 쓴 본문 한 벌 + 모델명을 A·B…로 가린 해석들. 순서는 시드로 결정적."""
+    """해석 판정 묶음 — 질문(자료 부족이면 정답 기준 한 줄) + 코드가 쓴 본문 한 벌 + 모델명을 A·B…로 가린 해석들.
+
+    순서는 시드로 결정적.
+    """
     models = sorted(answers)
     random.Random(f"{seed}:{scenario_id}").shuffle(models)
     mapping = {chr(ord("A") + i): model for i, model in enumerate(models)}
     parts = [f"# 시나리오 {scenario_id}", "", f"채점 기준: `{ANSWER_RUBRIC_PATH}`", "",
-             f"질문: {question or '(없음 — 총평)'}", "",
+             f"질문: {question or '(없음 — 총평)'}", "", *([SCARCE_JUDGE_NOTE, ""] if scarce else []),
              "## 리포트 본문 (코드가 사실로 쓴 6개 절 — 해석의 유일한 근거)", "", body]
     for blind, model in mapping.items():
         parts += ["", f"## 해석 {blind}", answers[model]]

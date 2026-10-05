@@ -184,10 +184,14 @@ def _category_paragraph(analogs: dict, category: str) -> str:
     return " ".join(parts)
 
 
+def _topic(word: str) -> str:
+    """주제 조사 — 받침이 있으면 '은', 없으면 '는'."""
+    return "은" if (ord(word[-1]) - 0xAC00) % 28 else "는"
+
+
 def _show_industry_name(text: str, industry_id: str, industry: str) -> str:
     """문장 속 업종 id를 업종 이름으로 — 고정 문장에 박혀 온 주제 조사 '는'은 받침에 맞춰 '은'으로 고친다."""
-    topic = "은" if (ord(industry[-1]) - 0xAC00) % 28 else "는"
-    return text.replace(f"{industry_id}는", f"{industry}{topic}").replace(industry_id, industry)
+    return text.replace(f"{industry_id}는", f"{industry}{_topic(industry)}").replace(industry_id, industry)
 
 
 def _analogs(facts: dict) -> str:
@@ -327,6 +331,40 @@ def _funding(facts: dict) -> str:
         "지원 대상은 공고 원문에서 확인해야 합니다."
     )
     return "\n\n".join([head, "\n".join(lines), FUNDING_DISCLAIMER])
+
+
+# ── 자료 부족 동네 — 해석 첫 문장은 코드가 쓴다 ─────────────
+
+
+def scarcity(facts: dict) -> list[str] | None:
+    """자료 부족 동네(판정을 내리지 않는 업종·판정 보류)면 부족한 자료 이름 목록, 아니면 None.
+
+    목록: 계산하지 못한 판정 신호의 이름 → 수집하지 못한 사실 항목의 이유(내부 코드는 `_hours`처럼 콜론 앞까지).
+    둘 다 없으면 판정 자체의 이유 하나.
+    """
+    verdict = facts.get("verdict") or {}
+    if verdict.get("available") and verdict.get("verdict_code") != "insufficient":
+        return None
+    signals = [
+        _SIGNAL_LABELS.get(s.get("key"), s.get("key"))
+        for s in verdict.get("signals") or []
+        if s.get("level") == "unavailable"
+    ]
+    reasons = [
+        reason.split(":")[0].strip()
+        for key, value in facts.items()
+        if key != "verdict" and (reason := _missing_reason(value)) is not None
+    ]
+    return list(dict.fromkeys([*signals, *reasons])) or [verdict.get("reason") or "이유 미상"]
+
+
+def scarce_lead(facts: dict, missing_items: list[str]) -> str:
+    """자료 부족 동네 해석의 고정 첫 문장 — 결론("판단하기 어렵다")은 틀리면 안 되므로 코드가 쓴다. 숫자는 쓰지 않는다."""
+    region, industry = _names(facts)
+    return (
+        f"{FACT} {region} {industry}{_topic(industry)} 자료가 부족해 진입 판단을 내리기 어렵습니다 — "
+        f"부족한 자료: {', '.join(missing_items)}."
+    )
 
 
 # 절 이름 → 작성 함수 (dict 디스패치)

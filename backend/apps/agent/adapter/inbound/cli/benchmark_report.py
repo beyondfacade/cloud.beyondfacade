@@ -60,12 +60,12 @@ from apps.agent.adapter.outbound.gateways.verdict_facts_gateway import VerdictFa
 from apps.agent.adapter.outbound.llm.gemini_llm_adapter import GeminiLLMAdapter
 from apps.agent.adapter.outbound.llm.ollama_llm_adapter import OllamaLLMAdapter
 from apps.agent.app.ports.output.agent_port import LLMGatewayPort
-from apps.agent.app.use_cases.analysis_interactor import ANSWER_FALLBACK, AnalysisInteractor
+from apps.agent.app.use_cases.analysis_interactor import ANSWER_FALLBACK, AnalysisInteractor, region_names
 from apps.agent.app.use_cases.report_facts import ReportFactsCollector
 from apps.agent.domain.entities.agent_event_entity import AgentEvent
-from apps.agent.domain.services.report_guards import contradicts_verdict
+from apps.agent.domain.services.report_guards import blank_names, contradicts_verdict
 from apps.agent.domain.services.report_sampling import REPORT_SEED, REPORT_TEMPERATURE
-from apps.agent.domain.services.report_sections import build_sections
+from apps.agent.domain.services.report_sections import build_sections, scarcity
 from apps.agent.domain.services.section_stream import concat_sections
 from apps.rag.dependencies.rag_dependencies import get_rag_search_use_case
 from core.matrix.grid_benchmark_manager import paired_bootstrap_ci, percentile, pick_winner, resident_models
@@ -220,8 +220,8 @@ def _report_text(sections: dict[str, str]) -> str:
 def score_run(record: dict, facts: dict) -> dict:
     """한 회차 채점 — 해석(answer) 한 단락만 본다. 6개 절은 코드라 결정적이다(sections-check·단위 테스트).
 
-    `digits`는 가드 뒤에도 남은 숫자 토큰 수(0이어야 한다), `removed_sentences`·`raw_contradiction`은 시도 기록에서
-    가드가 지운 문장 수와 판정 모순으로 실패한 시도가 있었는지다.
+    `digits`는 가드 뒤에도 남은 숫자 토큰 수(0이어야 한다 — 분석 동·대안 동 이름 속 숫자는 세지 않는다),
+    `removed_sentences`·`raw_contradiction`은 시도 기록에서 가드가 지운 문장 수와 판정 모순으로 실패한 시도가 있었는지다.
     """
     answer = record["sections"].get("answer", "")
     attempts = record.get("answer_attempts") or []
@@ -229,7 +229,7 @@ def score_run(record: dict, facts: dict) -> dict:
         "complete": not record.get("error") and bool(answer),
         "fallback": answer == ANSWER_FALLBACK,
         "verdict_ok": not contradicts_verdict(answer, facts.get("verdict")),
-        "digits": len(_DIGITS.findall(answer)),
+        "digits": len(_DIGITS.findall(blank_names(answer, region_names(facts)))),
         "removed_sentences": sum(a.get("removed_sentences", 0) for a in attempts),
         "raw_contradiction": any(a.get("contradiction") for a in attempts),
         "rule_hits": check_rule_keywords(answer),
@@ -459,7 +459,8 @@ def _cmd_judge_export(args: argparse.Namespace) -> None:
     questions = {s["id"]: s["question"] for s in _scenarios()}
     mapping: dict[str, dict[str, str]] = {}
     for sid, (body, answers) in _first_rep_answers().items():
-        packet, mapping[sid] = answer_packets(sid, questions.get(sid), body, answers, _JUDGE_SEED)
+        scarce = scarcity(_facts_of(sid)) is not None
+        packet, mapping[sid] = answer_packets(sid, questions.get(sid), body, answers, _JUDGE_SEED, scarce)
         (_JUDGE / f"packet_{sid}.md").write_text(packet, encoding="utf-8")
     _write_json(_JUDGE / "mapping.json", mapping)
     # 사람 검수 표본 — 같은 시드면 같은 20건

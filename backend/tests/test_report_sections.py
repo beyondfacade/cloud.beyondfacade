@@ -8,6 +8,8 @@ from apps.agent.domain.services.report_sections import (
     SECTION_TITLES,
     build_sections,
     hour_gap_sentence,
+    scarce_lead,
+    scarcity,
 )
 
 # 평가셋 고정 facts(송정동 한식) — 테스트마다 다룰 키만 바꿔 끼운다
@@ -226,3 +228,34 @@ def test_유사_사례_고정_문장_속_업종_id는_업종_이름으로_바꾼
                                    "overlap_sentence": None}]}
 
     assert _body("analogs", region=region, analogs=analogs) == "[확인된 사실] 서울 전체 편의점은 평소와 비슷했습니다."
+
+
+def _facts_150(scenario_id: str) -> dict:
+    return json.loads(
+        (Path(__file__).resolve().parents[2] / f"data/eval/report_facts_150/{scenario_id}.json").read_text(encoding="utf-8")
+    )
+
+
+def test_판정_보류_동네는_계산_못_한_신호와_빠진_자료를_첫_문장에_적는다():
+    facts = _facts_150("e007")  # 신월3동 분식 — 판정 보류
+
+    missing = scarcity(facts)
+
+    assert missing == ["순유출", "생존 절벽", "조기 폐업", "시간대 어긋남 자료가 없다"]
+    assert scarce_lead(facts, missing) == (
+        "[확인된 사실] 신월3동 분식은 자료가 부족해 진입 판단을 내리기 어렵습니다 — "
+        "부족한 자료: 순유출, 생존 절벽, 조기 폐업, 시간대 어긋남 자료가 없다."
+    )
+
+
+def test_일부_판정_업종은_판정을_내리지_않는_이유를_적는다():
+    facts = _facts_150("e009")  # 면목제3.8동 편의점 — 판정 대상 업종이 아니다
+
+    missing = scarcity(facts)
+
+    assert missing == ["판정 대상 업종이 아니다 — 이 업종은 판정을 내리지 않는다"]
+    assert scarce_lead(facts, missing).startswith("[확인된 사실] 면목제3.8동 편의점은 자료가 부족해")
+
+
+def test_판정이_난_동네는_자료_부족이_아니다():
+    assert scarcity(_BASE) is None  # 송정동 한식 — 비추천

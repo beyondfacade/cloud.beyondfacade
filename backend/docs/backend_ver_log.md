@@ -7,6 +7,8 @@
 - **해석 단락 가드** `guard_answer`(`report_guards.py`) — LLM 해석(answer) 한 단락에 링크·공고 번호 제거(`UrlStripper`) → 판정 모순 검사(`verdict_contradiction`, 모순이면 단락 전체 실패) → 숫자가 든 문장 삭제(`drop_digit_sentences`, 문장 끝 `.!?` + 공백 기준)를 차례로 건다. 결과 `GuardedAnswer`는 지운 문장 수·지운 링크 수·모순 구절을 남긴다(벤치 지표).
 - 리포트 벤치 `sections-check` 명령 — 모델 호출 없이 세트 전체 facts로 6개 절을 써서 "범위 없는 숫자 줄"(숫자 토큰이 있는데 동·업종 이름·서울·전국·동 전체·업종 무관·최근이 없는 줄, 공고 제목 「」·숫자 든 동 이름 제외)과 "이유 빠진 자료 부족 자리"(available false·표본 부족 신호인데 해당 절에 이유가 없음)를 센다. 이유는 화면에 쓰지 않는 ": 동코드 × 업종 id" 꼬리를 뺀 앞부분으로 대조한다. 150건·12건 모두 0건. 범위: "자료 부족 — 이유" 줄이 있는지와 범위 없는 숫자가 없는지만 확인하며, 숫자 없이 덧붙은 추정 문장은 잡지 못한다(report_sections 결정적 단위 테스트가 고정). `score`·`sections-check`는 `--cache-tag` 필수(옛 `report/` 기준선 캐시 보호), 옛 형식 캐시(`answer_attempts` 없음)는 채점을 거부한다.
 - 해석 판정 기준 `data/eval/report_answer_rubric.md`와 `judge-export`의 해석 묶음(질문 + 코드 본문 한 벌 + 가린 해석, `human_sample.json` 사람 검수 20건 시드 고정).
+- **자료 부족 동네 해석** — `report_sections.scarcity`(판정을 내리지 않는 업종 또는 판정 보류면 부족한 자료 목록: 계산 못 한 신호 이름 → 수집 못 한 사실 항목의 이유, 없으면 판정 이유)와 고정 첫 문장 `scarce_lead`("[확인된 사실] {동} {업종}은(는) 자료가 부족해 진입 판단을 내리기 어렵습니다 — 부족한 자료: …", 숫자 없음). `AnalysisInteractor`는 자료 부족 동네면 해석 = 코드 첫 문장 + LLM 현장 확인 단락(전용 `SCARCE_SYSTEM_PROMPT`: 판정·전망·추천 없이 직접 확인할 것 2~3문장, 질문 관련 항목 먼저, 입력에 부족한 자료 목록 추가)이고, 가드·다음 모델이 모두 실패하면 첫 문장만 낸다. 정상 동네 경로는 그대로. 평가셋 150건 중 34건(판정 보류 28·일부 판정 업종 6)이 해당.
+- 해석 판정 묶음 — 자료 부족 시나리오는 질문 아래 정답 기준 한 줄(`SCARCE_JUDGE_NOTE`), `report_answer_rubric.md`에 자료 부족 동네 기준 절(`answered`·`core_error` 정의).
 - 재평가 결과 `data/eval/results/report-code-first-2026-10-05/` — 평가셋 150건 × Gemini·gemma4:12b 각 1회(온도 0·seed 42). 코드 절 자동 검사 문제 0건, 해석 가드 뒤 숫자 0개, Claude 판정 해석 단락 핵심 오류 Gemini 20.0%·12b 30.7%(기준선은 리포트 전체 26.7%·80.0% — 비교 대상이 다르다, notes 참고). 해석 p95 Gemini 4.4초·12b 4.7초.
 
 ### Changed
@@ -21,6 +23,7 @@
 - `FallbackLLMAdapter.chat`이 secondary(로컬) 호출 전에 `model_name`을 로컬 이름으로 바꾼다 — Gemini·로컬이 모두 실패해도 해석 재시도가 같은 로컬 모델을 다시 부르지 않는다(최악 약 270초 절약).
 - 해석 숫자 가드(`drop_digit_sentences`·`guard_answer`)가 분석 동·대안 동 이름(`names`)의 숫자는 세지 않는다 — "상도제1동"·"상계3.4동"만 언급한 문장이 지워지던 문제(평가 동 150곳 중 99곳에 숫자). 이름 지우기는 `blank_names`로 벤치 `unscoped_number_lines`와 공유. 저장된 150건 원문 재가드: 지운 문장 Gemini 106→20·gemma4 52→5, 첫 문장 삭제 81→1·48→4.
 - 해석 SYSTEM_PROMPT 응답 규칙 ②에서 "2020~2022년"을 빼고 숫자 없이 "코로나 재난지원 시기"로 — 모델이 연도를 따라 써 가드에 지워지지 않게.
+- 리포트 벤치 `digits_after_guard`가 분석 동·대안 동 이름 속 숫자까지 세던 문제 — `blank_names`를 적용한 뒤 센다(10/5 재실행 Gemini 98·12b 49는 이름 숫자 포함 값).
 - `build_sections`가 절마다 예외를 격리 — 작성 함수가 예외를 내면(예: 서울 기준 영업 기간 None) 그 절만 "자료 부족" 줄로 쓰고 리포트(`report_done`)는 끝까지 나간다.
 
 ### Removed
