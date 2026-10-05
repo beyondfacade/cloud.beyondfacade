@@ -73,3 +73,58 @@ def test_프리필이_없으면_그_줄은_자료_부족이다():
 
 def test_금액은_억과_만_원으로_쓴다():
     assert [won(50_000_000), won(100_000_000), won(150_000_000)] == ["5,000만 원", "1억 원", "1억 5,000만 원"]
+
+
+_BANDS = {
+    "available": True,
+    "year_quarter": "20254",
+    "bands": [
+        {"hour_band": "11_14", "footfall_intensity": 0.989, "sales_intensity": 0.346},
+        {"hour_band": "21_24", "footfall_intensity": 1.005, "sales_intensity": 2.377},
+        {"hour_band": "00_06", "footfall_intensity": 1.029, "sales_intensity": 0.281},
+    ],
+}
+
+
+def test_점심_질문은_그_구간의_사람_흐름과_매출_강도를_쓴다():
+    text = answer_lead(_facts(hour_gap=_BANDS), QuestionTopic("hours", "lunch"))
+    assert text.startswith("[확인된 사실] 점심(11~14시) 위주로 보면 송정동 한식은")
+    assert "점심(11~14시)(송정동 유동인구·한식 매출, 2025년 4분기): 사람 흐름은 시간당 하루 평균의 0.99배, 매출은 0.35배." in text
+
+
+def test_밤_질문은_밤과_새벽_두_구간을_쓴다():
+    text = answer_lead(_facts(hour_gap=_BANDS), QuestionTopic("hours", "night"))
+    assert "밤(21~24시)(송정동" in text and "새벽(00~06시)(송정동" in text
+
+
+def test_시간대_자료가_없으면_자료_부족과_동_사람_흐름을_쓴다():
+    text = answer_lead(_facts(), QuestionTopic("hours", "evening"))  # e001은 hour_gap 없음
+    assert "시간대(송정동 한식): 자료 부족 — 시간대 어긋남 자료가 없다" in text
+    assert "사람 흐름(송정동 동 전체, 2026년 2분기): 가장 많은 때" in text
+
+
+def test_주말_질문은_주말_평일_비를_같은_유형_중앙값과_비교한다():
+    text = answer_lead(_facts(), QuestionTopic("hours", "weekend"))
+    assert "주말(송정동 동 전체, 2026년 2분기): 주말 하루 유동인구는 평일 하루의 0.99배 — 같은 유형(주거형) 251개 동 중앙값 1.04배." in text
+
+
+def test_경쟁_질문은_포화_근거와_점포_수_추이와_순유출을_쓴다():
+    text = answer_lead(_facts(), QuestionTopic("competition"))
+    assert "- [확인된 사실] 포화(송정동 한식): " in text
+    assert "송정동 한식 점포 수: 2024년 42곳 → 2025년 42곳 → 2026년(올해 현재까지) 33곳." in text
+    assert "- [확인된 사실] 순유출(송정동 한식): " in text
+
+
+def test_외국인_질문은_주민_연령과_외국인_자료_없음을_쓴다():
+    text = answer_lead(_facts(), QuestionTopic("customers", "foreign"))
+    assert "주민(송정동, " in text
+    assert "유동인구 연령 상위(송정동 동 전체, 2026년 2분기): 20대 22%, 30대 20%." in text
+    assert "직장인구 ÷ 상주인구(송정동, 2026년 2분기): 0.08배." in text
+    assert "- [확인된 사실] 외국인 주민·방문객 자료는 없습니다." in text
+    assert "외국인" not in answer_lead(_facts(), QuestionTopic("customers"))
+
+
+def test_코로나_질문은_코로나_전후_폐업률과_최근_완결_연도를_쓴다():
+    text = answer_lead(_facts(), QuestionTopic("covid"))
+    assert "송정동 한식 연간 폐업률(코로나 전후): 2019년 2.8% · 2020년 17.1% · 2021년 9.8% · 2022년 16.7% · 2023년 2.7%." in text
+    assert "송정동 한식 최근 완결 연도(2025년) 폐업률: 19.0%." in text

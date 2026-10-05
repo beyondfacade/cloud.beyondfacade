@@ -10,11 +10,15 @@ from abc import ABC, abstractmethod
 
 from apps.agent.domain.services.question_topic import QuestionTopic
 from apps.agent.domain.services.report_sections import (
+    DISASTER_NOTE,
     FACT,
+    HOUR_BAND_LABELS,
     SIGNAL_LABELS,
+    current_year,
     missing,
     missing_reason,
     quarter_label,
+    resident_line,
     subject_names,
     topic_particle,
 )
@@ -169,11 +173,145 @@ class LoanAnswer(TopicAnswer):
         return [loan_rate_line(facts), LOAN_NOTE]
 
 
-# 유형 → Strategy (Task 4가 시간대·경쟁·대상 고객·코로나를 더한다)
+# 묻는 구간 → 원천 6구간 (밤은 21~24시와 00~06시 두 구간)
+_BAND_CODES = {"lunch": ("11_14",), "evening": ("17_21",), "night": ("21_24", "00_06"), "morning": ("06_11",)}
+_AGE_NAMES = {"10": "10대", "20": "20대", "30": "30대", "40": "40대", "50": "50대", "60_over": "60대 이상"}
+_FOREIGN_LINES = {"foreign": [f"{FACT} 외국인 주민·방문객 자료는 없습니다."]}  # 질문 전제를 사실로 받지 않는다(응답 규칙 ①)
+_COVID_YEARS = range(2019, 2024)
+
+
+def _flow_line(facts: dict) -> str:
+    region, _ = subject_names(facts)
+    profile = facts.get("profile") or {}
+    reason = missing_reason(profile)
+    if reason is not None:
+        return f"{FACT} 사람 흐름({region}): {missing(reason)}"
+    return (
+        f"{FACT} 사람 흐름({region} 동 전체, {quarter_label(profile.get('year_quarter'))}): "
+        f"가장 많은 때 {profile.get('peak_block_name')}, 가장 적은 때 {profile.get('trough_block_name')}."
+    )
+
+
+def _band_lines(facts: dict, topic: QuestionTopic) -> list[str]:
+    region, industry = subject_names(facts)
+    hour_gap = facts.get("hour_gap") or {}
+    if not hour_gap.get("available"):
+        reason = (hour_gap.get("reason") or "").split(":")[0].strip()  # 내부 코드(": 동코드 × 업종")는 숨긴다
+        return [f"{FACT} 시간대({region} {industry}): {missing(reason)}", _flow_line(facts)]
+    bands = {b["hour_band"]: b for b in hour_gap.get("bands") or []}
+    when = quarter_label(hour_gap.get("year_quarter"))
+    lines = [
+        f"{FACT} {HOUR_BAND_LABELS[code]}({region} 유동인구·{industry} 매출, {when}): "
+        f"사람 흐름은 시간당 하루 평균의 {bands[code]['footfall_intensity']:.2f}배, 매출은 {bands[code]['sales_intensity']:.2f}배."
+        for code in _BAND_CODES[topic.detail]
+        if code in bands
+    ]
+    return lines or [f"{FACT} 시간대({region} {industry}): {missing('묻는 구간 자료 없음')}"]
+
+
+def _weekend_lines(facts: dict, topic: QuestionTopic) -> list[str]:
+    region, _ = subject_names(facts)
+    profile = facts.get("profile") or {}
+    reason = missing_reason(profile)
+    weekend = profile.get("weekend_index")
+    if reason is not None or weekend is None:
+        return [f"{FACT} 주말({region}): {missing(reason or '주말 유동인구 자료 없음')}"]
+    benchmarks = profile.get("benchmarks") or {}
+    median = (benchmarks.get("type_median") or {}).get("weekend_index")
+    compare = (
+        f" — 같은 유형({profile.get('type_name')}) {benchmarks.get('type_count')}개 동 중앙값 {median:.2f}배"
+        if median is not None
+        else ""
+    )
+    return [
+        f"{FACT} 주말({region} 동 전체, {quarter_label(profile.get('year_quarter'))}): "
+        f"주말 하루 유동인구는 평일 하루의 {weekend:.2f}배{compare}."
+    ]
+
+
+_HOURS_EVIDENCE = {"weekend": _weekend_lines}  # 나머지 구간은 _band_lines
+
+
+class HoursAnswer(TopicAnswer):
+    def head(self, facts: dict, topic: QuestionTopic) -> str:
+        return f"{BAND_NAMES[topic.detail]} 위주로 보면 "
+
+    def evidence(self, facts: dict, topic: QuestionTopic) -> list[str]:
+        return _HOURS_EVIDENCE.get(topic.detail, _band_lines)(facts, topic)
+
+
+def _signal_line(facts: dict, key: str) -> str:
+    region, industry = subject_names(facts)
+    signal = next((s for s in (facts.get("verdict") or {}).get("signals") or [] if s.get("key") == key), None)
+    evidence = signal.get("evidence") if signal else missing("신호 없음")
+    return f"{FACT} {SIGNAL_LABELS[key]}({region} {industry}): {evidence}"
+
+
+def _store_trend(facts: dict) -> str:
+    region, industry = subject_names(facts)
+    history = facts.get("metrics_history")
+    reason = missing_reason(history)
+    rows = [r for r in history or [] if r.get("store_count") is not None][-3:] if reason is None else []
+    if not rows:
+        return f"{FACT} {region} {industry} 점포 수: {missing(reason or '연도별 점포 수 없음')}"
+    year = current_year(facts)
+    steps = " → ".join(
+        f"{r['year']}년{'(올해 현재까지)' if str(r['year']) == year else ''} {r['store_count']}곳" for r in rows
+    )
+    return f"{FACT} {region} {industry} 점포 수: {steps}."
+
+
+class CompetitionAnswer(TopicAnswer):
+    def evidence(self, facts: dict, topic: QuestionTopic) -> list[str]:
+        return [_signal_line(facts, "saturation"), _store_trend(facts), _signal_line(facts, "net_outflow")]
+
+
+class CustomersAnswer(TopicAnswer):
+    def evidence(self, facts: dict, topic: QuestionTopic) -> list[str]:
+        region, _ = subject_names(facts)
+        profile = facts.get("profile") or {}
+        foreign = _FOREIGN_LINES.get(topic.detail, [])
+        reason = missing_reason(profile)
+        if reason is not None:
+            return [resident_line(facts), f"{FACT} 유동인구({region}): {missing(reason)}", *foreign]
+        when = quarter_label(profile.get("year_quarter"))
+        mix = sorted(profile.get("footfall_age_mix") or [], key=lambda a: -a["share"])[:2]
+        ages = ", ".join(f"{_AGE_NAMES.get(a['age'], a['age'])} {a['share'] * 100:.0f}%" for a in mix)
+        return [
+            resident_line(facts),
+            f"{FACT} 유동인구 연령 상위({region} 동 전체, {when}): {ages}.",
+            f"{FACT} 직장인구 ÷ 상주인구({region}, {when}): {profile['worker_resident_ratio']:.2f}배.",
+            *foreign,
+        ]
+
+
+class CovidAnswer(TopicAnswer):
+    def evidence(self, facts: dict, topic: QuestionTopic) -> list[str]:
+        region, industry = subject_names(facts)
+        history = facts.get("metrics_history")
+        reason = missing_reason(history)
+        rows = [r for r in history or [] if r.get("closure_rate") is not None] if reason is None else []
+        window = [r for r in rows if r["year"] in _COVID_YEARS]
+        if not window:
+            return [f"{FACT} {region} {industry} 코로나 전후 폐업률: {missing(reason or '2019~2023년 폐업률 없음')}"]
+        rates = " · ".join(f"{r['year']}년 {r['closure_rate'] * 100:.1f}%" for r in window)
+        lines = [f"{FACT} {region} {industry} 연간 폐업률(코로나 전후): {rates}. {DISASTER_NOTE}"]
+        year = current_year(facts)
+        done = [r for r in rows if str(r["year"]) != year]
+        if done:
+            lines.append(f"{FACT} {region} {industry} 최근 완결 연도({done[-1]['year']}년) 폐업률: {done[-1]['closure_rate'] * 100:.1f}%.")
+        return lines
+
+
+# 유형 → Strategy
 _ANSWERS: dict[str, TopicAnswer] = {
     "general": GeneralAnswer(),
     "budget": BudgetAnswer(),
     "loan": LoanAnswer(),
+    "hours": HoursAnswer(),
+    "competition": CompetitionAnswer(),
+    "customers": CustomersAnswer(),
+    "covid": CovidAnswer(),
 }
 
 
