@@ -1,0 +1,98 @@
+{
+  "s01": {
+    "A": "gemma4:e4b@guards",
+    "B": "gemma4:12b@guards",
+    "C": "gemini-2.5-flash@temp0",
+    "D": "gemma4:12b@temp0",
+    "E": "gemini-2.5-flash@guards",
+    "F": "gemma4:e4b@temp0"
+  },
+  "s02": {
+    "A": "gemma4:e4b@temp0",
+    "B": "gemma4:e4b@guards",
+    "C": "gemini-2.5-flash@guards",
+    "D": "gemini-2.5-flash@temp0",
+    "E": "gemma4:12b@guards",
+    "F": "gemma4:12b@temp0"
+  },
+  "s03": {
+    "A": "gemma4:12b@guards",
+    "B": "gemini-2.5-flash@temp0",
+    "C": "gemma4:e4b@temp0",
+    "D": "gemma4:e4b@guards",
+    "E": "gemini-2.5-flash@guards",
+    "F": "gemma4:12b@temp0"
+  },
+  "s04": {
+    "A": "gemini-2.5-flash@guards",
+    "B": "gemma4:12b@guards",
+    "C": "gemma4:e4b@guards",
+    "D": "gemma4:e4b@temp0",
+    "E": "gemini-2.5-flash@temp0",
+    "F": "gemma4:12b@temp0"
+  },
+  "s05": {
+    "A": "gemma4:12b@temp0",
+    "B": "gemini-2.5-flash@temp0",
+    "C": "gemma4:e4b@guards",
+    "D": "gemma4:e4b@temp0",
+    "E": "gemma4:12b@guards",
+    "F": "gemini-2.5-flash@guards"
+  },
+  "s06": {
+    "A": "gemini-2.5-flash@temp0",
+    "B": "gemma4:12b@guards",
+    "C": "gemma4:e4b@guards",
+    "D": "gemma4:12b@temp0",
+    "E": "gemini-2.5-flash@guards",
+    "F": "gemma4:e4b@temp0"
+  },
+  "s07": {
+    "A": "gemma4:12b@temp0",
+    "B": "gemma4:e4b@guards",
+    "C": "gemma4:12b@guards",
+    "D": "gemini-2.5-flash@guards",
+    "E": "gemma4:e4b@temp0",
+    "F": "gemini-2.5-flash@temp0"
+  },
+  "s08": {
+    "A": "gemma4:e4b@temp0",
+    "B": "gemini-2.5-flash@guards",
+    "C": "gemma4:12b@guards",
+    "D": "gemma4:12b@temp0",
+    "E": "gemini-2.5-flash@temp0",
+    "F": "gemma4:e4b@guards"
+  },
+  "s09": {
+    "A": "gemma4:e4b@temp0",
+    "B": "gemini-2.5-flash@temp0",
+    "C": "gemma4:12b@temp0",
+    "D": "gemma4:e4b@guards",
+    "E": "gemini-2.5-flash@guards",
+    "F": "gemma4:12b@guards"
+  },
+  "s10": {
+    "A": "gemma4:12b@guards",
+    "B": "gemini-2.5-flash@temp0",
+    "C": "gemma4:e4b@guards",
+    "D": "gemma4:12b@temp0",
+    "E": "gemini-2.5-flash@guards",
+    "F": "gemma4:e4b@temp0"
+  },
+  "s11": {
+    "A": "gemini-2.5-flash@temp0",
+    "B": "gemma4:e4b@temp0",
+    "C": "gemma4:12b@temp0",
+    "D": "gemini-2.5-flash@guards",
+    "E": "gemma4:e4b@guards",
+    "F": "gemma4:12b@guards"
+  },
+  "s12": {
+    "A": "gemini-2.5-flash@guards",
+    "B": "gemma4:12b@guards",
+    "C": "gemma4:e4b@temp0",
+    "D": "gemini-2.5-flash@temp0",
+    "E": "gemma4:e4b@guards",
+    "F": "gemma4:12b@temp0"
+  }
+}

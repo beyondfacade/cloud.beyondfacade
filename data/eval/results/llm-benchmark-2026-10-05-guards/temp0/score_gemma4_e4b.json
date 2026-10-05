@@ -1,0 +1,31 @@
+{
+ "model": "gemma4:e4b",
+ "n": 36,
+ "completion": 1.0,
+ "verdict_match": 1.0,
+ "verdict_no_grade": 36,
+ "fabrication": 0.0,
+ "rule_violations_keyword": 0,
+ "first_p95_ms": 7099.028665514197,
+ "total_p95_ms": 15384.640443255194,
+ "guard": {
+  "verdict_replaced": 0,
+  "links_stripped": 0,
+  "tags_added": 180,
+  "disclaimer_added": 36
+ },
+ "raw": {
+  "completion": 1.0,
+  "verdict_match": 1.0,
+  "fabrication": 0.0,
+  "rule_violations_keyword": 0
+ },
+ "sampling": "0.0/42",
+ "consistency": {
+  "outcome": 1.0,
+  "numbers": 0.7896825396825397,
+  "text": 0.8180031037871256,
+  "alt_grades": 0.7222222222222222,
+  "scenarios": 12
+ }
+}
