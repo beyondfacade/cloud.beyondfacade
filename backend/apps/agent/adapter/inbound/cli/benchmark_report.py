@@ -253,13 +253,16 @@ def score_record(record: dict, facts: dict, question: str | None = None, tools_g
 
 
 def guard_summary(runs: list[dict]) -> dict:
-    """모델별 가드 개입 합계(`guard`)와 가드 전 원문 지표(`raw`). 개입 기록이 없는 옛 회차는 0으로 친다."""
+    """모델별 가드 개입 합계(`guard`)와 가드 전 원문 지표(`raw`).
+
+    개입 기록이 있는 회차가 하나도 없으면(v0.67.0 이전 캐시) `guard`는 None — 보고서가 개입 표를 싣지 않는다.
+    """
     n = len(runs)
     totals = Counter({key: 0 for key in GUARD_EVENTS})
     for r in runs:
         totals.update(r.get("guard") or {})
     return {
-        "guard": dict(totals),
+        "guard": dict(totals) if any("guard" in r for r in runs) else None,
         "raw": {
             "completion": sum(r["raw_complete"] for r in runs) / n,
             "verdict_match": sum(r["raw_verdict_ok"] for r in runs) / n,

@@ -360,3 +360,17 @@ def test_보고서에_가드_개입_표와_첫_글자_지연_주의를_싣는다
     assert "## 코드 가드 개입" in md
     assert "| qwen3.5:4b | 1 | 2 | 5 | 1 | 0.75 | 0.25 |" in md
     assert "판정 절 전체를 붙드는 시간" in md
+
+
+def test_가드_기록이_없는_옛_캐시는_개입_표를_싣지_않는다():
+    from apps.agent.adapter.inbound.cli.benchmark_report import guard_summary
+
+    runs = [{"raw_complete": True, "raw_verdict_ok": True, "raw_unmatched": [], "raw_rule_hits": []}]
+    assert guard_summary(runs)["guard"] is None
+
+    ids = ["a"]
+    score = {**_score(), **guard_summary(runs)}
+    block = build_report_block({"qwen3.5:4b": score}, {"qwen3.5:4b": _judge([4], ids)}, {"qwen3.5:4b": 3400}, ids)
+    md = render_llm_report({"date": "2026-10-05", "report": block,
+                            "intent": {"rows": [], "winner": None, "tied": []}, "residency": None})
+    assert "## 코드 가드 개입" not in md and "판정 절 전체를 붙드는 시간" not in md

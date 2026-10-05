@@ -70,6 +70,8 @@ _ASSERT_AFTER = r"(?:[ \t]*(?:등급|단계|판정|입니다|이다|이며|\(|:|
 _ASSERT_BEFORE = r"(?:등급|판정)[ \t]*(?:은|는|:)[ \t]*(?:\*\*|['\"`“‘])?[ \t]*"
 _LINE_HEAD = r"(?:^|(?<=\n))[ \t]*(?:[-*+>][ \t]+)?(?:\*\*)?(?:\[[^\]\n]*\](?:\*\*)?[ \t]*)?"
 _LINE_STOP = r"[ \t]*(?:[.—–-]|$)"
+# "비추천 등급은 아니지만"·"조건부 판정은 아닙니다" — 같은 마디 안에서 은/는 … 아니로 부정하면 단정이 아니다
+_NEGATED = re.compile(r"(?:[ \t]*(?:등급|단계|판정))?[ \t]*(?:은|는)[^.,\n]{0,15}?(?:아니|아닙|아님)")
 
 
 def _word(label: str) -> str:
@@ -110,8 +112,14 @@ def verdict_contradiction(text: str, verdict_facts: dict | None) -> str | None:
     group = _VERDICT_GROUP.get(code, code)
     if group not in _GRADE_ASSERTIONS:
         return None
-    hits = (pattern.search(text) for other, pattern in _GRADE_ASSERTIONS.items() if other != group)
-    return next((hit.group(0).strip() for hit in hits if hit), None)
+    hits = (
+        hit
+        for other, pattern in _GRADE_ASSERTIONS.items()
+        if other != group
+        for hit in pattern.finditer(text)
+        if not _NEGATED.match(text, hit.end())
+    )
+    return next((hit.group(0).strip() for hit in hits), None)
 
 
 def contradicts_verdict(text: str, verdict_facts: dict | None) -> bool:
@@ -158,9 +166,16 @@ _LISTISH_LINE = re.compile(r"[ \t]*(?:(?:[-*+]|\d+[.)])(?:[ \t][^\n]{0,30})?|(?:
 
 
 def _drop(pattern: str, text: str) -> str:
-    """흔적 지우기 — 줄 머리면 뒤 공백까지, 줄 중간이면 앞 공백까지 함께 지운다."""
+    """흔적 지우기 — 줄 머리면 뒤 공백까지, 줄 중간이면 앞 공백까지 함께 지운다.
+
+    앞 공백을 `[ \t]*`로 잡으면 긴 공백 줄에서 자리마다 되짚어 제곱 시간이 든다 — 앞 조각을 잘라 낸다.
+    """
     text = re.sub(rf"(?m)^[ \t]*(?:{pattern})[ \t]*", "", text)
-    return re.sub(rf"[ \t]*(?:{pattern})", "", text)
+    parts, last = [], 0
+    for match in re.finditer(pattern, text):
+        parts.append(text[last : match.start()].rstrip(" \t"))
+        last = match.end()
+    return "".join(parts) + text[last:]
 
 
 def strip_links(text: str, at_line_start: bool = True) -> str:
@@ -175,19 +190,29 @@ def strip_links(text: str, at_line_start: bool = True) -> str:
     return _EMPTY_ITEM.sub("", text)[1:]
 
 
+_HOLD_WINDOW = 400  # 붙들기 판단은 꼬리 이만큼에서만 — 긴 줄·긴 공백을 조각마다 다시 훑지 않는다
+
+
+def _before_link(text: str, edge: int) -> int:
+    return _BEFORE_LINK.search(text, max(0, edge - _HOLD_WINDOW), edge).start()
+
+
 def _hold_from(text: str) -> int:
     """붙들기 시작할 위치 — 끝나지 않은 링크·링크 시작의 앞부분과 그 앞 괄호·이름표, 짧은 목록 줄."""
-    open_link = _OPEN_LINK.search(text)
+    window = max(0, len(text) - _HOLD_WINDOW)
+    open_link = _OPEN_LINK.search(text, window)
     edge = open_link.start() if open_link else len(text) - _partial_start_length(text)
-    edge = _BEFORE_LINK.search(text[:edge]).start()
+    edge = _before_link(text, edge)
     line_start = text.rfind("\n", 0, edge) + 1
+    if edge - line_start > _HOLD_WINDOW:
+        return edge  # 이만큼 긴 줄은 짧은 목록 줄도, 링크만 남은 항목 줄도 아니다
     line = text[line_start:edge]
-    if _LISTISH_LINE.fullmatch(line) or _BARE_ITEM.fullmatch(strip_links(line)):
+    if _LISTISH_LINE.fullmatch(line) or (_CORE.search(line) and _BARE_ITEM.fullmatch(strip_links(line))):
         return line_start  # 짧은 목록 줄, 또는 링크를 지우면 표지만 남는 줄 — 줄바꿈과 함께 지워야 한다
     # 여는 괄호 뒤가 (링크를 지우고 나면) 비어 있으면 닫는 괄호가 오기 전까지 붙든다 — "([링크](…)" + ")"
     openers = (i for i in range(line_start, edge) if text[i] in "([`")
     empty = next((i for i in openers if not strip_links(text[i + 1 : edge], False).strip()), None)
-    return edge if empty is None else _BEFORE_LINK.search(text[:empty]).start()
+    return edge if empty is None else _before_link(text, empty)
 
 
 def _partial_start_length(text: str) -> int:
@@ -229,8 +254,9 @@ class UrlStripper:
 
 _TRUST_TAGS = ("[확인된 사실]", "[참고 신호]", "**[확인된 사실]**", "**[참고 신호]**")
 DEFAULT_TAG = "[확인된 사실]"
-_BLOCK_START = re.compile(r"(?:[-*+][ \t]|\d+[.)][ \t]|\||>)")  # 목록·표·인용 — 태그를 따로 한 문단으로
-_MAYBE_BLOCK = re.compile(r"[-*+]|\d+[.)]?")  # 다음 글자를 봐야 목록인지 안다
+# 목록·표·인용·소제목·코드 블록 — 태그를 따로 한 문단으로
+_BLOCK_START = re.compile(r"(?:[-*+][ \t]|\d+[.)][ \t]|\||>|#{1,6}[ \t]|```)")
+_MAYBE_BLOCK = re.compile(r"[-*+]|\d+[.)]?|#{1,6}|`{1,2}")  # 다음 글자를 봐야 블록인지 안다
 _HEADING_SLACK = 16  # 제목 줄에 붙을 수 있는 `### `·`**`·`:`·공백 몫
 
 

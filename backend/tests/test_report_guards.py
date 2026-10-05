@@ -408,3 +408,36 @@ def test_괄호_속_이름표가_조각으로_갈려도_통째와_같다():
     for size in (1, 3, 7):
         pieces = [text[i : i + size] for i in range(0, len(text), size)]
         assert _stream(UrlStripper(), pieces) == strip_links(text), size
+
+
+# --- 마무리 (리뷰 2차) ---
+
+
+def test_소제목이나_코드_블록으로_시작하는_본문은_태그를_따로_한_문단으로_둔다():
+    """캐시 실측(exaone s04·s02) — `#### 대안 동네`가 `[확인된 사실] #### 대안 동네`로 깨졌다."""
+    assert _titled("대안 동네·업종", ["대안 동네·업종\n#### 대안 동네\n- **부암동**"]) == (
+        "대안 동네·업종\n[확인된 사실]\n\n#### 대안 동네\n- **부암동**"
+    )
+    assert _titled("대안 업종 지원사업", ["대안 업종 지원사업\n#", "### 한식 업종 관련 지원사업"]) == (
+        "대안 업종 지원사업\n[확인된 사실]\n\n#### 한식 업종 관련 지원사업"
+    )
+    assert _tagged(["``", "`\ncode\n```"]) == "[확인된 사실]\n\n```\ncode\n```"
+
+
+def test_등급_말_뒤의_부정은_단정이_아니다():
+    assert not contradicts_verdict("비추천 등급은 아니지만 신호 1개가 켜져 있습니다.", _ORANGE)
+    assert not contradicts_verdict("조건부 판정은 아닙니다.", _CLEAR)
+    assert not contradicts_verdict("**비추천** 등급은 아니며 주의가 필요합니다.", _ORANGE)
+    assert contradicts_verdict("비추천 등급은 아니지만 판정 등급은 **조건부**입니다.", _RED)  # 뒤의 단정은 잡는다
+
+
+def test_긴_공백도_선형_시간에_처리한다():
+    import time
+
+    text = "앞" + " " * 20000 + "뒤 https://a.kr 끝"
+    started = time.perf_counter()
+    whole = strip_links(text)
+    streamed = _stream(UrlStripper(), [text[i : i + 5] for i in range(0, len(text), 5)])
+    guarded = guard_section("reasons", text, "왜 안 되나")
+    assert time.perf_counter() - started < 0.5
+    assert whole == streamed and guarded.endswith("뒤 끝")
