@@ -112,8 +112,17 @@ def _usage_of(metadata, current: LLMUsage) -> LLMUsage:
 class GeminiLLMAdapter(LLMGatewayPort):
     """Gemini generateContent 기반 LLM 어댑터."""
 
-    def __init__(self, model: str = "gemini-2.5-flash", api_key: str | None = None) -> None:
+    def __init__(
+        self,
+        model: str = "gemini-2.5-flash",
+        api_key: str | None = None,
+        temperature: float | None = None,
+        seed: int | None = None,
+    ) -> None:
+        """temperature·seed는 지정했을 때만 generationConfig에 싣는다(미지정이면 지금과 같은 요청)."""
         self.model_name = model
+        self._temperature = temperature
+        self._seed = seed
         self._client = genai.Client(api_key=api_key or get_settings().gemini_api_key)
         self._last_request_at: float | None = None
 
@@ -171,6 +180,8 @@ class GeminiLLMAdapter(LLMGatewayPort):
                 if tools
                 else None
             ),
+            temperature=self._temperature,
+            seed=self._seed,
         )
 
     def _stream_with_retry(self, contents: list[dict], config: "types.GenerateContentConfig"):

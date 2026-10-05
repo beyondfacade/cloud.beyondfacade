@@ -122,6 +122,12 @@ def verdict_contradiction(text: str, verdict_facts: dict | None) -> str | None:
     return next((hit.group(0).strip() for hit in hits), None)
 
 
+def stated_grades(text: str) -> set[str]:
+    """글에 나온 등급 그룹(관대한 동의어 기준) — 벤치 일관성 지표가 대안 절 줄마다 쓴다."""
+    squashed = _squash(text)
+    return {group for group, words in _SQUASHED_SYNONYMS.items() if any(w in squashed for w in words)}
+
+
 def contradicts_verdict(text: str, verdict_facts: dict | None) -> bool:
     return verdict_contradiction(text, verdict_facts) is not None
 

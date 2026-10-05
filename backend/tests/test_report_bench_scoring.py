@@ -114,3 +114,58 @@ def test_판정_절에_등급_말이_있는지():
     assert verdict_states_grade("이 조합은 비추천입니다.") is True
     assert verdict_states_grade("판정을 내리지 않습니다.") is True
     assert verdict_states_grade("상권 변화가 큽니다. 신중히 보세요.") is False
+
+
+# --- 일관성(반복 회차끼리) ---
+
+from apps.agent.adapter.inbound.cli.report_bench_scoring import (  # noqa: E402
+    consistency,
+    consistency_alt_grades,
+    consistency_numbers,
+    consistency_outcome,
+    consistency_text,
+)
+
+
+def _run(sid="s01", rep=0, verdict="### 판정\n\n신호 2개", alt="- 제과점 (경고 없음)\n- 분식 (조건부)",
+         complete=True, verdict_ok=True, unmatched=()):
+    return {"id": sid, "rep": rep, "sections": {"verdict": verdict, "alternatives": alt},
+            "complete": complete, "verdict_ok": verdict_ok, "unmatched": list(unmatched)}
+
+
+def test_같은_회차끼리는_일관성이_모두_1이다():
+    runs = [_run(rep=r) for r in range(3)]
+    assert consistency_outcome(runs) == 1.0
+    assert consistency_numbers(runs) == 1.0
+    assert consistency_text(runs) == 1.0
+    assert consistency_alt_grades(runs) == 1.0
+
+
+def test_숫자가_하나_다르면_Jaccard로_잰다():
+    runs = [_run(rep=0, verdict="폐업률 12.3%, 점포 150곳"), _run(rep=1, verdict="폐업률 12.5%, 점포 150곳")]
+    assert consistency_numbers(runs) == 1 / 3  # {12.3, 150} vs {12.5, 150}
+
+
+def test_결과가_다르면_그_시나리오는_불일치다():
+    runs = [_run(rep=0), _run(rep=1, unmatched=["3%"]), _run(sid="s02", rep=0), _run(sid="s02", rep=1)]
+    assert consistency_outcome(runs) == 0.5
+
+
+def test_대안_등급이_다르면_0이다():
+    runs = [_run(rep=0), _run(rep=1, alt="- 제과점 (비추천)\n- 분식 (조건부)")]
+    assert consistency_alt_grades(runs) == 0.0
+
+
+def test_본문_유사도는_SequenceMatcher_비율의_평균이다():
+    import difflib
+
+    a, b = "### 판정\n\n신호 2개", "### 판정\n\n신호 3개"
+    runs = [_run(rep=0, verdict=a, alt=""), _run(rep=1, verdict=b, alt="")]
+    assert consistency_text(runs) == difflib.SequenceMatcher(None, a, b).ratio()
+
+
+def test_회차가_하나뿐인_시나리오는_계산에서_뺀다():
+    runs = [_run(sid="s01", rep=0), _run(sid="s02", rep=0), _run(sid="s02", rep=1, unmatched=["x"])]
+    assert consistency_outcome(runs) == 0.0  # s02만 센다
+    assert consistency([_run(rep=0)]) is None  # 비교할 쌍이 없다
+    assert consistency(runs)["scenarios"] == 1

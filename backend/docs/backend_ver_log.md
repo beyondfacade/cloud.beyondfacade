@@ -11,7 +11,13 @@
   - 폴백 문구는 그대로 두고 가드만 씌운다(`guarded_fallback_section`).
 - 리포트 벤치 `benchmark_report`에 `evaluate --out-dir NAME`(기본 `llm-benchmark-YYYY-MM-DD`)과 `--cache-tag NAME`(run·score·judge-*·evaluate 공통, 캐시를 `report-<tag>/`·`judge-<tag>/`로 분리) — 같은 날 재평가가 기존 결과·캐시를 덮어쓰지 않게.
 
+- **리포트 일관성 지표**(벤치 `score`·`evaluate`, "일관성(반복 3회)" 표) — 같은 모델·같은 시나리오의 반복 회차끼리: 결과 일치(완주·판정 모순 없음·지어내기 여부), 숫자 집합 Jaccard, 화면 본문 SequenceMatcher 유사도, 대안 절 등급 다중집합 일치(동의어 단일 원천 `stated_grades`). 옛 캐시에도 계산된다.
+- **판정 묶음 비교 모드** — `judge-export --compare-tag OTHER --models a,b`가 현재 태그와 OTHER 태그의 같은 모델 1회차를 한 묶음에 섞어 블라인드로 내보낸다(mapping `모델@태그`, `judge-<tag>/compare-<OTHER>/`). `judge-import --compare-tag`가 그대로 받고, `judge-compare`가 `모델@태그`별 충실도·자연스러움 평균과 짝지은 차이(paired bootstrap 구간)를 출력.
+
 ### Changed
+- **리포트 온도 0·seed 42 단일 원천**(`apps/agent/domain/services/report_sampling.py`) — 운영 리포트 Gemini(`generationConfig.temperature`·`seed`)·로컬 폴백(`options.temperature`·`seed`)·운영 점검 LLM 프로브·벤치가 모두 쓴다. `GeminiLLMAdapter`에 `temperature`·`seed`, `OllamaLLMAdapter`에 `seed` 선택 인자(미지정이면 지금 요청과 같다). 의도 관문은 그대로.
+- 벤치 온도 주석 오류 정정 — "운영 리포트 호출과 같게"였던 `_TEMPERATURE = 0.3`은 운영(미지정)과 달랐다. 이제 운영 상수를 쓰고 회차 기록에 `temperature`·`seed`를 남겨 보고서가 표시한다(옛 캐시는 "미기록(기준선: 로컬 0.3·Gemini 기본값)").
+- 재무 도구 `loan_rate` 설명의 예시값("예 0.0405") 삭제 — Gemini가 "현재 금리 4.05%"로 옮겨 썼다. 단위(비율) 설명은 남긴다.
 - 리포트 시스템 프롬프트: 판정 절과 규칙 ⑤에 "등급 이름(비추천·조건부·경고 없음·판정 없음 등)을 쓰지 않는다 — 화면 판정 카드가 배지로 보여 준다. 켜진 신호 수와 그 뜻을 1~2문장으로 해석한다", `available: false`면 "판정할 수 없는 이유(`reason`)를 1문장으로". 지원사업 절의 "원문 링크를 함께 남긴다" → "링크·공고 번호를 쓰지 않는다 — 화면의 지원사업 카드가 원문 링크를 보여 준다".
 - 판정 등급 동의어 표·대조 규칙(`verdict_matches`·`verdict_states_grade`)을 `report_guards`로 옮겨 단일 원천으로 두고, 벤치 채점은 그것을 쓴다(동작 동일).
 - 벤치의 LLM 작성 절 판별이 맨 폴백(이전 캐시)과 가드를 씌운 폴백(이후 캐시) 모두를 폴백으로 본다.

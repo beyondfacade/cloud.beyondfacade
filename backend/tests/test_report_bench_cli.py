@@ -374,3 +374,92 @@ def test_가드_기록이_없는_옛_캐시는_개입_표를_싣지_않는다():
     md = render_llm_report({"date": "2026-10-05", "report": block,
                             "intent": {"rows": [], "winner": None, "tied": []}, "residency": None})
     assert "## 코드 가드 개입" not in md and "판정 절 전체를 붙드는 시간" not in md
+
+
+# --- 일관성 1단계: 샘플링 기록·일관성 표·판정 비교 모드 ---
+
+
+def test_회차_기록에_온도와_seed를_남긴다():
+    from types import SimpleNamespace
+
+    from apps.agent.adapter.inbound.cli.benchmark_report import run_record
+    from apps.agent.app.ports.output.agent_port import LLMUsage
+    from apps.agent.domain.services.report_sampling import REPORT_SEED, REPORT_TEMPERATURE
+
+    interactor = SimpleNamespace(last_usage=LLMUsage(input_tokens=0, output_tokens=0),
+                                 last_raw_sections={}, last_guard_events={})
+    row = run_record("s01", 0, {"sections": {}}, None, [], interactor)
+
+    assert (row["temperature"], row["seed"]) == (REPORT_TEMPERATURE, REPORT_SEED)
+
+
+def test_벤치_모델은_로컬과_gemini_모두_운영_샘플링_상수로_부른다(monkeypatch):
+    from apps.agent.adapter.inbound.cli import benchmark_report as br
+    from apps.agent.domain.services.report_sampling import REPORT_SEED, REPORT_TEMPERATURE
+
+    built = {}
+    monkeypatch.setattr(br, "OllamaLLMAdapter", lambda **kw: built.setdefault("ollama", kw))
+    monkeypatch.setattr(br, "GeminiLLMAdapter", lambda **kw: built.setdefault("gemini", kw))
+    br.REPORT_MODELS["gemma4:12b"].llm()
+    br.REPORT_MODELS["gemini-2.5-flash"].llm()
+
+    for kw in built.values():
+        assert (kw["temperature"], kw["seed"]) == (REPORT_TEMPERATURE, REPORT_SEED)
+    assert not hasattr(br, "_TEMPERATURE")
+
+
+def test_샘플링_표기는_기록이_없으면_기준선이라고_밝힌다():
+    from apps.agent.adapter.inbound.cli.benchmark_report import sampling_label
+
+    assert sampling_label([{"temperature": 0.0, "seed": 42}] * 2) == "0.0/42"
+    assert sampling_label([{}]) == "미기록(기준선: 로컬 0.3·Gemini 기본값)"
+
+
+def test_보고서에_일관성_표를_싣는다():
+    ids = ["a"]
+    score = {**_score(), "sampling": "0.0/42",
+             "consistency": {"outcome": 0.75, "numbers": 0.5, "text": 0.9, "alt_grades": 1.0, "scenarios": 12}}
+    block = build_report_block({"qwen3.5:4b": score}, {"qwen3.5:4b": _judge([4], ids)}, {"qwen3.5:4b": 3400}, ids)
+    md = render_llm_report({"date": "2026-10-06", "report": block,
+                            "intent": {"rows": [], "winner": None, "tied": []}, "residency": None})
+
+    assert "## 일관성(반복 3회)" in md
+    assert "| qwen3.5:4b | 0.0/42 | 12 | 0.75 | 0.50 | 0.90 | 1.00 |" in md
+
+
+def _write_runs(path, model, texts):
+    import json
+
+    path.mkdir(parents=True, exist_ok=True)
+    (path / f"{model}.jsonl").write_text(
+        "\n".join(json.dumps({"id": "s01", "rep": rep, "sections": {"verdict": t}}, ensure_ascii=False)
+                  for rep, t in enumerate(texts)) + "\n", encoding="utf-8")
+
+
+def test_비교_모드는_두_태그의_회차를_한_묶음에_섞고_mapping은_model_at_tag다(tmp_path):
+    from apps.agent.adapter.inbound.cli.benchmark_report import compare_reports
+    from apps.agent.adapter.inbound.cli.report_bench_scoring import judge_packets
+
+    _write_runs(tmp_path / "report", "qwen3.5_4b", ["기준선 글", "기준선 2회차"])
+    _write_runs(tmp_path / "report-guards", "qwen3.5_4b", ["가드 글"])
+
+    reports = compare_reports(["qwen3.5:4b"], {"base": tmp_path / "report", "guards": tmp_path / "report-guards"})
+    packet, mapping = judge_packets("s01", {}, reports["s01"], 0)
+
+    assert set(mapping.values()) == {"qwen3.5:4b@base", "qwen3.5:4b@guards"}
+    assert "기준선 글" in packet and "가드 글" in packet and "2회차" not in packet
+
+
+def test_판정_비교는_model_at_tag별_평균과_짝지은_차이를_낸다():
+    from apps.agent.adapter.inbound.cli.benchmark_report import compare_judged
+
+    scores = {
+        "m@guards": {"s01": {"faithfulness": 4, "fluency": 4}, "s02": {"faithfulness": 5, "fluency": 3}},
+        "m@base": {"s01": {"faithfulness": 3, "fluency": 4}, "s02": {"faithfulness": 3, "fluency": 3}},
+    }
+
+    got = compare_judged(scores, "guards", "base")
+
+    assert got["means"]["m@guards"] == {"faithfulness": 4.5, "fluency": 3.5, "n": 2}
+    diff = got["diffs"]["m"]
+    assert diff["faithfulness"][0] == 1.5 and diff["fluency"][0] == 0.0 and diff["n"] == 2

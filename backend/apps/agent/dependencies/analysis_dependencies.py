@@ -25,6 +25,7 @@ from apps.agent.app.ports.output.agent_port import LLMGatewayPort
 from apps.agent.app.use_cases.agent_tools import build_tools
 from apps.agent.app.use_cases.analysis_interactor import AnalysisInteractor
 from apps.agent.app.use_cases.report_facts import ReportFactsCollector
+from apps.agent.domain.services.report_sampling import REPORT_SEED, REPORT_TEMPERATURE
 from apps.rag.dependencies.rag_dependencies import get_rag_search_use_case
 
 # 로컬 폴백 컨텍스트 길이 — num_ctx를 안 주면 Ollama 0.31.2 기본값이 입력을 약 2k 토큰에서 잘라 읽는다.
@@ -35,8 +36,16 @@ _LOCAL_NUM_CTX = 32768
 
 # 모델 키 → LLM 어댑터 팩토리 (if/elif 대신 dict 디스패치)
 # 참고: ollama gemma3:12b는 tools capability 없음 → 동일 패밀리 gemma4:12b로 배선
+# 리포트 LLM은 Gemini·로컬 모두 온도 0·seed 고정 — 같은 질문에 일정한 답 (report_sampling 단일 원천)
 def _local() -> LLMGatewayPort:
-    return OllamaLLMAdapter(model="gemma4:12b", num_ctx=_LOCAL_NUM_CTX)
+    return OllamaLLMAdapter(
+        model="gemma4:12b", num_ctx=_LOCAL_NUM_CTX, temperature=REPORT_TEMPERATURE, seed=REPORT_SEED
+    )
+
+
+def _gemini() -> LLMGatewayPort:
+    """키가 없으면 생성 시점에 ValueError — 폴백 어댑터가 그 예외로 키 유무를 판정한다."""
+    return GeminiLLMAdapter(temperature=REPORT_TEMPERATURE, seed=REPORT_SEED)
 
 
 def _hybrid() -> LLMGatewayPort:
@@ -45,14 +54,14 @@ def _hybrid() -> LLMGatewayPort:
     GeminiLLMAdapter는 키가 없으면 **생성 시점에** ValueError를 던진다. 폴백 어댑터가 그
     예외를 잡는 것이 곧 키 유무 판정이다 — 키 값을 읽지도 남기지도 않는다.
     """
-    return FallbackLLMAdapter(primary=GeminiLLMAdapter, secondary=_local, recorder=SqlAlchemyLlmCallRecorder())
+    return FallbackLLMAdapter(primary=_gemini, secondary=_local, recorder=SqlAlchemyLlmCallRecorder())
 
 
 _LLM_REGISTRY: dict[str, Callable[[], LLMGatewayPort]] = {
     "hybrid": _hybrid,
     # 단일 모델 직접 지정은 남긴다 — 두뇌 비교 평가 러너(run_agent_eval)가 쓴다
     "gemma3": _local,
-    "gemini": GeminiLLMAdapter,
+    "gemini": _gemini,
 }
 
 

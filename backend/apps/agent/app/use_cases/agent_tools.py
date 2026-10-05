@@ -31,7 +31,7 @@ _FINANCE_PROPERTIES: dict[str, dict] = {
     "fee_ratio": {"type": "number", "description": "수수료율(비율, 예 0.03)"},
     "equity": {"type": "integer", "description": "자기자본(원)"},
     "desired_loan": {"type": "integer", "description": "희망 대출금(원)"},
-    "loan_rate": {"type": "number", "description": "대출 연금리(비율, 예 0.0405)"},
+    "loan_rate": {"type": "number", "description": "대출 연금리(비율)"},
     "expected_monthly_revenue": {"type": "integer", "description": "예상 월매출(원)"},
 }
 

@@ -27,6 +27,7 @@ class OllamaLLMAdapter(LLMGatewayPort):
         think: bool | None = None,
         temperature: float | None = None,
         num_ctx: int | None = None,
+        seed: int | None = None,
     ):
         """
         Ollama LLM 어댑터 초기화.
@@ -38,11 +39,13 @@ class OllamaLLMAdapter(LLMGatewayPort):
             think: 추론(thinking) 사용 여부 (기본값: None — 요청에 싣지 않음)
             temperature: 샘플링 온도 (기본값: None — 요청에 싣지 않음)
             num_ctx: 컨텍스트 길이 (기본값: None — 요청에 싣지 않음, Ollama 기본값 사용)
+            seed: 샘플링 seed (기본값: None — 요청에 싣지 않음)
         """
         self.model_name = model
         self._think = think
         self._temperature = temperature
         self._num_ctx = num_ctx
+        self._seed = seed
         self.client = httpx.Client(base_url=base_url or get_settings().ollama_base_url, transport=transport, timeout=120.0)
 
     def _body(self, messages: list[dict], tools: list[LLMToolSpec], stream: bool) -> dict:
@@ -57,7 +60,11 @@ class OllamaLLMAdapter(LLMGatewayPort):
             body["think"] = self._think
         options = {
             key: value
-            for key, value in (("temperature", self._temperature), ("num_ctx", self._num_ctx))
+            for key, value in (
+                ("temperature", self._temperature),
+                ("num_ctx", self._num_ctx),
+                ("seed", self._seed),
+            )
             if value is not None
         }
         if options:

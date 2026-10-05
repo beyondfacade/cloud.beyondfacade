@@ -5,11 +5,18 @@
 
 from __future__ import annotations
 
+import difflib
 import json
 import random
 import re
+from collections import Counter, defaultdict
+from collections.abc import Callable
+from itertools import combinations
+from statistics import mean
 
+from apps.agent.domain.services.report_guards import stated_grades
 from apps.agent.domain.services.report_guards import verdict_matches, verdict_states_grade  # noqa: F401 — 벤치가 이 모듈 이름으로 쓴다
+from apps.agent.domain.services.section_stream import concat_sections
 
 _N = r"\d[\d,]*(?:\.\d+)?"
 # 복합 금액("1억 2천만")을 먼저 한 토큰으로 잡고, 아니면 숫자+선택 단위.
@@ -127,6 +134,77 @@ def unmatched_numbers(report_md: str, facts: dict) -> list[str]:
 # 동의어 표·대조 규칙은 운영 가드와 같은 단일 원천(domain/services/report_guards.py)을 쓴다.
 
 
+# ── 일관성(같은 모델·같은 시나리오의 반복 회차끼리) ─────────
+
+def _by_scenario(runs: list[dict]) -> list[list[dict]]:
+    """시나리오별 회차 묶음 — 회차가 하나뿐인 시나리오는 비교할 쌍이 없으니 뺀다."""
+    groups: dict[str, list[dict]] = defaultdict(list)
+    for r in runs:
+        groups[r["id"]].append(r)
+    return [sorted(g, key=lambda r: r["rep"]) for g in groups.values() if len(g) > 1]
+
+
+def _pairwise(runs: list[dict], similarity: Callable[[dict, dict], float]) -> float | None:
+    """회차 쌍별 유사도의 평균(전 시나리오의 쌍을 한데 모아)."""
+    values = [similarity(a, b) for group in _by_scenario(runs) for a, b in combinations(group, 2)]
+    return mean(values) if values else None
+
+
+def _text(r: dict) -> str:
+    """화면 본문 — 가드 후 절을 계약 순서로 잇는다(빈 절은 뺀다)."""
+    return concat_sections((k, v) for k, v in r["sections"].items() if v)
+
+
+def _numbers(r: dict) -> set[float]:
+    return {value for _, value in extract_numbers(_text(r))}
+
+
+def _alt_grades(r: dict) -> Counter:
+    """대안 절 줄마다 쓴 등급(동의어 단일 원천으로 그룹화)의 다중집합 — 같은 대안에 같은 등급을 붙였는가."""
+    lines = (r["sections"].get("alternatives") or "").splitlines()
+    return Counter(group for line in lines for group in stated_grades(line))
+
+
+def _outcome(r: dict) -> tuple[bool, bool, bool]:
+    return r["complete"], r["verdict_ok"], bool(r["unmatched"])
+
+
+def _jaccard(a: set, b: set) -> float:
+    return len(a & b) / len(a | b) if a | b else 1.0
+
+
+def consistency_outcome(runs: list[dict]) -> float | None:
+    """시나리오별로 모든 회차의 (완주, 판정 모순 없음, 지어낸 숫자 여부)가 같으면 1 — 시나리오 평균."""
+    groups = _by_scenario(runs)
+    if not groups:
+        return None
+    return mean(float(len({_outcome(r) for r in g}) == 1) for g in groups)
+
+
+def consistency_numbers(runs: list[dict]) -> float | None:
+    """회차 쌍별 리포트 전체 숫자 집합(지어내기 대조와 같은 토큰화)의 Jaccard 평균."""
+    return _pairwise(runs, lambda a, b: _jaccard(_numbers(a), _numbers(b)))
+
+
+def consistency_text(runs: list[dict]) -> float | None:
+    """회차 쌍별 화면 본문 `SequenceMatcher.ratio()` 평균."""
+    return _pairwise(runs, lambda a, b: difflib.SequenceMatcher(None, _text(a), _text(b)).ratio())
+
+
+def consistency_alt_grades(runs: list[dict]) -> float | None:
+    """회차 쌍별 대안 절 등급 다중집합이 같은 비율."""
+    return _pairwise(runs, lambda a, b: float(_alt_grades(a) == _alt_grades(b)))
+
+
+def consistency(runs: list[dict]) -> dict | None:
+    """일관성 네 지표 묶음 — 비교할 시나리오가 없으면 None."""
+    scenarios = len(_by_scenario(runs))
+    if not scenarios:
+        return None
+    return {"outcome": consistency_outcome(runs), "numbers": consistency_numbers(runs),
+            "text": consistency_text(runs), "alt_grades": consistency_alt_grades(runs), "scenarios": scenarios}
+
+
 # ── LLM 작성 절 ────────────────────────────────────────────
 
 def llm_sections(deltas: dict[str, str], fallbacks: dict[str, str]) -> set[str]:
@@ -225,6 +303,26 @@ def _report_row(r: dict) -> list[str]:
             _cell(r, "rule_violations"),
             _cell(r, "first_p95_ms", "{:.0f}"), _cell(r, "total_p95_ms", "{:.0f}"),
             _ox(r["gates"]["all"]), r.get("note", "")]
+
+
+def _ratio(value: float | None) -> str:
+    return "-" if value is None else f"{value:.2f}"
+
+
+def _consistency_lines(rows: list[dict]) -> list[str]:
+    """반복 회차끼리의 일관성 — 같은 질문에 같은 답을 내는가. 계산된 행에만 싣는다."""
+    measured = [r for r in rows if r.get("consistency")]
+    if not measured:
+        return []
+    table = _table(
+        ["모델", "온도/seed", "시나리오", "결과 일치", "숫자 Jaccard", "본문 유사도", "대안 등급 일치"],
+        [[r["model"], r.get("sampling") or "-", str(r["consistency"]["scenarios"]),
+          *(_ratio(r["consistency"][k]) for k in ("outcome", "numbers", "text", "alt_grades"))] for r in measured],
+    )
+    return ["", "## 일관성(반복 3회)", "",
+            "같은 모델·같은 시나리오의 회차끼리 비교. 결과 일치 = (완주, 판정 모순 없음, 지어내기 여부)가 모든 회차에서 같은 "
+            "시나리오 비율, 숫자 Jaccard·본문 유사도(화면 본문 SequenceMatcher)·대안 등급 일치 = 회차 쌍 평균.", "",
+            *table]
 
 
 def _guard_lines(rows: list[dict]) -> list[str]:
@@ -329,6 +427,7 @@ def render_llm_report(results: dict) -> str:
               _residency_line(results.get("residency"))]
     lines += _reference_lines(results["report"])
     lines += _guard_lines(results["report"]["rows"])
+    lines += _consistency_lines(results["report"]["rows"])
     lines += _cost_lines(results.get("cost"))
     lines += ["", "## 한계", "",
               "- 숫자 대조는 관대하게 맞춘다(프롬프트·도구 설명 숫자도 근거, 복합 금액 허용폭이 넓음) — 지어내기 비율은 하한이다. "

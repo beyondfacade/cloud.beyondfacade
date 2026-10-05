@@ -9,6 +9,9 @@ AnalysisInteractor를 돌려 시나리오·회차 단위 jsonl로 캐시한 뒤(
   python -m apps.agent.adapter.inbound.cli.benchmark_report score
   python -m apps.agent.adapter.inbound.cli.benchmark_report judge-export
   python -m apps.agent.adapter.inbound.cli.benchmark_report judge-import --file PATH
+  python -m apps.agent.adapter.inbound.cli.benchmark_report judge-export --compare-tag OTHER --models a,b [--cache-tag T]
+  python -m apps.agent.adapter.inbound.cli.benchmark_report judge-import --compare-tag OTHER --file PATH [--cache-tag T]
+  python -m apps.agent.adapter.inbound.cli.benchmark_report judge-compare --compare-tag OTHER [--cache-tag T]
   python -m apps.agent.adapter.inbound.cli.benchmark_report vram
   python -m apps.agent.adapter.inbound.cli.benchmark_report residency --report-model R --intent-model I
   python -m apps.agent.adapter.inbound.cli.benchmark_report evaluate [--out-dir NAME]
@@ -32,6 +35,7 @@ import httpx
 
 from apps.agent.adapter.inbound.cli.agent_eval_scoring import check_rule_keywords
 from apps.agent.adapter.inbound.cli.report_bench_scoring import (
+    consistency,
     intent_gates,
     classify_violation,
     judge_packets,
@@ -62,6 +66,7 @@ from apps.agent.app.use_cases.analysis_interactor import (
 from apps.agent.app.use_cases.report_facts import ReportFactsCollector
 from apps.agent.domain.entities.agent_event_entity import AgentEvent
 from apps.agent.domain.services.report_guards import GUARD_EVENTS
+from apps.agent.domain.services.report_sampling import REPORT_SEED, REPORT_TEMPERATURE
 from apps.agent.domain.services.section_stream import concat_sections
 from apps.rag.dependencies.rag_dependencies import get_rag_search_use_case
 from core.matrix.grid_benchmark_manager import paired_bootstrap_ci, percentile, pick_winner, resident_models
@@ -80,7 +85,10 @@ _RESIDENCY = _CACHE / "residency.json"
 _RESULTS_ROOT = _REPO_ROOT / "data/eval/results"
 
 _JUDGE_SEED = 0
-_TEMPERATURE = 0.3  # 운영 리포트 호출과 같게
+# 샘플링은 운영 리포트와 같은 단일 원천(report_sampling: 온도 0·seed 42). 2026-10-05 기준선 캐시는 로컬 0.3·Gemini
+# 기본값으로 돌았다 — 회차 기록에 temperature·seed를 남겨 보고서가 구분한다(옛 캐시는 "미기록").
+_BASELINE_SAMPLING = "미기록(기준선: 로컬 0.3·Gemini 기본값)"
+_BASE_TAG = "base"  # 판정 비교 모드에서 태그 없는 캐시의 이름
 # 첫 턴 프롬프트 실측 최대 14,143토큰(도구 포함, 2026-10-05) + 출력·도구 턴 여유 — Ollama 기본 컨텍스트는 ~2k에서 잘린다
 BENCH_NUM_CTX = 32768
 _LOCAL_OPTIONS = {"num_ctx": BENCH_NUM_CTX}  # vram·residency도 같은 옵션으로 올려야 VRAM이 실사용을 반영한다
@@ -104,7 +112,8 @@ class ReportModel:
 
 
 def _ollama(name: str, think: bool | None, tools: bool = True) -> ReportModel:
-    return ReportModel(name, lambda: OllamaLLMAdapter(model=name, think=think, temperature=_TEMPERATURE, num_ctx=BENCH_NUM_CTX), tools, True)
+    return ReportModel(name, lambda: OllamaLLMAdapter(model=name, think=think, temperature=REPORT_TEMPERATURE,
+                                                      seed=REPORT_SEED, num_ctx=BENCH_NUM_CTX), tools, True)
 
 
 REPORT_MODELS: dict[str, ReportModel] = {m.name: m for m in (
@@ -115,7 +124,8 @@ REPORT_MODELS: dict[str, ReportModel] = {m.name: m for m in (
     _ollama("qwen3.5:4b", False),
     # Ollama 템플릿에 도구 처리가 없다 — 도구 없이 돌리는 참고 비교군(라이선스 NC)
     _ollama("exaone3.5:7.8b", None, tools=False),
-    ReportModel(_ONLINE, lambda: GeminiLLMAdapter(model=_ONLINE), True, False),
+    ReportModel(_ONLINE, lambda: GeminiLLMAdapter(model=_ONLINE, temperature=REPORT_TEMPERATURE, seed=REPORT_SEED),
+                True, False),
 )}
 _NOTES = {False: "온라인 비교군"}  # local 여부별 비고
 _NO_TOOL_NOTE = "도구 없음(참고 비교군, 라이선스 NC)"
@@ -272,11 +282,18 @@ def guard_summary(runs: list[dict]) -> dict:
     }
 
 
+def sampling_label(runs: list[dict]) -> str:
+    """회차들이 쓴 온도/seed — 기록이 없는 옛 캐시는 기준선(로컬 0.3·Gemini 기본값)이라고 밝힌다."""
+    labels = sorted({f"{r['temperature']}/{r['seed']}" for r in runs if "temperature" in r})
+    return ", ".join(labels) if labels else _BASELINE_SAMPLING
+
+
 def run_record(scenario_id: str, rep: int, got: dict, error: str | None, tool_results: list[str], interactor) -> dict:
     """캐시 한 줄 — 화면 본문(`sections`)과 가드 전 원문(`raw_sections`)·가드 개입 횟수(`guard`)를 함께 남긴다."""
     usage = interactor.last_usage
     return {"id": scenario_id, "rep": rep, **got, "raw_sections": interactor.last_raw_sections,
             "guard": interactor.last_guard_events, "error": error, "tool_results": tool_results,
+            "temperature": REPORT_TEMPERATURE, "seed": REPORT_SEED,
             "usage": {"input_tokens": usage.input_tokens, "output_tokens": usage.output_tokens}}
 
 
@@ -408,6 +425,8 @@ def _cmd_score(args: argparse.Namespace) -> None:
             "first_p95_ms": _p95([r["first_ms"] for r in runs]),
             "total_p95_ms": _p95([r["total_ms"] for r in runs]),
             **guard_summary(runs),
+            "sampling": sampling_label(runs),
+            "consistency": consistency(runs),  # 반복 회차끼리 — 옛 캐시에도 계산된다(기준선 비교용)
             "runs": [{k: r[k] for k in ("id", "rep", "complete", "verdict_ok", "raw_verdict_ok", "unmatched",
                                         "rule_hits", "first_ms", "total_ms", "error")} for r in runs],
         }
@@ -425,7 +444,41 @@ def _first_rep_reports() -> dict[str, dict[str, str]]:
     return out
 
 
+def compare_reports(models: list[str], runs_by_tag: dict[str, Path]) -> dict[str, dict[str, str]]:
+    """{시나리오: {"모델@태그": 1회차 본문}} — 두 태그의 같은 모델 회차를 한 묶음에 섞는다(본문 모델명은 가린다)."""
+    out: dict[str, dict[str, str]] = {}
+    for tag, runs_dir in runs_by_tag.items():
+        for model in models:
+            for r in _read_jsonl(runs_dir / f"{_safe(model)}.jsonl"):
+                if r["rep"] == 0 and r["sections"]:
+                    out.setdefault(r["id"], {})[f"{model}@{tag}"] = mask_model_names(_report_text(r["sections"]))
+    return out
+
+
+def compare_judged(scores: dict[str, dict[str, dict]], tag: str, other: str) -> dict:
+    """`모델@태그`별 충실도·자연스러움 평균과, 같은 모델의 두 태그 짝지은 차이(tag − other, bootstrap 구간)."""
+    means = {key: {"faithfulness": mean(s["faithfulness"] for s in by_sid.values()),
+                   "fluency": mean(s["fluency"] for s in by_sid.values()), "n": len(by_sid)}
+             for key, by_sid in scores.items() if by_sid}
+    diffs = {}
+    for model in sorted({key.rsplit("@", 1)[0] for key in scores}):
+        mine, theirs = scores.get(f"{model}@{tag}", {}), scores.get(f"{model}@{other}", {})
+        sids = sorted(set(mine) & set(theirs))
+        if sids:
+            diffs[model] = {metric: paired_bootstrap_ci([mine[s][metric] for s in sids], [theirs[s][metric] for s in sids])
+                            for metric in ("faithfulness", "fluency")} | {"n": len(sids)}
+    return {"means": means, "diffs": diffs}
+
+
+def _compare_dir(args: argparse.Namespace) -> Path:
+    """비교 묶음 판정 폴더 — 현재 판정 폴더 안에 따로 둔다(평소 묶음·점수를 덮어쓰지 않게)."""
+    return _JUDGE / f"compare-{args.compare_tag}"
+
+
 def _cmd_judge_export(args: argparse.Namespace) -> None:
+    if args.compare_tag:
+        _export_compare(args)
+        return
     _JUDGE.mkdir(parents=True, exist_ok=True)
     mapping: dict[str, dict[str, str]] = {}
     for sid, reports in _first_rep_reports().items():
@@ -435,15 +488,40 @@ def _cmd_judge_export(args: argparse.Namespace) -> None:
     print(f"judge-export: {len(mapping)}개 시나리오 → {_JUDGE}", flush=True)
 
 
+def _export_compare(args: argparse.Namespace) -> None:
+    """두 태그 캐시의 같은 모델 회차를 섞은 블라인드 묶음 — mapping 값은 `모델@태그`."""
+    tag = args.cache_tag or _BASE_TAG
+    runs = {tag: _RUNS, args.compare_tag: cache_dirs(None if args.compare_tag == _BASE_TAG else args.compare_tag)[0]}
+    out = _compare_dir(args)
+    out.mkdir(parents=True, exist_ok=True)
+    mapping: dict[str, dict[str, str]] = {}
+    for sid, reports in compare_reports(args.models.split(","), runs).items():
+        packet, mapping[sid] = judge_packets(sid, _facts_of(sid), reports, _JUDGE_SEED)
+        (out / f"packet_{sid}.md").write_text(packet, encoding="utf-8")
+    _write_json(out / "mapping.json", mapping)
+    print(f"judge-export(비교): {len(mapping)}개 시나리오 {tag} vs {args.compare_tag} → {out}", flush=True)
+
+
 def _cmd_judge_import(args: argparse.Namespace) -> None:
-    mapping = _read_json(_JUDGE / "mapping.json")
+    judge_dir = _compare_dir(args) if args.compare_tag else _JUDGE  # 비교 묶음이면 키가 `모델@태그`다
+    mapping = _read_json(judge_dir / "mapping.json")
     judged = json.loads(Path(args.file).read_text(encoding="utf-8"))
-    scores: dict[str, dict[str, dict]] = _read_json(_JUDGE / "scores.json", {})  # 이어 넣기 — 덮어쓰지 않는다
+    scores: dict[str, dict[str, dict]] = _read_json(judge_dir / "scores.json", {})  # 이어 넣기 — 덮어쓰지 않는다
     for sid, by_blind in judged.items():
         for blind, score in by_blind.items():
             scores.setdefault(mapping[sid][blind], {})[sid] = score
-    _write_json(_JUDGE / "scores.json", scores)
-    print(f"judge-import: {len(scores)}개 모델 → {_JUDGE / 'scores.json'}", flush=True)
+    _write_json(judge_dir / "scores.json", scores)
+    print(f"judge-import: {len(scores)}개 모델 → {judge_dir / 'scores.json'}", flush=True)
+
+
+def _cmd_judge_compare(args: argparse.Namespace) -> None:
+    tag = args.cache_tag or _BASE_TAG
+    got = compare_judged(_read_json(_compare_dir(args) / "scores.json", {}), tag, args.compare_tag)
+    for key, m in sorted(got["means"].items()):
+        print(f"{key}: 충실도 {m['faithfulness']:.2f} · 자연스러움 {m['fluency']:.2f} (n={m['n']})")
+    for model, d in got["diffs"].items():
+        print(f"{model} {tag}−{args.compare_tag} (n={d['n']}): "
+              + " · ".join(f"{k} {d[k][0]:+.2f} [{d[k][1]:+.2f}, {d[k][2]:+.2f}]" for k in ("faithfulness", "fluency")))
 
 
 def _gpu_used_mib() -> int | None:
@@ -537,7 +615,8 @@ def build_report_block(scores: dict[str, dict], judge: dict, vram: dict, scenari
                      "fabrication": score["fabrication"], "rule_violations": merged["rule_violations"],
                      "first_p95_ms": score["first_p95_ms"], "total_p95_ms": score["total_p95_ms"],
                      "gates": gates, "note": note, "local": model.local, "excluded": excluded,
-                     "guard": score.get("guard"), "raw": score.get("raw")})
+                     "guard": score.get("guard"), "raw": score.get("raw"),
+                     "sampling": score.get("sampling"), "consistency": score.get("consistency")})
         if excluded is None:
             eligible.append(name)
             per_row[name], p95_by[name] = quality, score["total_p95_ms"]
@@ -638,7 +717,7 @@ def _cmd_evaluate(args: argparse.Namespace) -> None:
 
 _COMMANDS: dict[str, Callable] = {
     "freeze": _cmd_freeze, "run": _cmd_run, "score": _cmd_score, "judge-export": _cmd_judge_export,
-    "judge-import": _cmd_judge_import, "vram": _cmd_vram, "residency": _cmd_residency, "evaluate": _cmd_evaluate,
+    "judge-import": _cmd_judge_import, "judge-compare": _cmd_judge_compare, "vram": _cmd_vram, "residency": _cmd_residency, "evaluate": _cmd_evaluate,
 }
 
 
@@ -648,6 +727,9 @@ def main() -> None:
     parser.add_argument("--model", choices=list(REPORT_MODELS))
     parser.add_argument("--repeat", type=int, default=3)
     parser.add_argument("--file", default=None, help="judge-import: 판정 json 경로")
+    parser.add_argument("--compare-tag", default=None,
+                        help="judge-export·import·compare: 이 태그 캐시와 섞어 비교(태그 없는 캐시는 base)")
+    parser.add_argument("--models", default=None, help="judge-export --compare-tag: 비교할 모델(쉼표 구분)")
     parser.add_argument("--report-model", default=None)
     parser.add_argument("--intent-model", default=None)
     parser.add_argument("--force", action="store_true", help="freeze: 기존 facts 덮어쓰기")
