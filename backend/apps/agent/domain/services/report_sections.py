@@ -8,7 +8,11 @@ LLM은 맨 위 해석(answer) 한 단락만 쓴다. 원칙:
 ④ 화면 차트와 같은 규칙을 쓴다 — 시간대 문장은 프론트 `hour-gap-sentence.ts`와 같은 규칙.
 """
 
+import logging
+
 from apps.agent.domain.services.report_guards import FUNDING_DISCLAIMER
+
+LOGGER = logging.getLogger(__name__)
 
 FACT = "[확인된 사실]"
 SIGNAL = "[참고 신호]"
@@ -341,6 +345,7 @@ def _write(name: str, facts: dict) -> str:
     try:
         return _WRITERS[name](facts)
     except Exception:
+        LOGGER.exception("코드 절 작성 실패 — %s", name)  # 사용자에겐 자료 부족 줄, 원인은 로그로
         return f"{FACT} {missing('일부 값이 비어 이 절을 쓰지 못함')}"
 
 
