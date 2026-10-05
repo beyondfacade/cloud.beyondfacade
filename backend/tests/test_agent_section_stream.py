@@ -27,4 +27,4 @@ def test_섹션_순서_상수는_해석_다음_코드_절_순서다():
     """두 벌이 어긋나면 저장 순서와 방출 순서가 갈린다 — 해석은 늦게 오지만 저장본은 맨 위다."""
     from apps.agent.domain.services.report_sections import SECTION_TITLES
 
-    assert SECTION_ORDER == ("answer", *SECTION_TITLES)
+    assert SECTION_ORDER == ("answer_lead", "answer", *SECTION_TITLES)

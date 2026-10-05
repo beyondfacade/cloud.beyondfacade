@@ -6,9 +6,9 @@ SSE `report_delta`는 절 이름과 마크다운 조각이다. 저장본(analysi
 
 from collections.abc import Iterable
 
-# 저장·표시 기준 섹션 순서 — 맨 위 해석(answer) 다음에 코드 6개 절(report_sections.SECTION_TITLES 순서).
-# 해석은 6개 절보다 늦게 도착하지만 저장본은 화면처럼 맨 위다. answer 없는 옛 저장본은 그대로다.
-SECTION_ORDER = ("answer", "verdict", "reasons", "analogs", "conditions", "alternatives", "funding")
+# 저장·표시 기준 섹션 순서 — 질문에 대한 직접 답(answer_lead, 코드)이 맨 위, 그 아래 해석(answer), 다음에 코드 6개 절
+# (report_sections.SECTION_TITLES 순서). 해석은 6개 절보다 늦게 도착하지만 저장본은 화면처럼 맨 위다. answer 없는 옛 저장본은 그대로다.
+SECTION_ORDER = ("answer_lead", "answer", "verdict", "reasons", "analogs", "conditions", "alternatives", "funding")
 
 
 def concat_sections(

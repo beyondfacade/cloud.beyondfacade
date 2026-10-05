@@ -5,7 +5,13 @@ from pathlib import Path
 
 from apps.agent.adapter.outbound.llm.fallback_llm_adapter import FallbackLLMAdapter
 from apps.agent.app.ports.output.agent_port import LLMGatewayPort, LLMTurn, LLMUsage
-from apps.agent.app.use_cases.analysis_interactor import ANSWER_FALLBACK, SYSTEM_PROMPT, AnalysisInteractor
+from apps.agent.app.use_cases.analysis_interactor import (
+    ANSWER_FALLBACK,
+    LEAD_FALLBACK,
+    QUESTION_SYSTEM_PROMPT,
+    SYSTEM_PROMPT,
+    AnalysisInteractor,
+)
 from apps.agent.app.use_cases.report_facts import ReportFactsCollector
 from apps.agent.domain.entities.agent_event_entity import AgentEvent
 from apps.agent.domain.services.report_sections import (
@@ -99,7 +105,7 @@ def test_LLM에는_사실_JSON이_아니라_질문과_코드가_쓴_절만_간�
 
     [(messages, tools)] = llm.calls
     user = messages[1]["content"]
-    assert messages[0] == {"role": "system", "content": SYSTEM_PROMPT}
+    assert messages[0] == {"role": "system", "content": QUESTION_SYSTEM_PROMPT}  # 일반 질문도 직접 답이 붙는다
     assert tools == []
     assert "사용자 질문: 여기서 한식 해도 될까요?" in user
     assert build_sections(_FACTS)["reasons"] in user
@@ -222,6 +228,7 @@ def test_자료_부족_동네는_LLM을_부르지_않고_코드_첫_문장만_�
     events = list(interactor.run("1147058000", "snack", "저녁 장사 될까요?"))
 
     assert _deltas(events)["answer"] == scarce_lead(_SCARCE, scarcity(_SCARCE))
+    assert "answer_lead" not in _deltas(events)
     assert llm.calls == []
 
 
@@ -229,3 +236,32 @@ def test_정상_동네는_해석_끝에_대안_절_안내_문장이_붙는다():
     _, events = _run(FakeLLM([_ANSWER]))
 
     assert _deltas(events)["answer"] == f"{_ANSWER} {alternatives_pointer(_FACTS)}"
+
+
+def test_질문이_있으면_직접_답을_여섯_절보다_먼저_낸다():
+    _, events = _run(FakeLLM([_ANSWER]), question="은행 대출 받아서 차려도 될까요?")
+
+    sections = [e.payload["section"] for e in events if e.type == "report_delta"]
+    assert sections == ["answer_lead", *SECTION_TITLES, "answer"]
+    assert _deltas(events)["answer_lead"].startswith("[확인된 사실] 대출을 끼고 시작한다면 송정동 한식은 권하지 않습니다")
+
+
+def test_질문이_있으면_LLM에_유형과_직접_답을_주고_해석만_시킨다():
+    llm = FakeLLM([_ANSWER])
+    _run(llm, question="주말 손님 위주로 생각하고 있는데 어떨까요?")
+
+    messages = llm.calls[0][0]
+    assert messages[0]["content"] == QUESTION_SYSTEM_PROMPT
+    user = messages[1]["content"]
+    assert "질문 유형: 시간대" in user
+    assert user.index("[이미 화면에 나간 직접 답과 근거]") < user.index("[리포트 본문]")
+
+
+def test_질문이_있을_때_해석이_실패하면_위_답을_가리키는_문장으로_맺는다():
+    _, events = _run(FakeLLM([RuntimeError("down")]), question="여기서 한식당 차려도 괜찮을까요?")
+    assert _deltas(events)["answer"].startswith(LEAD_FALLBACK)
+
+
+def test_질문이_없으면_직접_답_절이_없다():
+    _, events = _run(FakeLLM([_ANSWER]))
+    assert "answer_lead" not in _deltas(events)
