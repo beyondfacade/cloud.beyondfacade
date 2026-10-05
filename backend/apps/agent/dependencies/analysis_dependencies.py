@@ -9,7 +9,9 @@ from collections.abc import Callable
 from apps.agent.adapter.outbound.gateways.event_analog_facts_gateway import (
     EventAnalogFactsGateway,
 )
+from apps.agent.adapter.outbound.gateways.finance_facts_gateway import FinanceFactsGateway
 from apps.agent.adapter.outbound.gateways.funding_facts_gateway import FundingFactsGateway
+from apps.agent.adapter.outbound.gateways.question_budget_gateway import QuestionBudgetGateway
 from apps.agent.adapter.outbound.gateways.region_facts_gateway import RegionFactsGateway
 from apps.agent.adapter.outbound.gateways.verdict_facts_gateway import VerdictFactsGateway
 from apps.agent.adapter.outbound.llm.fallback_llm_adapter import FallbackLLMAdapter
@@ -82,6 +84,8 @@ def build_analysis_use_case(model: str = "hybrid", budget: int | None = None) ->
         funding_facts=FundingFactsGateway(),
         news_search=get_rag_search_use_case(),
         analog_facts=EventAnalogFactsGateway(),
+        finance_facts=FinanceFactsGateway(),
+        question_budget=QuestionBudgetGateway(),
     )
     retry = _RETRY_REGISTRY.get(model)
     return AnalysisInteractor(

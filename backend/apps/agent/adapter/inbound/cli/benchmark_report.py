@@ -54,7 +54,9 @@ from apps.agent.adapter.inbound.cli.report_bench_scoring import (
     unscoped_number_lines,
 )
 from apps.agent.adapter.outbound.gateways.event_analog_facts_gateway import EventAnalogFactsGateway
+from apps.agent.adapter.outbound.gateways.finance_facts_gateway import FinanceFactsGateway
 from apps.agent.adapter.outbound.gateways.funding_facts_gateway import FundingFactsGateway
+from apps.agent.adapter.outbound.gateways.question_budget_gateway import QuestionBudgetGateway
 from apps.agent.adapter.outbound.gateways.region_facts_gateway import RegionFactsGateway
 from apps.agent.adapter.outbound.gateways.verdict_facts_gateway import VerdictFactsGateway
 from apps.agent.adapter.outbound.llm.gemini_llm_adapter import GeminiLLMAdapter
@@ -295,6 +297,8 @@ def _collector() -> tuple[ReportFactsCollector, RegionFactsGateway, object]:
         funding_facts=FundingFactsGateway(),
         news_search=rag_search,
         analog_facts=EventAnalogFactsGateway(),
+        finance_facts=FinanceFactsGateway(),
+        question_budget=QuestionBudgetGateway(),
     )
     return collector, region_facts, rag_search
 
