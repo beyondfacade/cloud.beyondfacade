@@ -15,7 +15,7 @@ from collections.abc import Callable, Iterable
 from itertools import combinations
 from statistics import mean
 
-from apps.agent.domain.services.report_guards import stated_grades
+from apps.agent.domain.services.report_guards import blank_names, stated_grades
 from apps.agent.domain.services.report_guards import verdict_matches, verdict_states_grade  # noqa: F401 — 벤치가 이 모듈 이름으로 쓴다
 from apps.agent.domain.services.section_stream import concat_sections
 
@@ -233,9 +233,7 @@ def unscoped_number_lines(markdown: str, scope_words: Iterable[str], names: Iter
     scope, names = tuple(scope_words), tuple(names)
     out: list[str] = []
     for line in markdown.splitlines():
-        text = _QUOTED.sub("", line)
-        for name in names:
-            text = text.replace(name, "")
+        text = blank_names(_QUOTED.sub("", line), names)
         if _tokens(text) and not any(word in line for word in scope):
             out.append(line)
     return out

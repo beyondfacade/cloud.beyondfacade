@@ -145,6 +145,16 @@ def test_그래도_한다면은_시간대_부족_이유와_상권_전체_기준�
     )
 
 
+def test_절_하나를_쓰다_예외가_나면_그_절만_자료_부족으로_쓴다():
+    change = {"available": True, "year_quarter": "20262", "change_name": "정체", "operating_months": 124.0,
+              "closed_months": 54.0, "seoul": {"operating_months": None, "closed_months": None}}
+
+    sections = build_sections({**_BASE, "commerce_change": change})
+
+    assert sections["conditions"].split("\n\n", 1)[1].startswith("[확인된 사실] 자료 부족 — ")
+    assert sections["verdict"] == build_sections(_BASE)["verdict"]
+
+
 def test_예산이_있으면_자금_계획_화면_안내를_한_줄_덧붙인다():
     body = _body("conditions", hour_gap={"available": False, "reason": "없음"}, profile={"available": False, "reason": "없음"},
                  commerce_change={"available": False, "reason": "없음"}, budget=50_000_000)

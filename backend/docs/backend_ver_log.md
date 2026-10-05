@@ -18,6 +18,9 @@
 
 ### Fixed
 - `FallbackLLMAdapter.chat`이 secondary(로컬) 호출 전에 `model_name`을 로컬 이름으로 바꾼다 — Gemini·로컬이 모두 실패해도 해석 재시도가 같은 로컬 모델을 다시 부르지 않는다(최악 약 270초 절약).
+- 해석 숫자 가드(`drop_digit_sentences`·`guard_answer`)가 분석 동·대안 동 이름(`names`)의 숫자는 세지 않는다 — "상도제1동"·"상계3.4동"만 언급한 문장이 지워지던 문제(평가 동 150곳 중 99곳에 숫자). 이름 지우기는 `blank_names`로 벤치 `unscoped_number_lines`와 공유. 저장된 150건 원문 재가드: 지운 문장 Gemini 106→20·gemma4 52→5, 첫 문장 삭제 81→1·48→4.
+- 해석 SYSTEM_PROMPT 응답 규칙 ②에서 "2020~2022년"을 빼고 숫자 없이 "코로나 재난지원 시기"로 — 모델이 연도를 따라 써 가드에 지워지지 않게.
+- `build_sections`가 절마다 예외를 격리 — 작성 함수가 예외를 내면(예: 서울 기준 영업 기간 None) 그 절만 "자료 부족" 줄로 쓰고 리포트(`report_done`)는 끝까지 나간다.
 
 ### Removed
 - 새 구조에서 쓰지 않는 리포트 코드 정리 — 리포트 도구 정의(`build_tools`·`AgentTool`·`compare_rent_vs_buy`, `agent_tools.py`에는 `hit_to_dict`만), finance 엔진 게이트웨이(`FinanceFactsGateway`·`FinanceFactsPort`)와 `RegionFactsPort.latest_rates`, LLM 절 폴백 포매터 `report_fallback.py`(정식 본문은 `report_sections.py`), 마커 분할기 `SectionSplitter`, 스트리밍 절 가드(`ReportGuard`·`LeadingTagGuard`·`disclaimer_suffix`·`guard_section`·`GUARD_EVENTS`)와 각 테스트. 판정 동의어·모순 검사·링크 제거·예상치 고지문은 남는다.

@@ -336,6 +336,14 @@ _WRITERS = {
 }
 
 
+def _write(name: str, facts: dict) -> str:
+    """절 하나 — 빈 값 등으로 작성 함수가 예외를 내면 그 절만 "자료 부족" 줄로 쓴다(리포트 전체를 끊지 않는다)."""
+    try:
+        return _WRITERS[name](facts)
+    except Exception:
+        return f"{FACT} {missing('일부 값이 비어 이 절을 쓰지 못함')}"
+
+
 def build_sections(facts: dict) -> dict[str, str]:
     """facts → {절 이름: 마크다운}. `SECTION_TITLES` 순서, 절마다 `### 제목` 머리 + 본문."""
-    return {name: f"### {title}\n\n{_WRITERS[name](facts)}" for name, title in SECTION_TITLES.items()}
+    return {name: f"### {title}\n\n{_write(name, facts)}" for name, title in SECTION_TITLES.items()}

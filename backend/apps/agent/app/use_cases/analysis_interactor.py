@@ -39,7 +39,7 @@ SYSTEM_PROMPT = """당신은 서울 창업 경고 리포트 맨 위의 "해석" 
 
 [응답 규칙]
 ① 외국인 관련 내용은 업종 타깃 정합성 문맥으로만 쓴다. 비하·차별 표현은 금지한다.
-② 2020~2022년 폐업률은 재난지원금·손실보상으로 폐업이 지연되어 왜곡되었을 수 있음을 감안한다.
+② 코로나 재난지원 시기(재난지원금·손실보상으로 폐업이 늦춰졌을 수 있는 해)의 폐업률은 왜곡됐을 수 있음을 감안한다.
 ③ 대출 중개와 특정 은행·상품 추천은 금지한다. 금리·한도를 말하면 "예상치"라고 밝힌다."""
 
 _NO_QUESTION = "질문 없음 — 이 동네에서 이 업종을 한다면 먼저 볼 것을 총평하라."
@@ -56,6 +56,13 @@ def answer_message(facts: dict, question: str | None, sections: dict[str, str]) 
             concat_sections(sections.items(), order=SECTION_TITLES),
         ]
     )
+
+
+def _region_names(facts: dict) -> list[str]:
+    """분석 동과 대안 동 이름 — 동 이름에 숫자가 든다("상계3.4동"). 해석 숫자 가드가 이 숫자는 세지 않는다."""
+    region = facts.get("region") or {}
+    regions = (facts.get("alternatives") or {}).get("regions") or []
+    return [n for n in (region.get("name"), *(r.get("region_name") for r in regions)) if n]
 
 
 def _news_citations(news: object) -> list[dict]:
@@ -123,8 +130,9 @@ class AnalysisInteractor(AnalysisUseCase):
             {"role": "system", "content": SYSTEM_PROMPT},
             {"role": "user", "content": answer_message(facts, question, sections)},
         ]
+        names = _region_names(facts)
         for llm in self._answer_models():
-            answer = self._attempt(llm, messages, facts.get("verdict"))
+            answer = self._attempt(llm, messages, facts.get("verdict"), names)
             if answer:
                 return answer
         return ANSWER_FALLBACK
@@ -138,7 +146,7 @@ class AnalysisInteractor(AnalysisUseCase):
         if self._retry_llm is not None and self._retry_llm.model_name != self._llm.model_name:
             yield self._retry_llm
 
-    def _attempt(self, llm: LLMGatewayPort, messages: list[dict], verdict: dict | None) -> str | None:
+    def _attempt(self, llm: LLMGatewayPort, messages: list[dict], verdict: dict | None, names: list[str]) -> str | None:
         """한 모델 1회 — 가드를 통과한 단락, 아니면 None. 시도마다 기록을 남긴다."""
         try:
             turn = llm.chat(messages, [])
@@ -147,7 +155,7 @@ class AnalysisInteractor(AnalysisUseCase):
             self.last_answer_attempts.append({"model": llm.model_name, "error": f"{type(error).__name__}: {error}"})
             return None
         self._accumulate(turn.usage)
-        guarded = guard_answer(turn.text, verdict)
+        guarded = guard_answer(turn.text, verdict, names)
         self.last_answer_attempts.append(
             {
                 "model": llm.model_name,

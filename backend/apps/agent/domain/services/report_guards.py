@@ -11,6 +11,7 @@ v0.68.0(리포트 코드 우선 구조)부터 LLM은 맨 위 해석(answer) 한 
 
 import re
 from collections import Counter
+from collections.abc import Iterable
 from dataclasses import dataclass
 
 # ── 판정 등급 동의어 (벤치 채점과 같은 단일 원천) ──────────────────
@@ -266,10 +267,21 @@ _SENTENCE_END = re.compile(r"(?<=[.!?])\s+")
 _DIGIT = re.compile(r"\d")
 
 
-def drop_digit_sentences(text: str) -> tuple[str, int]:
-    """숫자가 든 문장을 통째로 지운다 — (남은 단락, 지운 문장 수). 숫자는 본문 6개 절이 범위와 함께 보여 준다."""
+def blank_names(text: str, names: Iterable[str]) -> str:
+    """이름을 지운 글 — 숫자가 든 동 이름("상계3.4동")은 숫자 주장이 아니므로 숫자를 세기 전에 뺀다."""
+    for name in names:
+        text = text.replace(name, "")
+    return text
+
+
+def drop_digit_sentences(text: str, names: Iterable[str] = ()) -> tuple[str, int]:
+    """숫자가 든 문장을 통째로 지운다 — (남은 단락, 지운 문장 수). 숫자는 본문 6개 절이 범위와 함께 보여 준다.
+
+    `names`(분석 동·대안 동 이름)에 든 숫자는 세지 않는다.
+    """
+    names = tuple(names)
     sentences = [s for s in _SENTENCE_END.split(text.strip()) if s]
-    kept = [s for s in sentences if not _DIGIT.search(s)]
+    kept = [s for s in sentences if not _DIGIT.search(blank_names(s, names))]
     return " ".join(kept), len(sentences) - len(kept)
 
 
@@ -288,13 +300,13 @@ class GuardedAnswer:
         return self.contradiction is None and bool(self.text)
 
 
-def guard_answer(raw: str, verdict_facts: dict | None) -> GuardedAnswer:
-    """해석 단락 통째 가드 — 링크·공고 번호 제거 → 판정 모순 검사 → 숫자 문장 삭제.
+def guard_answer(raw: str, verdict_facts: dict | None, names: Iterable[str] = ()) -> GuardedAnswer:
+    """해석 단락 통째 가드 — 링크·공고 번호 제거 → 판정 모순 검사 → 숫자 문장 삭제(`names` 속 숫자는 제외).
 
     모순은 단락 전체의 실패다(다음 모델로 넘긴다). 스트리밍하지 않으므로 끝까지 모은 글에 한 번 건다.
     """
     links = UrlStripper()
     text = links.feed(raw) + links.flush()
     contradiction = verdict_contradiction(text, verdict_facts)
-    kept, removed = drop_digit_sentences(text)
+    kept, removed = drop_digit_sentences(text, names)
     return GuardedAnswer(kept, removed, links.events["links_stripped"], contradiction)

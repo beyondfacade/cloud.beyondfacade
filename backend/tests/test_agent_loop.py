@@ -51,11 +51,11 @@ class FakeLLM(LLMGatewayPort):
 class FakeFactsCollector(ReportFactsCollector):
     """수집 결과를 고정하는 대역 (포트 조립 없이)."""
 
-    def __init__(self) -> None:
-        pass
+    def __init__(self, facts: dict | None = None) -> None:
+        self._fixed = facts or _FACTS
 
     def collect(self, region, industry, budget=None, question=None) -> dict:
-        return _FACTS
+        return self._fixed
 
 
 def _run(llm, question=None, retry_llm=None) -> tuple[AnalysisInteractor, list[AgentEvent]]:
@@ -113,6 +113,20 @@ def test_숫자가_든_문장은_해석에서_지운다():
     _, events = _run(FakeLLM(["폐업이 개업보다 많습니다. 폐업률은 31%입니다. 대안 업종을 먼저 보세요."]))
 
     assert _deltas(events)["answer"] == "폐업이 개업보다 많습니다. 대안 업종을 먼저 보세요."
+
+
+def test_분석_동과_대안_동_이름의_숫자는_해석에서_지우지_않는다():
+    facts = {
+        **_FACTS,
+        "region": {**_FACTS["region"], "name": "상계3.4동"},
+        "alternatives": {**_FACTS["alternatives"], "regions": [{"region_name": "휘경제1동", "verdict_code": "clear"}]},
+    }
+    interactor = AnalysisInteractor(llm=FakeLLM(["상계3.4동 한식은 폐업이 많습니다. 휘경제1동을 먼저 보세요. 폐업률은 31%입니다."]),
+                                     facts=FakeFactsCollector(facts))
+
+    events = list(interactor.run("1135067000", "korean_food", None))
+
+    assert _deltas(events)["answer"] == "상계3.4동 한식은 폐업이 많습니다. 휘경제1동을 먼저 보세요."
 
 
 def test_판정과_모순되면_다음_모델이_다시_쓴다():
@@ -175,6 +189,12 @@ def test_인용은_사실_묶음의_뉴스로_만든다():
 def test_시스템_프롬프트가_숫자와_등급_변경과_추정을_금지한다():
     for phrase in ("3~5문장", "숫자를 쓰지 않는다", "판정 등급을 바꾸거나", "자료가 부족해 판단할 수 없다", "대출 중개"):
         assert phrase in SYSTEM_PROMPT
+
+
+def test_응답_규칙_2는_숫자_없이_재난지원_시기를_말한다():
+    rule = next(line for line in SYSTEM_PROMPT.splitlines() if line.startswith("②"))
+
+    assert "코로나 재난지원 시기" in rule and not any(ch.isdigit() for ch in rule[1:])
 
 
 def test_운영_hybrid만_로컬_재시도를_붙인다():
