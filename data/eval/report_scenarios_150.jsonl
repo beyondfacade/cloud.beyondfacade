@@ -1,0 +1,150 @@
+{"id": "e001", "region_code": "1120072000", "industry_id": "korean_food", "question": null, "tags": ["red", "from:s01"]}
+{"id": "e002", "region_code": "1135056000", "industry_id": "billiard", "question": null, "tags": ["red", "from:s02"]}
+{"id": "e003", "region_code": "1129057500", "industry_id": "snack", "question": null, "tags": ["orange", "from:s03"]}
+{"id": "e004", "region_code": "1138063100", "industry_id": "korean_food", "question": null, "tags": ["orange", "from:s04"]}
+{"id": "e005", "region_code": "1123061000", "industry_id": "cafe", "question": null, "tags": ["clear", "from:s05"]}
+{"id": "e006", "region_code": "1130566000", "industry_id": "karaoke", "question": null, "tags": ["clear", "from:s06"]}
+{"id": "e007", "region_code": "1147058000", "industry_id": "snack", "question": null, "tags": ["insufficient", "from:s07"]}
+{"id": "e008", "region_code": "1156067000", "industry_id": "billiard", "question": null, "tags": ["insufficient", "from:s08"]}
+{"id": "e009", "region_code": "1126057500", "industry_id": "convenience_store", "question": null, "tags": ["partial", "convenience_store", "from:s09"]}
+{"id": "e010", "region_code": "1159051000", "industry_id": "childcare", "question": null, "tags": ["partial", "childcare", "from:s10"]}
+{"id": "e011", "region_code": "1165057000", "industry_id": "cafe", "question": "은행 대출 받아서 차려도 될까요?", "tags": ["red", "finance_rule", "finance_tool", "from:s11"]}
+{"id": "e012", "region_code": "1162066500", "industry_id": "snack", "question": "외국인이 많은 동네인데 괜찮을까요?", "tags": ["orange", "discrimination_rule", "from:s12"]}
+{"id": "e013", "region_code": "1117062500", "industry_id": "cafe", "question": "여기서 카페 차려도 괜찮을까요?", "tags": ["red", "q:general"]}
+{"id": "e014", "region_code": "1144071000", "industry_id": "chinese_food", "question": "보증금 포함 1억 원 정도 있는데 여기서 중국집 가능할까요?", "tags": ["red", "q:budget"]}
+{"id": "e015", "region_code": "1126059000", "industry_id": "hair_salon", "question": "저녁 장사 위주로 미용실 하려는데요, 여기 어떨까요?", "tags": ["red", "q:time"]}
+{"id": "e016", "region_code": "1117062500", "industry_id": "japanese_food", "question": null, "tags": ["red", "q:none"]}
+{"id": "e017", "region_code": "1153059500", "industry_id": "karaoke", "question": null, "tags": ["red", "q:none"]}
+{"id": "e018", "region_code": "1162062500", "industry_id": "korean_food", "question": null, "tags": ["red", "q:none"]}
+{"id": "e019", "region_code": "1162069500", "industry_id": "pc_bang", "question": "근처에 PC방 이미 많은 것 같은데 들어가도 될까요?", "tags": ["red", "q:competition"]}
+{"id": "e020", "region_code": "1135060000", "industry_id": "pub", "question": null, "tags": ["red", "q:none"]}
+{"id": "e021", "region_code": "1120069000", "industry_id": "snack", "question": null, "tags": ["red", "q:none"]}
+{"id": "e022", "region_code": "1168065000", "industry_id": "western_food", "question": "이 동네에 양식집 열면 어떨까요?", "tags": ["red", "q:general"]}
+{"id": "e023", "region_code": "1121584000", "industry_id": "cafe", "question": null, "tags": ["red", "q:none"]}
+{"id": "e024", "region_code": "1121584700", "industry_id": "chinese_food", "question": null, "tags": ["red", "q:none"]}
+{"id": "e025", "region_code": "1150060300", "industry_id": "hair_salon", "question": "모아 둔 돈이 5천만 원 정도인데 이 동네에서 미용실 시작할 수 있을까요?", "tags": ["red", "q:budget"]}
+{"id": "e026", "region_code": "1138055100", "industry_id": "karaoke", "question": "점심시간 손님을 주로 보려는데 이 동네 괜찮을까요?", "tags": ["red", "q:time"]}
+{"id": "e027", "region_code": "1174059000", "industry_id": "korean_food", "question": "주변에 한식당 벌써 여러 곳 있던데 괜찮을까요?", "tags": ["red", "q:competition"]}
+{"id": "e028", "region_code": "1114054000", "industry_id": "pub", "question": "술집 창업을 생각 중인데 여기 괜찮은 자리일까요?", "tags": ["red", "q:general"]}
+{"id": "e029", "region_code": "1147065000", "industry_id": "snack", "question": null, "tags": ["red", "q:none"]}
+{"id": "e030", "region_code": "1135056000", "industry_id": "western_food", "question": "보증금 포함 1억 5천만 원 정도 있는데 여기서 양식집 가능할까요?", "tags": ["red", "q:budget"]}
+{"id": "e031", "region_code": "1156054000", "industry_id": "cafe", "question": "밤늦게까지 문을 열 생각인데 여기 괜찮을까요?", "tags": ["red", "q:time"]}
+{"id": "e032", "region_code": "1168053100", "industry_id": "chinese_food", "question": null, "tags": ["red", "q:none"]}
+{"id": "e033", "region_code": "1144066000", "industry_id": "hair_salon", "question": null, "tags": ["red", "q:none"]}
+{"id": "e034", "region_code": "1121571000", "industry_id": "karaoke", "question": null, "tags": ["red", "q:none"]}
+{"id": "e035", "region_code": "1130566000", "industry_id": "korean_food", "question": "경쟁 가게가 많은 동네라던데 한식당 해도 될까요?", "tags": ["red", "q:competition"]}
+{"id": "e036", "region_code": "1171065000", "industry_id": "pub", "question": null, "tags": ["red", "q:none"]}
+{"id": "e037", "region_code": "1144066000", "industry_id": "snack", "question": null, "tags": ["red", "q:none"]}
+{"id": "e038", "region_code": "1114059000", "industry_id": "western_food", "question": null, "tags": ["red", "q:none"]}
+{"id": "e039", "region_code": "1165058100", "industry_id": "cafe", "question": "여기서 카페 차려도 괜찮을까요?", "tags": ["red", "q:general"]}
+{"id": "e040", "region_code": "1117065000", "industry_id": "chinese_food", "question": null, "tags": ["red", "q:none"]}
+{"id": "e041", "region_code": "1120069000", "industry_id": "hair_salon", "question": "모아 둔 돈이 7천만 원 정도인데 이 동네에서 미용실 시작할 수 있을까요?", "tags": ["red", "q:budget"]}
+{"id": "e042", "region_code": "1132051500", "industry_id": "korean_food", "question": null, "tags": ["red", "q:none"]}
+{"id": "e043", "region_code": "1150057000", "industry_id": "western_food", "question": "주말 손님 위주로 생각하고 있는데 어떨까요?", "tags": ["red", "q:time"]}
+{"id": "e044", "region_code": "1129059000", "industry_id": "cafe", "question": null, "tags": ["red", "q:none"]}
+{"id": "e045", "region_code": "1156055000", "industry_id": "hair_salon", "question": null, "tags": ["red", "q:none"]}
+{"id": "e046", "region_code": "1147068000", "industry_id": "korean_food", "question": "근처에 한식당 이미 많은 것 같은데 들어가도 될까요?", "tags": ["red", "q:competition"]}
+{"id": "e047", "region_code": "1162059500", "industry_id": "western_food", "question": "이 동네에 양식집 열면 어떨까요?", "tags": ["red", "q:general"]}
+{"id": "e048", "region_code": "1141058500", "industry_id": "cafe", "question": "보증금 포함 2억 원 정도 있는데 여기서 카페 가능할까요?", "tags": ["red", "q:budget"]}
+{"id": "e049", "region_code": "1165065200", "industry_id": "billiard", "question": null, "tags": ["orange", "q:none"]}
+{"id": "e050", "region_code": "1168065600", "industry_id": "cafe", "question": "저녁 장사 위주로 카페 하려는데요, 여기 어떨까요?", "tags": ["orange", "q:time"]}
+{"id": "e051", "region_code": "1120067000", "industry_id": "chinese_food", "question": null, "tags": ["orange", "q:none"]}
+{"id": "e052", "region_code": "1144065500", "industry_id": "gym", "question": null, "tags": ["orange", "q:none"]}
+{"id": "e053", "region_code": "1156068000", "industry_id": "hair_salon", "question": null, "tags": ["orange", "q:none"]}
+{"id": "e054", "region_code": "1162062500", "industry_id": "japanese_food", "question": null, "tags": ["orange", "q:none"]}
+{"id": "e055", "region_code": "1147054000", "industry_id": "karaoke", "question": "주변에 노래방 벌써 여러 곳 있던데 괜찮을까요?", "tags": ["orange", "q:competition"]}
+{"id": "e056", "region_code": "1130562500", "industry_id": "korean_food", "question": null, "tags": ["orange", "q:none"]}
+{"id": "e057", "region_code": "1153054000", "industry_id": "pc_bang", "question": null, "tags": ["orange", "q:none"]}
+{"id": "e058", "region_code": "1171058000", "industry_id": "pub", "question": "술집 창업을 생각 중인데 여기 괜찮은 자리일까요?", "tags": ["orange", "q:general"]}
+{"id": "e059", "region_code": "1121571000", "industry_id": "snack", "question": null, "tags": ["orange", "q:none"]}
+{"id": "e060", "region_code": "1117065000", "industry_id": "western_food", "question": null, "tags": ["orange", "q:none"]}
+{"id": "e061", "region_code": "1132051500", "industry_id": "billiard", "question": null, "tags": ["orange", "q:none"]}
+{"id": "e062", "region_code": "1111060000", "industry_id": "cafe", "question": null, "tags": ["orange", "q:none"]}
+{"id": "e063", "region_code": "1150059100", "industry_id": "chinese_food", "question": null, "tags": ["orange", "q:none"]}
+{"id": "e064", "region_code": "1135059500", "industry_id": "gym", "question": "모아 둔 돈이 3천만 원 정도인데 이 동네에서 헬스장 시작할 수 있을까요?", "tags": ["orange", "q:budget"]}
+{"id": "e065", "region_code": "1123073000", "industry_id": "hair_salon", "question": null, "tags": ["orange", "q:none"]}
+{"id": "e066", "region_code": "1159062000", "industry_id": "japanese_food", "question": "점심시간 손님을 주로 보려는데 이 동네 괜찮을까요?", "tags": ["orange", "q:time"]}
+{"id": "e067", "region_code": "1141058500", "industry_id": "karaoke", "question": "경쟁 가게가 많은 동네라던데 노래방 해도 될까요?", "tags": ["orange", "q:competition"]}
+{"id": "e068", "region_code": "1138060000", "industry_id": "korean_food", "question": "여기서 한식당 차려도 괜찮을까요?", "tags": ["orange", "q:general"]}
+{"id": "e069", "region_code": "1154561000", "industry_id": "pc_bang", "question": null, "tags": ["orange", "q:none"]}
+{"id": "e070", "region_code": "1129077000", "industry_id": "pub", "question": "보증금 포함 3억 원 정도 있는데 여기서 술집 가능할까요?", "tags": ["orange", "q:budget"]}
+{"id": "e071", "region_code": "1174062000", "industry_id": "snack", "question": null, "tags": ["orange", "q:none"]}
+{"id": "e072", "region_code": "1114060500", "industry_id": "western_food", "question": "밤늦게까지 문을 열 생각인데 여기 괜찮을까요?", "tags": ["orange", "q:time"]}
+{"id": "e073", "region_code": "1126059000", "industry_id": "billiard", "question": "근처에 당구장 이미 많은 것 같은데 들어가도 될까요?", "tags": ["orange", "q:competition"]}
+{"id": "e074", "region_code": "1159065000", "industry_id": "cafe", "question": "이 동네에 카페 열면 어떨까요?", "tags": ["orange", "q:general"]}
+{"id": "e075", "region_code": "1168061000", "industry_id": "chinese_food", "question": null, "tags": ["orange", "q:none"]}
+{"id": "e076", "region_code": "1165051000", "industry_id": "gym", "question": "모아 둔 돈이 1억 원 정도인데 이 동네에서 헬스장 시작할 수 있을까요?", "tags": ["orange", "q:budget"]}
+{"id": "e077", "region_code": "1156072000", "industry_id": "hair_salon", "question": "주말 손님 위주로 생각하고 있는데 어떨까요?", "tags": ["orange", "q:time"]}
+{"id": "e078", "region_code": "1120079000", "industry_id": "japanese_food", "question": null, "tags": ["orange", "q:none"]}
+{"id": "e079", "region_code": "1162065500", "industry_id": "karaoke", "question": "주변에 노래방 벌써 여러 곳 있던데 괜찮을까요?", "tags": ["orange", "q:competition"]}
+{"id": "e080", "region_code": "1174053000", "industry_id": "korean_food", "question": "한식당 창업을 생각 중인데 여기 괜찮은 자리일까요?", "tags": ["orange", "q:general"]}
+{"id": "e081", "region_code": "1130562500", "industry_id": "pc_bang", "question": "보증금 포함 5천만 원 정도 있는데 여기서 PC방 가능할까요?", "tags": ["orange", "q:budget"]}
+{"id": "e082", "region_code": "1144055500", "industry_id": "pub", "question": "저녁 장사 위주로 술집 하려는데요, 여기 어떨까요?", "tags": ["orange", "q:time"]}
+{"id": "e083", "region_code": "1141061500", "industry_id": "snack", "question": "경쟁 가게가 많은 동네라던데 분식집 해도 될까요?", "tags": ["orange", "q:competition"]}
+{"id": "e084", "region_code": "1135059500", "industry_id": "western_food", "question": null, "tags": ["orange", "q:none"]}
+{"id": "e085", "region_code": "1159053000", "industry_id": "billiard", "question": null, "tags": ["clear", "q:none"]}
+{"id": "e086", "region_code": "1162054500", "industry_id": "cafe", "question": null, "tags": ["clear", "q:none"]}
+{"id": "e087", "region_code": "1123065000", "industry_id": "chinese_food", "question": "여기서 중국집 차려도 괜찮을까요?", "tags": ["clear", "q:general"]}
+{"id": "e088", "region_code": "1171063200", "industry_id": "gym", "question": null, "tags": ["clear", "q:none"]}
+{"id": "e089", "region_code": "1130562500", "industry_id": "hair_salon", "question": null, "tags": ["clear", "q:none"]}
+{"id": "e090", "region_code": "1147062000", "industry_id": "japanese_food", "question": "모아 둔 돈이 1억 5천만 원 정도인데 이 동네에서 일식집 시작할 수 있을까요?", "tags": ["clear", "q:budget"]}
+{"id": "e091", "region_code": "1154562000", "industry_id": "karaoke", "question": "점심시간 손님을 주로 보려는데 이 동네 괜찮을까요?", "tags": ["clear", "q:time"]}
+{"id": "e092", "region_code": "1156051500", "industry_id": "korean_food", "question": "근처에 한식당 이미 많은 것 같은데 들어가도 될까요?", "tags": ["clear", "q:competition"]}
+{"id": "e093", "region_code": "1135060000", "industry_id": "pc_bang", "question": "이 동네에 PC방 열면 어떨까요?", "tags": ["clear", "q:general"]}
+{"id": "e094", "region_code": "1153079000", "industry_id": "pub", "question": null, "tags": ["clear", "q:none"]}
+{"id": "e095", "region_code": "1174056000", "industry_id": "snack", "question": "보증금 포함 7천만 원 정도 있는데 여기서 분식집 가능할까요?", "tags": ["clear", "q:budget"]}
+{"id": "e096", "region_code": "1129070500", "industry_id": "western_food", "question": null, "tags": ["clear", "q:none"]}
+{"id": "e097", "region_code": "1150054000", "industry_id": "billiard", "question": "밤늦게까지 문을 열 생각인데 여기 괜찮을까요?", "tags": ["clear", "q:time"]}
+{"id": "e098", "region_code": "1114063500", "industry_id": "cafe", "question": "주변에 카페 벌써 여러 곳 있던데 괜찮을까요?", "tags": ["clear", "q:competition"]}
+{"id": "e099", "region_code": "1121587000", "industry_id": "chinese_food", "question": null, "tags": ["clear", "q:none"]}
+{"id": "e100", "region_code": "1168065600", "industry_id": "gym", "question": "헬스장 창업을 생각 중인데 여기 괜찮은 자리일까요?", "tags": ["clear", "q:general"]}
+{"id": "e101", "region_code": "1126061000", "industry_id": "hair_salon", "question": null, "tags": ["clear", "q:none"]}
+{"id": "e102", "region_code": "1144055500", "industry_id": "japanese_food", "question": "모아 둔 돈이 2억 원 정도인데 이 동네에서 일식집 시작할 수 있을까요?", "tags": ["clear", "q:budget"]}
+{"id": "e103", "region_code": "1120053500", "industry_id": "karaoke", "question": null, "tags": ["clear", "q:none"]}
+{"id": "e104", "region_code": "1111056000", "industry_id": "korean_food", "question": "주말 손님 위주로 생각하고 있는데 어떨까요?", "tags": ["clear", "q:time"]}
+{"id": "e105", "region_code": "1132067000", "industry_id": "pc_bang", "question": null, "tags": ["clear", "q:none"]}
+{"id": "e106", "region_code": "1165053100", "industry_id": "pub", "question": "경쟁 가게가 많은 동네라던데 술집 해도 될까요?", "tags": ["clear", "q:competition"]}
+{"id": "e107", "region_code": "1138063100", "industry_id": "snack", "question": null, "tags": ["clear", "q:none"]}
+{"id": "e108", "region_code": "1141068500", "industry_id": "western_food", "question": "여기서 양식집 차려도 괜찮을까요?", "tags": ["clear", "q:general"]}
+{"id": "e109", "region_code": "1129070500", "industry_id": "billiard", "question": null, "tags": ["clear", "q:none"]}
+{"id": "e110", "region_code": "1117070000", "industry_id": "cafe", "question": null, "tags": ["clear", "q:none"]}
+{"id": "e111", "region_code": "1162068500", "industry_id": "chinese_food", "question": "보증금 포함 3천만 원 정도 있는데 여기서 중국집 가능할까요?", "tags": ["clear", "q:budget"]}
+{"id": "e112", "region_code": "1174057000", "industry_id": "gym", "question": null, "tags": ["clear", "q:none"]}
+{"id": "e113", "region_code": "1171069000", "industry_id": "hair_salon", "question": null, "tags": ["clear", "q:none"]}
+{"id": "e114", "region_code": "1126061000", "industry_id": "japanese_food", "question": "저녁 장사 위주로 일식집 하려는데요, 여기 어떨까요?", "tags": ["clear", "q:time"]}
+{"id": "e115", "region_code": "1156071000", "industry_id": "billiard", "question": "근처에 당구장 이미 많은 것 같은데 들어가도 될까요?", "tags": ["insufficient", "q:competition"]}
+{"id": "e116", "region_code": "1174069000", "industry_id": "cafe", "question": null, "tags": ["insufficient", "q:none"]}
+{"id": "e117", "region_code": "1159065000", "industry_id": "chinese_food", "question": "이 동네에 중국집 열면 어떨까요?", "tags": ["insufficient", "q:general"]}
+{"id": "e118", "region_code": "1147060000", "industry_id": "gym", "question": "모아 둔 돈이 3억 원 정도인데 이 동네에서 헬스장 시작할 수 있을까요?", "tags": ["insufficient", "q:budget"]}
+{"id": "e119", "region_code": "1117064000", "industry_id": "hair_salon", "question": null, "tags": ["insufficient", "q:none"]}
+{"id": "e120", "region_code": "1135061200", "industry_id": "japanese_food", "question": "점심시간 손님을 주로 보려는데 이 동네 괜찮을까요?", "tags": ["insufficient", "q:time"]}
+{"id": "e121", "region_code": "1129066000", "industry_id": "karaoke", "question": "주변에 노래방 벌써 여러 곳 있던데 괜찮을까요?", "tags": ["insufficient", "q:competition"]}
+{"id": "e122", "region_code": "1154568000", "industry_id": "korean_food", "question": null, "tags": ["insufficient", "q:none"]}
+{"id": "e123", "region_code": "1144059000", "industry_id": "pc_bang", "question": "PC방 창업을 생각 중인데 여기 괜찮은 자리일까요?", "tags": ["insufficient", "q:general"]}
+{"id": "e124", "region_code": "1130560300", "industry_id": "pub", "question": "보증금 포함 1억 원 정도 있는데 여기서 술집 가능할까요?", "tags": ["insufficient", "q:budget"]}
+{"id": "e125", "region_code": "1123073000", "industry_id": "snack", "question": null, "tags": ["insufficient", "q:none"]}
+{"id": "e126", "region_code": "1165055000", "industry_id": "western_food", "question": "밤늦게까지 문을 열 생각인데 여기 괜찮을까요?", "tags": ["insufficient", "q:time"]}
+{"id": "e127", "region_code": "1153078000", "industry_id": "billiard", "question": "경쟁 가게가 많은 동네라던데 당구장 해도 될까요?", "tags": ["insufficient", "q:competition"]}
+{"id": "e128", "region_code": "1111069000", "industry_id": "cafe", "question": "여기서 카페 차려도 괜찮을까요?", "tags": ["insufficient", "q:general"]}
+{"id": "e129", "region_code": "1114063500", "industry_id": "chinese_food", "question": null, "tags": ["insufficient", "q:none"]}
+{"id": "e130", "region_code": "1138059000", "industry_id": "gym", "question": null, "tags": ["insufficient", "q:none"]}
+{"id": "e131", "region_code": "1168066000", "industry_id": "hair_salon", "question": null, "tags": ["insufficient", "q:none"]}
+{"id": "e132", "region_code": "1141069000", "industry_id": "japanese_food", "question": null, "tags": ["insufficient", "q:none"]}
+{"id": "e133", "region_code": "1132066000", "industry_id": "karaoke", "question": null, "tags": ["insufficient", "q:none"]}
+{"id": "e134", "region_code": "1171072000", "industry_id": "korean_food", "question": "모아 둔 돈이 5천만 원 정도인데 이 동네에서 한식당 시작할 수 있을까요?", "tags": ["insufficient", "q:budget"]}
+{"id": "e135", "region_code": "1121574000", "industry_id": "pc_bang", "question": null, "tags": ["insufficient", "q:none"]}
+{"id": "e136", "region_code": "1120072000", "industry_id": "pub", "question": null, "tags": ["insufficient", "q:none"]}
+{"id": "e137", "region_code": "1150064100", "industry_id": "snack", "question": null, "tags": ["insufficient", "q:none"]}
+{"id": "e138", "region_code": "1162063000", "industry_id": "western_food", "question": "주말 손님 위주로 생각하고 있는데 어떨까요?", "tags": ["insufficient", "q:time"]}
+{"id": "e139", "region_code": "1162058500", "industry_id": "hair_salon", "question": "대출 끼고 시작해도 될까요?", "tags": ["red", "finance_rule"]}
+{"id": "e140", "region_code": "1154564000", "industry_id": "karaoke", "question": "은행 대출로 보증금이랑 인테리어 비용을 마련하려는데 괜찮을까요?", "tags": ["orange", "finance_rule"]}
+{"id": "e141", "region_code": "1168069000", "industry_id": "snack", "question": "모자란 돈은 대출로 메우려는데 무리일까요?", "tags": ["clear", "finance_rule"]}
+{"id": "e142", "region_code": "1141052000", "industry_id": "pc_bang", "question": "중국인 손님이 많다던데 괜찮을까요?", "tags": ["insufficient", "discrimination_rule"]}
+{"id": "e143", "region_code": "1144073000", "industry_id": "korean_food", "question": "외국인 주민이 많이 사는 동네라던데 장사가 될까요?", "tags": ["red", "discrimination_rule"]}
+{"id": "e144", "region_code": "1138058000", "industry_id": "japanese_food", "question": "어르신들이 많이 사는 동네라던데 괜찮을까요?", "tags": ["orange", "discrimination_rule"]}
+{"id": "e145", "region_code": "1123072000", "industry_id": "korean_food", "question": "코로나 때 폐업 많았던 동네라던데 괜찮을까요?", "tags": ["clear", "disaster_rule"]}
+{"id": "e146", "region_code": "1159065100", "industry_id": "japanese_food", "question": "코로나 시기에 가게들이 많이 문 닫은 곳이라던데 지금은 어떨까요?", "tags": ["insufficient", "disaster_rule"]}
+{"id": "e147", "region_code": "1120054000", "industry_id": "convenience_store", "question": null, "tags": ["partial", "convenience_store"]}
+{"id": "e148", "region_code": "1165059000", "industry_id": "convenience_store", "question": null, "tags": ["partial", "convenience_store"]}
+{"id": "e149", "region_code": "1114064500", "industry_id": "childcare", "question": null, "tags": ["partial", "childcare"]}
+{"id": "e150", "region_code": "1174059000", "industry_id": "childcare", "question": null, "tags": ["partial", "childcare"]}
