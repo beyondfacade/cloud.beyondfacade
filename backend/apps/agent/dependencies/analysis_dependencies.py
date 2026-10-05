@@ -27,7 +27,7 @@ from apps.agent.domain.services.report_sampling import REPORT_SEED, REPORT_TEMPE
 from apps.rag.dependencies.rag_dependencies import get_rag_search_use_case
 
 # 로컬 폴백 컨텍스트 길이 — num_ctx를 안 주면 Ollama 0.31.2 기본값이 입력을 약 2k 토큰에서 잘라 읽는다.
-# 리포트 첫 턴 프롬프트는 도구 포함 최대 14.1k 토큰이라 32768로 올린다(벤치 2026-10-05, bge-m3와 동시 상주 9.8GB 실측).
+# 해석 입력(사실 묶음 요약)은 약 2천 자지만 여유를 두어 32768로 올린다(벤치 2026-10-05, bge-m3와 동시 상주 9.8GB 실측).
 # ops/adapter/outbound/gateways/llm_chain_gateway.py 의 FALLBACK_NUM_CTX 와 같아야 한다(테스트가 고정)
 _LOCAL_NUM_CTX = 32768
 

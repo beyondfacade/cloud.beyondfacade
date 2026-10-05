@@ -19,6 +19,7 @@
 - `FallbackLLMAdapter.chat`이 secondary(로컬) 호출 전에 `model_name`을 로컬 이름으로 바꾼다 — Gemini·로컬이 모두 실패해도 해석 재시도가 같은 로컬 모델을 다시 부르지 않는다(최악 약 270초 절약).
 
 ### Removed
+- 새 구조에서 쓰지 않는 리포트 코드 정리 — 리포트 도구 정의(`build_tools`·`AgentTool`·`compare_rent_vs_buy`, `agent_tools.py`에는 `hit_to_dict`만), finance 엔진 게이트웨이(`FinanceFactsGateway`·`FinanceFactsPort`)와 `RegionFactsPort.latest_rates`, LLM 절 폴백 포매터 `report_fallback.py`(정식 본문은 `report_sections.py`), 마커 분할기 `SectionSplitter`, 스트리밍 절 가드(`ReportGuard`·`LeadingTagGuard`·`disclaimer_suffix`·`guard_section`·`GUARD_EVENTS`)와 각 테스트. 판정 동의어·모순 검사·링크 제거·예상치 고지문은 남는다.
 - 리포트 경로의 도구 루프(턴 한도·벽시계 예산·`_FINAL_REQUEST`·도구 인자 검사·재프롬프트·도구 인용·스테이지 개폐) — 평가 252회에서 도구 호출 0회였고 자금 계획은 별도 화면이다. 옛 6개 절 시스템 프롬프트와 LLM 절 폴백(`_fallback_section`·`guarded_fallback_section`)도 함께.
 
 ## [v0.67.2] - 2026-10-05

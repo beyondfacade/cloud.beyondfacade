@@ -10,7 +10,6 @@ import httpx
 from apps.agent.adapter.outbound.llm import gemini_llm_adapter
 from apps.agent.adapter.outbound.llm.gemini_llm_adapter import GeminiLLMAdapter
 from apps.agent.adapter.outbound.llm.ollama_llm_adapter import OllamaLLMAdapter
-from apps.agent.app.use_cases.agent_tools import build_tools
 from apps.agent.dependencies import analysis_dependencies
 from apps.agent.domain.services.report_sampling import REPORT_SEED, REPORT_TEMPERATURE
 from apps.ops.adapter.outbound.gateways import probe_gateways
@@ -127,11 +126,3 @@ def test_운영_점검_프로브도_리포트와_같은_샘플링을_쓴다(monk
 
     assert (models.configs[0].temperature, models.configs[0].seed) == (REPORT_TEMPERATURE, REPORT_SEED)
     assert body["options"]["seed"] == REPORT_SEED and body["options"]["temperature"] == REPORT_TEMPERATURE
-
-
-def test_대출_금리_도구_설명에_예시값이_없다():
-    """Gemini가 예시값 0.0405를 "현재 금리 4.05%"로 옮겨 썼다 — 단위 설명(비율)만 남긴다."""
-    finance = next(t for t in build_tools(None, None, None, None) if t.spec.name == "run_finance_simulation")
-    description = finance.spec.input_schema["properties"]["loan_rate"]["description"]
-
-    assert "0.0405" not in description and "비율" in description

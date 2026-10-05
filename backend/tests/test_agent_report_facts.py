@@ -60,9 +60,6 @@ class FakeRegionFacts(RegionFactsPort):
             return []  # 한식처럼 원천에 업종 영향 행이 없는 업종
         return [{"event_id": "E1", "name": "재난지원금", "limit_seen": limit}]
 
-    def latest_rates(self) -> dict:
-        return {"loan_facility": 4.05}
-
     def neighborhood_profile(self, region_code: str) -> dict:
         self._guard("neighborhood_profile")
         return {

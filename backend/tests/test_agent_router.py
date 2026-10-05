@@ -176,7 +176,7 @@ def test_음수_예산은_422로_거절된다():
 
 
 def test_SSE_배선은_pending_예산을_UseCase_생성에_넘긴다(monkeypatch):
-    """budget이 build_analysis_use_case까지 실제로 흘러야 finance 도구 기본값이 된다 (설계서 §5-2)."""
+    """budget이 build_analysis_use_case까지 실제로 흘러야 facts.budget이 된다 (설계서 §5-2)."""
     from apps.agent.adapter.inbound.api.v1 import analysis_router
     from apps.agent.dependencies.analysis_dependencies import get_analysis_repository
 

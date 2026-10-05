@@ -88,10 +88,6 @@ class RegionFactsPort(ABC):
         """업종 필터(선택) 충격 이벤트 목록."""
 
     @abstractmethod
-    def latest_rates(self) -> dict:
-        """금리 유형별 최신값 (키에 loan_facility 포함)."""
-
-    @abstractmethod
     def neighborhood_profile(self, region_code: str) -> dict:
         """최신 분기 동네 프로필 + reasons·conditions 절이 쓰는 지표·시간대 재료.
 
@@ -152,15 +148,3 @@ class EventAnalogFactsPort(ABC):
     @abstractmethod
     def analogs(self, industry_id: str, question: str | None) -> dict:
         """유형·진행 중 이벤트·지난 사례(창별 대상 업종 변동폭·강세/약세 업종)·해석 주의사항."""
-
-
-class FinanceFactsPort(ABC):
-    """Driven Port — finance BC 결정론 엔진 호출 (cross-BC 접근은 구현체 안에서만).
-
-    `RegionFactsPort`에 얹지 않는다 — 그쪽은 동·업종의 사실 조회고, 이쪽은 사용자가 준 13개 입력의
-    계산이다. 역할이 다르면 인터페이스도 나눈다(ISP). Fake도 각자 작아진다.
-    """
-
-    @abstractmethod
-    def simulate(self, input: dict) -> dict:
-        """엔진 입력 13필드(원 단위 정수·비율 소수) → 결과 dict. 계산은 서버(finance BC)가 한다."""
