@@ -1550,7 +1550,8 @@ main 커밋 23개(20:09 ~ 23:17). 이어서 `feat/llm-benchmark` 브랜치에서
 ### 4. 운영 임베딩 bge-m3@1024 전환 (v0.65.0)
 
 - **최종 결정(사용자)** — 규칙상 "현행 유지"는 교체 비용을 고려한 결과이고, 자원 제약·온프레미스 기준으로는 bge-m3가 낫다:
-  MRR 동률이면서 GPU 메모리 **664MB 대 4.4GB**, 색인·질의를 모델 하나로 처리, CPU로도 운영 가능
+  MRR은 선택 규칙상 동률(성능 동등성이 입증됐다는 뜻은 아님)이며, bge-m3의 GPU 상주 메모리는 **664MB(VRAM)**다. 색인·질의를 모델 하나로 처리하고 CPU로도 운영 가능하다.
+  CPU 상주 메모리는 **bge-m3 1.2GB, qwen3-4b 4.4GB(RAM)**다. qwen3의 GPU 상주값은 별도 측정값이 없어 664MB와 4.4GB를 GPU 메모리끼리 비교할 수 없다.
 - 마이그레이션 `c7a3f1e8d204` — HNSW 인덱스 drop → `embedding vector(1024)` → 기존 벡터 NULL → 인덱스 재생성. 차원이 달라 변환이 안 되므로 전량 재색인이 필수
 - `rag_dependencies` 운영 레지스트리를 `{"bge-m3"}` 하나로(qwen3·gemini 어댑터는 벤치마크용으로만 남김), `build_rag_index`·`evaluate_rag` 기본값과
   크론 `scripts/rag-indexer.sh`를 `--provider bge-m3`로, 운영 점검 필수 모델도 bge-m3로 바꿨다
