@@ -1143,5 +1143,45 @@
       "why": "전국 · 창업"
     }
   ],
-  "budget": null
+  "budget": null,
+  "finance": {
+    "available": true,
+    "expected_monthly_revenue": {
+      "value": 26564665,
+      "basis": {
+        "year_quarter": "20254",
+        "quarterly_sales": 637551965,
+        "store_count": 8,
+        "source_codes": [
+          "CS100003"
+        ]
+      },
+      "caveat": "이 동 같은 업종 8곳의 분기 매출을 점포 수로 나눈 평균입니다. 편차가 크고 신규 점포는 평균 아래서 시작하는 경우가 많습니다.",
+      "unit": "원/월"
+    },
+    "rent_per_m2": {
+      "value": 49.33,
+      "basis": {
+        "region_path": "서울>기타",
+        "building_type": "medium_large",
+        "period": "2026Q2",
+        "level": "권역",
+        "small_per_m2": 45.1,
+        "source": "R-ONE"
+      },
+      "caveat": "행정동 단위 임대료 자료가 없어 기타 권역(R-ONE, 중대형 상가) 평균입니다. 실제 매물과 다를 수 있습니다.",
+      "unit": "천원/㎡/월"
+    },
+    "loan_rate": {
+      "value": 0.0405,
+      "basis": {
+        "rate_type": "loan_facility",
+        "period": "202608",
+        "rate_pct": 4.05,
+        "source": "ECOS"
+      },
+      "caveat": "공시 평균 금리입니다. 실제 심사 금리와 다릅니다.",
+      "unit": "비율"
+    }
+  }
 }
