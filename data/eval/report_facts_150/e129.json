@@ -44,9 +44,11 @@
         "level": "off",
         "value": 0.24866343404202415,
         "percentile": 35.5,
-        "evidence": "상주인구 1,000명당 중식 0.2곳 (서울 상위 65%)",
+        "evidence": "상주인구 1,000명당 중식 0.2곳 — 밀집 보통(서울 중식 동을 100곳으로 치면 높은 쪽에서 64번째쯤)",
         "source": "metric",
-        "advisory": false
+        "advisory": false,
+        "band": "normal",
+        "band_label": "밀집 보통"
       },
       {
         "key": "shrinking",

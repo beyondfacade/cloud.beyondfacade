@@ -17,36 +17,44 @@
         "level": "off",
         "value": 0.022988505747126436,
         "percentile": 52.5,
-        "evidence": "지난 12개월 폐업 14곳, 개업 12곳 (순유출률 +2%, 서울 한식 상위 47%)",
+        "evidence": "지난 12개월 폐업 14곳, 개업 12곳 (순유출률 +2%) — 순유출 보통(서울 한식 동을 100곳으로 치면 많은 쪽에서 48번째쯤)",
         "source": "store",
-        "advisory": false
+        "advisory": false,
+        "band": "normal",
+        "band_label": "순유출 보통"
       },
       {
         "key": "survival_cliff",
         "level": "off",
         "value": 0.5833333333333334,
         "percentile": 47.4,
-        "evidence": "3년 전 개업한 한식 12곳 중 7곳만 남음 (생존율 58%, 서울 한식 하위 53%)",
+        "evidence": "3년 전 개업한 한식 12곳 중 7곳만 남음 (생존율 58%) — 생존율 보통(서울 한식 동을 100곳으로 치면 낮은 쪽에서 53번째쯤)",
         "source": "store",
-        "advisory": false
+        "advisory": false,
+        "band": "normal",
+        "band_label": "생존율 보통"
       },
       {
         "key": "early_closure",
         "level": "on",
         "value": 32.903490759753595,
         "percentile": 86.5,
-        "evidence": "최근 3년 폐업 한식의 영업 기간 중위 33개월 (서울 한식 하위 14%)",
+        "evidence": "최근 3년 폐업 한식의 영업 기간 중위 33개월 — 폐업 점포 영업 기간 짧은 편(서울 한식 동을 100곳으로 치면 짧은 쪽에서 14번째쯤)",
         "source": "store",
-        "advisory": false
+        "advisory": false,
+        "band": "bad",
+        "band_label": "폐업 점포 영업 기간 짧은 편"
       },
       {
         "key": "saturation",
         "level": "off",
         "value": 3.212153276396342,
         "percentile": 36.0,
-        "evidence": "상주인구 1,000명당 한식 3.2곳 (서울 상위 64%)",
+        "evidence": "상주인구 1,000명당 한식 3.2곳 — 밀집 보통(서울 한식 동을 100곳으로 치면 높은 쪽에서 64번째쯤)",
         "source": "metric",
-        "advisory": false
+        "advisory": false,
+        "band": "normal",
+        "band_label": "밀집 보통"
       },
       {
         "key": "shrinking",

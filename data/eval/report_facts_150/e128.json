@@ -44,9 +44,11 @@
         "level": "off",
         "value": 1.577784790154623,
         "percentile": 12.6,
-        "evidence": "상주인구 1,000명당 카페 1.6곳 (서울 상위 87%)",
+        "evidence": "상주인구 1,000명당 카페 1.6곳 — 밀집 낮은 편(서울 카페 동을 100곳으로 치면 높은 쪽에서 87번째쯤)",
         "source": "metric",
-        "advisory": false
+        "advisory": false,
+        "band": "good",
+        "band_label": "밀집 낮은 편"
       },
       {
         "key": "shrinking",

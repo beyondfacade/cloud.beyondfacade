@@ -44,9 +44,11 @@
         "level": "off",
         "value": 1.7738359201773837,
         "percentile": 15.2,
-        "evidence": "상주인구 1,000명당 미용실 1.8곳 (서울 상위 85%)",
+        "evidence": "상주인구 1,000명당 미용실 1.8곳 — 밀집 낮은 편(서울 미용실 동을 100곳으로 치면 높은 쪽에서 85번째쯤)",
         "source": "metric",
-        "advisory": false
+        "advisory": false,
+        "band": "good",
+        "band_label": "밀집 낮은 편"
       },
       {
         "key": "shrinking",

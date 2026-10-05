@@ -17,9 +17,11 @@
         "level": "strong",
         "value": 0.2,
         "percentile": 96.1,
-        "evidence": "지난 12개월 폐업 3곳, 개업 0곳 (순유출률 +20%, 서울 호프·주점 상위 4%)",
+        "evidence": "지난 12개월 폐업 3곳, 개업 0곳 (순유출률 +20%) — 순유출 매우 많은 편(서울 호프·주점 동을 100곳으로 치면 많은 쪽에서 4번째쯤)",
         "source": "store",
-        "advisory": false
+        "advisory": false,
+        "band": "very_bad",
+        "band_label": "순유출 매우 많은 편"
       },
       {
         "key": "survival_cliff",
@@ -44,9 +46,11 @@
         "level": "strong",
         "value": 2.73972602739726,
         "percentile": 91.2,
-        "evidence": "상주인구 1,000명당 호프·주점 2.7곳 (서울 상위 9%)",
+        "evidence": "상주인구 1,000명당 호프·주점 2.7곳 — 밀집 매우 높은 편(서울 호프·주점 동을 100곳으로 치면 높은 쪽에서 9번째쯤)",
         "source": "metric",
-        "advisory": false
+        "advisory": false,
+        "band": "very_bad",
+        "band_label": "밀집 매우 높은 편"
       },
       {
         "key": "shrinking",

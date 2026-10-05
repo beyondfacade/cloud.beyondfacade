@@ -17,9 +17,11 @@
         "level": "on",
         "value": 0.06896551724137931,
         "percentile": 82.1,
-        "evidence": "지난 12개월 폐업 3곳, 개업 1곳 (순유출률 +7%, 서울 카페 상위 18%)",
+        "evidence": "지난 12개월 폐업 3곳, 개업 1곳 (순유출률 +7%) — 순유출 많은 편(서울 카페 동을 100곳으로 치면 많은 쪽에서 18번째쯤)",
         "source": "store",
-        "advisory": false
+        "advisory": false,
+        "band": "bad",
+        "band_label": "순유출 많은 편"
       },
       {
         "key": "survival_cliff",
@@ -35,18 +37,22 @@
         "level": "off",
         "value": 48.27926078028747,
         "percentile": 46.4,
-        "evidence": "최근 3년 폐업 카페의 영업 기간 중위 48개월 (서울 카페 하위 54%)",
+        "evidence": "최근 3년 폐업 카페의 영업 기간 중위 48개월 — 폐업 점포 영업 기간 보통(서울 카페 동을 100곳으로 치면 짧은 쪽에서 54번째쯤)",
         "source": "store",
-        "advisory": false
+        "advisory": false,
+        "band": "normal",
+        "band_label": "폐업 점포 영업 기간 보통"
       },
       {
         "key": "saturation",
         "level": "off",
         "value": 1.9606419286907268,
         "percentile": 23.8,
-        "evidence": "상주인구 1,000명당 카페 2.0곳 (서울 상위 76%)",
+        "evidence": "상주인구 1,000명당 카페 2.0곳 — 밀집 낮은 편(서울 카페 동을 100곳으로 치면 높은 쪽에서 76번째쯤)",
         "source": "metric",
-        "advisory": false
+        "advisory": false,
+        "band": "good",
+        "band_label": "밀집 낮은 편"
       },
       {
         "key": "shrinking",

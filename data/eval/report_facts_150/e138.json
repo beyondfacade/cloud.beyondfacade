@@ -44,9 +44,11 @@
         "level": "off",
         "value": 0.6225945211682138,
         "percentile": 57.4,
-        "evidence": "상주인구 1,000명당 양식 0.6곳 (서울 상위 43%)",
+        "evidence": "상주인구 1,000명당 양식 0.6곳 — 밀집 보통(서울 양식 동을 100곳으로 치면 높은 쪽에서 43번째쯤)",
         "source": "metric",
-        "advisory": false
+        "advisory": false,
+        "band": "normal",
+        "band_label": "밀집 보통"
       },
       {
         "key": "shrinking",

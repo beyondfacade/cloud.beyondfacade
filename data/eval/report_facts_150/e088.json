@@ -17,9 +17,11 @@
         "level": "off",
         "value": -0.09090909090909091,
         "percentile": 12.2,
-        "evidence": "지난 12개월 폐업 0곳, 개업 1곳 (순유출률 -9%, 서울 헬스장 상위 88%)",
+        "evidence": "지난 12개월 폐업 0곳, 개업 1곳 (순유출률 -9%) — 순유출 적은 편(서울 헬스장 동을 100곳으로 치면 많은 쪽에서 88번째쯤)",
         "source": "store",
-        "advisory": false
+        "advisory": false,
+        "band": "good",
+        "band_label": "순유출 적은 편"
       },
       {
         "key": "survival_cliff",
@@ -44,9 +46,11 @@
         "level": "off",
         "value": 0.384849748244123,
         "percentile": 55.5,
-        "evidence": "상주인구 1,000명당 헬스장 0.4곳 (서울 상위 44%)",
+        "evidence": "상주인구 1,000명당 헬스장 0.4곳 — 밀집 보통(서울 헬스장 동을 100곳으로 치면 높은 쪽에서 44번째쯤)",
         "source": "metric",
-        "advisory": false
+        "advisory": false,
+        "band": "normal",
+        "band_label": "밀집 보통"
       },
       {
         "key": "shrinking",

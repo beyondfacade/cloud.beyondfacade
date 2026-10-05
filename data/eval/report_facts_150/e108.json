@@ -17,9 +17,11 @@
         "level": "off",
         "value": -0.17647058823529413,
         "percentile": 6.3,
-        "evidence": "지난 12개월 폐업 0곳, 개업 3곳 (순유출률 -18%, 서울 양식 상위 94%)",
+        "evidence": "지난 12개월 폐업 0곳, 개업 3곳 (순유출률 -18%) — 순유출 매우 적은 편(서울 양식 동을 100곳으로 치면 많은 쪽에서 94번째쯤)",
         "source": "store",
-        "advisory": false
+        "advisory": false,
+        "band": "very_good",
+        "band_label": "순유출 매우 적은 편"
       },
       {
         "key": "survival_cliff",
@@ -44,9 +46,11 @@
         "level": "off",
         "value": 0.7016312927556569,
         "percentile": 62.4,
-        "evidence": "상주인구 1,000명당 양식 0.7곳 (서울 상위 38%)",
+        "evidence": "상주인구 1,000명당 양식 0.7곳 — 밀집 보통(서울 양식 동을 100곳으로 치면 높은 쪽에서 38번째쯤)",
         "source": "metric",
-        "advisory": false
+        "advisory": false,
+        "band": "normal",
+        "band_label": "밀집 보통"
       },
       {
         "key": "shrinking",

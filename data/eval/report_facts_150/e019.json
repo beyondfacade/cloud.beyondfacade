@@ -17,9 +17,11 @@
         "level": "strong",
         "value": 0.16666666666666666,
         "percentile": 96.0,
-        "evidence": "지난 12개월 폐업 9곳, 개업 2곳 (순유출률 +17%, 서울 PC방 상위 4%)",
+        "evidence": "지난 12개월 폐업 9곳, 개업 2곳 (순유출률 +17%) — 순유출 매우 많은 편(서울 PC방 동을 100곳으로 치면 많은 쪽에서 4번째쯤)",
         "source": "store",
-        "advisory": false
+        "advisory": false,
+        "band": "very_bad",
+        "band_label": "순유출 매우 많은 편"
       },
       {
         "key": "survival_cliff",
@@ -35,18 +37,22 @@
         "level": "off",
         "value": 25.26488706365503,
         "percentile": 50.0,
-        "evidence": "최근 3년 폐업 PC방의 영업 기간 중위 25개월 (서울 PC방 하위 50%)",
+        "evidence": "최근 3년 폐업 PC방의 영업 기간 중위 25개월 — 폐업 점포 영업 기간 보통(서울 PC방 동을 100곳으로 치면 짧은 쪽에서 50번째쯤)",
         "source": "store",
-        "advisory": false
+        "advisory": false,
+        "band": "normal",
+        "band_label": "폐업 점포 영업 기간 보통"
       },
       {
         "key": "saturation",
         "level": "strong",
         "value": 1.547166475112722,
         "percentile": 94.4,
-        "evidence": "상주인구 1,000명당 PC방 1.5곳 (서울 상위 6%)",
+        "evidence": "상주인구 1,000명당 PC방 1.5곳 — 밀집 매우 높은 편(서울 PC방 동을 100곳으로 치면 높은 쪽에서 6번째쯤)",
         "source": "metric",
-        "advisory": false
+        "advisory": false,
+        "band": "very_bad",
+        "band_label": "밀집 매우 높은 편"
       },
       {
         "key": "shrinking",

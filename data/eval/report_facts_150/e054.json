@@ -17,9 +17,11 @@
         "level": "strong",
         "value": 0.16666666666666666,
         "percentile": 93.9,
-        "evidence": "지난 12개월 폐업 4곳, 개업 2곳 (순유출률 +17%, 서울 일식 상위 6%)",
+        "evidence": "지난 12개월 폐업 4곳, 개업 2곳 (순유출률 +17%) — 순유출 매우 많은 편(서울 일식 동을 100곳으로 치면 많은 쪽에서 6번째쯤)",
         "source": "store",
-        "advisory": false
+        "advisory": false,
+        "band": "very_bad",
+        "band_label": "순유출 매우 많은 편"
       },
       {
         "key": "survival_cliff",
@@ -44,9 +46,11 @@
         "level": "off",
         "value": 0.3939334252511325,
         "percentile": 43.4,
-        "evidence": "상주인구 1,000명당 일식 0.4곳 (서울 상위 57%)",
+        "evidence": "상주인구 1,000명당 일식 0.4곳 — 밀집 보통(서울 일식 동을 100곳으로 치면 높은 쪽에서 57번째쯤)",
         "source": "metric",
-        "advisory": false
+        "advisory": false,
+        "band": "normal",
+        "band_label": "밀집 보통"
       },
       {
         "key": "shrinking",
