@@ -405,3 +405,20 @@ def test_회차_기록에_해석_시도와_온도와_seed를_남긴다():
     assert (row["temperature"], row["seed"]) == (REPORT_TEMPERATURE, REPORT_SEED)
     assert row["answer_attempts"] == attempts and row["sections"] == {"answer": "해석"}
     assert row["usage"] == {"input_tokens": 3, "output_tokens": 4}
+
+
+def test_옛_캐시는_채점을_거부하고_태그_없는_score는_인자_오류다(monkeypatch, tmp_path):
+    import sys
+
+    import pytest
+
+    from apps.agent.adapter.inbound.cli import benchmark_report as br
+
+    monkeypatch.setattr(sys, "argv", ["benchmark_report", "score"])
+    with pytest.raises(SystemExit):
+        br.main()
+
+    monkeypatch.setattr(br, "_scenarios", lambda: [])
+    monkeypatch.setattr(br, "_read_jsonl", lambda path: [{"id": "s01", "rep": 0, "sections": {}}])
+    with pytest.raises(SystemExit, match="옛 형식 캐시"):
+        br._cmd_score(None)

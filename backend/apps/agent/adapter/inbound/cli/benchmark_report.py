@@ -401,6 +401,8 @@ def _cmd_score(args: argparse.Namespace) -> None:
         records = _read_jsonl(_run_path(name))
         if not records:
             continue
+        if any("answer_attempts" not in r for r in records):
+            raise SystemExit("옛 형식 캐시 — 새 구조 벤치는 --cache-tag로 돌린 run만 채점")
         runs = [{**r, **score_run(r, facts[r["id"]])} for r in records]
         _write_json(_score_path(name), score_summary(name, runs))
         print(f"score: {name} → {_score_path(name)}", flush=True)
@@ -498,6 +500,8 @@ def _argument_error(args: argparse.Namespace) -> str | None:
         return "--compare-tag로 내보내려면 --models a,b 가 필요합니다"
     if args.compare_tag and args.compare_tag == (args.cache_tag or _BASE_TAG):
         return f"--compare-tag({args.compare_tag})가 현재 캐시 태그와 같습니다 — 다른 태그와 비교하세요"
+    if args.command in ("score", "sections-check") and not args.cache_tag:
+        return "새 구조 벤치는 --cache-tag가 필요합니다 — 태그 없는 report/는 옛 기준선 캐시라 쓰지 않습니다"
     return None
 
 

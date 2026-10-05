@@ -252,7 +252,8 @@ _MISSING_SECTIONS = {
 def missing_data_gaps(facts: dict, sections: dict[str, str]) -> list[str]:
     """자료가 없는 자리(available false·표본 부족 신호)인데 해당 절에 그 이유가 그대로 적히지 않은 항목.
 
-    이유를 적는 자리는 코드가 그 줄만 쓴다 — 추정 문장이 끼어들 틈이 없다(report_sections 단위 테스트가 고정).
+    "자료 부족 — 이유" 줄이 있는지만 확인한다. 숫자 없이 덧붙은 추정 문장은 잡지 못한다 —
+    그건 report_sections의 결정적 단위 테스트가 고정한다.
     이유 뒤 ": 동코드 × 업종 id" 같은 내부 코드는 화면에 쓰지 않으므로(report_sections `_hours`) 콜론 앞까지만 대조한다.
     """
     gaps = [
