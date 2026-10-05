@@ -108,3 +108,10 @@ def test_포화_근거는_등급_낱말과_높은_쪽_순번을_쓴다():
         "상주인구 1,000명당 한식 9.4곳 — 밀집 매우 높은 편(서울 한식 동을 100곳으로 치면 높은 쪽에서 10번째쯤)"
     )
     assert (result.band, result.band_label) == ("very_bad", "밀집 매우 높은 편")
+
+
+def test_생존_근거는_보통_등급과_낮은_쪽_순번을_쓴다():
+    distribution = [-0.9, -0.8, -0.7, -0.3, -0.3, -0.3, -0.3, -0.3, -0.3, -0.3]  # 위험값 -0.54 → 3개가 작다 → 30
+    result = SurvivalCliffSignal().evaluate(_input(cohort_survived=20), T, distribution)
+    assert result.evidence.endswith("(생존율 54%) — 생존율 보통(서울 한식 동을 100곳으로 치면 낮은 쪽에서 70번째쯤)")
+    assert result.band == "normal"
