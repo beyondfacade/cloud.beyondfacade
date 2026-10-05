@@ -285,7 +285,9 @@ def guard_summary(runs: list[dict]) -> dict:
 def sampling_label(runs: list[dict]) -> str:
     """회차들이 쓴 온도/seed — 기록이 없는 옛 캐시는 기준선(로컬 0.3·Gemini 기본값)이라고 밝힌다."""
     labels = sorted({f"{r['temperature']}/{r['seed']}" for r in runs if "temperature" in r})
-    return ", ".join(labels) if labels else _BASELINE_SAMPLING
+    if any("temperature" not in r for r in runs):  # 섞인 캐시에서 미기록 회차를 숨기지 않는다
+        labels.append(_BASELINE_SAMPLING)
+    return ", ".join(labels)
 
 
 def run_record(scenario_id: str, rep: int, got: dict, error: str | None, tool_results: list[str], interactor) -> dict:
@@ -514,6 +516,15 @@ def _cmd_judge_import(args: argparse.Namespace) -> None:
     print(f"judge-import: {len(scores)}개 모델 → {judge_dir / 'scores.json'}", flush=True)
 
 
+def _argument_error(args: argparse.Namespace) -> str | None:
+    """비교 모드 인자 검증 — 잘못이면 사용자에게 보일 문장, 아니면 None."""
+    if args.compare_tag and not args.models and args.command == "judge-export":
+        return "--compare-tag로 내보내려면 --models a,b 가 필요합니다"
+    if args.compare_tag and args.compare_tag == (args.cache_tag or _BASE_TAG):
+        return f"--compare-tag({args.compare_tag})가 현재 캐시 태그와 같습니다 — 다른 태그와 비교하세요"
+    return None
+
+
 def _cmd_judge_compare(args: argparse.Namespace) -> None:
     tag = args.cache_tag or _BASE_TAG
     got = compare_judged(_read_json(_compare_dir(args) / "scores.json", {}), tag, args.compare_tag)
@@ -736,6 +747,8 @@ def main() -> None:
     parser.add_argument("--out-dir", default=None, help="evaluate: 결과 폴더 이름(기본 llm-benchmark-YYYY-MM-DD)")
     parser.add_argument("--cache-tag", default=None, help="run·score·judge-*·evaluate: 캐시를 report-<tag>/·judge-<tag>/로 분리")
     args = parser.parse_args()
+    if error := _argument_error(args):
+        parser.error(error)
     global _RUNS, _JUDGE  # 명령 함수들이 모듈 경로를 읽는다 — 태그는 실행 시작에 한 번만 바꾼다
     _RUNS, _JUDGE = cache_dirs(args.cache_tag)
     _COMMANDS[args.command](args)

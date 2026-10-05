@@ -12,7 +12,7 @@
 - 리포트 벤치 `benchmark_report`에 `evaluate --out-dir NAME`(기본 `llm-benchmark-YYYY-MM-DD`)과 `--cache-tag NAME`(run·score·judge-*·evaluate 공통, 캐시를 `report-<tag>/`·`judge-<tag>/`로 분리) — 같은 날 재평가가 기존 결과·캐시를 덮어쓰지 않게.
 
 - **리포트 일관성 지표**(벤치 `score`·`evaluate`, "일관성(반복 3회)" 표) — 같은 모델·같은 시나리오의 반복 회차끼리: 결과 일치(완주·판정 모순 없음·지어내기 여부), 숫자 집합 Jaccard, 화면 본문 SequenceMatcher 유사도, 대안 절 등급 다중집합 일치(동의어 단일 원천 `stated_grades`). 옛 캐시에도 계산된다.
-- **판정 묶음 비교 모드** — `judge-export --compare-tag OTHER --models a,b`가 현재 태그와 OTHER 태그의 같은 모델 1회차를 한 묶음에 섞어 블라인드로 내보낸다(mapping `모델@태그`, `judge-<tag>/compare-<OTHER>/`). `judge-import --compare-tag`가 그대로 받고, `judge-compare`가 `모델@태그`별 충실도·자연스러움 평균과 짝지은 차이(paired bootstrap 구간)를 출력.
+- **판정 묶음 비교 모드** — `judge-export --compare-tag OTHER --models a,b`가 현재 태그와 OTHER 태그의 같은 모델 1회차를 한 묶음에 섞어 블라인드로 내보낸다(mapping `모델@태그`, `judge-<tag>/compare-<OTHER>/`). `judge-import --compare-tag`가 그대로 받고, `judge-compare`가 `모델@태그`별 충실도·자연스러움 평균과 짝지은 차이(paired bootstrap 구간)를 출력. `--models` 없이·현재 태그와 같은 `--compare-tag`는 인자 오류로 끝난다. 샘플링 기록이 섞인 캐시는 미기록(기준선) 표기도 함께 싣는다.
 
 ### Changed
 - **리포트 온도 0·seed 42 단일 원천**(`apps/agent/domain/services/report_sampling.py`) — 운영 리포트 Gemini(`generationConfig.temperature`·`seed`)·로컬 폴백(`options.temperature`·`seed`)·운영 점검 LLM 프로브·벤치가 모두 쓴다. `GeminiLLMAdapter`에 `temperature`·`seed`, `OllamaLLMAdapter`에 `seed` 선택 인자(미지정이면 지금 요청과 같다). 의도 관문은 그대로.

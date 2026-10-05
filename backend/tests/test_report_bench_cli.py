@@ -463,3 +463,27 @@ def test_판정_비교는_model_at_tag별_평균과_짝지은_차이를_낸다()
     assert got["means"]["m@guards"] == {"faithfulness": 4.5, "fluency": 3.5, "n": 2}
     diff = got["diffs"]["m"]
     assert diff["faithfulness"][0] == 1.5 and diff["fluency"][0] == 0.0 and diff["n"] == 2
+
+
+def test_샘플링_기록이_섞인_캐시는_미기록_회차도_밝힌다():
+    from apps.agent.adapter.inbound.cli.benchmark_report import _BASELINE_SAMPLING, sampling_label
+
+    assert sampling_label([{"temperature": 0.0, "seed": 42}, {}]) == f"0.0/42, {_BASELINE_SAMPLING}"
+
+
+def test_비교_모드_인자가_잘못되면_parser_error로_끝난다(monkeypatch, capsys):
+    import sys
+
+    import pytest
+
+    from apps.agent.adapter.inbound.cli import benchmark_report as br
+
+    called = []
+    monkeypatch.setitem(br._COMMANDS, "judge-export", lambda args: called.append(args))
+    for argv in (["judge-export", "--compare-tag", "base"],
+                 ["judge-export", "--cache-tag", "guards", "--compare-tag", "guards", "--models", "m"],
+                 ["judge-export", "--compare-tag", "base", "--models", "m"]):  # 태그 없는 캐시 == base
+        monkeypatch.setattr(sys, "argv", ["benchmark_report", *argv])
+        with pytest.raises(SystemExit):
+            br.main()
+    assert called == [] and "--models" in capsys.readouterr().err
