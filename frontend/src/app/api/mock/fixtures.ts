@@ -415,6 +415,11 @@ export function agentEventScript(): AgentEvent[] {
   for (const { section, sentences } of sections) {
     for (const markdown of sentences) events.push({ type: "report_delta", section, markdown });
   }
+  // 해석(answer)은 코드 6개 절 뒤에 한 번 — 숫자를 쓰지 않는 한 단락(실 API 계약과 같다)
+  events.push({
+    type: "report_delta", section: "answer",
+    markdown: "판정 근거는 아래 신호와 폐업 추이에 있습니다. 손님이 몰리는 시간대에 맞춰 운영할 수 있는지 먼저 확인하세요. 같은 동네의 다른 업종과 같은 업종의 다른 동네도 함께 비교해 보세요.",
+  });
   events.push(
     { type: "agent_status", agent: "writer", status: "done" },
     { type: "agent_status", agent: "orchestrator", status: "done" },

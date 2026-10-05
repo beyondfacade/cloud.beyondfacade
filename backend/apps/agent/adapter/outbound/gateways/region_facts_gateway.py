@@ -42,7 +42,6 @@ from apps.neighborhood.adapter.outbound.orms.seoul_commerce_change_baseline_orm 
 from apps.neighborhood.dependencies.region_commerce_change_dependencies import (
     get_region_commerce_change_query_use_case,
 )
-from apps.shock.adapter.outbound.orms.interest_rate_orm import InterestRateOrm
 from apps.shock.app.dtos.shock_event_dto import ShockEventDto
 from apps.shock.dependencies.shock_event_dependencies import get_shock_event_use_case
 from core.matrix.grid_oracle_database_manager import session_scope
@@ -177,16 +176,6 @@ class RegionFactsGateway(RegionFactsPort):
     def shocks(self, industry_id: str | None, limit: int) -> list[dict]:
         events = get_shock_event_use_case().list_events(industry_id, limit)
         return [_shock_event_to_dict(e) for e in events]
-
-    def latest_rates(self) -> dict:
-        with session_scope() as session:
-            rows = session.execute(select(InterestRateOrm)).scalars()
-            latest: dict[str, tuple[str, float]] = {}
-            for row in rows:
-                current = latest.get(row.rate_type)
-                if current is None or row.period > current[0]:
-                    latest[row.rate_type] = (row.period, row.rate)
-            return {rate_type: rate for rate_type, (_, rate) in latest.items()}
 
     def neighborhood_profile(self, region_code: str) -> dict:
         """reasons·conditions 절이 쓰는 재료를 한 번에 모은다 (파생 지표 + 동네 맥락).

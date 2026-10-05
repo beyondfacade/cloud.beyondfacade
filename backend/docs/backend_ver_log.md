@@ -1,5 +1,43 @@
 # Backend Version Log
 
+## [v0.68.0] - 2026-10-05
+
+### Added
+- **해석 끝 대안 절 안내 문장(코드 고정, 추천 아님)** — 정상 동네에서 `facts.alternatives`가 있고 두 축 중 한 곳이라도 경고 없음(clear)이면 `alternatives_pointer`가 "대안 동네·업종 절에 경고 없음으로 나온 곳도 함께 확인해 보세요."를 만들고 `AnalysisInteractor`가 가드를 통과한 해석(실패 시 `ANSWER_FALLBACK`) 뒤에 공백 하나로 붙인다. LLM 프롬프트 불변, 자료 부족 동네는 첫 문장만.
+- 최종 재평가(`report-code-first-2026-10-05/final/`) — 숫자 가드·자료 부족 동네 처리 후 Claude 판정 해석 핵심 오류 Gemini 14.0%(21/150)·12b 29.3%(44/150), 자료 부족 34건 오류 1·0. 사람 검수 2차: 질문 있는 건 12/16을 "못 답함"으로 봐 판정자보다 엄격 — 질문 유형별 답이 다음 과제.
+- **리포트 코드 섹션 모듈** `apps/agent/domain/services/report_sections.py`(순수 모듈, 설계서 `docs/superpowers/specs/2026-10-05-report-code-first-design.md`) — 판정·왜 안 되나·유사 사례·그래도 한다면·대안 동네·업종·대안 업종 지원사업 6개 절을 facts만으로 쓴다(절 이름 → 작성 함수 dict 디스패치). 숫자마다 범위(동·업종 이름, "서울 동 상권 전체 기준값", "업종 무관", 분기)를 붙이고, 자료가 없으면 "자료 부족 — 이유"를 쓰며, 신뢰 태그(`[확인된 사실]`·`[참고 신호]`)는 코드가 붙인다. 시간대 문장 `hour_gap_sentence`는 프론트 `hour-gap-sentence.ts`와 같은 규칙(두 최대 구간의 위치)이며 같은 세 입력에 같은 문장을 내는지 테스트로 고정했다.
+- **해석 단락 가드** `guard_answer`(`report_guards.py`) — LLM 해석(answer) 한 단락에 링크·공고 번호 제거(`UrlStripper`) → 판정 모순 검사(`verdict_contradiction`, 모순이면 단락 전체 실패) → 숫자가 든 문장 삭제(`drop_digit_sentences`, 문장 끝 `.!?` + 공백 기준)를 차례로 건다. 결과 `GuardedAnswer`는 지운 문장 수·지운 링크 수·모순 구절을 남긴다(벤치 지표).
+- 리포트 벤치 `sections-check` 명령 — 모델 호출 없이 세트 전체 facts로 6개 절을 써서 "범위 없는 숫자 줄"(숫자 토큰이 있는데 동·업종 이름·서울·전국·동 전체·업종 무관·최근이 없는 줄, 공고 제목 「」·숫자 든 동 이름 제외)과 "이유 빠진 자료 부족 자리"(available false·표본 부족 신호인데 해당 절에 이유가 없음)를 센다. 이유는 화면에 쓰지 않는 ": 동코드 × 업종 id" 꼬리를 뺀 앞부분으로 대조한다. 150건·12건 모두 0건. 범위: "자료 부족 — 이유" 줄이 있는지와 범위 없는 숫자가 없는지만 확인하며, 숫자 없이 덧붙은 추정 문장은 잡지 못한다(report_sections 결정적 단위 테스트가 고정). `score`·`sections-check`는 `--cache-tag` 필수(옛 `report/` 기준선 캐시 보호), 옛 형식 캐시(`answer_attempts` 없음)는 채점을 거부한다.
+- 해석 판정 기준 `data/eval/report_answer_rubric.md`와 `judge-export`의 해석 묶음(질문 + 코드 본문 한 벌 + 가린 해석, `human_sample.json` 사람 검수 20건 시드 고정).
+- **자료 부족 동네는 코드 첫 문장만(LLM 호출 없음)** — `report_sections.scarcity`(판정을 내리지 않는 업종 또는 판정 보류면 부족한 자료의 짧은 항목명 목록 — 계산 못 한 신호·수집 못 한 사실 항목을 dict로 "폐업·개업 흐름"·"개업 점포 생존율"·"폐업 점포 영업 기간"·"점포 밀도"·"시간대별 매출"·"대안 동네·업종" 등으로, 이유 원문·내부 코드·숫자 없이)와 고정 첫 문장 `scarce_lead`(판정 보류: "[확인된 사실] {동} {업종}은(는) 자료가 부족해 진입 판단을 내리기 어렵습니다 — 부족한 자료: …", 판정을 내리지 않는 업종: "… 경고 판정을 내리는 업종이 아니어서 진입 판단을 내리지 않습니다 — 아래 사실만 참고하세요."). `AnalysisInteractor`는 자료 부족 동네면 해석 = 이 문장뿐이다(자료 부족만 명시하고 판단은 사용자에게). 정상 동네 경로는 그대로. 평가셋 150건 중 34건(판정 보류 28·일부 판정 업종 6)이 해당.
+- 리포트 벤치 `score`·`judge-export`가 자료 부족 시나리오(코드만 쓴 해석)를 해석 채점·판정 묶음에서 뺀다(`_code_only_ids`). `report_answer_rubric.md`에 그 사실을 적은 자료 부족 동네 절.
+- 재평가 결과 `data/eval/results/report-code-first-2026-10-05/` — 평가셋 150건 × Gemini·gemma4:12b 각 1회(온도 0·seed 42). 코드 절 자동 검사 문제 0건, 해석 가드 뒤 숫자 0개, Claude 판정 해석 단락 핵심 오류 Gemini 20.0%·12b 30.7%(기준선은 리포트 전체 26.7%·80.0% — 비교 대상이 다르다, notes 참고). 해석 p95 Gemini 4.4초·12b 4.7초.
+
+### Changed
+- 리포트 벤치 채점이 해석(answer) 단락만 본다 — 완주(해석 있음·오류 없음)·폴백 비율·가드 뒤 숫자 수·판정 모순(가드 뒤)·가드 전 모순 시도 비율·지운 문장 수·규칙 키워드. 첫 글자 지연(`first_ms`)은 해석 단락이 나온 시각이다(6개 절은 사실 수집 직후 즉시라 의미가 바뀜). 회차 기록은 `answer_attempts`(모델별 원문·지운 문장 수·모순·오류)를 남기고 도구 결과·가드 전 절 원문은 남기지 않는다. 벤치는 모델 하나만 평가한다(재시도 모델 없음).
+- **리포트 구조: 사실은 코드, 해석은 LLM 한 단락** (`analysis_interactor.py` 전면 교체) — 사실 수집 직후 코드가 쓴 6개 절을 `report_delta`(절당 한 조각)로 곧바로 내보내고, LLM은 맨 위 해석(`answer`) 한 단락(3~5문장, 숫자·링크·공고 번호 금지, 질문이 없으면 총평)만 쓴다. 해석 입력은 원본 facts JSON이 아니라 질문 + 코드가 쓴 6개 절 그대로(약 14k → 2k 토큰대). 해석은 비스트리밍 `chat()`으로 끝까지 받아 `guard_answer`를 거쳐 한 번에 내보낸다. 판정 모순·가드 뒤 빈 단락·호출 실패면 다음 모델로 넘기고(운영 hybrid: Gemini → 로컬 gemma4:12b, `_RETRY_REGISTRY`; 첫 모델이 이미 로컬로 답했으면 같은 모델을 다시 부르지 않는다), 그래도 안 되면 코드 한 줄 "질문에 대한 해석을 만들지 못했습니다. 아래 사실을 직접 확인해 주세요."로 맺는다. 시도 기록은 `last_answer_attempts`.
+- SSE 순서: `agent_status`·`facts` → 코드 6개 절 → `answer` → `report_done`. 인용은 `facts.news`로 코드가 만든 참고 신호(제목 = 기사 첫 줄, 링크 없는 기사 제외)만.
+- 저장 순서 `SECTION_ORDER`에 `answer`를 맨 앞에 — 저장 리포트(`report_md`)도 화면처럼 해석이 맨 위다. answer 없는 옛 저장본은 그대로다.
+- 코드 섹션 문장 다듬기 — 시간대 자료 부족 이유의 내부 코드(동코드·업종 id) 숨김, 올해 부분연도 폐업률에 "(올해 현재까지)" 표기, "접수 상시 접수" 중복 제거, 동네 유형 흐름 이름 중복 제거, 유사 사례 고정 문장 속 업종 id를 업종 이름으로 치환. 평가셋 150건 전수에서 동코드·업종 id 노출 0건.
+
+### Fixed
+- 코드 절 작성 실패는 그 절만 "자료 부족" 줄로 쓰되 `LOGGER.exception`으로 원인을 남긴다(평가·운영에서 조용히 묻히지 않게).
+- `FallbackLLMAdapter.chat`이 secondary(로컬) 호출 전에 `model_name`을 로컬 이름으로 바꾼다 — Gemini·로컬이 모두 실패해도 해석 재시도가 같은 로컬 모델을 다시 부르지 않는다(최악 약 270초 절약).
+- 해석 숫자 가드(`drop_digit_sentences`·`guard_answer`)가 분석 동·대안 동 이름(`names`)의 숫자는 세지 않는다 — "상도제1동"·"상계3.4동"만 언급한 문장이 지워지던 문제(평가 동 150곳 중 99곳에 숫자). 이름 지우기는 `blank_names`로 벤치 `unscoped_number_lines`와 공유. 저장된 150건 원문 재가드: 지운 문장 Gemini 106→20·gemma4 52→5, 첫 문장 삭제 81→1·48→4.
+- 해석 SYSTEM_PROMPT 응답 규칙 ②에서 "2020~2022년"을 빼고 숫자 없이 "코로나 재난지원 시기"로 — 모델이 연도를 따라 써 가드에 지워지지 않게.
+- 리포트 벤치 `digits_after_guard`가 분석 동·대안 동 이름 속 숫자까지 세던 문제 — `blank_names`를 적용한 뒤 센다(10/5 재실행 Gemini 98·12b 49는 이름 숫자 포함 값).
+- `build_sections`가 절마다 예외를 격리 — 작성 함수가 예외를 내면(예: 서울 기준 영업 기간 None) 그 절만 "자료 부족" 줄로 쓰고 리포트(`report_done`)는 끝까지 나간다.
+
+### Removed
+- 새 구조에서 쓰지 않는 리포트 코드 정리 — 리포트 도구 정의(`build_tools`·`AgentTool`·`compare_rent_vs_buy`, `agent_tools.py`에는 `hit_to_dict`만), finance 엔진 게이트웨이(`FinanceFactsGateway`·`FinanceFactsPort`)와 `RegionFactsPort.latest_rates`, LLM 절 폴백 포매터 `report_fallback.py`(정식 본문은 `report_sections.py`), 마커 분할기 `SectionSplitter`, 스트리밍 절 가드(`ReportGuard`·`LeadingTagGuard`·`disclaimer_suffix`·`guard_section`·`GUARD_EVENTS`)와 각 테스트. 판정 동의어·모순 검사·링크 제거·예상치 고지문은 남는다.
+- 리포트 경로의 도구 루프(턴 한도·벽시계 예산·`_FINAL_REQUEST`·도구 인자 검사·재프롬프트·도구 인용·스테이지 개폐) — 평가 252회에서 도구 호출 0회였고 자금 계획은 별도 화면이다. 옛 6개 절 시스템 프롬프트와 LLM 절 폴백(`_fallback_section`·`guarded_fallback_section`)도 함께.
+
+## [v0.67.2] - 2026-10-05
+
+### Added
+- 리포트 평가셋 150건 선택 CLI `apps/agent/adapter/inbound/cli/report_scenarios150.py` — 사람 판정용 평가셋(12건은 오류 0건이어도 상한 25%, 150건이면 약 2%). 기존 12건(e001~e012, `from:sXX`) + `region_industry_verdict`에서 해시 순서로 결정적으로 고른 red 36(red 있는 11업종 라운드로빈)·orange 36·clear 30·insufficient 24, 묶음 안에서 자치구는 덜 쓴 쪽부터. 묶음마다 절반은 질문 없음, 절반은 구어체·예산·시간대·경쟁 질문. 특수 12건(대출 3·특정 집단 3·재난기 2·편의점 2·어린이집 2 — 판정 없는 업종은 `region_industry_metric` 점포 수가 있는 동). 다시 돌리면 같은 150건.
+- 리포트 벤치 `benchmark_report`에 `--scenario-set 12|150`(기본 12) — 시나리오 파일·facts 폴더를 `report_scenarios_150.jsonl`·`report_facts_150/`로 바꾼다. 기존 12건 동작은 그대로.
+
 ## [v0.67.1] - 2026-10-05
 
 ### Fixed

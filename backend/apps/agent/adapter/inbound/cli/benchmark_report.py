@@ -5,6 +5,7 @@ AnalysisInteractor를 돌려 시나리오·회차 단위 jsonl로 캐시한 뒤(
 
 실행 순서 (backend/에서):
   python -m apps.agent.adapter.inbound.cli.benchmark_report freeze
+  python -m apps.agent.adapter.inbound.cli.benchmark_report sections-check
   python -m apps.agent.adapter.inbound.cli.benchmark_report run --model qwen3.5:4b [--repeat 3]
   python -m apps.agent.adapter.inbound.cli.benchmark_report score
   python -m apps.agent.adapter.inbound.cli.benchmark_report judge-export
@@ -16,17 +17,23 @@ AnalysisInteractor를 돌려 시나리오·회차 단위 jsonl로 캐시한 뒤(
   python -m apps.agent.adapter.inbound.cli.benchmark_report residency --report-model R --intent-model I
   python -m apps.agent.adapter.inbound.cli.benchmark_report evaluate [--out-dir NAME]
 
+150건 평가셋은 freeze·sections-check·run·score·judge-export에 `--scenario-set 150`을 붙인다(시나리오·facts 경로만 바뀐다).
+
+v0.68.0(리포트 코드 우선 구조)부터 6개 절은 코드가 facts로 쓴다 — `sections-check`가 모델 호출 없이 범위 없는 숫자·
+이유 빠진 자료 부족 자리를 센다. LLM은 맨 위 해석(answer) 한 단락만 쓰므로 `score`·`judge-export`는 그 단락만 본다.
 같은 날 재평가는 `--cache-tag NAME`(run·score·judge-*·evaluate 공통)으로 캐시를 `report-NAME/`·`judge-NAME/`에
 나누고, `evaluate --out-dir NAME`으로 기존 결과 폴더를 덮어쓰지 않게 한다.
 """
 
 import argparse
 import json
+import random
+import re
 import subprocess
 import time
 from collections import Counter
 from collections.abc import Callable, Iterable
-from dataclasses import dataclass, replace
+from dataclasses import dataclass
 from datetime import date
 from pathlib import Path
 from statistics import mean
@@ -35,38 +42,30 @@ import httpx
 
 from apps.agent.adapter.inbound.cli.agent_eval_scoring import check_rule_keywords
 from apps.agent.adapter.inbound.cli.report_bench_scoring import (
-    consistency,
+    SCOPE_WORDS,
+    answer_packets,
     intent_gates,
     classify_violation,
     judge_packets,
-    llm_sections,
     mask_model_names,
+    missing_data_gaps,
     render_llm_report,
     report_gates,
-    unmatched_numbers,
-    verdict_matches,
-    verdict_states_grade,
+    unscoped_number_lines,
 )
 from apps.agent.adapter.outbound.gateways.event_analog_facts_gateway import EventAnalogFactsGateway
-from apps.agent.adapter.outbound.gateways.finance_facts_gateway import FinanceFactsGateway
 from apps.agent.adapter.outbound.gateways.funding_facts_gateway import FundingFactsGateway
 from apps.agent.adapter.outbound.gateways.region_facts_gateway import RegionFactsGateway
 from apps.agent.adapter.outbound.gateways.verdict_facts_gateway import VerdictFactsGateway
 from apps.agent.adapter.outbound.llm.gemini_llm_adapter import GeminiLLMAdapter
 from apps.agent.adapter.outbound.llm.ollama_llm_adapter import OllamaLLMAdapter
 from apps.agent.app.ports.output.agent_port import LLMGatewayPort
-from apps.agent.app.use_cases.agent_tools import build_tools
-from apps.agent.app.use_cases.analysis_interactor import (
-    _SECTIONS,
-    SYSTEM_PROMPT,
-    AnalysisInteractor,
-    _fallback_section,
-    guarded_fallback_section,
-)
+from apps.agent.app.use_cases.analysis_interactor import ANSWER_FALLBACK, AnalysisInteractor, region_names
 from apps.agent.app.use_cases.report_facts import ReportFactsCollector
 from apps.agent.domain.entities.agent_event_entity import AgentEvent
-from apps.agent.domain.services.report_guards import GUARD_EVENTS
+from apps.agent.domain.services.report_guards import blank_names, contradicts_verdict
 from apps.agent.domain.services.report_sampling import REPORT_SEED, REPORT_TEMPERATURE
+from apps.agent.domain.services.report_sections import build_sections, scarcity
 from apps.agent.domain.services.section_stream import concat_sections
 from apps.rag.dependencies.rag_dependencies import get_rag_search_use_case
 from core.matrix.grid_benchmark_manager import paired_bootstrap_ci, percentile, pick_winner, resident_models
@@ -74,8 +73,12 @@ from core.matrix.grid_keymaker_secret_manager import get_settings
 
 # apps/agent/adapter/inbound/cli/benchmark_report.py → parents[6] == 리포지토리 루트
 _REPO_ROOT = Path(__file__).resolve().parents[6]
-_SCENARIOS = _REPO_ROOT / "data/eval/report_scenarios.jsonl"
-_FACTS_DIR = _REPO_ROOT / "data/eval/report_facts"
+# --scenario-set → (시나리오 파일, facts 폴더). 150은 사람 판정용 평가셋(report_scenarios150이 고른다)
+_SCENARIO_SETS = {
+    "12": (_REPO_ROOT / "data/eval/report_scenarios.jsonl", _REPO_ROOT / "data/eval/report_facts"),
+    "150": (_REPO_ROOT / "data/eval/report_scenarios_150.jsonl", _REPO_ROOT / "data/eval/report_facts_150"),
+}
+_SCENARIOS, _FACTS_DIR = _SCENARIO_SETS["12"]
 _CACHE = _REPO_ROOT / "data/eval/cache/llm-benchmark"
 _RUNS = _CACHE / "report"
 _JUDGE = _CACHE / "judge"
@@ -85,6 +88,8 @@ _RESIDENCY = _CACHE / "residency.json"
 _RESULTS_ROOT = _REPO_ROOT / "data/eval/results"
 
 _JUDGE_SEED = 0
+_HUMAN_SAMPLE = 20  # 사람 검수 표본(설계서 §7) — judge-export가 시드로 고정해 human_sample.json에 남긴다
+_DIGITS = re.compile(r"\d+")
 # 샘플링은 운영 리포트와 같은 단일 원천(report_sampling: 온도 0·seed 42). 2026-10-05 기준선 캐시는 로컬 0.3·Gemini
 # 기본값으로 돌았다 — 회차 기록에 temperature·seed를 남겨 보고서가 구분한다(옛 캐시는 "미기록").
 _BASELINE_SAMPLING = "미기록(기준선: 로컬 0.3·Gemini 기본값)"
@@ -187,98 +192,73 @@ def _facts_of(scenario_id: str) -> dict:
 # ── 순수 로직 ──────────────────────────────────────────────
 
 def collect_run(events: Iterable[AgentEvent], clock: Callable[[], float] = time.perf_counter) -> dict:
-    """이벤트 스트림 → {first_ms, total_ms, sections, tool_calls}.
+    """이벤트 스트림 → {first_ms, total_ms, sections}.
 
-    시계는 facts 이벤트 수신을 0으로, 첫 report_delta까지(first_ms)·report_done까지(total_ms)를 잰다.
+    시계는 facts 이벤트 수신을 0으로, 해석(answer) 단락까지(first_ms)·report_done까지(total_ms)를 잰다.
+    6개 절은 사실 수집 직후 곧바로 나가므로 지연의 의미가 해석 기준으로 바뀌었다(v0.68.0).
     """
     start: float | None = None
     first_ms = total_ms = None
     sections: dict[str, str] = {}
-    tool_calls: list[dict] = []
     for event in events:
         if event.type == "facts":
             start = clock()
-        elif event.type == "tool_call":
-            tool_calls.append(event.payload)
         elif event.type == "report_delta":
-            if first_ms is None and start is not None:
-                first_ms = (clock() - start) * 1000
             section = event.payload["section"]
+            if section == "answer" and first_ms is None and start is not None:
+                first_ms = (clock() - start) * 1000
             sections[section] = sections.get(section, "") + event.payload["markdown"]
         elif event.type == "report_done" and start is not None:
             total_ms = (clock() - start) * 1000
-    return {"first_ms": first_ms, "total_ms": total_ms, "sections": sections, "tool_calls": tool_calls}
+    return {"first_ms": first_ms, "total_ms": total_ms, "sections": sections}
 
 
 def _report_text(sections: dict[str, str]) -> str:
-    return concat_sections(sections.items(), order=[name for name, _ in _SECTIONS])
+    return concat_sections(sections.items())
 
 
-def _written_sections(sections: dict[str, str], facts: dict) -> set[str]:
-    """LLM이 쓴 절 — 맨 폴백(v0.67.0 이전 캐시)과 가드를 씌운 폴백(이후) 어느 쪽과도 다른 절."""
-    plain = {name: _fallback_section(name, title, facts) for name, title in _SECTIONS}
-    guarded = {name: guarded_fallback_section(name, title, facts) for name, title in _SECTIONS}
-    return llm_sections(sections, plain) & llm_sections(sections, guarded)
+def score_run(record: dict, facts: dict) -> dict:
+    """한 회차 채점 — 해석(answer) 한 단락만 본다. 6개 절은 코드라 결정적이다(sections-check·단위 테스트).
 
-
-def _tool_spec_text() -> str:
-    """모델에 노출되는 도구 정의(이름·설명·스키마)를 한 덩어리 글로 — 모델이 여기서 가져온 숫자는 지어낸 게 아니다."""
-    specs = [t.spec for t in build_tools(None, None, None, None)]  # 정의만 읽는다 — 게이트웨이는 호출되지 않음
-    return json.dumps(
-        [{"name": s.name, "description": s.description, "input_schema": s.input_schema} for s in specs],
-        ensure_ascii=False,
-    )
-
-
-def score_run(record: dict, facts: dict, question: str | None = None, tools_given: bool = True) -> dict:
-    """한 회차 채점 — 완주(6절 모두 LLM 작성 & 오류 없음)·판정 일치·지어낸 숫자·규칙 키워드.
-
-    숫자 근거는 facts뿐 아니라 사용자 질문·도구 결과(자금 계산·RAG 재검색)·시스템 프롬프트·
-    모델이 받은 도구 설명이다(도구 없는 모델은 도구 설명 제외).
-    판정 일치는 판정 절을 LLM이 썼을 때만 본다(폴백 문구는 facts로 쓴 것이라 모델 평가가 아니다).
+    `digits`는 가드 뒤에도 남은 숫자 토큰 수(0이어야 한다 — 분석 동·대안 동 이름 속 숫자는 세지 않는다),
+    `removed_sentences`·`raw_contradiction`은 시도 기록에서 가드가 지운 문장 수와 판정 모순으로 실패한 시도가 있었는지다.
     """
-    sections = record["sections"]
-    written = _written_sections(sections, facts)
-    text = _report_text(sections)
-    grounding = {
-        "facts": facts, "question": question, "tool_results": record.get("tool_results", []),
-        "system_prompt": SYSTEM_PROMPT, "tool_specs": _tool_spec_text() if tools_given else "",
-    }
+    answer = record["sections"].get("answer", "")
+    attempts = record.get("answer_attempts") or []
     return {
-        "complete": not record.get("error") and written >= {name for name, _ in _SECTIONS},
-        "verdict_ok": "verdict" in written and verdict_matches(sections["verdict"], facts.get("verdict", {})),
-        "verdict_graded": "verdict" in written and verdict_states_grade(sections["verdict"]),
-        "unmatched": unmatched_numbers(text, grounding),
-        "rule_hits": check_rule_keywords(text),
+        "complete": not record.get("error") and bool(answer),
+        "fallback": answer == ANSWER_FALLBACK,
+        "verdict_ok": not contradicts_verdict(answer, facts.get("verdict")),
+        "digits": len(_DIGITS.findall(blank_names(answer, region_names(facts)))),
+        "removed_sentences": sum(a.get("removed_sentences", 0) for a in attempts),
+        "raw_contradiction": any(a.get("contradiction") for a in attempts),
+        "rule_hits": check_rule_keywords(answer),
     }
 
 
-def score_record(record: dict, facts: dict, question: str | None = None, tools_given: bool = True) -> dict:
-    """화면 본문(가드 후)과 LLM 원문(가드 전, `raw_*`)을 따로 채점한다. 원문이 없는 옛 캐시는 화면 본문으로 대신."""
-    raw = {**record, "sections": record.get("raw_sections", record["sections"])}
-    return {
-        **score_run(record, facts, question, tools_given),
-        **{f"raw_{key}": value for key, value in score_run(raw, facts, question, tools_given).items()},
-    }
+def score_summary(model: str, runs: list[dict]) -> dict:
+    """모델 요약 — evaluate 호환 키(completion·verdict_match·fabrication·…)와 해석 지표(`answer`).
 
-
-def guard_summary(runs: list[dict]) -> dict:
-    """모델별 가드 개입 합계(`guard`)와 가드 전 원문 지표(`raw`).
-
-    개입 기록이 있는 회차가 하나도 없으면(v0.67.0 이전 캐시) `guard`는 None — 보고서가 개입 표를 싣지 않는다.
+    호환 키는 모두 해석 단락 기준이다: fabrication = 가드 뒤에도 숫자가 남은 해석 비율(0이어야 한다).
     """
     n = len(runs)
-    totals = Counter({key: 0 for key in GUARD_EVENTS})
-    for r in runs:
-        totals.update(r.get("guard") or {})
     return {
-        "guard": dict(totals) if any("guard" in r for r in runs) else None,
-        "raw": {
-            "completion": sum(r["raw_complete"] for r in runs) / n,
-            "verdict_match": sum(r["raw_verdict_ok"] for r in runs) / n,
-            "fabrication": sum(bool(r["raw_unmatched"]) for r in runs) / n,
-            "rule_violations_keyword": sum(len(r["raw_rule_hits"]) for r in runs),
+        "model": model, "n": n,
+        "completion": sum(r["complete"] for r in runs) / n,
+        "verdict_match": sum(r["verdict_ok"] for r in runs) / n,
+        "fabrication": sum(r["digits"] > 0 for r in runs) / n,
+        "rule_violations_keyword": sum(len(r["rule_hits"]) for r in runs),
+        "first_p95_ms": _p95([r["first_ms"] for r in runs]),  # 해석 단락이 나온 시각(본문 6개 절은 즉시)
+        "total_p95_ms": _p95([r["total_ms"] for r in runs]),
+        "answer": {
+            "fallback_rate": sum(r["fallback"] for r in runs) / n,
+            "digits_after_guard": sum(r["digits"] for r in runs),
+            "raw_contradiction_rate": sum(r["raw_contradiction"] for r in runs) / n,
+            "removed_sentences": sum(r["removed_sentences"] for r in runs),
         },
+        "sampling": sampling_label(runs),
+        "runs": [{k: r[k] for k in ("id", "rep", "complete", "fallback", "verdict_ok", "digits", "removed_sentences",
+                                    "raw_contradiction", "rule_hits", "first_ms", "total_ms", "error")} for r in runs],
     }
 
 
@@ -290,12 +270,11 @@ def sampling_label(runs: list[dict]) -> str:
     return ", ".join(labels)
 
 
-def run_record(scenario_id: str, rep: int, got: dict, error: str | None, tool_results: list[str], interactor) -> dict:
-    """캐시 한 줄 — 화면 본문(`sections`)과 가드 전 원문(`raw_sections`)·가드 개입 횟수(`guard`)를 함께 남긴다."""
+def run_record(scenario_id: str, rep: int, got: dict, error: str | None, interactor) -> dict:
+    """캐시 한 줄 — 화면 본문(`sections`, 해석 포함)과 해석 시도 기록(`answer_attempts`: 원문·지운 문장 수·모순·오류)."""
     usage = interactor.last_usage
-    return {"id": scenario_id, "rep": rep, **got, "raw_sections": interactor.last_raw_sections,
-            "guard": interactor.last_guard_events, "error": error, "tool_results": tool_results,
-            "temperature": REPORT_TEMPERATURE, "seed": REPORT_SEED,
+    return {"id": scenario_id, "rep": rep, **got, "answer_attempts": interactor.last_answer_attempts,
+            "error": error, "temperature": REPORT_TEMPERATURE, "seed": REPORT_SEED,
             "usage": {"input_tokens": usage.input_tokens, "output_tokens": usage.output_tokens}}
 
 
@@ -318,6 +297,31 @@ def _collector() -> tuple[ReportFactsCollector, RegionFactsGateway, object]:
         analog_facts=EventAnalogFactsGateway(),
     )
     return collector, region_facts, rag_search
+
+
+def _cmd_sections_check(args: argparse.Namespace) -> None:
+    """코드 절 자동 검사(설계서 §7) — 세트 전체 facts로 6개 절을 써서 범위 없는 숫자 줄·이유 빠진 자료 부족 자리를 센다.
+
+    모델을 부르지 않는다. 결과는 `sections_check.json`(문제 있는 시나리오만 줄 단위로)이다.
+    """
+    scenarios = _scenarios()
+    issues: dict[str, dict] = {}
+    for s in scenarios:
+        facts = _facts_of(s["id"])
+        sections = build_sections(facts)
+        region = facts.get("region") or {}
+        regions = (facts.get("alternatives") or {}).get("regions") or []
+        # 동 이름에 숫자가 든다("상계3.4동") — 이름은 숫자로 세지 않는다
+        names = [n for n in (region.get("name"), *(r.get("region_name") for r in regions)) if n]
+        scope = [w for w in (region.get("name"), region.get("industry_name"), *SCOPE_WORDS) if w]
+        found = {
+            "unscoped": [line for md in sections.values() for line in unscoped_number_lines(md, scope, names)],
+            "missing": missing_data_gaps(facts, sections),
+        }
+        if any(found.values()):
+            issues[s["id"]] = found
+    _write_json(_RUNS / "sections_check.json", {"scenarios": len(scenarios), "issues": issues})
+    print(f"sections-check: {len(scenarios)}건 중 문제 {len(issues)}건 → {_RUNS / 'sections_check.json'}", flush=True)
 
 
 def _cmd_freeze(args: argparse.Namespace) -> None:
@@ -355,15 +359,6 @@ def _unload_all() -> None:
         _load(m["name"], 0)
 
 
-def _recording(run: Callable[[dict], str], sink: list[str]) -> Callable[[dict], str]:
-    """도구 실행을 감싸 결과 문자열을 sink에 남긴다."""
-    def wrapped(arguments: dict) -> str:
-        result = run(arguments)
-        sink.append(result)
-        return result
-    return wrapped
-
-
 def _cmd_run(args: argparse.Namespace) -> None:
     model = REPORT_MODELS[args.model]
     llm = model.llm()
@@ -372,16 +367,12 @@ def _cmd_run(args: argparse.Namespace) -> None:
     path = _run_path(model.name)
     path.parent.mkdir(parents=True, exist_ok=True)
     done = {(r["id"], r["rep"]) for r in _read_jsonl(path)}
-    _, region_facts, rag_search = _collector()
-    base_tools = build_tools(region_facts, rag_search, FinanceFactsGateway(), None) if model.tools else []
     for rep in range(args.repeat):
         for s in _scenarios():
             if (s["id"], rep) in done:
                 continue
             frozen = FrozenFacts({(s["region_code"], s["industry_id"]): _facts_of(s["id"])})
-            tool_results: list[str] = []  # 리포트 숫자의 근거 — 도구가 돌려준 결과를 그대로 모은다
-            tools = [replace(t, run=_recording(t.run, tool_results)) for t in base_tools]
-            interactor = AnalysisInteractor(llm=llm, tools=tools, facts=frozen)
+            interactor = AnalysisInteractor(llm=llm, facts=frozen)  # 모델 하나만 평가한다 — 재시도 모델 없음
             error = None
             events: list[AgentEvent] = []
 
@@ -395,54 +386,44 @@ def _cmd_run(args: argparse.Namespace) -> None:
             except Exception as exc:  # 모델·전송 실패도 한 회차의 결과다 — 완주 게이트가 걸러낸다
                 error = f"{type(exc).__name__}: {exc}"
                 got = {**collect_run(events), "first_ms": None, "total_ms": None}  # 중단된 회차의 시간은 의미 없다
-            usage = interactor.last_usage
-            if not error and usage.output_tokens == 0 and not _written_sections(got["sections"], _facts_of(s["id"])):
+            if not error and interactor.last_usage.output_tokens == 0:
                 error = "no_llm_output"
                 print(f"run: 경고 {model.name} {s['id']} rep{rep} LLM 출력 없음", flush=True)
-            row = run_record(s["id"], rep, got, error, tool_results, interactor)
+            row = run_record(s["id"], rep, got, error, interactor)
             with path.open("a", encoding="utf-8") as f:
                 f.write(json.dumps(row, ensure_ascii=False) + "\n")
             print(f"run: {model.name} {s['id']} rep{rep} total={got['total_ms']} error={error}", flush=True)
 
 
+def _code_only_ids() -> set[str]:
+    """자료 부족 시나리오(`scarcity`) — 해석이 LLM 없이 코드 첫 문장뿐이라 해석 채점·판정 묶음에서 뺀다."""
+    return {s["id"] for s in _scenarios() if scarcity(_facts_of(s["id"])) is not None}
+
+
 def _cmd_score(args: argparse.Namespace) -> None:
-    scenarios = _scenarios()
-    facts = {s["id"]: _facts_of(s["id"]) for s in scenarios}
-    questions = {s["id"]: s["question"] for s in scenarios}
+    facts = {s["id"]: _facts_of(s["id"]) for s in _scenarios()}
+    code_only = _code_only_ids()
     for name in REPORT_MODELS:
         records = _read_jsonl(_run_path(name))
         if not records:
             continue
-        runs = [{**r, **score_record(r, facts[r["id"]], questions[r["id"]], REPORT_MODELS[name].tools)} for r in records]
-        n = len(runs)
-        summary = {
-            "model": name, "n": n,
-            "completion": sum(r["complete"] for r in runs) / n,
-            "verdict_match": sum(r["verdict_ok"] for r in runs) / n,
-            # 참고 — LLM이 쓴 판정 절에 등급 말이 없는 회차 수(모순은 아니지만 등급을 생략)
-            "verdict_no_grade": sum("verdict" in _written_sections(r["sections"], facts[r["id"]])
-                                    and not r["verdict_graded"] for r in runs),
-            "fabrication": sum(bool(r["unmatched"]) for r in runs) / n,
-            "rule_violations_keyword": sum(len(r["rule_hits"]) for r in runs),
-            "first_p95_ms": _p95([r["first_ms"] for r in runs]),
-            "total_p95_ms": _p95([r["total_ms"] for r in runs]),
-            **guard_summary(runs),
-            "sampling": sampling_label(runs),
-            "consistency": consistency(runs),  # 반복 회차끼리 — 옛 캐시에도 계산된다(기준선 비교용)
-            "runs": [{k: r[k] for k in ("id", "rep", "complete", "verdict_ok", "raw_verdict_ok", "unmatched",
-                                        "rule_hits", "first_ms", "total_ms", "error")} for r in runs],
-        }
-        _write_json(_score_path(name), summary)
+        if any("answer_attempts" not in r for r in records):
+            raise SystemExit("옛 형식 캐시 — 새 구조 벤치는 --cache-tag로 돌린 run만 채점")
+        runs = [{**r, **score_run(r, facts[r["id"]])} for r in records if r["id"] not in code_only]
+        _write_json(_score_path(name), score_summary(name, runs))
         print(f"score: {name} → {_score_path(name)}", flush=True)
 
 
-def _first_rep_reports() -> dict[str, dict[str, str]]:
-    """{시나리오 id: {모델: 1회차 본문}} — 본문의 모델명은 가린다."""
-    out: dict[str, dict[str, str]] = {}
+def _first_rep_answers() -> dict[str, tuple[str, dict[str, str]]]:
+    """{시나리오 id: (코드 6개 절 본문, {모델: 1회차 해석})} — 해석의 모델명은 가린다. 본문은 모델과 무관하게 같다."""
+    out: dict[str, tuple[str, dict[str, str]]] = {}
+    code_only = _code_only_ids()
     for name in REPORT_MODELS:
         for r in _read_jsonl(_run_path(name)):
-            if r["rep"] == 0 and r["sections"]:
-                out.setdefault(r["id"], {})[name] = mask_model_names(_report_text(r["sections"]))
+            answer = r["sections"].get("answer")
+            if r["rep"] == 0 and answer and r["id"] not in code_only:
+                body = concat_sections((k, v) for k, v in r["sections"].items() if k != "answer")
+                out.setdefault(r["id"], (body, {}))[1][name] = mask_model_names(answer)
     return out
 
 
@@ -482,12 +463,16 @@ def _cmd_judge_export(args: argparse.Namespace) -> None:
         _export_compare(args)
         return
     _JUDGE.mkdir(parents=True, exist_ok=True)
+    questions = {s["id"]: s["question"] for s in _scenarios()}
     mapping: dict[str, dict[str, str]] = {}
-    for sid, reports in _first_rep_reports().items():
-        packet, mapping[sid] = judge_packets(sid, _facts_of(sid), reports, _JUDGE_SEED)
+    for sid, (body, answers) in _first_rep_answers().items():
+        packet, mapping[sid] = answer_packets(sid, questions.get(sid), body, answers, _JUDGE_SEED)
         (_JUDGE / f"packet_{sid}.md").write_text(packet, encoding="utf-8")
     _write_json(_JUDGE / "mapping.json", mapping)
-    print(f"judge-export: {len(mapping)}개 시나리오 → {_JUDGE}", flush=True)
+    # 사람 검수 표본 — 같은 시드면 같은 20건
+    sample = sorted(random.Random(_JUDGE_SEED).sample(sorted(mapping), min(_HUMAN_SAMPLE, len(mapping))))
+    _write_json(_JUDGE / "human_sample.json", sample)
+    print(f"judge-export: {len(mapping)}개 시나리오(사람 검수 {len(sample)}건) → {_JUDGE}", flush=True)
 
 
 def _export_compare(args: argparse.Namespace) -> None:
@@ -522,6 +507,8 @@ def _argument_error(args: argparse.Namespace) -> str | None:
         return "--compare-tag로 내보내려면 --models a,b 가 필요합니다"
     if args.compare_tag and args.compare_tag == (args.cache_tag or _BASE_TAG):
         return f"--compare-tag({args.compare_tag})가 현재 캐시 태그와 같습니다 — 다른 태그와 비교하세요"
+    if args.command in ("score", "sections-check") and not args.cache_tag:
+        return "새 구조 벤치는 --cache-tag가 필요합니다 — 태그 없는 report/는 옛 기준선 캐시라 쓰지 않습니다"
     return None
 
 
@@ -727,7 +714,7 @@ def _cmd_evaluate(args: argparse.Namespace) -> None:
 
 
 _COMMANDS: dict[str, Callable] = {
-    "freeze": _cmd_freeze, "run": _cmd_run, "score": _cmd_score, "judge-export": _cmd_judge_export,
+    "freeze": _cmd_freeze, "sections-check": _cmd_sections_check, "run": _cmd_run, "score": _cmd_score, "judge-export": _cmd_judge_export,
     "judge-import": _cmd_judge_import, "judge-compare": _cmd_judge_compare, "vram": _cmd_vram, "residency": _cmd_residency, "evaluate": _cmd_evaluate,
 }
 
@@ -746,11 +733,14 @@ def main() -> None:
     parser.add_argument("--force", action="store_true", help="freeze: 기존 facts 덮어쓰기")
     parser.add_argument("--out-dir", default=None, help="evaluate: 결과 폴더 이름(기본 llm-benchmark-YYYY-MM-DD)")
     parser.add_argument("--cache-tag", default=None, help="run·score·judge-*·evaluate: 캐시를 report-<tag>/·judge-<tag>/로 분리")
+    parser.add_argument("--scenario-set", choices=list(_SCENARIO_SETS), default="12",
+                        help="시나리오 파일·facts 폴더 묶음(기본 12건, 150은 report_scenarios_150·report_facts_150)")
     args = parser.parse_args()
     if error := _argument_error(args):
         parser.error(error)
-    global _RUNS, _JUDGE  # 명령 함수들이 모듈 경로를 읽는다 — 태그는 실행 시작에 한 번만 바꾼다
+    global _RUNS, _JUDGE, _SCENARIOS, _FACTS_DIR  # 명령 함수들이 모듈 경로를 읽는다 — 실행 시작에 한 번만 바꾼다
     _RUNS, _JUDGE = cache_dirs(args.cache_tag)
+    _SCENARIOS, _FACTS_DIR = _SCENARIO_SETS[args.scenario_set]
     _COMMANDS[args.command](args)
 
 

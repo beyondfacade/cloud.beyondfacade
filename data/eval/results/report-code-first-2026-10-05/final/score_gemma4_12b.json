@@ -1,0 +1,17 @@
+{
+ "model": "gemma4:12b",
+ "n": 150,
+ "completion": 1.0,
+ "verdict_match": 1.0,
+ "fabrication": 0.0,
+ "rule_violations_keyword": 0,
+ "first_p95_ms": 4536.805578722851,
+ "total_p95_ms": 4536.815626634052,
+ "answer": {
+  "fallback_rate": 0.0,
+  "digits_after_guard": 0,
+  "raw_contradiction_rate": 0.0,
+  "removed_sentences": 2
+ },
+ "sampling": "0.0/42"
+}

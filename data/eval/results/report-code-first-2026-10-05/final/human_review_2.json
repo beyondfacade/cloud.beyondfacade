@@ -1,0 +1,242 @@
+{
+ "e150-B": {
+  "answered": true,
+  "core_error": null,
+  "hard": true,
+  "note": ""
+ },
+ "e150-A": {
+  "answered": true,
+  "core_error": null,
+  "hard": true,
+  "note": ""
+ },
+ "e137-B": {
+  "answered": true,
+  "core_error": null,
+  "hard": true,
+  "note": ""
+ },
+ "e137-A": {
+  "answered": true,
+  "core_error": null,
+  "hard": true,
+  "note": ""
+ },
+ "e131-B": {
+  "answered": true,
+  "core_error": null,
+  "hard": true,
+  "note": ""
+ },
+ "e131-A": {
+  "answered": true,
+  "core_error": null,
+  "hard": true,
+  "note": ""
+ },
+ "e130-B": {
+  "answered": true,
+  "core_error": null,
+  "hard": true,
+  "note": ""
+ },
+ "e130-A": {
+  "answered": true,
+  "core_error": null,
+  "hard": true,
+  "note": ""
+ },
+ "e125-B": {
+  "answered": true,
+  "core_error": null,
+  "hard": true,
+  "note": ""
+ },
+ "e125-A": {
+  "answered": true,
+  "core_error": null,
+  "hard": true,
+  "note": ""
+ },
+ "e123-B": {
+  "answered": true,
+  "core_error": null,
+  "hard": true,
+  "note": ""
+ },
+ "e123-A": {
+  "answered": true,
+  "core_error": null,
+  "hard": true,
+  "note": ""
+ },
+ "e108-B": {
+  "answered": false,
+  "core_error": null,
+  "hard": true,
+  "note": "근거자료 부족"
+ },
+ "e108-A": {
+  "answered": false,
+  "core_error": null,
+  "hard": true,
+  "note": "근거자료 부족"
+ },
+ "e104-B": {
+  "answered": false,
+  "core_error": null,
+  "hard": false,
+  "note": "평창동 거주민들의 생활수준 고려 필요"
+ },
+ "e104-A": {
+  "answered": false,
+  "core_error": null,
+  "hard": false,
+  "note": "평창동 거주민들의 생활수준 고려 필요"
+ },
+ "e099-B": {
+  "answered": false,
+  "core_error": null,
+  "hard": true,
+  "note": ""
+ },
+ "e099-A": {
+  "answered": false,
+  "core_error": null,
+  "hard": true,
+  "note": ""
+ },
+ "e092-B": {
+  "answered": false,
+  "core_error": null,
+  "hard": true,
+  "note": "긍정적인 명확한 근거도 없음"
+ },
+ "e092-A": {
+  "answered": false,
+  "core_error": null,
+  "hard": true,
+  "note": "긍정적인 명확한 근거도 없음"
+ },
+ "e080-B": {
+  "answered": false,
+  "core_error": null,
+  "hard": false,
+  "note": "뉴스 참고가 됐으면 좋겠어."
+ },
+ "e080-A": {
+  "answered": false,
+  "core_error": null,
+  "hard": false,
+  "note": "뉴스 참고가 됐으면 좋겠어."
+ },
+ "e078-B": {
+  "answered": true,
+  "core_error": null,
+  "hard": false,
+  "note": "a보다 B답안이 좋음"
+ },
+ "e078-A": {
+  "answered": true,
+  "core_error": null,
+  "hard": false,
+  "note": ""
+ },
+ "e073-B": {
+  "answered": null,
+  "core_error": null,
+  "hard": true,
+  "note": ""
+ },
+ "e073-A": {
+  "answered": null,
+  "core_error": null,
+  "hard": true,
+  "note": ""
+ },
+ "e067-B": {
+  "answered": true,
+  "core_error": null,
+  "hard": true,
+  "note": ""
+ },
+ "e067-A": {
+  "answered": true,
+  "core_error": null,
+  "hard": true,
+  "note": ""
+ },
+ "e065-B": {
+  "answered": true,
+  "core_error": null,
+  "hard": false,
+  "note": "어떤 업종하면 좋을지 추천같이 있으면 (대안)"
+ },
+ "e065-A": {
+  "answered": true,
+  "core_error": null,
+  "hard": false,
+  "note": "어떤 업종하면 좋을지 추천같이 있으면 (대안)"
+ },
+ "e056-B": {
+  "answered": true,
+  "core_error": null,
+  "hard": false,
+  "note": "어떤 업종하면 좋을지 추천같이 있으면 (대안)"
+ },
+ "e056-A": {
+  "answered": true,
+  "core_error": null,
+  "hard": false,
+  "note": ""
+ },
+ "e038-B": {
+  "answered": true,
+  "core_error": null,
+  "hard": false,
+  "note": "어떤 업종하면 좋을지 추천같이 있으면 (대안)"
+ },
+ "e038-A": {
+  "answered": true,
+  "core_error": null,
+  "hard": false,
+  "note": "어떤 업종하면 좋을지 추천같이 있으면 (대안)"
+ },
+ "e036-B": {
+  "answered": true,
+  "core_error": null,
+  "hard": false,
+  "note": "A보다 B가 좋음"
+ },
+ "e036-A": {
+  "answered": true,
+  "core_error": null,
+  "hard": false,
+  "note": ""
+ },
+ "e025-B": {
+  "answered": false,
+  "core_error": null,
+  "hard": false,
+  "note": "해석좋음"
+ },
+ "e025-A": {
+  "answered": false,
+  "core_error": null,
+  "hard": false,
+  "note": "해석좋음"
+ },
+ "e011-B": {
+  "answered": false,
+  "core_error": null,
+  "hard": false,
+  "note": "해석좋음"
+ },
+ "e011-A": {
+  "answered": false,
+  "core_error": null,
+  "hard": false,
+  "note": "해석좋음"
+ }
+}

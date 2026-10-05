@@ -1,4 +1,4 @@
-import type { ReportFacts, ReportSection } from "@/shared/api/types";
+import type { FactSection, ReportFacts } from "@/shared/api/types";
 import { VerdictCard } from "@/shared/ui/verdict-card";
 import { availableFact } from "../lib/available-fact";
 import { SignalBars } from "./charts/signal-bars";
@@ -48,8 +48,8 @@ const VISUALS = {
   </>,
   alternatives: (facts: ReportFacts) => <AlternativesCards alternatives={facts.alternatives} />,
   funding: (facts: ReportFacts) => <FundingCards candidates={facts.funding_candidates} />,
-} satisfies Record<ReportSection, (facts: ReportFacts) => React.ReactNode>;
+} satisfies Record<FactSection, (facts: ReportFacts) => React.ReactNode>;
 
-export function ReportVisuals({ facts, section }: { facts: ReportFacts; section: ReportSection }) {
+export function ReportVisuals({ facts, section }: { facts: ReportFacts; section: FactSection }) {
   return <div className="mb-6 space-y-6">{VISUALS[section](facts)}</div>;
 }

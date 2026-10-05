@@ -1,0 +1,1147 @@
+{
+  "region": {
+    "code": "1162062500",
+    "name": "인헌동",
+    "industry_id": "japanese_food",
+    "industry_name": "일식"
+  },
+  "verdict": {
+    "region_code": "1162062500",
+    "industry_id": "japanese_food",
+    "verdict_code": "orange",
+    "strong_count": 1,
+    "on_count": 1,
+    "signals": [
+      {
+        "key": "net_outflow",
+        "level": "strong",
+        "value": 0.16666666666666666,
+        "percentile": 93.9,
+        "evidence": "지난 12개월 폐업 4곳, 개업 2곳 (순유출률 +17%, 서울 일식 상위 6%)",
+        "source": "store",
+        "advisory": false
+      },
+      {
+        "key": "survival_cliff",
+        "level": "unavailable",
+        "value": null,
+        "percentile": null,
+        "evidence": "표본 부족 — 3년 전 개업 코호트 4곳 (10곳 미만)",
+        "source": "store",
+        "advisory": false
+      },
+      {
+        "key": "early_closure",
+        "level": "unavailable",
+        "value": null,
+        "percentile": null,
+        "evidence": "표본 부족 — 최근 3년 폐업 6곳 (10곳 미만)",
+        "source": "store",
+        "advisory": false
+      },
+      {
+        "key": "saturation",
+        "level": "off",
+        "value": 0.3939334252511325,
+        "percentile": 43.4,
+        "evidence": "상주인구 1,000명당 일식 0.4곳 (서울 상위 57%)",
+        "source": "metric",
+        "advisory": false
+      },
+      {
+        "key": "shrinking",
+        "level": "off",
+        "value": 0.0,
+        "percentile": null,
+        "evidence": "서울시 상권변화지표 '상권확장' (2026년 2분기, 동 전체 기준)",
+        "source": "neighborhood",
+        "advisory": true
+      }
+    ],
+    "computed_at": "2026-10-04T19:34:24.166035+00:00",
+    "basis": "permit",
+    "available": true
+  },
+  "alternatives": {
+    "region_code": "1162062500",
+    "industry_id": "japanese_food",
+    "neighborhood_type": "residential",
+    "industries": [
+      {
+        "industry_id": "gym",
+        "industry_name": "헬스장",
+        "verdict_code": "clear",
+        "strong_count": 0,
+        "on_count": 0
+      },
+      {
+        "industry_id": "hair_salon",
+        "industry_name": "미용실",
+        "verdict_code": "clear",
+        "strong_count": 0,
+        "on_count": 0
+      },
+      {
+        "industry_id": "karaoke",
+        "industry_name": "노래방",
+        "verdict_code": "clear",
+        "strong_count": 0,
+        "on_count": 0
+      }
+    ],
+    "regions": [
+      {
+        "region_code": "1117051000",
+        "region_name": "후암동",
+        "verdict_code": "clear",
+        "strong_count": 0,
+        "on_count": 0
+      },
+      {
+        "region_code": "1117063000",
+        "region_name": "이촌제1동",
+        "verdict_code": "clear",
+        "strong_count": 0,
+        "on_count": 0
+      },
+      {
+        "region_code": "1121577000",
+        "region_name": "중곡제4동",
+        "verdict_code": "clear",
+        "strong_count": 0,
+        "on_count": 0
+      }
+    ],
+    "available": true
+  },
+  "profile": {
+    "region_code": "1162062500",
+    "year_quarter": "20262",
+    "neighborhood_type": "residential",
+    "type_reason": "직장인구가 상주인구보다 적고, 밤 시간 체류가 서울 하위 25%에 들지 않습니다.",
+    "time_label": "night",
+    "peak_block": "night",
+    "trough_block": "day",
+    "block_intensities": {
+      "morning": 1.0065754125888762,
+      "day": 0.8082027119237707,
+      "evening": 0.9414316275739365,
+      "night": 1.1502422394685832
+    },
+    "footfall_20s_share": 0.23427012194900804,
+    "type_name": "주거형",
+    "time_label_name": "밤(21~06시)",
+    "peak_block_name": "밤(21~06시)",
+    "trough_block_name": "낮(11~17시)",
+    "footfall_age_mix": [
+      {
+        "age": "20",
+        "share": 0.2338
+      },
+      {
+        "age": "30",
+        "share": 0.2023
+      },
+      {
+        "age": "60_over",
+        "share": 0.1843
+      },
+      {
+        "age": "40",
+        "share": 0.1422
+      },
+      {
+        "age": "50",
+        "share": 0.122
+      },
+      {
+        "age": "10",
+        "share": 0.1153
+      }
+    ],
+    "worker_resident_ratio": 0.06393539491825881,
+    "weekend_index": 1.0638921724283423,
+    "night_index": 1.1654778490648088,
+    "fnb_share": 0.30333654602404064,
+    "facility_total": 105,
+    "resident_total": 25385,
+    "commerce_change": {
+      "code": "LH",
+      "name": "상권확장",
+      "operating_months": 115.0,
+      "closed_months": 54.0
+    },
+    "top_facilities": [
+      {
+        "type": "버스정거장",
+        "count": 23
+      },
+      {
+        "type": "약국",
+        "count": 14
+      },
+      {
+        "type": "은행",
+        "count": 5
+      },
+      {
+        "type": "관공서",
+        "count": 2
+      },
+      {
+        "type": "슈퍼마켓",
+        "count": 2
+      }
+    ],
+    "apartment_avg_price_won": 167112659,
+    "benchmarks": {
+      "seoul": {
+        "operating_months": 118.0,
+        "closed_months": 54.0
+      },
+      "type_median": {
+        "weekend_index": 1.0413904962014495,
+        "night_index": 1.1262008543011257,
+        "fnb_share": 0.22893879320119032,
+        "worker_resident_ratio": 0.06958169086600322
+      },
+      "type_count": 251
+    },
+    "caveats": [
+      "아파트 평균 시가는 동별 편차가 극단적이라 참고값이다. 대표 시세로 단정하지 마라.",
+      "집객시설 1위가 버스정거장이다. 시설 수를 상권 매력도로 직결해 읽지 마라.",
+      "비교는 같은 유형 251개 동 중앙값 기준이다. 서울 전체 평균과 혼동하지 마라."
+    ]
+  },
+  "hour_gap": {
+    "available": false,
+    "reason": "시간대 어긋남 자료가 없다: 1162062500 × japanese_food"
+  },
+  "commerce_change": {
+    "region_code": "1162062500",
+    "year_quarter": "20262",
+    "change_code": "LH",
+    "change_name": "상권확장",
+    "operating_months": 115.0,
+    "closed_months": 54.0,
+    "seoul": {
+      "operating_months": 118.0,
+      "closed_months": 54.0
+    },
+    "available": true
+  },
+  "metrics_history": [
+    {
+      "year": 2019,
+      "store_count": 10,
+      "open_count": 2,
+      "close_count": 0,
+      "closure_rate": 0.0,
+      "growth_rate": 0.25
+    },
+    {
+      "year": 2020,
+      "store_count": 11,
+      "open_count": 1,
+      "close_count": 0,
+      "closure_rate": 0.0,
+      "growth_rate": 0.1
+    },
+    {
+      "year": 2021,
+      "store_count": 12,
+      "open_count": 2,
+      "close_count": 1,
+      "closure_rate": 0.09090909090909091,
+      "growth_rate": 0.09090909090909091
+    },
+    {
+      "year": 2022,
+      "store_count": 11,
+      "open_count": 1,
+      "close_count": 2,
+      "closure_rate": 0.16666666666666666,
+      "growth_rate": -0.08333333333333333
+    },
+    {
+      "year": 2023,
+      "store_count": 12,
+      "open_count": 4,
+      "close_count": 3,
+      "closure_rate": 0.2727272727272727,
+      "growth_rate": 0.09090909090909091
+    },
+    {
+      "year": 2024,
+      "store_count": 13,
+      "open_count": 2,
+      "close_count": 1,
+      "closure_rate": 0.08333333333333333,
+      "growth_rate": 0.08333333333333333
+    },
+    {
+      "year": 2025,
+      "store_count": 12,
+      "open_count": 0,
+      "close_count": 1,
+      "closure_rate": 0.07692307692307693,
+      "growth_rate": -0.07692307692307693
+    },
+    {
+      "year": 2026,
+      "store_count": 10,
+      "open_count": 2,
+      "close_count": 4,
+      "closure_rate": 0.3333333333333333,
+      "growth_rate": -0.16666666666666666
+    }
+  ],
+  "population": {
+    "region_code": "1162062500",
+    "period": "202606",
+    "age_distribution": {
+      "0": 257,
+      "5": 347,
+      "10": 447,
+      "15": 704,
+      "20": 1734,
+      "25": 3881,
+      "30": 3321,
+      "35": 1811,
+      "40": 1439,
+      "45": 1420,
+      "50": 1628,
+      "55": 1687,
+      "60": 1538,
+      "65": 1482,
+      "70": 1250,
+      "75": 944,
+      "80": 635,
+      "85": 328,
+      "90": 96,
+      "95": 20,
+      "100": 2
+    },
+    "school_age_population": 1498
+  },
+  "shocks": [
+    {
+      "event_id": "outbreak-mers-20150520",
+      "layer": "policy",
+      "name": "메르스(MERS) 국내 유행 — 첫 확진부터 상황 종료까지",
+      "start_date": "2015-05-20",
+      "scope": "전국",
+      "source": "보건복지부 질병관리본부 발표 (2015-05-20 첫 확진, 2015-12-23 상황 종료 선언)",
+      "end_date": "2015-12-23",
+      "source_url": "https://www.seoul.co.kr/news/society/health-medical/2015/12/23/20151223800042",
+      "description": "확진 186명·사망 38명. 병원 중심 전파로 외출·대면 소비가 위축됐고 영업 제한 조치는 없었다. 정부는 2015-07-28 사실상 종식을 선언했다.",
+      "industry_impacts": [],
+      "industry_specific": false
+    },
+    {
+      "event_id": "work-hour-52-20180701",
+      "layer": "policy",
+      "name": "주 52시간제 시행 — 300인 이상 사업장",
+      "start_date": "2018-07-01",
+      "scope": "전국",
+      "source": "고용노동부 — 근로기준법 개정(2018-03-20 공포), 300인 이상 2018-07-01 시행",
+      "end_date": null,
+      "source_url": "https://www.moel.go.kr",
+      "description": "회식·야간 여가 수요 감소의 간접 충격 — 노래방·당구장 주 영향 (brainstorming §5.2)",
+      "industry_impacts": [
+        {
+          "industry_id": "billiard",
+          "severity": "medium"
+        },
+        {
+          "industry_id": "karaoke",
+          "severity": "medium"
+        }
+      ],
+      "industry_specific": false
+    },
+    {
+      "event_id": "min-wage-2019",
+      "layer": "policy",
+      "name": "최저임금 인상 — 2019년 시급 8,350원(+10.9%)",
+      "start_date": "2019-01-01",
+      "scope": "전국",
+      "source": "고용노동부 최저임금 고시(2018년 8월 고시, 2019-01-01 시행)",
+      "end_date": "2019-12-31",
+      "source_url": "https://www.minimumwage.go.kr",
+      "description": "인건비 비중이 큰 야간 운영 업종에 직접 영향 — 야간 무인화·24시간 영업 포기 추세 (brainstorming §5.2)",
+      "industry_impacts": [
+        {
+          "industry_id": "cafe",
+          "severity": "medium"
+        },
+        {
+          "industry_id": "convenience_store",
+          "severity": "high"
+        }
+      ],
+      "industry_specific": false
+    },
+    {
+      "event_id": "min-wage-2020",
+      "layer": "policy",
+      "name": "최저임금 인상 — 2020년 시급 8,590원(+2.9%)",
+      "start_date": "2020-01-01",
+      "scope": "전국",
+      "source": "고용노동부 최저임금 고시(2019년 8월 고시, 2020-01-01 시행)",
+      "end_date": "2020-12-31",
+      "source_url": "https://www.minimumwage.go.kr",
+      "description": "인건비 비중이 큰 야간 운영 업종에 직접 영향 — 야간 무인화·24시간 영업 포기 추세 (brainstorming §5.2)",
+      "industry_impacts": [
+        {
+          "industry_id": "cafe",
+          "severity": "medium"
+        },
+        {
+          "industry_id": "convenience_store",
+          "severity": "high"
+        }
+      ],
+      "industry_specific": false
+    },
+    {
+      "event_id": "work-hour-52-20200101",
+      "layer": "policy",
+      "name": "주 52시간제 시행 — 50~299인 사업장",
+      "start_date": "2020-01-01",
+      "scope": "전국",
+      "source": "고용노동부 — 근로기준법 개정(2018-03-20 공포), 50~299인 2020-01-01 시행 (계도기간 1년 부여)",
+      "end_date": null,
+      "source_url": "https://www.moel.go.kr",
+      "description": "회식·야간 여가 수요 감소의 간접 충격 — 노래방·당구장 주 영향 (brainstorming §5.2)",
+      "industry_impacts": [
+        {
+          "industry_id": "billiard",
+          "severity": "medium"
+        },
+        {
+          "industry_id": "karaoke",
+          "severity": "medium"
+        }
+      ],
+      "industry_specific": false
+    }
+  ],
+  "analogs": {
+    "industry_id": "japanese_food",
+    "as_of": "2026-09",
+    "categories": [
+      {
+        "category": "minimum_wage",
+        "label": "최저임금",
+        "reason": "current"
+      }
+    ],
+    "current_events": [
+      {
+        "event_id": "min-wage-2026",
+        "name": "최저임금 인상 — 2026년 시급 10,320원(+2.9%)",
+        "category": "minimum_wage",
+        "category_label": "최저임금",
+        "start_date": "2026-01-01",
+        "end_date": "2026-12-31",
+        "duration_months": 11,
+        "description": "인건비 비중이 큰 야간 운영 업종에 직접 영향 — 야간 무인화·24시간 영업 포기 추세 (brainstorming §5.2)",
+        "source": "고용노동부 최저임금 고시(2025년 8월 고시, 2026-01-01 시행)",
+        "current": true,
+        "years": 1,
+        "quarters": [
+          {
+            "quarter": 1,
+            "label": "1년 차 1분기",
+            "start_month": "2026-01",
+            "end_month": "2026-03",
+            "overlaps": []
+          },
+          {
+            "quarter": 2,
+            "label": "1년 차 2분기",
+            "start_month": "2026-04",
+            "end_month": "2026-06",
+            "overlaps": []
+          },
+          {
+            "quarter": 3,
+            "label": "1년 차 3분기",
+            "start_month": "2026-07",
+            "end_month": "2026-09",
+            "overlaps": []
+          }
+        ],
+        "series": [
+          {
+            "industry_id": "japanese_food",
+            "industry_name": "일식",
+            "role": "target",
+            "values": [
+              0.1,
+              0.1,
+              -0.7
+            ]
+          },
+          {
+            "industry_id": "pc_bang",
+            "industry_name": "PC방",
+            "role": "recommended",
+            "values": [
+              0.9,
+              -0.0,
+              -0.2
+            ]
+          },
+          {
+            "industry_id": "billiard",
+            "industry_name": "당구장",
+            "role": "recommended",
+            "values": [
+              -0.1,
+              -0.9,
+              1.5
+            ]
+          },
+          {
+            "industry_id": "hair_salon",
+            "industry_name": "미용실",
+            "role": "recommended",
+            "values": [
+              0.3,
+              0.2,
+              0.1
+            ]
+          },
+          {
+            "industry_id": "western_food",
+            "industry_name": "양식",
+            "role": "avoid",
+            "values": [
+              0.3,
+              -0.2,
+              -0.6
+            ]
+          },
+          {
+            "industry_id": "cafe",
+            "industry_name": "카페",
+            "role": "avoid",
+            "values": [
+              0.6,
+              0.5,
+              0.6
+            ]
+          },
+          {
+            "industry_id": "gym",
+            "industry_name": "헬스장",
+            "role": "avoid",
+            "values": [
+              -1.3,
+              -1.5,
+              -1.8
+            ]
+          }
+        ],
+        "target_weak_quarters": 1,
+        "target_strong_quarters": 0,
+        "target_weak_streak": 0,
+        "summary_sentence": "2026년 최저임금 인상 이후 지금까지 3분기 중 서울 전체 일식이 평소보다 약했던 분기는 1분기였습니다.",
+        "overlap_sentence": null
+      }
+    ],
+    "analogs": [
+      {
+        "event_id": "min-wage-2025",
+        "name": "최저임금 인상 — 2025년 시급 10,030원(+1.7%)",
+        "category": "minimum_wage",
+        "category_label": "최저임금",
+        "start_date": "2025-01-01",
+        "end_date": "2025-12-31",
+        "duration_months": 11,
+        "description": "인건비 비중이 큰 야간 운영 업종에 직접 영향 — 야간 무인화·24시간 영업 포기 추세 (brainstorming §5.2)",
+        "source": "고용노동부 최저임금 고시(2024년 8월 고시, 2025-01-01 시행)",
+        "current": false,
+        "years": 1,
+        "quarters": [
+          {
+            "quarter": 1,
+            "label": "1년 차 1분기",
+            "start_month": "2025-01",
+            "end_month": "2025-03",
+            "overlaps": []
+          },
+          {
+            "quarter": 2,
+            "label": "1년 차 2분기",
+            "start_month": "2025-04",
+            "end_month": "2025-06",
+            "overlaps": []
+          },
+          {
+            "quarter": 3,
+            "label": "1년 차 3분기",
+            "start_month": "2025-07",
+            "end_month": "2025-09",
+            "overlaps": []
+          },
+          {
+            "quarter": 4,
+            "label": "1년 차 4분기",
+            "start_month": "2025-10",
+            "end_month": "2025-12",
+            "overlaps": []
+          }
+        ],
+        "series": [
+          {
+            "industry_id": "japanese_food",
+            "industry_name": "일식",
+            "role": "target",
+            "values": [
+              0.2,
+              -0.0,
+              0.3,
+              -0.2
+            ]
+          },
+          {
+            "industry_id": "pc_bang",
+            "industry_name": "PC방",
+            "role": "recommended",
+            "values": [
+              -1.5,
+              0.5,
+              0.4,
+              1.0
+            ]
+          },
+          {
+            "industry_id": "billiard",
+            "industry_name": "당구장",
+            "role": "recommended",
+            "values": [
+              0.9,
+              0.0,
+              -0.5,
+              0.7
+            ]
+          },
+          {
+            "industry_id": "hair_salon",
+            "industry_name": "미용실",
+            "role": "recommended",
+            "values": [
+              -0.4,
+              0.1,
+              -0.3,
+              -0.1
+            ]
+          },
+          {
+            "industry_id": "western_food",
+            "industry_name": "양식",
+            "role": "avoid",
+            "values": [
+              -0.2,
+              0.5,
+              0.3,
+              -0.1
+            ]
+          },
+          {
+            "industry_id": "cafe",
+            "industry_name": "카페",
+            "role": "avoid",
+            "values": [
+              -0.2,
+              0.4,
+              -0.3,
+              0.1
+            ]
+          },
+          {
+            "industry_id": "gym",
+            "industry_name": "헬스장",
+            "role": "avoid",
+            "values": [
+              0.2,
+              -0.5,
+              0.5,
+              -1.7
+            ]
+          }
+        ],
+        "target_weak_quarters": 0,
+        "target_strong_quarters": 1,
+        "target_weak_streak": 0,
+        "summary_sentence": null,
+        "overlap_sentence": null
+      },
+      {
+        "event_id": "min-wage-2024",
+        "name": "최저임금 인상 — 2024년 시급 9,860원(+2.5%)",
+        "category": "minimum_wage",
+        "category_label": "최저임금",
+        "start_date": "2024-01-01",
+        "end_date": "2024-12-31",
+        "duration_months": 11,
+        "description": "인건비 비중이 큰 야간 운영 업종에 직접 영향 — 야간 무인화·24시간 영업 포기 추세 (brainstorming §5.2)",
+        "source": "고용노동부 최저임금 고시(2023년 8월 고시, 2024-01-01 시행)",
+        "current": false,
+        "years": 1,
+        "quarters": [
+          {
+            "quarter": 1,
+            "label": "1년 차 1분기",
+            "start_month": "2024-01",
+            "end_month": "2024-03",
+            "overlaps": []
+          },
+          {
+            "quarter": 2,
+            "label": "1년 차 2분기",
+            "start_month": "2024-04",
+            "end_month": "2024-06",
+            "overlaps": []
+          },
+          {
+            "quarter": 3,
+            "label": "1년 차 3분기",
+            "start_month": "2024-07",
+            "end_month": "2024-09",
+            "overlaps": []
+          },
+          {
+            "quarter": 4,
+            "label": "1년 차 4분기",
+            "start_month": "2024-10",
+            "end_month": "2024-12",
+            "overlaps": []
+          }
+        ],
+        "series": [
+          {
+            "industry_id": "japanese_food",
+            "industry_name": "일식",
+            "role": "target",
+            "values": [
+              -1.0,
+              -0.8,
+              -0.2,
+              -0.4
+            ]
+          },
+          {
+            "industry_id": "pc_bang",
+            "industry_name": "PC방",
+            "role": "recommended",
+            "values": [
+              0.7,
+              2.7,
+              -0.4,
+              -0.7
+            ]
+          },
+          {
+            "industry_id": "billiard",
+            "industry_name": "당구장",
+            "role": "recommended",
+            "values": [
+              2.7,
+              -0.2,
+              0.1,
+              -0.9
+            ]
+          },
+          {
+            "industry_id": "hair_salon",
+            "industry_name": "미용실",
+            "role": "recommended",
+            "values": [
+              0.0,
+              -0.5,
+              -0.2,
+              -0.2
+            ]
+          },
+          {
+            "industry_id": "western_food",
+            "industry_name": "양식",
+            "role": "avoid",
+            "values": [
+              -0.8,
+              -1.3,
+              -0.7,
+              -0.2
+            ]
+          },
+          {
+            "industry_id": "cafe",
+            "industry_name": "카페",
+            "role": "avoid",
+            "values": [
+              -0.2,
+              -1.0,
+              -0.7,
+              -0.7
+            ]
+          },
+          {
+            "industry_id": "gym",
+            "industry_name": "헬스장",
+            "role": "avoid",
+            "values": [
+              -0.4,
+              0.2,
+              0.2,
+              -0.1
+            ]
+          }
+        ],
+        "target_weak_quarters": 3,
+        "target_strong_quarters": 0,
+        "target_weak_streak": 2,
+        "summary_sentence": null,
+        "overlap_sentence": null
+      },
+      {
+        "event_id": "min-wage-2023",
+        "name": "최저임금 인상 — 2023년 시급 9,620원(+5.0%)",
+        "category": "minimum_wage",
+        "category_label": "최저임금",
+        "start_date": "2023-01-01",
+        "end_date": "2023-12-31",
+        "duration_months": 11,
+        "description": "인건비 비중이 큰 야간 운영 업종에 직접 영향 — 야간 무인화·24시간 영업 포기 추세 (brainstorming §5.2)",
+        "source": "고용노동부 최저임금 고시(2022년 8월 고시, 2023-01-01 시행)",
+        "current": false,
+        "years": 1,
+        "quarters": [
+          {
+            "quarter": 1,
+            "label": "1년 차 1분기",
+            "start_month": "2023-01",
+            "end_month": "2023-03",
+            "overlaps": []
+          },
+          {
+            "quarter": 2,
+            "label": "1년 차 2분기",
+            "start_month": "2023-04",
+            "end_month": "2023-06",
+            "overlaps": []
+          },
+          {
+            "quarter": 3,
+            "label": "1년 차 3분기",
+            "start_month": "2023-07",
+            "end_month": "2023-09",
+            "overlaps": []
+          },
+          {
+            "quarter": 4,
+            "label": "1년 차 4분기",
+            "start_month": "2023-10",
+            "end_month": "2023-12",
+            "overlaps": []
+          }
+        ],
+        "series": [
+          {
+            "industry_id": "japanese_food",
+            "industry_name": "일식",
+            "role": "target",
+            "values": [
+              0.2,
+              -0.1,
+              -0.1,
+              0.3
+            ]
+          },
+          {
+            "industry_id": "pc_bang",
+            "industry_name": "PC방",
+            "role": "recommended",
+            "values": [
+              5.8,
+              -2.1,
+              1.7,
+              1.0
+            ]
+          },
+          {
+            "industry_id": "billiard",
+            "industry_name": "당구장",
+            "role": "recommended",
+            "values": [
+              -2.4,
+              4.8,
+              1.7,
+              0.3
+            ]
+          },
+          {
+            "industry_id": "hair_salon",
+            "industry_name": "미용실",
+            "role": "recommended",
+            "values": [
+              -0.4,
+              0.1,
+              0.1,
+              0.1
+            ]
+          },
+          {
+            "industry_id": "western_food",
+            "industry_name": "양식",
+            "role": "avoid",
+            "values": [
+              -0.2,
+              -0.2,
+              -0.2,
+              -0.9
+            ]
+          },
+          {
+            "industry_id": "cafe",
+            "industry_name": "카페",
+            "role": "avoid",
+            "values": [
+              -0.6,
+              -0.8,
+              0.1,
+              0.2
+            ]
+          },
+          {
+            "industry_id": "gym",
+            "industry_name": "헬스장",
+            "role": "avoid",
+            "values": [
+              -1.1,
+              -0.8,
+              -0.6,
+              -0.5
+            ]
+          }
+        ],
+        "target_weak_quarters": 0,
+        "target_strong_quarters": 1,
+        "target_weak_streak": 0,
+        "summary_sentence": null,
+        "overlap_sentence": null
+      }
+    ],
+    "outlooks": [
+      {
+        "category": "minimum_wage",
+        "label": "최저임금",
+        "analog_count": 3,
+        "target_trend": "mixed",
+        "recommended": [
+          {
+            "industry_id": "pc_bang",
+            "industry_name": "PC방"
+          },
+          {
+            "industry_id": "billiard",
+            "industry_name": "당구장"
+          },
+          {
+            "industry_id": "hair_salon",
+            "industry_name": "미용실"
+          }
+        ],
+        "avoid": [
+          {
+            "industry_id": "western_food",
+            "industry_name": "양식"
+          },
+          {
+            "industry_id": "cafe",
+            "industry_name": "카페"
+          },
+          {
+            "industry_id": "gym",
+            "industry_name": "헬스장"
+          }
+        ],
+        "typical_duration_months": 11,
+        "condition": null,
+        "recommended_sentence": "최저임금이 올랐던 시기에 서울 전체에서 다른 업종보다 상대적으로 잘 버틴 업종은 PC방, 당구장, 미용실이었습니다.",
+        "condition_sentence": null
+      }
+    ],
+    "caveats": [
+      "서울 전체 인허가 기준이다 — 동·구는 점포가 적어 아무 일 없던 분기도 강세·약세로 자주 잡혀 쓰지 않는다. 학원·어린이집·편의점·치킨·부동산중개는 흐름을 비교할 수 없어 뺐다.",
+      "12월에는 행정 정리로 폐업이 몰린다 — 12월이 든 분기는 한 번씩 크게 튈 수 있어 판단은 분기 과반으로 한다.",
+      "2020~2022년 폐업은 재난지원금·손실보상으로 지연되어 실제보다 적게 잡혔을 수 있다.",
+      "변동폭은 이벤트 직전 1년의 같은 분기 대비다 — 비교 기간(최저임금·지원금 그 해 4분기, 감염병·근로시간 3년 12분기)에 겹친 다른 정책도 섞이므로 이벤트만의 효과로 단정하지 않는다.",
+      "사례 직전과 최근 4분기 비교(condition)는 그 사이 몇 년의 다른 변화가 섞인 업종 상태 비교다 — 이벤트 효과로 읽지 않고, 과거 사례를 지금에 옮길 때 그때보다 약한지·강한지 가늠하는 데만 쓴다."
+    ],
+    "hints": [
+      {
+        "category": "pandemic",
+        "label": "감염병·방역",
+        "keyword": "코로나"
+      },
+      {
+        "category": "work_hours",
+        "label": "근로시간",
+        "keyword": "52시간"
+      },
+      {
+        "category": "relief",
+        "label": "지원금·보상",
+        "keyword": "지원금"
+      }
+    ],
+    "recent_news": []
+  },
+  "news": [
+    {
+      "chunk_id": "news:448b8bb0eb350d7f030a",
+      "source_type": "news",
+      "source_id": "448b8bb0eb350d7f030a",
+      "content": "샘표, 이천 아트팩토리 프로젝트→현대그린푸드, 삼성동 이탈리 특화 매...\n식품업계에서 생산 현장에 공공미술을 접목하고 상권 맞춤형 외식 공간을 확장하며 일상과 식문화의... 사진=현대그린푸드 현대그린푸드는 28일 서울 강남구 삼성동 현대백화점 무역센터점 10층에 이탈리의 다이닝...",
+      "score": 0.48089625453756213,
+      "url": "https://www.slist.kr/news/articleView.html?idxno=761740",
+      "org": null,
+      "published_at": "2026-08-27T11:24:00"
+    },
+    {
+      "chunk_id": "news:a0b6c111b24848470cff",
+      "source_type": "news",
+      "source_id": "a0b6c111b24848470cff",
+      "content": "현대그린푸드, 삼성동 직장인·기업 모임 겨냥한 '이탈리' 연다\n프라이빗룸과 숯불 요리, 기업용 선물 상품을 강화해 상권 맞춤형 외식 매장으로 운영한다는 전략이다. 현대그린푸드는 오는 28일 서울 강남구 삼성동 현대백화점 무역센터점 10층에 이탈리 다이닝 특화 매장을 연다고...",
+      "score": 0.47842485869982243,
+      "url": "https://www.newsquest.co.kr/news/articleView.html?idxno=272412",
+      "org": null,
+      "published_at": "2026-08-27T10:08:00"
+    },
+    {
+      "chunk_id": "news:78a362bea89e47b91920",
+      "source_type": "news",
+      "source_id": "78a362bea89e47b91920",
+      "content": "현대그린푸드, 현대百 무역센터점에 '다이닝 특화' 이탈리 매장 연다\n현대그린푸드(453340)는 이달 28일 서울 강남구 삼성동 현대백화점 무역센터점 10층에 이탈리 매장을 연다고... 강남 상권의 다이닝 수요를 겨냥해 기존 매장보다 레스토랑 기능을 강화한 것이 특징이다. 특히 스페인산...",
+      "score": 0.4724790021902343,
+      "url": "https://www.news1.kr/industry/distribution/6270906",
+      "org": null,
+      "published_at": "2026-08-27T09:12:00"
+    },
+    {
+      "chunk_id": "news:ce0b427fabe23d73180b",
+      "source_type": "news",
+      "source_id": "ce0b427fabe23d73180b",
+      "content": "서금원·우리은행·선한영향력가게, 영세자영업자 성장 돕는 '인정가게...\n서울 마포구 소재 중식당 '연화식탁'에서 '인정가게' 현판식을 개최했다\"고 8일 밝혔다. '인정가게'는... 연화식탁은 홍익대학교 상권 인근에서 청년 자영업자가 운영하는 중식당으로 올해 5월 문을 열었다. 10개 남짓한...",
+      "score": 0.45845538377773565,
+      "url": "http://www.enewstoday.co.kr/news/articleView.html?idxno=2467958",
+      "org": null,
+      "published_at": "2026-09-08T10:55:00"
+    },
+    {
+      "chunk_id": "news:cde51dcbb24345be6460",
+      "source_type": "news",
+      "source_id": "cde51dcbb24345be6460",
+      "content": "강남 현대백화점에 최고급 다이닝 '이탈리' 오픈...\"전세계 70번째 매장...\n현대백화점그룹 계열 종합식품기업 현대그린푸드는 서울 강남구 삼성동 현대백화점 무역센터점 10층에... 선보이는 상권 맞춤형 매장\"이라며 \"앞으로도 외식 트렌드를 선도하는 동시에, 상권에 최적화한 특화...",
+      "score": 0.45786643781672676,
+      "url": "https://www.mt.co.kr/living/2026/08/27/2026082709084520482",
+      "org": null,
+      "published_at": "2026-08-27T09:33:00"
+    }
+  ],
+  "funding_candidates": [
+    {
+      "program_id": "PBLN_000000000126270",
+      "title": "[서울] 2026년 하반기 SBA 맞춤형 Kibo-Star밸리기업(해외진출연계) 지원계획 공고",
+      "org": "서울특별시",
+      "url": "https://www.bizinfo.go.kr/sii/siia/selectSIIA200Detail.do?pblancId=PBLN_000000000126270",
+      "apply_period": "2026-09-10 ~ 2026-10-07",
+      "deadline": "2026-10-07",
+      "field_category": "금융",
+      "summary": "기술보증기금과 서울경제진흥원의 공동 선별지원으로 해외진출을 희망하는 유망 스타트업의 글로벌 성장 잠재력을 극대화하고자 협력프로그램을 지원합니다. ☞ SBA 추천을 받은 창업기업 中 기보의 Kibo-Star밸리 선정요건을 충족하는 기업 ※ 자세한 지원대상 공고문 참조 ☞ 매출실적과 연계하여 한도내 단계별 지원 - (금융지원) 스타트업 단계별 최대 30억원~최대 50억원 지원 - (우대사항) 0.7% 고정보증료, 보증비율 100% 등 - (지원기간) 선정일로부터 3년 - (비금융 연계지원) 해외 진출 프로그램 연계 지원, 보증연계투자 지원 대상기업으로 우선 추천 등",
+      "why": "서울 · 창업 · 금융"
+    },
+    {
+      "program_id": "PBLN_000000000126720",
+      "title": "[서울] 관악구 2026년 소상공인 원스톱 지원사업 소상공인 모집 공고",
+      "org": "서울특별시",
+      "url": "https://www.bizinfo.go.kr/sii/siia/selectSIIA200Detail.do?pblancId=PBLN_000000000126720",
+      "apply_period": "2026-09-21 ~ 2026-10-08",
+      "deadline": "2026-10-08",
+      "field_category": "경영",
+      "summary": "관악구는 매출 감소로 어려움을 겪는 관내 소상공인을 대상으로 점포별 현장 진단ㆍ컨설팅, 시설개선 등 유형별 점포지원, 온라인 마케팅 홍보 패키지를 제공하는 「2026년 관악구 소상공인 원스톱 지원 사업」의 참여 소상공인을 다음과 같이 모집합니다. ☞ 관악구 소재 경영위기 소상공인 - 공고일 기준 관악구 내 고정 사업장(점포)을 운영 중인 소상공인 - 공고일 기준 관악구 내 점포 운영 기간 1년 이상(개업일 2025. 9. 22. 이전) - 국세청 신고 매출액 기준 전년 대비 매출 감소가 확인되는 소상공인 ☞ 점포당 최대 450만 원(유형별 시설개선비 최대 300만 원, 온라인 마케팅 홍보 패키지 150만 원 상당) 지원 및 컨설팅 지원",
+      "why": "서울 · 소상공인 · 경영"
+    },
+    {
+      "program_id": "PBLN_000000000119017",
+      "title": "[서울] 2026년 새 길 여는 폐업지원 사업 모집 공고",
+      "org": "서울특별시",
+      "url": "https://www.bizinfo.go.kr/sii/siia/selectSIIA200Detail.do?pblancId=PBLN_000000000119017",
+      "apply_period": "예산 소진시까지",
+      "deadline": null,
+      "field_category": "경영",
+      "summary": "폐업은 하고 싶은데, 절차나 방법 때문에 고민 중이신가요? 마땅한 일자리를 찾지 못할까 폐업을 망설이시나요? 사장님, 혼자 고민하지 마세요. 폐업 예정 소상공인에게 사업정리 컨설팅ㆍ역량 강화 교육부터 비용지원과 전직을 위한 유관기관 프로그램 연계 안내 및 관리까지, 재도전의 모든 과정에 동행합니다. ☞ 폐업 예정인 사업자 중 아래 ①, ②, ③번 사항을 모두 충족하는 소상공인 ① 사업자등록증상 사업장 소재지가 서울이며, 신청일 현재 사업자 등록을 유지 중인 점포형 소상공인 ② 신청일 현재 사업자등록증 상 개업연월일로부터 6개월 이상 경과 ③ 2026년 10월 이내 폐업 신고 완료 예정 ☞ 사업정리 컨설팅 2회, 전직 지원프로그램 안내 및 마인드 셋 교육, 솔루션 이행 비용 (최대 3백만원 이내, 부가세 신청업체 부담) 지원",
+      "why": "서울 · 소상공인 · 경영"
+    },
+    {
+      "program_id": "PBLN_000000000123842",
+      "title": "[서울] 2026년 하반기 위기 소상공인 조기발굴 및 선제지원(Track2) 사업 모집 공고",
+      "org": "서울특별시",
+      "url": "https://www.bizinfo.go.kr/sii/siia/selectSIIA200Detail.do?pblancId=PBLN_000000000123842",
+      "apply_period": "예산 소진시까지",
+      "deadline": null,
+      "field_category": "경영",
+      "summary": "경영위기에 직면한 소상공인에게 조기 위기 탈출 및 재도약 기반 마련을 지원하기 위한 2026년 하반기 「위기 소상공인 조기발굴 및 선제지원(Track2)」 대상을 아래와 같이 모집합니다. ☞ 서울시 내에서 사업장을 운영중인 점포형 소상공인 중 아래 조건 하나에 해당하는 소상공인 - 매출감소 : 업력이 2년 이상이며 최근 6개월 또는 전년 대비 매출 감소로 경영 위기에 직면한 소상공인 - 재해피해 : 재해중소기업 확인증 또는 피해사실확인서 발급 기업 ☞ 현장방문 예비진단, 경영진단 및 맞춤형 컨설팅(필수 2회), 솔루션 이행 비용 (부가가치세 제외 최대 3백만원) 지원 ※ 자세한 지원내용 공고문 참조",
+      "why": "서울 · 소상공인 · 경영"
+    },
+    {
+      "program_id": "PBLN_000000000123844",
+      "title": "[서울] 2026년 하반기 중장년 소상공인 디지털 전환지원 사업 모집 공고",
+      "org": "서울특별시",
+      "url": "https://www.bizinfo.go.kr/sii/siia/selectSIIA200Detail.do?pblancId=PBLN_000000000123844",
+      "apply_period": "예산 소진시까지",
+      "deadline": null,
+      "field_category": "경영",
+      "summary": "디지털 전환을 통한 소상공인의 지속가능한 성장을 도모하기 위하여 중장년 소상공인 디지털 전환지원 사업의 하반기 참여 소상공인을 모집하오니 많은 참여를 바랍니다. ☞ 사업 신청일 기준 다음 요건을 모두 충족하는 소상공인 - 만 40세 이상이며, 사업자등록증상 사업장 소재지가 ‘서울시’인 기업 ※ 개업일이 2025년 7월 1일 이전인 자 ☞ 디지털 전환을 위한 교육, 컨설팅, 비용, 사후관리 지원 ※ 자세한 지원내용 공고문 참조",
+      "why": "서울 · 소상공인 · 경영"
+    },
+    {
+      "program_id": "PBLN_000000000124107",
+      "title": "[서울] 2026년 소상공인 온라인 유통 MD 상담 참여 소상공인 모집 공고",
+      "org": "서울특별시",
+      "url": "https://www.bizinfo.go.kr/sii/siia/selectSIIA200Detail.do?pblancId=PBLN_000000000124107",
+      "apply_period": "상시 접수",
+      "deadline": null,
+      "field_category": "경영",
+      "summary": "서울시 소재 소상공인들의 지속 가능한 유통 경쟁력 확보 및 대형 유통사 납품 기회 확대 지원을 위한 「2026년 서울시 소상공인 온라인 유통 MD 상담」 사업에 참여할 소상공인을 다음과 같이 모집하오니 많은 참여 바랍니다. ☞ 서울시 소재 소상공인 (상시근로자수 10인(5인) 미만 기업) ※ 제조업, 광업, 건설업, 운수업은 10인 미만, 기타 업종은 5인 미만 ☞ 국내외 다양한 분야의 유통채널 MD 매칭을 통한 온라인 상담 진행(1:1 또는 그룹상담), 유통 및 커머스 트렌드 전문가 교육 등 지원",
+      "why": "서울 · 소상공인 · 경영"
+    },
+    {
+      "program_id": "PBLN_000000000126786",
+      "title": "[서울] 2026년 서울창업센터 관악 × SK에코플랜트 오픈이노베이션 참여기업 모집 공고",
+      "org": "서울특별시",
+      "url": "https://www.bizinfo.go.kr/sii/siia/selectSIIA200Detail.do?pblancId=PBLN_000000000126786",
+      "apply_period": "2026-09-18 ~ 2026-10-11",
+      "deadline": "2026-10-11",
+      "field_category": "기술",
+      "summary": "서울창업센터 관악에서는 에코플랜트와 협력하여 반도체ㆍAIㆍ로봇 분야의 선순환 산업 생태계 조성을 위해「2026년 서울창업센터 관악 에코플랜트 × SK 오픈이노베이션 프로그램」에 참여할 서울시 소재의 창업 기업을 모집 계획을 다음과 같이 공고합니다. ☞ 모집주제 해결을 위한 우수 아이디어와 구현 기술을 보유한 서울시 소재 7년 이내 스타트업 (신산업 분야의 경우 10년 이내) ☞ PoC 사업화지원금 기업당 1,000만원, SK 에코플랜트와의 공동기술개발 및 PoC 진행 지원, 대기업 협업 기반 사업화 연계, 서울창업센터 관악 후속지원 연계",
+      "why": "서울 · 창업"
+    },
+    {
+      "program_id": "PBLN_000000000124676",
+      "title": "[서울] 2026년 하반기 소상공인 안전검사 지원사업 공고(생활용품 및 어린이제품)",
+      "org": "서울특별시",
+      "url": "https://www.bizinfo.go.kr/sii/siia/selectSIIA200Detail.do?pblancId=PBLN_000000000124676",
+      "apply_period": "예산 소진시까지",
+      "deadline": null,
+      "field_category": "기술",
+      "summary": "2026년 서울시 소상공인 안전검사 지원사업을 안내드리오니 많은 참여 바랍니다. ☞ 서울시 소재 소상공인 - 어린이제품 : 연매출 1억 4백만원 미만 대상(연매출 기준 : '25년 매출액) - 도소매업, 제조업 등 제조 및 유통 관련 업종 대상 ※ 국세, 지방세 완납 必 ☞ 업체당 검사비용 최대 200만원 이내 지원",
+      "why": "서울 · 소상공인"
+    }
+  ],
+  "budget": null
+}

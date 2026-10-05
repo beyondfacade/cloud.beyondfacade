@@ -1,0 +1,17 @@
+{
+ "model": "gemini-2.5-flash",
+ "n": 150,
+ "completion": 1.0,
+ "verdict_match": 1.0,
+ "fabrication": 0.0,
+ "rule_violations_keyword": 0,
+ "first_p95_ms": 4362.018523202278,
+ "total_p95_ms": 4362.029103195528,
+ "answer": {
+  "fallback_rate": 0.013333333333333334,
+  "digits_after_guard": 0,
+  "raw_contradiction_rate": 0.0,
+  "removed_sentences": 106
+ },
+ "sampling": "0.0/42"
+}

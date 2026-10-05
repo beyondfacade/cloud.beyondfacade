@@ -1,6 +1,8 @@
 export type AgentName = "orchestrator" | "facts" | "writer" | "market" | "shock" | "funding";
 
-export type ReportSection = "verdict" | "reasons" | "analogs" | "conditions" | "alternatives" | "funding";
+export type ReportSection = "answer" | "verdict" | "reasons" | "analogs" | "conditions" | "alternatives" | "funding";
+/** 코드가 사실로 쓰는 6개 절 — 맨 위 해석(answer)을 뺀 나머지. 그림·제목은 이 절들에만 있다. */
+export type FactSection = Exclude<ReportSection, "answer">;
 
 export type AgentEvent =
   | { type: "agent_status"; agent: AgentName; status: "running" | "done" | "error" }

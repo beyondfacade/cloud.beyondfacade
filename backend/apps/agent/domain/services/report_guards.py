@@ -1,19 +1,18 @@
-"""리포트 출력 코드 가드 — LLM 본문이 화면에 나가기 전에 코드가 지키는 선 (stdlib만 import).
+"""리포트 출력 코드 가드 — LLM 글이 화면에 나가기 전에 코드가 지키는 선 (stdlib만 import).
 
-LLM 평가(2026-10-05)에서 리포트 실패의 상당 부분은 "화면이 이미 보여 주는 값을 글로 옮기다 틀리는"
-문제였다. 판정 등급 배지와 지원사업 원문 링크는 화면이 facts로 직접 그리므로, 글에서는 코드가 막는다.
+v0.68.0(리포트 코드 우선 구조)부터 LLM은 맨 위 해석(answer) 한 단락만 쓴다. 6개 절은 코드가 facts로 쓰므로
+가드는 해석 단락에만 건다(`guard_answer`).
 
-- **판정 모순 교체**: 판정 절은 절이 끝날 때 한 번에 내보낸다(프론트 리듀서가 append라 이미 흘린
-  조각은 되돌릴 수 없다). facts와 다른 등급을 단정하면 facts로 쓴 판정 절로 바꾼다.
-- **링크·공고 번호 제거**: 모든 절에서 URL·bizinfo 공고 번호를 지운다. 조각 경계에서 잘린 URL은
-  꼬리를 붙들었다가 다음 조각과 합쳐 판단한다.
-- **기본 신뢰 태그**: 사실 절의 본문이 태그로 시작하지 않으면 `[확인된 사실]`을 붙인다.
-- **예상치 고지**: 지원사업 절 끝에 금리·한도 예상치 고지문을 덧붙인다(이미 있으면 그대로).
+- **판정 모순**: facts와 다른 등급을 단정하면 그 단락은 실패 — 다음 모델로 넘긴다(`verdict_contradiction`).
+- **링크·공고 번호 제거**: URL·bizinfo 공고 번호를 지운다(`UrlStripper`·`strip_links`).
+- **숫자 문장 삭제**: 숫자가 든 문장을 지운다(`drop_digit_sentences`) — 숫자는 본문이 범위와 함께 보여 준다.
+- 판정 등급 동의어·대조 규칙은 벤치 채점과 같은 단일 원천이다. 지원사업 절의 예상치 고지문(`FUNDING_DISCLAIMER`)도 여기 둔다.
 """
 
 import re
 from collections import Counter
-from collections.abc import Callable
+from collections.abc import Iterable
+from dataclasses import dataclass
 
 # ── 판정 등급 동의어 (벤치 채점과 같은 단일 원천) ──────────────────
 
@@ -256,243 +255,58 @@ class UrlStripper:
         return cleaned
 
 
-# ── 기본 신뢰 태그 ───────────────────────────────────────────────
-
-_TRUST_TAGS = ("[확인된 사실]", "[참고 신호]", "**[확인된 사실]**", "**[참고 신호]**")
-DEFAULT_TAG = "[확인된 사실]"
-# 목록·표·인용·소제목·코드 블록 — 태그를 따로 한 문단으로
-_BLOCK_START = re.compile(r"(?:[-*+][ \t]|\d+[.)][ \t]|\||>|#{1,6}[ \t]|```)")
-_MAYBE_BLOCK = re.compile(r"[-*+]|\d+[.)]?|#{1,6}|`{1,2}")  # 다음 글자를 봐야 블록인지 안다
-_HEADING_SLACK = 16  # 제목 줄에 붙을 수 있는 `### `·`**`·`:`·공백 몫
-
-
-class LeadingTagGuard:
-    """절 본문(제목 줄 다음)이 신뢰 태그로 시작하지 않으면 `[확인된 사실]`을 붙인다.
-
-    모델은 제목을 `### 판정`·맨 `판정`·`**판정**`·`판정:`으로 쓴다 — 첫 줄이 그 절 제목이면 제목으로
-    본다(`판정: 본문`처럼 콜론 뒤에 이어 쓰면 콜론 뒤가 본문). 본문이 목록·표·인용으로 시작하면 태그를
-    따로 한 문단으로 둔다. 본문 첫 글자가 나올 때까지(태그·목록 표지의 앞부분이면 판별될 때까지) 붙든다.
-    """
-
-    def __init__(self, title: str = "", events: Counter | None = None) -> None:
-        self._title = title
-        name = re.escape(title) if title else r"(?!)"
-        self._line_heading = re.compile(rf"#{{1,6}}[ \t][^\n]*|(?:#{{1,6}}[ \t]+)?\**{name}\**:?\**[ \t]*")
-        self._inline_heading = re.compile(rf"(?:#{{1,6}}[ \t]+)?\**{name}\**[ \t]*:\**[ \t]*(?=\S)")
-        self._buffer = ""
-        self._decided = False
-        self.body_seen = False
-        self.events = Counter() if events is None else events
-
-    def feed(self, chunk: str) -> str:
-        if self._decided:
-            return chunk
-        self._buffer += chunk
-        return self._decide(final=False)
-
-    def flush(self) -> str:
-        if self._decided:
-            return ""
-        return self._decide(final=True)
-
-    def _body_start(self, final: bool) -> int | None:
-        """본문이 시작하는 위치 — 첫 줄이 제목인지 아직 모르면 None."""
-        buffer = self._buffer
-        lead = len(buffer) - len(buffer.lstrip())
-        newline = buffer.find("\n", lead)
-        line = buffer[lead:] if newline < 0 else buffer[lead:newline]
-        inline = self._inline_heading.match(line)
-        if inline:
-            return lead + inline.end()
-        if newline < 0 and not final and self._may_be_heading(line):
-            return None
-        if self._line_heading.fullmatch(line):
-            return len(buffer) if newline < 0 else newline + 1
-        return lead
-
-    def _may_be_heading(self, line: str) -> bool:
-        if line.startswith("#"):
-            return True
-        if not self._title or len(line) > len(self._title) + _HEADING_SLACK:
-            return False
-        rest = line.lstrip("*")
-        after = rest[len(self._title):]
-        return self._title.startswith(rest) or (rest.startswith(self._title) and not after.strip("*: \t"))
-
-    def _decide(self, final: bool) -> str:
-        start = self._body_start(final)
-        body = self._buffer[start:].lstrip() if start is not None else ""
-        pending = (
-            not body
-            or any(tag.startswith(body) and tag != body for tag in _TRUST_TAGS)
-            or bool(_MAYBE_BLOCK.fullmatch(body))
-        )
-        if pending and not final:
-            return ""
-        text, self._buffer, self._decided = self._buffer, "", True
-        self.body_seen = bool(body)
-        if not body or body.startswith(_TRUST_TAGS):
-            return text
-        self.events["tags_added"] += 1
-        head = text[: len(text) - len(body)]
-        separator = "\n\n" if _BLOCK_START.match(body) else " "
-        return head + DEFAULT_TAG + separator + body
-
-
-def ensure_leading_tag(text: str, title: str = "") -> str:
-    guard = LeadingTagGuard(title)
-    return guard.feed(text) + guard.flush()
-
-
 # ── 예상치 고지문 ────────────────────────────────────────────────
 
 FUNDING_DISCLAIMER = "[확인된 사실] 금리·한도는 예상치이며, 신청 자격·한도는 공고 원문에서 확인해야 합니다."
 
 
-def disclaimer_suffix(text: str) -> str:
-    """지원사업 절 끝에 덧붙일 고지문 — 이미 있으면 빈 문자열."""
-    return "" if FUNDING_DISCLAIMER in text else "\n\n" + FUNDING_DISCLAIMER
+# ── 해석(answer) 단락 가드 (설계서 2026-10-05-report-code-first §5) ────────
+
+# 문장 끝 — 마침표·물음표·느낌표 뒤 공백. 한글 문장은 "~다."·"~요."로 끝나고, 소수점("3.5")은 뒤에 공백이 없어 갈리지 않는다.
+_SENTENCE_END = re.compile(r"(?<=[.!?])\s+")
+_DIGIT = re.compile(r"\d")
 
 
-# ── 절별 가드 조립 ───────────────────────────────────────────────
-
-GUARD_EVENTS = ("verdict_replaced", "links_stripped", "tags_added", "disclaimer_added")
-
-
-class _PlainGuard:
-    """링크만 지운다 (유사 사례·계약 밖 섹션)."""
-
-    def __init__(self, events: Counter, title: str = "") -> None:
-        self._events = events
-        self._links = UrlStripper(events)
-
-    def feed(self, chunk: str) -> str:
-        return self._links.feed(chunk)
-
-    def end(self) -> str:
-        """절이 (일단) 끝났다 — 붙들던 꼬리를 낸다. 같은 절이 다시 열리면 이어서 feed된다."""
-        return self._links.flush()
+def blank_names(text: str, names: Iterable[str]) -> str:
+    """이름을 지운 글 — 숫자가 든 동 이름("상계3.4동")은 숫자 주장이 아니므로 숫자를 세기 전에 뺀다."""
+    for name in names:
+        text = text.replace(name, "")
+    return text
 
 
-class _TaggedGuard(_PlainGuard):
-    """링크 제거 + 기본 신뢰 태그 (왜 안 되나·그래도 한다면·대안)."""
+def drop_digit_sentences(text: str, names: Iterable[str] = ()) -> tuple[str, int]:
+    """숫자가 든 문장을 통째로 지운다 — (남은 단락, 지운 문장 수). 숫자는 본문 6개 절이 범위와 함께 보여 준다.
 
-    def __init__(self, events: Counter, title: str = "") -> None:
-        super().__init__(events, title)
-        self._tag = LeadingTagGuard(title, events)
-
-    def feed(self, chunk: str) -> str:
-        return self._tag.feed(super().feed(chunk))
-
-    def end(self) -> str:
-        return self._tag.feed(super().end()) + self._tag.flush()
-
-
-class _FundingGuard(_TaggedGuard):
-    """지원사업 — 절이 끝날 때 예상치 고지문을 덧붙인다(이미 나간 본문에 있으면 생략)."""
-
-    def __init__(self, events: Counter, title: str = "") -> None:
-        super().__init__(events, title)
-        self._sent = ""
-
-    def feed(self, chunk: str) -> str:
-        text = super().feed(chunk)
-        self._sent += text
-        return text
-
-    def end(self) -> str:
-        text = super().end()
-        suffix = disclaimer_suffix(self._sent + text)
-        self._events["disclaimer_added"] += bool(suffix)
-        self._sent += text + suffix
-        return text + suffix
-
-
-class _VerdictGuard(_TaggedGuard):
-    """판정 — 절을 통째로 붙들었다가 끝날 때 facts와 대조한다.
-
-    다른 등급을 단정했거나 링크를 지우고 나니 본문이 없으면 facts로 쓴 판정 절로 바꾼다. 같은 절이 다시
-    열려 또 모순이면, 이미 판정을 내보냈으므로 그 조각만 버린다(교체문을 두 번 내지 않는다).
+    `names`(분석 동·대안 동 이름)에 든 숫자는 세지 않는다.
     """
-
-    def __init__(
-        self, events: Counter, title: str, verdict_facts: dict | None, fallback: str, replacements: list
-    ) -> None:
-        super().__init__(events, title)
-        self._facts = verdict_facts
-        self._fallback = fallback
-        self._replacements = replacements
-        self._held = ""
-        self._sent = False
-
-    def feed(self, chunk: str) -> str:
-        self._held += super().feed(chunk)
-        return ""
-
-    def end(self) -> str:
-        text, self._held = self._held + super().end(), ""
-        reason = verdict_contradiction(text, self._facts) or ("" if self._tag.body_seen else "본문 없음")
-        if reason:
-            self._replacements.append(("verdict", reason))
-            self._events["verdict_replaced"] += not self._sent
-            text = "" if self._sent else ensure_leading_tag(self._fallback)
-        self._sent = self._sent or bool(text)
-        return text
+    names = tuple(names)
+    sentences = [s for s in _SENTENCE_END.split(text.strip()) if s]
+    kept = [s for s in sentences if not _DIGIT.search(blank_names(s, names))]
+    return " ".join(kept), len(sentences) - len(kept)
 
 
-class ReportGuard:
-    """섹션 조각 스트림 → 가드를 거친 조각 스트림. 절 전환·`close()`가 곧 그 절의 끝이다.
+@dataclass(frozen=True)
+class GuardedAnswer:
+    """가드를 거친 해석 단락과 개입 기록 — 벤치가 그대로 남긴다."""
 
-    `events`는 개입 횟수(GUARD_EVENTS), `replacements`는 판정 절을 바꾸거나 버린 (섹션, 이유) 목록이다.
+    text: str
+    removed_sentences: int
+    links_stripped: int
+    contradiction: str | None
+
+    @property
+    def ok(self) -> bool:
+        """화면에 낼 수 있는가 — 판정과 모순이 없고, 가드 뒤에도 글이 남았다."""
+        return self.contradiction is None and bool(self.text)
+
+
+def guard_answer(raw: str, verdict_facts: dict | None, names: Iterable[str] = ()) -> GuardedAnswer:
+    """해석 단락 통째 가드 — 링크·공고 번호 제거 → 판정 모순 검사 → 숫자 문장 삭제(`names` 속 숫자는 제외).
+
+    모순은 단락 전체의 실패다(다음 모델로 넘긴다). 스트리밍하지 않으므로 끝까지 모은 글에 한 번 건다.
     """
-
-    def __init__(
-        self, verdict_facts: dict | None, verdict_fallback: str, titles: dict[str, str] | None = None
-    ) -> None:
-        self.events: Counter = Counter({name: 0 for name in GUARD_EVENTS})
-        self.replacements: list[tuple[str, str]] = []
-        self._titles = titles or {}
-        # 섹션 이름 → 가드 생성기 (if/elif 대신 테이블 디스패치). 없는 이름은 링크만 지운다.
-        self._factories: dict[str, Callable[[str], _PlainGuard]] = {
-            "verdict": lambda title: _VerdictGuard(
-                self.events, title, verdict_facts, verdict_fallback, self.replacements
-            ),
-            "reasons": lambda title: _TaggedGuard(self.events, title),
-            "conditions": lambda title: _TaggedGuard(self.events, title),
-            "alternatives": lambda title: _TaggedGuard(self.events, title),
-            "funding": lambda title: _FundingGuard(self.events, title),
-        }
-        self._guards: dict[str, _PlainGuard] = {}
-        self._current: str | None = None
-
-    def feed(self, chunks: list[tuple[str, str]]) -> list[tuple[str, str]]:
-        out: list[tuple[str, str]] = []
-        for section, chunk in chunks:
-            if section != self._current:
-                out.extend(self.close())
-                self._current = section
-            out.extend(_pair(section, self._guard(section).feed(chunk)))
-        return out
-
-    def close(self) -> list[tuple[str, str]]:
-        """지금 열린 절을 끝낸다 — 붙들던 꼬리·판정·고지문을 낸다."""
-        section, self._current = self._current, None
-        if section is None:
-            return []
-        return _pair(section, self._guards[section].end())
-
-    def _guard(self, section: str) -> _PlainGuard:
-        if section not in self._guards:
-            factory = self._factories.get(section, lambda title: _PlainGuard(self.events, title))
-            self._guards[section] = factory(self._titles.get(section, ""))
-        return self._guards[section]
-
-
-def _pair(section: str, text: str) -> list[tuple[str, str]]:
-    return [(section, text)] if text else []
-
-
-def guard_section(name: str, markdown: str, title: str = "") -> str:
-    """한 절 통째로 가드를 씌운다 — 폴백 문구용(판정 대조는 하지 않는다: 폴백이 곧 facts다)."""
-    guard = ReportGuard(None, "", {name: title})
-    return "".join(text for _, text in [*guard.feed([(name, markdown)]), *guard.close()])
+    links = UrlStripper()
+    text = links.feed(raw) + links.flush()
+    contradiction = verdict_contradiction(text, verdict_facts)
+    kept, removed = drop_digit_sentences(text, names)
+    return GuardedAnswer(kept, removed, links.events["links_stripped"], contradiction)

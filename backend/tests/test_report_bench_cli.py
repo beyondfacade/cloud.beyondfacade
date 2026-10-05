@@ -15,7 +15,6 @@ from apps.agent.adapter.inbound.cli.report_bench_scoring import (
     render_llm_report,
     report_gates,
 )
-from apps.agent.app.use_cases.analysis_interactor import SYSTEM_PROMPT
 from apps.agent.domain.entities.agent_event_entity import AgentEvent
 
 
@@ -76,44 +75,42 @@ def _events():
     return [
         AgentEvent("agent_status", {"agent": "facts", "status": "running"}),
         AgentEvent("facts", {"verdict": {}}),
-        AgentEvent("tool_call", {"agent": "funding", "tool": "x", "summary": "s"}),
         AgentEvent("report_delta", {"section": "verdict", "markdown": "### 판정\n비추천"}),
-        AgentEvent("report_delta", {"section": "verdict", "markdown": " 입니다."}),
+        AgentEvent("report_delta", {"section": "answer", "markdown": "신중히 보세요."}),
         AgentEvent("report_done", {"report_id": "r", "citations": []}),
     ]
 
 
-def test_이벤트에서_지연과_절을_모은다():
-    ticks = iter([10.0, 10.5, 12.0])  # facts 수신 · 첫 delta · done (초)
+def test_첫_글자_지연은_해석_단락이_나온_시각이다():
+    ticks = iter([10.0, 10.5, 12.0])  # facts 수신 · 해석 delta · done (초) — 코드 절 delta는 시계를 읽지 않는다
     got = collect_run(_events(), clock=lambda: next(ticks))
     assert got["first_ms"] == 500 and got["total_ms"] == 2000
-    assert got["sections"] == {"verdict": "### 판정\n비추천 입니다."}
-    assert got["tool_calls"] == [{"agent": "funding", "tool": "x", "summary": "s"}]
+    assert got["sections"] == {"verdict": "### 판정\n비추천", "answer": "신중히 보세요."}
 
 
-def test_한_회차_채점_완주_판정_숫자():
+def test_해석_채점은_가드_뒤_숫자_모순_폴백과_지운_문장을_센다():
+    from apps.agent.app.use_cases.analysis_interactor import ANSWER_FALLBACK
+
     facts = {"verdict": {"available": True, "verdict_code": "red"}}
-    ok = {"sections": {"verdict": "비추천입니다. 폐업률 12.3%"}, "error": None}
-    got = score_run(ok, facts)
-    assert got["complete"] is False  # 6절 중 1절만
-    assert got["verdict_ok"] is True
-    assert got["unmatched"] == ["12.3%"]
-    assert score_run({"sections": {}, "error": "boom"}, facts)["verdict_ok"] is False
+    attempts = [{"model": "a", "removed_sentences": 2, "contradiction": "판정은 **경고 없음"},
+                {"model": "b", "removed_sentences": 1, "contradiction": None}]
+
+    ok = score_run({"sections": {"answer": "신중히 보세요. 대안을 먼저 보세요."}, "answer_attempts": attempts,
+                    "error": None}, facts)
+    fallback = score_run({"sections": {"answer": ANSWER_FALLBACK}, "error": None}, facts)
+
+    assert ok == {"complete": True, "fallback": False, "verdict_ok": True, "digits": 0, "removed_sentences": 3,
+                  "raw_contradiction": True, "rule_hits": []}
+    assert fallback["fallback"] is True and fallback["removed_sentences"] == 0
 
 
-def test_도구_결과와_질문에만_있는_숫자는_지어낸_것이_아니다():
-    facts = {"verdict": {"available": True, "verdict_code": "red"}}
-    record = {"sections": {"verdict": "비추천입니다. 월 상환액 3,456,000원, 예산 5000만원"}, "error": None,
-              "tool_results": ['{"monthly_payment": 3456000}']}
-    assert score_run(record, facts, "예산 5000만원으로 가능할까요?")["unmatched"] == []
-    assert score_run({**record, "tool_results": []}, facts, None)["unmatched"] != []
+def test_해석_숫자_지표는_분석_동과_대안_동_이름의_숫자를_세지_않는다():
+    facts = {"region": {"name": "상계3.4동"}, "alternatives": {"regions": [{"region_name": "휘경제1동"}]},
+             "verdict": {"available": True, "verdict_code": "red"}}
 
+    got = score_run({"sections": {"answer": "상계3.4동 한식은 신중히 보세요. 휘경제1동을 먼저 보세요."}, "error": None}, facts)
 
-def test_판정_절을_LLM이_안_썼으면_판정_일치는_거짓():
-    facts = {"verdict": {"available": True, "verdict_code": "red"}}
-    from apps.agent.app.use_cases.analysis_interactor import _fallback_section
-    fb = _fallback_section("verdict", "판정", facts)
-    assert score_run({"sections": {"verdict": fb}, "error": None}, facts)["verdict_ok"] is False
+    assert got["digits"] == 0
 
 
 def test_모델명을_가려도_한국어_조사는_남는다():
@@ -161,14 +158,6 @@ def test_VRAM_미측정은_제외_사유로_남는다():
     assert block["rows"][0]["excluded"] == "VRAM 미측정"
 
 
-def test_시스템_프롬프트에_있는_숫자는_지어낸_것이_아니다():
-    facts = {"verdict": {"available": True, "verdict_code": "red"}}
-    record = {"sections": {"verdict": "비추천입니다. 13가지 항목을 입력으로 봤습니다"}, "error": None}
-    assert "13개" in SYSTEM_PROMPT
-    assert score_run(record, facts)["unmatched"] == []
-    assert score_run(record, facts, tools_given=False)["unmatched"] == []
-
-
 def test_참고_순위는_게이트와_별개로_로컬_전부를_줄_세우고_위반_유형을_센다():
     ids = ["a", "b"]
     scores = {"qwen3.5:4b": _score(fabrication=0.5), "qwen3.5:9b": _score(), "gemini-2.5-flash": _score()}
@@ -185,12 +174,6 @@ def test_참고_순위는_게이트와_별개로_로컬_전부를_줄_세우고_
     md = render_llm_report(results)
     assert "## 참고 순위 (게이트와 별개)" in md and "채택 결정이 아니다" in md
     assert "참고 1위(동률 시 VRAM 작은 쪽): **qwen3.5:4b**" in md and "| 3401 |" in md
-
-
-def test_한_회차_채점은_판정_절에_등급_말이_있는지_남긴다():
-    facts = {"verdict": {"available": True, "verdict_code": "red"}}
-    assert score_run({"sections": {"verdict": "비추천입니다."}, "error": None}, facts)["verdict_graded"] is True
-    assert score_run({"sections": {"verdict": "신중히 보세요."}, "error": None}, facts)["verdict_graded"] is False
 
 
 def test_참고_순위는_시나리오별_품질과_1위_대비_bootstrap_구간을_남기고_위반_유형에_온라인도_넣는다():
@@ -256,17 +239,6 @@ def test_보고서는_판정_모순_없음_등급_생략_비용_notes_링크를_
     assert "$0.0091" in md and "[notes.md](notes.md)" in md
 
 
-def test_가드를_씌운_폴백_절도_LLM이_쓴_절로_세지_않는다():
-    """v0.67.0부터 화면에 나가는 폴백은 태그·고지문이 붙는다 — 옛 캐시(맨 폴백)와 새 캐시 모두 폴백으로 본다."""
-    from apps.agent.app.use_cases.analysis_interactor import _SECTIONS, guarded_fallback_section
-
-    facts = {"verdict": {"available": True, "verdict_code": "red", "on_count": 1, "strong_count": 1, "signals": []}}
-    sections = {name: guarded_fallback_section(name, title, facts) for name, title in _SECTIONS}
-    got = score_run({"sections": sections, "error": None}, facts)
-    assert got["complete"] is False
-    assert got["verdict_ok"] is False  # 판정 절도 폴백이다 — 모델 평가에 넣지 않는다
-
-
 def test_캐시_태그가_없으면_지금_경로_있으면_분리된_경로를_쓴다():
     from apps.agent.adapter.inbound.cli.benchmark_report import _CACHE, cache_dirs
 
@@ -299,54 +271,6 @@ def test_평가_결과_폴더는_out_dir로_바꿀_수_있다(tmp_path, monkeypa
 _GUARD = {"verdict_replaced": 1, "links_stripped": 2, "tags_added": 5, "disclaimer_added": 1}
 
 
-def test_회차_기록에_가드_전_원문과_개입_횟수를_남긴다():
-    from types import SimpleNamespace
-
-    from apps.agent.adapter.inbound.cli.benchmark_report import run_record
-    from apps.agent.app.ports.output.agent_port import LLMUsage
-
-    interactor = SimpleNamespace(
-        last_usage=LLMUsage(input_tokens=3, output_tokens=4),
-        last_raw_sections={"verdict": "판정 등급: **판정 없음**"},
-        last_guard_events=_GUARD,
-    )
-    got = {"first_ms": 1.0, "total_ms": 2.0, "sections": {"verdict": "교체문"}, "tool_calls": []}
-
-    row = run_record("s01", 0, got, None, ["r"], interactor)
-
-    assert row["raw_sections"] == {"verdict": "판정 등급: **판정 없음**"}
-    assert row["sections"] == {"verdict": "교체문"}
-    assert row["guard"] == _GUARD
-    assert row["usage"] == {"input_tokens": 3, "output_tokens": 4}
-
-
-def test_채점은_가드_전_원문도_따로_매기고_옛_캐시는_화면_본문으로_대신한다():
-    from apps.agent.adapter.inbound.cli.benchmark_report import score_record
-
-    facts = {"verdict": {"available": True, "verdict_code": "red"}}
-    record = {"sections": {"verdict": "비추천입니다."}, "raw_sections": {"verdict": "조건부입니다."}, "error": None}
-
-    got = score_record(record, facts)
-    old = score_record({"sections": {"verdict": "비추천입니다."}, "error": None}, facts)
-
-    assert got["verdict_ok"] is True and got["raw_verdict_ok"] is False
-    assert old["raw_verdict_ok"] is True
-
-
-def test_모델_요약에_가드_개입_합계와_원문_지표를_싣는다():
-    from apps.agent.adapter.inbound.cli.benchmark_report import guard_summary
-
-    runs = [
-        {"guard": _GUARD, "raw_complete": True, "raw_verdict_ok": False, "raw_unmatched": ["3%"], "raw_rule_hits": []},
-        {"raw_complete": False, "raw_verdict_ok": True, "raw_unmatched": [], "raw_rule_hits": ["x"]},  # 옛 캐시
-    ]
-
-    got = guard_summary(runs)
-
-    assert got["guard"] == _GUARD
-    assert got["raw"] == {"completion": 0.5, "verdict_match": 0.5, "fabrication": 0.5, "rule_violations_keyword": 1}
-
-
 def test_보고서에_가드_개입_표와_첫_글자_지연_주의를_싣는다():
     ids = ["a"]
     score = {**_score(), "guard": _GUARD, "raw": {"completion": 0.5, "verdict_match": 0.75, "fabrication": 0.25,
@@ -362,35 +286,7 @@ def test_보고서에_가드_개입_표와_첫_글자_지연_주의를_싣는다
     assert "판정 절 전체를 붙드는 시간" in md
 
 
-def test_가드_기록이_없는_옛_캐시는_개입_표를_싣지_않는다():
-    from apps.agent.adapter.inbound.cli.benchmark_report import guard_summary
-
-    runs = [{"raw_complete": True, "raw_verdict_ok": True, "raw_unmatched": [], "raw_rule_hits": []}]
-    assert guard_summary(runs)["guard"] is None
-
-    ids = ["a"]
-    score = {**_score(), **guard_summary(runs)}
-    block = build_report_block({"qwen3.5:4b": score}, {"qwen3.5:4b": _judge([4], ids)}, {"qwen3.5:4b": 3400}, ids)
-    md = render_llm_report({"date": "2026-10-05", "report": block,
-                            "intent": {"rows": [], "winner": None, "tied": []}, "residency": None})
-    assert "## 코드 가드 개입" not in md and "판정 절 전체를 붙드는 시간" not in md
-
-
 # --- 일관성 1단계: 샘플링 기록·일관성 표·판정 비교 모드 ---
-
-
-def test_회차_기록에_온도와_seed를_남긴다():
-    from types import SimpleNamespace
-
-    from apps.agent.adapter.inbound.cli.benchmark_report import run_record
-    from apps.agent.app.ports.output.agent_port import LLMUsage
-    from apps.agent.domain.services.report_sampling import REPORT_SEED, REPORT_TEMPERATURE
-
-    interactor = SimpleNamespace(last_usage=LLMUsage(input_tokens=0, output_tokens=0),
-                                 last_raw_sections={}, last_guard_events={})
-    row = run_record("s01", 0, {"sections": {}}, None, [], interactor)
-
-    assert (row["temperature"], row["seed"]) == (REPORT_TEMPERATURE, REPORT_SEED)
 
 
 def test_벤치_모델은_로컬과_gemini_모두_운영_샘플링_상수로_부른다(monkeypatch):
@@ -487,3 +383,70 @@ def test_비교_모드_인자가_잘못되면_parser_error로_끝난다(monkeypa
         with pytest.raises(SystemExit):
             br.main()
     assert called == [] and "--models" in capsys.readouterr().err
+
+
+def test_시나리오_세트_인자가_시나리오_파일과_facts_폴더를_바꾼다(monkeypatch):
+    import sys
+
+    from apps.agent.adapter.inbound.cli import benchmark_report as br
+
+    for name in ("_SCENARIOS", "_FACTS_DIR", "_RUNS", "_JUDGE"):  # main이 바꾸는 모듈 경로 — 테스트 뒤 되돌린다
+        monkeypatch.setattr(br, name, getattr(br, name))
+    seen = []
+    monkeypatch.setitem(br._COMMANDS, "score", lambda args: seen.append((br._SCENARIOS.name, br._FACTS_DIR.name)))
+    for argv in (["score", "--cache-tag", "t"], ["score", "--cache-tag", "t", "--scenario-set", "150"]):
+        monkeypatch.setattr(sys, "argv", ["benchmark_report", *argv])
+        br.main()
+    assert seen == [("report_scenarios.jsonl", "report_facts"), ("report_scenarios_150.jsonl", "report_facts_150")]
+
+
+def test_회차_기록에_해석_시도와_온도와_seed를_남긴다():
+    from types import SimpleNamespace
+
+    from apps.agent.adapter.inbound.cli.benchmark_report import run_record
+    from apps.agent.app.ports.output.agent_port import LLMUsage
+    from apps.agent.domain.services.report_sampling import REPORT_SEED, REPORT_TEMPERATURE
+
+    attempts = [{"model": "m", "raw": "원문", "removed_sentences": 1, "links_stripped": 0, "contradiction": None}]
+    interactor = SimpleNamespace(last_usage=LLMUsage(input_tokens=3, output_tokens=4), last_answer_attempts=attempts)
+    row = run_record("s01", 0, {"sections": {"answer": "해석"}}, None, interactor)
+
+    assert (row["temperature"], row["seed"]) == (REPORT_TEMPERATURE, REPORT_SEED)
+    assert row["answer_attempts"] == attempts and row["sections"] == {"answer": "해석"}
+    assert row["usage"] == {"input_tokens": 3, "output_tokens": 4}
+
+
+def test_옛_캐시는_채점을_거부하고_태그_없는_score는_인자_오류다(monkeypatch, tmp_path):
+    import sys
+
+    import pytest
+
+    from apps.agent.adapter.inbound.cli import benchmark_report as br
+
+    monkeypatch.setattr(sys, "argv", ["benchmark_report", "score"])
+    with pytest.raises(SystemExit):
+        br.main()
+
+    monkeypatch.setattr(br, "_scenarios", lambda: [])
+    monkeypatch.setattr(br, "_read_jsonl", lambda path: [{"id": "s01", "rep": 0, "sections": {}}])
+    with pytest.raises(SystemExit, match="옛 형식 캐시"):
+        br._cmd_score(None)
+
+
+def test_자료_부족_시나리오는_코드만_쓴_해석이라_채점과_판정_묶음에서_뺀다(monkeypatch):
+    from apps.agent.adapter.inbound.cli import benchmark_report as br
+
+    facts = {"e001": {"verdict": {"available": True, "verdict_code": "red"}},
+             "e009": {"verdict": {"available": False, "reason": "판정 대상 업종이 아니다"}}}
+    records = [{"id": sid, "rep": 0, "sections": {"verdict": "본문", "answer": "해석."}, "answer_attempts": [],
+                "error": None, "first_ms": 1.0, "total_ms": 2.0} for sid in facts]
+    written = {}
+    monkeypatch.setattr(br, "REPORT_MODELS", dict(list(br.REPORT_MODELS.items())[:1]))  # 모델 하나만
+    monkeypatch.setattr(br, "_scenarios", lambda: [{"id": sid} for sid in facts])
+    monkeypatch.setattr(br, "_facts_of", facts.__getitem__)
+    monkeypatch.setattr(br, "_read_jsonl", lambda path: records)
+    monkeypatch.setattr(br, "_write_json", lambda path, data: written.update(data=data))
+
+    br._cmd_score(None)
+
+    assert written["data"]["n"] == 1 and list(br._first_rep_answers()) == ["e001"]
