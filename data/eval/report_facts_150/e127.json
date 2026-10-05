@@ -44,9 +44,11 @@
         "level": "off",
         "value": 0.026823314825246105,
         "percentile": 9.0,
-        "evidence": "상주인구 1,000명당 당구장 0.0곳 (서울 상위 91%)",
+        "evidence": "상주인구 1,000명당 당구장 0.0곳 — 밀집 매우 낮은 편(서울 당구장 동을 100곳으로 치면 높은 쪽에서 91번째쯤)",
         "source": "metric",
-        "advisory": false
+        "advisory": false,
+        "band": "very_good",
+        "band_label": "밀집 매우 낮은 편"
       },
       {
         "key": "shrinking",

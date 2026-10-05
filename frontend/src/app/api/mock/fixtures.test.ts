@@ -1,6 +1,24 @@
 import { expect, it } from "vitest";
 import { SEOUL_REGIONS_GEOJSON, metricRows, summaryOf, agentEventScript, verdictOf } from "./fixtures";
 
+it.each([
+  ["korean_food", "net_outflow", "normal", "순유출 보통", "많은", 28],
+  ["korean_food", "survival_cliff", "good", "생존율 높은 편", "낮은", 85],
+  ["korean_food", "early_closure", "very_good", "폐업 점포 영업 기간 매우 긴 편", "짧은", 98],
+  ["real_estate", "saturation", "very_bad", "밀집 매우 높은 편", "높은", 7],
+  ["real_estate", "closure_rate", "bad", "폐업률 높은 편", "높은", 20],
+  ["convenience_store", "tobacco_gap", "very_good", "담배소매인 반경 안 상가 비율 매우 낮은 편", "높은", 91],
+  ["real_estate", "trade_per_office", "normal", "사무소당 거래 보통", "적은", 50],
+])("%s의 %s 신호는 위험 등급과 방향을 설명한 순위를 결정적으로 제공한다", (industry, key, band, band_label, direction, rank) => {
+  const verdict = verdictOf("1168064000", industry as string);
+  const signal = verdict.signals.find((s) => s.key === key)!;
+  expect(signal).toMatchObject({ band, band_label });
+  expect(signal.evidence).toContain(` — ${band_label}(서울 `);
+  expect(signal.evidence).toContain(` 동을 100곳으로 치면 ${direction} 쪽에서 ${rank}번째쯤)`);
+  expect(signal.evidence).not.toMatch(/상위|하위/);
+  expect(verdictOf("1168064000", industry as string)).toEqual(verdict);
+});
+
 it("geojson feature마다 region_code·name이 있다", () => {
   expect(SEOUL_REGIONS_GEOJSON.features.length).toBeGreaterThanOrEqual(8);
   for (const f of SEOUL_REGIONS_GEOJSON.features)

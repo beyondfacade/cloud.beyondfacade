@@ -17,9 +17,11 @@
         "level": "off",
         "value": 0.078125,
         "percentile": 63.1,
-        "evidence": "지난 12개월 폐업 7곳, 개업 2곳 (순유출률 +8%, 서울 분식 상위 37%)",
+        "evidence": "지난 12개월 폐업 7곳, 개업 2곳 (순유출률 +8%) — 순유출 보통(서울 분식 동을 100곳으로 치면 많은 쪽에서 37번째쯤)",
         "source": "store",
-        "advisory": false
+        "advisory": false,
+        "band": "normal",
+        "band_label": "순유출 보통"
       },
       {
         "key": "survival_cliff",
@@ -35,18 +37,22 @@
         "level": "off",
         "value": 91.36755646817248,
         "percentile": 41.2,
-        "evidence": "최근 3년 폐업 분식의 영업 기간 중위 91개월 (서울 분식 하위 59%)",
+        "evidence": "최근 3년 폐업 분식의 영업 기간 중위 91개월 — 폐업 점포 영업 기간 보통(서울 분식 동을 100곳으로 치면 짧은 쪽에서 59번째쯤)",
         "source": "store",
-        "advisory": false
+        "advisory": false,
+        "band": "normal",
+        "band_label": "폐업 점포 영업 기간 보통"
       },
       {
         "key": "saturation",
         "level": "strong",
         "value": 2.377019459328794,
         "percentile": 92.9,
-        "evidence": "상주인구 1,000명당 분식 2.4곳 (서울 상위 7%)",
+        "evidence": "상주인구 1,000명당 분식 2.4곳 — 밀집 매우 높은 편(서울 분식 동을 100곳으로 치면 높은 쪽에서 7번째쯤)",
         "source": "metric",
-        "advisory": false
+        "advisory": false,
+        "band": "very_bad",
+        "band_label": "밀집 매우 높은 편"
       },
       {
         "key": "shrinking",

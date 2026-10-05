@@ -36,6 +36,7 @@ import type {
   VerdictBasis,
   VerdictRow,
   VerdictSignal,
+  VerdictBand,
   VerdictSignalKey,
   VerdictSignalSource,
 } from "@/shared/api/types";
@@ -919,6 +920,19 @@ const SIGNAL_SOURCE: Record<VerdictSignalKey, VerdictSignalSource> = {
   closure_rate: "commerce", tobacco_gap: "tobacco", trade_per_office: "molit",
 };
 
+const SIGNAL_BAND_WORDS: Record<Exclude<VerdictSignalKey, "shrinking">, [string, string, string]> = {
+  net_outflow: ["순유출", "많은", "적은"],
+  survival_cliff: ["생존율", "낮은", "높은"],
+  early_closure: ["폐업 점포 영업 기간", "짧은", "긴"],
+  saturation: ["밀집", "높은", "낮은"],
+  closure_rate: ["폐업률", "높은", "낮은"],
+  tobacco_gap: ["담배소매인 반경 안 상가 비율", "높은", "낮은"],
+  trade_per_office: ["사무소당 거래", "적은", "많은"],
+};
+const VERDICT_BANDS: [number, VerdictBand][] = [
+  [90, "very_bad"], [75, "bad"], [25, "normal"], [10, "good"], [0, "very_good"],
+];
+
 /** 판정 대상 여부 — 실 API의 EXCLUDED_INDUSTRIES 미러 = 프론트 INDUSTRIES 14종 − 편의점·부동산(shared/verdict.ts 단일 원천). */
 export function isJudgedIndustry(industryId: string): industryId is IndustryId {
   return isVerdictIndustry(industryId);
@@ -927,29 +941,39 @@ export function isJudgedIndustry(industryId: string): industryId is IndustryId {
 function signalOf(key: VerdictSignalKey, regionCode: string, industryId: string, basis: VerdictBasis): VerdictSignal {
   const source = SOURCE_BY_BASIS[basis][key] ?? SIGNAL_SOURCE[key];
   if (UNSUPPORTED_BY_BASIS[basis].has(key)) {
-    return { key, level: "unavailable", value: null, percentile: null, evidence: UNSUPPORTED_EVIDENCE, source };
+    return { key, level: "unavailable", value: null, percentile: null, band: null, band_label: null, evidence: UNSUPPORTED_EVIDENCE, source };
   }
   const u = unitFrom(hashSeed("verdict", key, regionCode, industryId));
   const name = INDUSTRY_LABELS[industryId as IndustryId] ?? industryId;
   // 하위 8%는 미판정(표본 부족), 나머지 92%를 0~100 백분위로 펼친다 — strong(≥90)·red가 실제로 나온다
   if (u < 0.08) {
-    return { key, level: "unavailable", value: null, percentile: null, evidence: `표본 부족 — 3년 전 개업 코호트 ${Math.floor(u * 100)}곳 (10곳 미만)`, source };
+    return { key, level: "unavailable", value: null, percentile: null, band: null, band_label: null, evidence: `표본 부족 — 3년 전 개업 코호트 ${Math.floor(u * 100)}곳 (10곳 미만)`, source };
   }
   const percentile = Math.round(((u - 0.08) / 0.92) * 1000) / 10; // 0.0 ~ 100.0
   const level = percentile >= 90 ? "strong" : percentile >= 75 ? "on" : "off";
   const top = Math.max(1, Math.round(100 - percentile));
   const EVIDENCE: Record<VerdictSignalKey, string> = {
-    net_outflow: `지난 12개월 폐업 ${20 + Math.floor(u * 30)}곳, 개업 ${15 + Math.floor(u * 10)}곳 (순유출률 +${Math.round(u * 20)}%, 서울 ${name} 상위 ${top}%)`,
-    survival_cliff: `3년 전 개업한 ${name} 40곳 중 ${40 - Math.floor(u * 25)}곳만 남음 (생존율 ${100 - Math.round(u * 62)}%, 서울 ${name} 하위 ${top}%)`,
-    early_closure: `최근 3년 폐업 ${name}의 영업 기간 중위 ${36 - Math.round(u * 20)}개월 (서울 ${name} 하위 ${top}%)`,
-    saturation: `상주인구 1,000명당 ${name} ${(2 + u * 9).toFixed(1)}곳 (서울 상위 ${top}%)`,
+    net_outflow: `지난 12개월 폐업 ${20 + Math.floor(u * 30)}곳, 개업 ${15 + Math.floor(u * 10)}곳 (순유출률 +${Math.round(u * 20)}%)`,
+    survival_cliff: `3년 전 개업한 ${name} 40곳 중 ${40 - Math.floor(u * 25)}곳만 남음 (생존율 ${100 - Math.round(u * 62)}%)`,
+    early_closure: `최근 3년 폐업 ${name}의 영업 기간 중위 ${36 - Math.round(u * 20)}개월`,
+    saturation: `상주인구 1,000명당 ${name} ${(2 + u * 9).toFixed(1)}곳`,
     shrinking: `서울시 상권변화지표 '${u >= 0.75 ? "상권축소" : "정체"}' (2026년 2분기, 동 전체 기준)`,
-    closure_rate: `지난 4분기 폐업 ${5 + Math.floor(u * 30)}곳 (4분기 전 점포 ${60 + Math.floor(u * 100)}곳의 ${Math.round(u * 8)}%, 서울 ${name} 상위 ${top}%, 서울시 상권분석 집계)`,
-    tobacco_gap: `이 동 상가 자리 ${300 + Math.floor(u * 900)}곳 중 ${50 + Math.round(u * 30)}%가 영업 중인 담배소매인 50m 안 — 새 담배소매인 지정이 어렵다 (서울 상위 ${top}%)`,
-    trade_per_office: `지난 12개월 아파트 매매 ${100 + Math.floor(u * 400)}건 ÷ 중개사무소 ${40 + Math.floor(u * 60)}곳 = 사무소당 ${(1 + u * 6).toFixed(1)}건 (서울 ${name} 하위 ${top}%, 국토부 실거래가)`,
+    closure_rate: `지난 4분기 폐업 ${5 + Math.floor(u * 30)}곳 (4분기 전 점포 ${60 + Math.floor(u * 100)}곳의 ${Math.round(u * 8)}%, 서울시 상권분석 집계)`,
+    tobacco_gap: `이 동 상가 자리 ${300 + Math.floor(u * 900)}곳 중 ${50 + Math.round(u * 30)}%가 영업 중인 담배소매인 50m 안 — 새 담배소매인 지정이 어렵다`,
+    trade_per_office: `지난 12개월 아파트 매매 ${100 + Math.floor(u * 400)}건 ÷ 중개사무소 ${40 + Math.floor(u * 60)}곳 = 사무소당 ${(1 + u * 6).toFixed(1)}건 (국토부 실거래가)`,
   };
   const value = key === "shrinking" ? (u >= 0.75 ? 1 : 0) : Math.round(u * 100) / 100;
-  return { key, level, value, percentile: key === "shrinking" ? null : percentile, evidence: EVIDENCE[key], source };
+  if (key === "shrinking") {
+    return { key, level, value, percentile: null, band: null, band_label: null, evidence: EVIDENCE[key], source };
+  }
+  const band = VERDICT_BANDS.find(([min]) => percentile >= min)![1];
+  const [subject, bad, good] = SIGNAL_BAND_WORDS[key];
+  const labels: Record<VerdictBand, string> = {
+    very_bad: `매우 ${bad} 편`, bad: `${bad} 편`, normal: "보통", good: `${good} 편`, very_good: `매우 ${good} 편`,
+  };
+  const band_label = `${subject} ${labels[band]}`;
+  const evidence = `${EVIDENCE[key]} — ${band_label}(서울 ${name} 동을 100곳으로 치면 ${bad} 쪽에서 ${top}번째쯤)`;
+  return { key, level, value, percentile, band, band_label, evidence, source };
 }
 
 function judgeOf(signals: VerdictSignal[]): VerdictCode {

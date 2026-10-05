@@ -8,8 +8,21 @@ function call(regionCode: string, query = "?industry=korean_food") {
 }
 
 it("단건은 판정 원천 basis를 싣는다 — 인허가 업종은 permit", async () => {
-  const v = await (await call("1168064000")).json();
+  const res = await call("1168064000");
+  expect(res.status).toBe(200);
+  const v = await res.json();
   expect(v.basis).toBe("permit");
+  for (const signal of v.signals) {
+    if (signal.percentile === null) {
+      expect(signal.band).toBeNull();
+      expect(signal.band_label).toBeNull();
+    } else {
+      expect(["very_bad", "bad", "normal", "good", "very_good"]).toContain(signal.band);
+      expect(signal.band_label).toEqual(expect.any(String));
+      expect(signal.evidence).toContain(` — ${signal.band_label}(서울 한식 동을 100곳으로 치면 `);
+      expect(signal.evidence).not.toMatch(/상위|하위/);
+    }
+  }
 });
 
 it("편의점은 판정 대상이 아니라 404 INDUSTRY_NOT_FOUND", async () => {

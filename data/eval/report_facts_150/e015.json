@@ -17,36 +17,44 @@
         "level": "off",
         "value": -0.09923664122137404,
         "percentile": 5.7,
-        "evidence": "지난 12개월 폐업 12곳, 개업 25곳 (순유출률 -10%, 서울 미용실 상위 94%)",
+        "evidence": "지난 12개월 폐업 12곳, 개업 25곳 (순유출률 -10%) — 순유출 매우 적은 편(서울 미용실 동을 100곳으로 치면 많은 쪽에서 94번째쯤)",
         "source": "store",
-        "advisory": false
+        "advisory": false,
+        "band": "very_good",
+        "band_label": "순유출 매우 적은 편"
       },
       {
         "key": "survival_cliff",
         "level": "off",
         "value": 0.7647058823529411,
         "percentile": 41.5,
-        "evidence": "3년 전 개업한 미용실 17곳 중 13곳만 남음 (생존율 76%, 서울 미용실 하위 58%)",
+        "evidence": "3년 전 개업한 미용실 17곳 중 13곳만 남음 (생존율 76%) — 생존율 보통(서울 미용실 동을 100곳으로 치면 낮은 쪽에서 58번째쯤)",
         "source": "store",
-        "advisory": false
+        "advisory": false,
+        "band": "normal",
+        "band_label": "생존율 보통"
       },
       {
         "key": "early_closure",
         "level": "strong",
         "value": 35.186858316221766,
         "percentile": 93.8,
-        "evidence": "최근 3년 폐업 미용실의 영업 기간 중위 35개월 (서울 미용실 하위 6%)",
+        "evidence": "최근 3년 폐업 미용실의 영업 기간 중위 35개월 — 폐업 점포 영업 기간 매우 짧은 편(서울 미용실 동을 100곳으로 치면 짧은 쪽에서 6번째쯤)",
         "source": "store",
-        "advisory": false
+        "advisory": false,
+        "band": "very_bad",
+        "band_label": "폐업 점포 영업 기간 매우 짧은 편"
       },
       {
         "key": "saturation",
         "level": "strong",
         "value": 7.108302892684372,
         "percentile": 93.1,
-        "evidence": "상주인구 1,000명당 미용실 7.1곳 (서울 상위 7%)",
+        "evidence": "상주인구 1,000명당 미용실 7.1곳 — 밀집 매우 높은 편(서울 미용실 동을 100곳으로 치면 높은 쪽에서 7번째쯤)",
         "source": "metric",
-        "advisory": false
+        "advisory": false,
+        "band": "very_bad",
+        "band_label": "밀집 매우 높은 편"
       },
       {
         "key": "shrinking",

@@ -44,9 +44,11 @@
         "level": "off",
         "value": 0.2861435009657343,
         "percentile": 39.2,
-        "evidence": "상주인구 1,000명당 헬스장 0.3곳 (서울 상위 61%)",
+        "evidence": "상주인구 1,000명당 헬스장 0.3곳 — 밀집 보통(서울 헬스장 동을 100곳으로 치면 높은 쪽에서 61번째쯤)",
         "source": "metric",
-        "advisory": false
+        "advisory": false,
+        "band": "normal",
+        "band_label": "밀집 보통"
       },
       {
         "key": "shrinking",

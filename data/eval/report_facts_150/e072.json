@@ -17,36 +17,44 @@
         "level": "off",
         "value": 0.010526315789473684,
         "percentile": 48.2,
-        "evidence": "지난 12개월 폐업 6곳, 개업 5곳 (순유출률 +1%, 서울 양식 상위 52%)",
+        "evidence": "지난 12개월 폐업 6곳, 개업 5곳 (순유출률 +1%) — 순유출 보통(서울 양식 동을 100곳으로 치면 많은 쪽에서 52번째쯤)",
         "source": "store",
-        "advisory": false
+        "advisory": false,
+        "band": "normal",
+        "band_label": "순유출 보통"
       },
       {
         "key": "survival_cliff",
         "level": "off",
         "value": 0.9333333333333333,
         "percentile": 0.0,
-        "evidence": "3년 전 개업한 양식 15곳 중 14곳만 남음 (생존율 93%, 서울 양식 하위 100%)",
+        "evidence": "3년 전 개업한 양식 15곳 중 14곳만 남음 (생존율 93%) — 생존율 매우 높은 편(서울 양식 동을 100곳으로 치면 낮은 쪽에서 100번째쯤)",
         "source": "store",
-        "advisory": false
+        "advisory": false,
+        "band": "very_good",
+        "band_label": "생존율 매우 높은 편"
       },
       {
         "key": "early_closure",
         "level": "off",
         "value": 50.28336755646817,
         "percentile": 45.0,
-        "evidence": "최근 3년 폐업 양식의 영업 기간 중위 50개월 (서울 양식 하위 55%)",
+        "evidence": "최근 3년 폐업 양식의 영업 기간 중위 50개월 — 폐업 점포 영업 기간 보통(서울 양식 동을 100곳으로 치면 짧은 쪽에서 55번째쯤)",
         "source": "store",
-        "advisory": false
+        "advisory": false,
+        "band": "normal",
+        "band_label": "폐업 점포 영업 기간 보통"
       },
       {
         "key": "saturation",
         "level": "strong",
         "value": 29.301745635910223,
         "percentile": 98.6,
-        "evidence": "상주인구 1,000명당 양식 29.3곳 (서울 상위 1%)",
+        "evidence": "상주인구 1,000명당 양식 29.3곳 — 밀집 매우 높은 편(서울 양식 동을 100곳으로 치면 높은 쪽에서 1번째쯤)",
         "source": "metric",
-        "advisory": false
+        "advisory": false,
+        "band": "very_bad",
+        "band_label": "밀집 매우 높은 편"
       },
       {
         "key": "shrinking",

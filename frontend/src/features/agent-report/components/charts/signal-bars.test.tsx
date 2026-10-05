@@ -3,6 +3,22 @@ import { expect, it } from "vitest";
 import { reportFacts } from "../../lib/report-facts.fixture";
 import { SignalBars } from "./signal-bars";
 
+it("등급 문구가 있으면 백분위 대신 표시한다", () => {
+  const verdict = reportFacts().verdict;
+  if ("available" in verdict) throw new Error("판정 없음");
+  render(<SignalBars verdict={{ ...verdict, signals: [{ ...verdict.signals[0], band_label: "순유출 매우 많은 편" }] }} />);
+  expect(screen.getByText("순유출 매우 많은 편")).toBeInTheDocument();
+  expect(screen.queryByText("95백분위")).not.toBeInTheDocument();
+  expect(screen.getByRole("meter").firstElementChild).toHaveStyle({ width: "95%", backgroundColor: "var(--danger)" });
+});
+
+it.each([undefined, null])("등급 문구가 %s이면 기존 백분위 표기를 유지한다", (band_label) => {
+  const verdict = reportFacts().verdict;
+  if ("available" in verdict) throw new Error("판정 없음");
+  render(<SignalBars verdict={{ ...verdict, signals: [{ ...verdict.signals[0], band_label }] }} />);
+  expect(screen.getByText("95백분위")).toBeInTheDocument();
+});
+
 it("신호 백분위와 기준선을 이름 있는 그룹으로 노출한다", () => {
   render(<SignalBars verdict={reportFacts().verdict} />);
   const group = screen.getByRole("group", { name: "신호 백분위" });

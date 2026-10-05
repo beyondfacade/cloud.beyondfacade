@@ -17,9 +17,11 @@
         "level": "off",
         "value": 0.0,
         "percentile": 36.4,
-        "evidence": "지난 12개월 폐업 3곳, 개업 3곳 (순유출률 +0%, 서울 중식 상위 64%)",
+        "evidence": "지난 12개월 폐업 3곳, 개업 3곳 (순유출률 +0%) — 순유출 보통(서울 중식 동을 100곳으로 치면 많은 쪽에서 64번째쯤)",
         "source": "store",
-        "advisory": false
+        "advisory": false,
+        "band": "normal",
+        "band_label": "순유출 보통"
       },
       {
         "key": "survival_cliff",
@@ -44,9 +46,11 @@
         "level": "off",
         "value": 0.45518685420365057,
         "percentile": 66.4,
-        "evidence": "상주인구 1,000명당 중식 0.5곳 (서울 상위 34%)",
+        "evidence": "상주인구 1,000명당 중식 0.5곳 — 밀집 보통(서울 중식 동을 100곳으로 치면 높은 쪽에서 34번째쯤)",
         "source": "metric",
-        "advisory": false
+        "advisory": false,
+        "band": "normal",
+        "band_label": "밀집 보통"
       },
       {
         "key": "shrinking",

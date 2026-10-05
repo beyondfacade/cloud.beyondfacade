@@ -44,9 +44,11 @@
         "level": "off",
         "value": 0.0,
         "percentile": 0.0,
-        "evidence": "상주인구 1,000명당 일식 0.0곳 (서울 상위 100%)",
+        "evidence": "상주인구 1,000명당 일식 0.0곳 — 밀집 매우 낮은 편(서울 일식 동을 100곳으로 치면 높은 쪽에서 100번째쯤)",
         "source": "metric",
-        "advisory": false
+        "advisory": false,
+        "band": "very_good",
+        "band_label": "밀집 매우 낮은 편"
       },
       {
         "key": "shrinking",

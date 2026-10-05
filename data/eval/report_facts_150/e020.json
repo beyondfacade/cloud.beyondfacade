@@ -17,36 +17,44 @@
         "level": "on",
         "value": 0.10714285714285714,
         "percentile": 81.0,
-        "evidence": "지난 12개월 폐업 6곳, 개업 3곳 (순유출률 +11%, 서울 호프·주점 상위 19%)",
+        "evidence": "지난 12개월 폐업 6곳, 개업 3곳 (순유출률 +11%) — 순유출 많은 편(서울 호프·주점 동을 100곳으로 치면 많은 쪽에서 19번째쯤)",
         "source": "store",
-        "advisory": false
+        "advisory": false,
+        "band": "bad",
+        "band_label": "순유출 많은 편"
       },
       {
         "key": "survival_cliff",
         "level": "strong",
         "value": 0.125,
         "percentile": 90.9,
-        "evidence": "3년 전 개업한 호프·주점 16곳 중 2곳만 남음 (생존율 12%, 서울 호프·주점 하위 9%)",
+        "evidence": "3년 전 개업한 호프·주점 16곳 중 2곳만 남음 (생존율 12%) — 생존율 매우 낮은 편(서울 호프·주점 동을 100곳으로 치면 낮은 쪽에서 9번째쯤)",
         "source": "store",
-        "advisory": false
+        "advisory": false,
+        "band": "very_bad",
+        "band_label": "생존율 매우 낮은 편"
       },
       {
         "key": "early_closure",
         "level": "strong",
         "value": 0.13141683778234087,
         "percentile": 99.3,
-        "evidence": "최근 3년 폐업 호프·주점의 영업 기간 중위 0개월 (서울 호프·주점 하위 1%)",
+        "evidence": "최근 3년 폐업 호프·주점의 영업 기간 중위 0개월 — 폐업 점포 영업 기간 매우 짧은 편(서울 호프·주점 동을 100곳으로 치면 짧은 쪽에서 1번째쯤)",
         "source": "store",
-        "advisory": false
+        "advisory": false,
+        "band": "very_bad",
+        "band_label": "폐업 점포 영업 기간 매우 짧은 편"
       },
       {
         "key": "saturation",
         "level": "off",
         "value": 0.6033546518643659,
         "percentile": 30.7,
-        "evidence": "상주인구 1,000명당 호프·주점 0.6곳 (서울 상위 69%)",
+        "evidence": "상주인구 1,000명당 호프·주점 0.6곳 — 밀집 보통(서울 호프·주점 동을 100곳으로 치면 높은 쪽에서 69번째쯤)",
         "source": "metric",
-        "advisory": false
+        "advisory": false,
+        "band": "normal",
+        "band_label": "밀집 보통"
       },
       {
         "key": "shrinking",

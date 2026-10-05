@@ -14,6 +14,11 @@ const signal = (over: Partial<VerdictSignal>): VerdictSignal => ({
 });
 const base = { region_code: "1", industry_id: "real_estate", verdict_code: "orange" as const, strong_count: 0, on_count: 1, computed_at: "2026-09-29T04:30:00+09:00" };
 
+it("켜진 신호에 위험 등급 라벨이 있으면 카드에 표시한다", () => {
+  render(<VerdictCard industryLabel="부동산중개업" verdict={{ ...base, basis: "permit", signals: [signal({ level: "on", band: "bad", band_label: "높은 편" })] }} />);
+  expect(screen.getByText("높은 편")).toBeVisible();
+});
+
 it("집계 기반 판정은 배지와 설명 툴팁을 단다", () => {
   render(<VerdictCard industryLabel="부동산중개업" verdict={{ ...base, basis: "aggregate", signals: [signal({ key: "closure_rate", level: "on", source: "commerce", evidence: "지난 4분기 폐업 18곳" })] }} />);
   const badge = screen.getByText("집계 기반 판정");

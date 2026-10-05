@@ -17,9 +17,11 @@
         "level": "on",
         "value": 0.13043478260869565,
         "percentile": 89.9,
-        "evidence": "지난 12개월 폐업 3곳, 개업 0곳 (순유출률 +13%, 서울 노래방 상위 10%)",
+        "evidence": "지난 12개월 폐업 3곳, 개업 0곳 (순유출률 +13%) — 순유출 많은 편(서울 노래방 동을 100곳으로 치면 많은 쪽에서 10번째쯤)",
         "source": "store",
-        "advisory": false
+        "advisory": false,
+        "band": "bad",
+        "band_label": "순유출 많은 편"
       },
       {
         "key": "survival_cliff",
@@ -44,9 +46,11 @@
         "level": "on",
         "value": 1.3782647646612916,
         "percentile": 89.7,
-        "evidence": "상주인구 1,000명당 노래방 1.4곳 (서울 상위 10%)",
+        "evidence": "상주인구 1,000명당 노래방 1.4곳 — 밀집 높은 편(서울 노래방 동을 100곳으로 치면 높은 쪽에서 10번째쯤)",
         "source": "metric",
-        "advisory": false
+        "advisory": false,
+        "band": "bad",
+        "band_label": "밀집 높은 편"
       },
       {
         "key": "shrinking",

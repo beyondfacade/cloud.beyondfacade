@@ -17,9 +17,11 @@
         "level": "off",
         "value": -0.058823529411764705,
         "percentile": 8.3,
-        "evidence": "지난 12개월 폐업 0곳, 개업 1곳 (순유출률 -6%, 서울 당구장 상위 92%)",
+        "evidence": "지난 12개월 폐업 0곳, 개업 1곳 (순유출률 -6%) — 순유출 매우 적은 편(서울 당구장 동을 100곳으로 치면 많은 쪽에서 92번째쯤)",
         "source": "store",
-        "advisory": false
+        "advisory": false,
+        "band": "very_good",
+        "band_label": "순유출 매우 적은 편"
       },
       {
         "key": "survival_cliff",
@@ -44,9 +46,11 @@
         "level": "off",
         "value": 0.3547287310565004,
         "percentile": 69.3,
-        "evidence": "상주인구 1,000명당 당구장 0.4곳 (서울 상위 31%)",
+        "evidence": "상주인구 1,000명당 당구장 0.4곳 — 밀집 보통(서울 당구장 동을 100곳으로 치면 높은 쪽에서 31번째쯤)",
         "source": "metric",
-        "advisory": false
+        "advisory": false,
+        "band": "normal",
+        "band_label": "밀집 보통"
       },
       {
         "key": "shrinking",

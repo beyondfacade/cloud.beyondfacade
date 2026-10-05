@@ -17,9 +17,11 @@
         "level": "off",
         "value": -0.10526315789473684,
         "percentile": 4.0,
-        "evidence": "지난 12개월 폐업 1곳, 개업 3곳 (순유출률 -11%, 서울 카페 상위 96%)",
+        "evidence": "지난 12개월 폐업 1곳, 개업 3곳 (순유출률 -11%) — 순유출 매우 적은 편(서울 카페 동을 100곳으로 치면 많은 쪽에서 96번째쯤)",
         "source": "store",
-        "advisory": false
+        "advisory": false,
+        "band": "very_good",
+        "band_label": "순유출 매우 적은 편"
       },
       {
         "key": "survival_cliff",
@@ -44,9 +46,11 @@
         "level": "off",
         "value": 1.426049164742632,
         "percentile": 8.3,
-        "evidence": "상주인구 1,000명당 카페 1.4곳 (서울 상위 92%)",
+        "evidence": "상주인구 1,000명당 카페 1.4곳 — 밀집 매우 낮은 편(서울 카페 동을 100곳으로 치면 높은 쪽에서 92번째쯤)",
         "source": "metric",
-        "advisory": false
+        "advisory": false,
+        "band": "very_good",
+        "band_label": "밀집 매우 낮은 편"
       },
       {
         "key": "shrinking",

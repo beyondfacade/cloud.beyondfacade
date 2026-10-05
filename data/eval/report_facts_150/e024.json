@@ -17,36 +17,44 @@
         "level": "off",
         "value": 0.041237113402061855,
         "percentile": 66.9,
-        "evidence": "지난 12개월 폐업 10곳, 개업 6곳 (순유출률 +4%, 서울 중식 상위 33%)",
+        "evidence": "지난 12개월 폐업 10곳, 개업 6곳 (순유출률 +4%) — 순유출 보통(서울 중식 동을 100곳으로 치면 많은 쪽에서 33번째쯤)",
         "source": "store",
-        "advisory": false
+        "advisory": false,
+        "band": "normal",
+        "band_label": "순유출 보통"
       },
       {
         "key": "survival_cliff",
         "level": "strong",
         "value": 0.25,
         "percentile": 90.9,
-        "evidence": "3년 전 개업한 중식 12곳 중 3곳만 남음 (생존율 25%, 서울 중식 하위 9%)",
+        "evidence": "3년 전 개업한 중식 12곳 중 3곳만 남음 (생존율 25%) — 생존율 매우 낮은 편(서울 중식 동을 100곳으로 치면 낮은 쪽에서 9번째쯤)",
         "source": "store",
-        "advisory": false
+        "advisory": false,
+        "band": "very_bad",
+        "band_label": "생존율 매우 낮은 편"
       },
       {
         "key": "early_closure",
         "level": "on",
         "value": 28.15605749486653,
         "percentile": 79.4,
-        "evidence": "최근 3년 폐업 중식의 영업 기간 중위 28개월 (서울 중식 하위 21%)",
+        "evidence": "최근 3년 폐업 중식의 영업 기간 중위 28개월 — 폐업 점포 영업 기간 짧은 편(서울 중식 동을 100곳으로 치면 짧은 쪽에서 21번째쯤)",
         "source": "store",
-        "advisory": false
+        "advisory": false,
+        "band": "bad",
+        "band_label": "폐업 점포 영업 기간 짧은 편"
       },
       {
         "key": "saturation",
         "level": "strong",
         "value": 4.69341408024224,
         "percentile": 98.6,
-        "evidence": "상주인구 1,000명당 중식 4.7곳 (서울 상위 1%)",
+        "evidence": "상주인구 1,000명당 중식 4.7곳 — 밀집 매우 높은 편(서울 중식 동을 100곳으로 치면 높은 쪽에서 1번째쯤)",
         "source": "metric",
-        "advisory": false
+        "advisory": false,
+        "band": "very_bad",
+        "band_label": "밀집 매우 높은 편"
       },
       {
         "key": "shrinking",

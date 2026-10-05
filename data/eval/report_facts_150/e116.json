@@ -17,9 +17,11 @@
         "level": "off",
         "value": -0.21739130434782608,
         "percentile": 0.5,
-        "evidence": "지난 12개월 폐업 4곳, 개업 9곳 (순유출률 -22%, 서울 카페 상위 100%)",
+        "evidence": "지난 12개월 폐업 4곳, 개업 9곳 (순유출률 -22%) — 순유출 매우 적은 편(서울 카페 동을 100곳으로 치면 많은 쪽에서 100번째쯤)",
         "source": "store",
-        "advisory": false
+        "advisory": false,
+        "band": "very_good",
+        "band_label": "순유출 매우 적은 편"
       },
       {
         "key": "survival_cliff",

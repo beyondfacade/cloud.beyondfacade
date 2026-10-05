@@ -44,9 +44,11 @@
         "level": "off",
         "value": 0.36378518484834704,
         "percentile": 18.3,
-        "evidence": "상주인구 1,000명당 분식 0.4곳 (서울 상위 82%)",
+        "evidence": "상주인구 1,000명당 분식 0.4곳 — 밀집 낮은 편(서울 분식 동을 100곳으로 치면 높은 쪽에서 82번째쯤)",
         "source": "metric",
-        "advisory": false
+        "advisory": false,
+        "band": "good",
+        "band_label": "밀집 낮은 편"
       },
       {
         "key": "shrinking",

@@ -44,9 +44,11 @@
         "level": "off",
         "value": 0.20180277142472758,
         "percentile": 6.2,
-        "evidence": "상주인구 1,000명당 호프·주점 0.2곳 (서울 상위 94%)",
+        "evidence": "상주인구 1,000명당 호프·주점 0.2곳 — 밀집 매우 낮은 편(서울 호프·주점 동을 100곳으로 치면 높은 쪽에서 94번째쯤)",
         "source": "metric",
-        "advisory": false
+        "advisory": false,
+        "band": "very_good",
+        "band_label": "밀집 매우 낮은 편"
       },
       {
         "key": "shrinking",

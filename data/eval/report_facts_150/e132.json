@@ -44,9 +44,11 @@
         "level": "off",
         "value": 0.4191867776513563,
         "percentile": 46.3,
-        "evidence": "상주인구 1,000명당 일식 0.4곳 (서울 상위 54%)",
+        "evidence": "상주인구 1,000명당 일식 0.4곳 — 밀집 보통(서울 일식 동을 100곳으로 치면 높은 쪽에서 54번째쯤)",
         "source": "metric",
-        "advisory": false
+        "advisory": false,
+        "band": "normal",
+        "band_label": "밀집 보통"
       },
       {
         "key": "shrinking",

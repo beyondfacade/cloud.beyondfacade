@@ -44,9 +44,11 @@
         "level": "off",
         "value": 0.11496895838123707,
         "percentile": 14.7,
-        "evidence": "상주인구 1,000명당 노래방 0.1곳 (서울 상위 85%)",
+        "evidence": "상주인구 1,000명당 노래방 0.1곳 — 밀집 낮은 편(서울 노래방 동을 100곳으로 치면 높은 쪽에서 85번째쯤)",
         "source": "metric",
-        "advisory": false
+        "advisory": false,
+        "band": "good",
+        "band_label": "밀집 낮은 편"
       },
       {
         "key": "shrinking",

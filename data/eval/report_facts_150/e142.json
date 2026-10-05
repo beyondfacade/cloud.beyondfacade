@@ -44,9 +44,11 @@
         "level": "off",
         "value": 0.06043391551338611,
         "percentile": 15.9,
-        "evidence": "상주인구 1,000명당 PC방 0.1곳 (서울 상위 84%)",
+        "evidence": "상주인구 1,000명당 PC방 0.1곳 — 밀집 낮은 편(서울 PC방 동을 100곳으로 치면 높은 쪽에서 84번째쯤)",
         "source": "metric",
-        "advisory": false
+        "advisory": false,
+        "band": "good",
+        "band_label": "밀집 낮은 편"
       },
       {
         "key": "shrinking",

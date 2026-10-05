@@ -14,6 +14,8 @@ class SignalResultDto:
     percentile: float | None
     evidence: str
     source: str
+    band: str | None = None
+    band_label: str | None = None
 
 
 @dataclass(frozen=True)
