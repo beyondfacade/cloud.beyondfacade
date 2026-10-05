@@ -3,6 +3,7 @@
 ## [v0.67.0] - 2026-10-05
 
 ### Added
+- 재평가 결과 `data/eval/results/llm-benchmark-2026-10-05-guards/` — 코드 가드 적용 후 7개 모델 재평가 + 온도 0 비교(`temp0/`, 후보 3개). 12b 지어내기 0.39 → 0.00, 온도 0에서 일관성 상승(Gemini 문장 유사도 0.39 → 0.74), 유의한 품질 차이 없음(n=12).
 - **리포트 출력 코드 가드 4종** (`apps/agent/domain/services/report_guards.py`, 순수 모듈) — LLM 평가(2026-10-05)에서 리포트 실패의 상당 부분이 "화면이 이미 보여 주는 값을 글로 옮기다 틀리는" 문제였다. 인터랙터의 스트림 경로(`emit`)와 폴백 경로 모두에 적용한다. SSE 계약(`report_delta {section, markdown}` append)은 그대로다.
   - **판정 모순 교체**: 판정 절은 절이 끝날 때(다음 절로 넘어가거나 리포트가 끝날 때) 한 번에 내보낸다. facts와 다른 등급을 단정하면(`contradicts_verdict`) facts로 쓴 판정 절(`verdict_markdown`, 없으면 기존 폴백)로 바꾼다. 다시 열린 판정 절이 모순이면 그 조각만 버린다.
   - **링크·공고 번호 제거**: 모든 절에서 URL(`https?://`·`www.`)과 bizinfo 공고 번호(`PBLN_숫자`·`pblancId=`)를 지우고 남은 빈 괄호를 정리한다. 조각 경계에서 잘린 링크는 꼬리를 붙들었다 다음 조각과 합쳐 판단하는 스트리밍 필터(`UrlStripper`).
@@ -15,6 +16,7 @@
 - **판정 묶음 비교 모드** — `judge-export --compare-tag OTHER --models a,b`가 현재 태그와 OTHER 태그의 같은 모델 1회차를 한 묶음에 섞어 블라인드로 내보낸다(mapping `모델@태그`, `judge-<tag>/compare-<OTHER>/`). `judge-import --compare-tag`가 그대로 받고, `judge-compare`가 `모델@태그`별 충실도·자연스러움 평균과 짝지은 차이(paired bootstrap 구간)를 출력. `--models` 없이·현재 태그와 같은 `--compare-tag`는 인자 오류로 끝난다. 샘플링 기록이 섞인 캐시는 미기록(기준선) 표기도 함께 싣는다.
 
 ### Changed
+- `run_agent_eval`(`_LLM_REGISTRY` 경유)도 리포트 온도 0·seed 42로 돈다.
 - **리포트 온도 0·seed 42 단일 원천**(`apps/agent/domain/services/report_sampling.py`) — 운영 리포트 Gemini(`generationConfig.temperature`·`seed`)·로컬 폴백(`options.temperature`·`seed`)·운영 점검 LLM 프로브·벤치가 모두 쓴다. `GeminiLLMAdapter`에 `temperature`·`seed`, `OllamaLLMAdapter`에 `seed` 선택 인자(미지정이면 지금 요청과 같다). 의도 관문은 그대로.
 - 벤치 온도 주석 오류 정정 — "운영 리포트 호출과 같게"였던 `_TEMPERATURE = 0.3`은 운영(미지정)과 달랐다. 이제 운영 상수를 쓰고 회차 기록에 `temperature`·`seed`를 남겨 보고서가 표시한다(옛 캐시는 "미기록(기준선: 로컬 0.3·Gemini 기본값)").
 - 재무 도구 `loan_rate` 설명의 예시값("예 0.0405") 삭제 — Gemini가 "현재 금리 4.05%"로 옮겨 썼다. 단위(비율) 설명은 남긴다.
