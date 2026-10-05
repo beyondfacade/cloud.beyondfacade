@@ -199,11 +199,12 @@ def test_event_order_contract_for_two_stage_tool_turn():
         ("report_delta", "conditions"),
         ("report_delta", "alternatives"),
         ("report_delta", "funding"),
+        ("report_delta", "funding"),  # 지원사업 절이 끝날 때 붙는 예상치 고지문 (v0.67.0)
         ("agent_status", "writer", "done"),
         ("agent_status", "orchestrator", "done"),
         ("report_done",),
     ]
-    assert events[11].payload["markdown"] == "### 판정\n\n🔴 위험."
+    assert events[11].payload["markdown"] == "### 판정\n\n[확인된 사실] 🔴 위험."
     assert events[-1].payload["report_id"]
     assert events[-1].payload["citations"] == [
         {"title": "stub_market_tool: 역삼동", "url": "", "grade": "fact"},
@@ -260,7 +261,7 @@ def test_cite_failure_drops_citations_but_keeps_the_stream_alive():
     events = list(interactor.run("역삼동", "cafe", None))
 
     assert json.loads(llm.calls[1][-1]["content"]) == {"store_count": 10}
-    assert [_signature(event) for event in events[-10:]] == [
+    assert [_signature(event) for event in events[-11:]] == [
         ("agent_status", "market", "done"),
         ("report_delta", "verdict"),
         ("report_delta", "reasons"),
@@ -268,6 +269,7 @@ def test_cite_failure_drops_citations_but_keeps_the_stream_alive():
         ("report_delta", "conditions"),
         ("report_delta", "alternatives"),
         ("report_delta", "funding"),
+        ("report_delta", "funding"),  # 예상치 고지문
         ("agent_status", "writer", "done"),
         ("agent_status", "orchestrator", "done"),
         ("report_done",),
@@ -290,9 +292,11 @@ def test_missing_sections_fall_back_to_shortage_notice():
         "alternatives",
         "funding",
     ]
-    assert deltas[0].payload["markdown"] == "### 판정\n\n🔴 위험."
-    assert deltas[1].payload["markdown"] == "### 왜 안 되나\n\n분석 데이터가 부족합니다."
-    assert deltas[5].payload["markdown"] == "### 대안 업종 지원사업\n\n분석 데이터가 부족합니다."
+    assert deltas[0].payload["markdown"] == "### 판정\n\n[확인된 사실] 🔴 위험."
+    assert deltas[1].payload["markdown"] == "### 왜 안 되나\n\n[확인된 사실] 분석 데이터가 부족합니다."
+    assert deltas[5].payload["markdown"].startswith(
+        "### 대안 업종 지원사업\n\n[확인된 사실] 분석 데이터가 부족합니다.\n\n[확인된 사실] 금리·한도는 예상치"
+    )
 
 
 def test_schema_violation_reprompts_once_then_skips_and_continues():
@@ -318,7 +322,7 @@ def test_schema_violation_reprompts_once_then_skips_and_continues():
     assert [event for event in events if event.type == "tool_call"] == []
     assert _signature(events[0]) == ("agent_status", "orchestrator", "running")
     assert _signature(events[-1]) == ("report_done",)
-    assert len([event for event in events if event.type == "report_delta"]) == 6
+    assert len([event for event in events if event.type == "report_delta"]) == 7  # 6절 + 예상치 고지문
 
 
 def test_schema_violation_retry_with_valid_arguments_runs_the_tool():
@@ -440,7 +444,7 @@ def test_turn_limit_forces_a_final_report_call_and_finishes_the_contract():
         "role": "user",
         "content": "도구 호출을 멈추고, 지금까지 수집한 내용만으로 최종 리포트를 6개 섹션 마커 형식에 맞춰 지금 작성하라.",
     }
-    assert [_signature(event) for event in events[-10:]] == [
+    assert [_signature(event) for event in events[-11:]] == [
         ("agent_status", "market", "done"),
         ("report_delta", "verdict"),
         ("report_delta", "reasons"),
@@ -448,6 +452,7 @@ def test_turn_limit_forces_a_final_report_call_and_finishes_the_contract():
         ("report_delta", "conditions"),
         ("report_delta", "alternatives"),
         ("report_delta", "funding"),
+        ("report_delta", "funding"),  # 예상치 고지문
         ("agent_status", "writer", "done"),
         ("agent_status", "orchestrator", "done"),
         ("report_done",),
@@ -643,6 +648,7 @@ def test_도구_수집이_벽시계_예산을_넘기면_멈추고_리포트를_�
         "conditions",
         "alternatives",
         "funding",
+        "funding",  # 예상치 고지문
     ]
 
 
@@ -799,7 +805,7 @@ def test_LLM이_판정_대안을_빼먹으면_코드가_facts로_채운다():
     assert "3년 생존율 41%입니다." in deltas["verdict"]
     assert "제과점" in deltas["alternatives"]
     assert "대안 없음" in deltas["alternatives"]  # 빈 축
-    assert deltas["conditions"] == "### 그래도 한다면\n\n분석 데이터가 부족합니다."
+    assert deltas["conditions"] == "### 그래도 한다면\n\n[확인된 사실] 분석 데이터가 부족합니다."
 
 
 def test_LLM이_쓴_판정_섹션은_폴백이_덮어쓰지_않는다():
@@ -813,7 +819,7 @@ def test_LLM이_쓴_판정_섹션은_폴백이_덮어쓰지_않는다():
         if event.type == "report_delta"
     }
 
-    assert deltas["verdict"] == "### 판정\n\n🔴 위험."
+    assert deltas["verdict"] == "### 판정\n\n[확인된 사실] 🔴 위험."
 
 
 # --- 토큰 스트리밍 (설계서 §3-3③) ---
@@ -830,15 +836,17 @@ def test_본문은_조각_단위로_흘러나온다():
 
     sections = [e.payload["section"] for e in deltas]
     assert len(deltas) > 5, "조각이 아니라 섹션 통째로 나갔다"
-    assert sections.count("verdict") > 1
+    assert sections.count("verdict") == 1  # 판정 절은 가드가 절 끝까지 붙들었다 한 번에 낸다
+    assert sections.count("reasons") > 1
     assert sections == sorted(sections, key=_SECTION_ORDER.index)
     assert concat_sections((e.payload["section"], e.payload["markdown"]) for e in deltas) == (
-        "### 판정\n\n🔴 위험.\n\n"
-        "### 왜 안 되나\n\n생존 절벽이 켜졌다.\n\n"
+        "### 판정\n\n[확인된 사실] 🔴 위험.\n\n"
+        "### 왜 안 되나\n\n[확인된 사실] 생존 절벽이 켜졌다.\n\n"
         "### 유사 사례\n코로나 때 대면 업종이 약세였다.\n\n"  # 한 문단 섹션 — 빈 줄은 줄바꿈 하나로
-        "### 그래도 한다면\n\n손익분기 900만원.\n\n"
-        "### 대안 동네·업종\n\n제과점.\n\n"
-        "### 대안 업종 지원사업\n\n공고 2건."
+        "### 그래도 한다면\n\n[확인된 사실] 손익분기 900만원.\n\n"
+        "### 대안 동네·업종\n\n[확인된 사실] 제과점.\n\n"
+        "### 대안 업종 지원사업\n\n[확인된 사실] 공고 2건.\n\n"
+        "[확인된 사실] 금리·한도는 예상치이며, 신청 자격·한도는 공고 원문에서 확인해야 합니다."
     )
 
 
@@ -881,8 +889,8 @@ def test_스트림이_끊겨도_흘린_글은_남고_나머지는_폴백으로_�
 
     deltas = {e.payload["section"]: e.payload["markdown"] for e in events if e.type == "report_delta"}
     assert llm.calls == 1  # 끊긴 뒤 같은 글을 다시 쓰게 하지 않는다
-    assert deltas["verdict"] == "### 판정\n\n🔴 위험."
-    assert deltas["reasons"] == "생존 절벽."
+    assert deltas["verdict"] == "### 판정\n\n[확인된 사실] 🔴 위험."
+    assert deltas["reasons"] == "[확인된 사실] 생존 절벽."
     assert "분석 데이터가 부족합니다" in deltas["conditions"]
     assert set(deltas) == {"verdict", "reasons", "analogs", "conditions", "alternatives", "funding"}
     assert _signature(events[-1]) == ("report_done",)
@@ -934,7 +942,7 @@ def test_빈_턴이_와도_마무리_요청으로_다시_쓰게_한다():
     assert len(llm.calls) == 2, "빈 턴 뒤 마무리 스트림을 돌리지 않았다"
     assert llm.calls[1][-1]["content"].startswith("도구 호출을 멈추고")
     deltas = {e.payload["section"]: e.payload["markdown"] for e in events if e.type == "report_delta"}
-    assert deltas["verdict"] == "### 판정\n\n🔴 위험."
+    assert deltas["verdict"] == "### 판정\n\n[확인된 사실] 🔴 위험."
     assert all("분석 데이터가 부족합니다" not in md for md in deltas.values())
 
 
@@ -951,5 +959,134 @@ def test_마커_없는_글만_온_턴도_마무리_요청으로_다시_쓰게_�
     assert len(llm.calls) == 2, "마커 없는 턴 뒤 마무리 스트림을 돌리지 않았다"
     assert llm.calls[1][-1]["content"].startswith("도구 호출을 멈추고")
     deltas = {e.payload["section"]: e.payload["markdown"] for e in events if e.type == "report_delta"}
-    assert deltas["verdict"] == "### 판정\n\n🔴 위험."
+    assert deltas["verdict"] == "### 판정\n\n[확인된 사실] 🔴 위험."
     assert all("분석 데이터가 부족합니다" not in md for md in deltas.values())
+
+
+# --- 리포트 출력 코드 가드 (v0.67.0) ---
+
+_RED_FACTS = {
+    "region": {"code": "1168064000", "name": "역삼1동"},
+    "verdict": {
+        "available": True,
+        "verdict_code": "red",
+        "on_count": 1,
+        "strong_count": 1,
+        "signals": [{"key": "survival_cliff", "level": "strong", "evidence": "3년 생존율 41%입니다.", "advisory": False}],
+        "computed_at": "2026-09-29T03:00:00",
+    },
+}
+
+
+def _report_of(events) -> dict[str, str]:
+    out: dict[str, str] = {}
+    for event in events:
+        if event.type == "report_delta":
+            out[event.payload["section"]] = out.get(event.payload["section"], "") + event.payload["markdown"]
+    return out
+
+
+def test_facts와_다른_등급을_쓴_판정_절은_facts_판정으로_교체된다():
+    from apps.agent.domain.services.report_fallback import verdict_markdown
+
+    text = _FINAL_TEXT.replace("🔴 위험.", "**판정 없음** 자료가 부족합니다.")
+    llm = FakeLLM([_final_turn(text)], chunk=6)
+    interactor = _interactor(llm, [_market_tool()], facts=FakeFactsCollector(_RED_FACTS))
+
+    events = list(interactor.run("1168064000", "korean_food", None))
+
+    verdicts = [e.payload["markdown"] for e in events if e.type == "report_delta" and e.payload["section"] == "verdict"]
+    expected = verdict_markdown(_RED_FACTS["verdict"]).replace("### 판정\n\n", "### 판정\n\n[확인된 사실] ")
+    assert verdicts == [expected]  # 판정 절은 한 번에, 교체문으로만 나간다
+
+
+def test_본문의_링크와_공고_번호는_화면에_나가지_않는다():
+    text = _FINAL_TEXT.replace(
+        "공고 2건.", "공고 2건(https://www.bizinfo.go.kr/web/view?pblancId=PBLN_000000000109574). 원문 PBLN_000000000109575 참고."
+    )
+    llm = FakeLLM([_final_turn(text)], chunk=5)
+    interactor = _interactor(llm, [_market_tool()])
+
+    report = _report_of(interactor.run("1168064000", "korean_food", None))
+
+    assert "http" not in report["funding"] and "PBLN" not in report["funding"]
+    assert report["funding"].startswith("### 대안 업종 지원사업\n\n[확인된 사실] 공고 2건. 원문 참고.")
+
+
+def test_태그_없는_이유_절_앞에_확인된_사실을_붙인다():
+    llm = FakeLLM([_final_turn()], chunk=4)
+    interactor = _interactor(llm, [_market_tool()])
+
+    report = _report_of(interactor.run("1168064000", "korean_food", None))
+
+    assert report["reasons"] == "### 왜 안 되나\n\n[확인된 사실] 생존 절벽이 켜졌다."
+    assert report["analogs"] == "### 유사 사례\n코로나 때 대면 업종이 약세였다."  # 유사 사례는 건드리지 않는다
+
+
+def test_지원사업_절_끝에_예상치_고지문을_붙인다():
+    from apps.agent.domain.services.report_guards import FUNDING_DISCLAIMER
+
+    llm = FakeLLM([_final_turn()])
+    interactor = _interactor(llm, [_market_tool()])
+
+    report = _report_of(interactor.run("1168064000", "korean_food", None))
+
+    assert report["funding"] == "### 대안 업종 지원사업\n\n[확인된 사실] 공고 2건.\n\n" + FUNDING_DISCLAIMER
+
+
+def test_폴백_문구에도_태그와_고지문이_붙는다():
+    from apps.agent.domain.services.report_guards import FUNDING_DISCLAIMER
+
+    llm = FakeLLM([_final_turn("[SECTION:reasons]\n### 왜 안 되나\n\n생존 절벽.")])
+    interactor = _interactor(llm, [_market_tool()], facts=FakeFactsCollector(_RED_FACTS))
+
+    report = _report_of(interactor.run("1168064000", "korean_food", None))
+
+    assert report["verdict"].startswith("### 판정\n\n[확인된 사실] **비추천**")
+    assert report["conditions"] == "### 그래도 한다면\n\n[확인된 사실] 분석 데이터가 부족합니다."
+    assert report["funding"] == (
+        "### 대안 업종 지원사업\n\n[확인된 사실] 분석 데이터가 부족합니다.\n\n" + FUNDING_DISCLAIMER
+    )
+
+
+def test_정상_리포트는_태그와_고지문_말고는_바뀌지_않는다():
+    from apps.agent.domain.services.report_guards import FUNDING_DISCLAIMER
+
+    text = _FINAL_TEXT.replace("🔴 위험.", "[참고 신호] 켜진 신호 1개는 버티기 어렵다는 뜻이다.")
+    llm = FakeLLM([_final_turn(text)], chunk=3)
+    interactor = _interactor(llm, [_market_tool()], facts=FakeFactsCollector(_RED_FACTS))
+
+    report = _report_of(interactor.run("1168064000", "korean_food", None))
+
+    assert report == {
+        "verdict": "### 판정\n\n[참고 신호] 켜진 신호 1개는 버티기 어렵다는 뜻이다.",
+        "reasons": "### 왜 안 되나\n\n[확인된 사실] 생존 절벽이 켜졌다.",
+        "analogs": "### 유사 사례\n코로나 때 대면 업종이 약세였다.",
+        "conditions": "### 그래도 한다면\n\n[확인된 사실] 손익분기 900만원.",
+        "alternatives": "### 대안 동네·업종\n\n[확인된 사실] 제과점.",
+        "funding": "### 대안 업종 지원사업\n\n[확인된 사실] 공고 2건.\n\n" + FUNDING_DISCLAIMER,
+    }
+
+
+def test_시스템_프롬프트가_판정_절에_등급_이름을_쓰지_못하게_한다():
+    """등급은 판정 카드 배지가 보여 준다 — 글이 옮기다 틀리면 화면이 두 등급을 말한다."""
+    from apps.agent.app.use_cases.analysis_interactor import SYSTEM_PROMPT
+
+    prompt = " ".join(SYSTEM_PROMPT.split())  # 프롬프트는 줄을 접어 쓴다 — 공백을 정규화해 대조한다
+    contract = prompt[prompt.find("[verdict 섹션 출력 계약]") : prompt.find("[reasons 섹션 출력 계약]")]
+    rule = prompt[prompt.find("⑤") : prompt.find("[분량]")]
+    for text in (contract, rule):
+        assert "등급 이름(비추천·조건부·경고 없음·판정 없음 등)을 쓰지 않는다" in text
+        assert "화면 판정 카드가 배지로 보여 준다" in text
+    assert "켜진 신호 수와 그 뜻을 1~2문장으로 해석한다" in contract
+    assert "판정할 수 없는 이유(`reason`)를 1문장으로" in contract
+    assert '"판정 없음"과 `reason`만 쓰고' not in contract
+
+
+def test_시스템_프롬프트가_지원사업_절에_링크를_쓰지_못하게_한다():
+    from apps.agent.app.use_cases.analysis_interactor import SYSTEM_PROMPT
+
+    prompt = " ".join(SYSTEM_PROMPT.split())
+    contract = prompt[prompt.find("[funding 섹션 출력 계약]") :]
+    assert "링크·공고 번호를 쓰지 않는다 — 화면의 지원사업 카드가 원문 링크를 보여 준다" in contract
+    assert "원문 링크를 함께 남긴다" not in contract

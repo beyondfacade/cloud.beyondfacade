@@ -9,6 +9,8 @@ import json
 import random
 import re
 
+from apps.agent.domain.services.report_guards import verdict_matches, verdict_states_grade  # noqa: F401 — 벤치가 이 모듈 이름으로 쓴다
+
 _N = r"\d[\d,]*(?:\.\d+)?"
 # 복합 금액("1억 2천만")을 먼저 한 토큰으로 잡고, 아니면 숫자+선택 단위.
 _NUMBER_RE = re.compile(
@@ -122,41 +124,7 @@ def unmatched_numbers(report_md: str, facts: dict) -> list[str]:
 
 # ── 판정 일치 ──────────────────────────────────────────────
 
-# 판정 그룹별 동의어(공백 제거·소문자 기준으로 비교). 그룹 하나가 한 등급의 표현이다.
-_VERDICT_SYNONYMS = {
-    "red": ("비추천", "빨강", "빨간", "레드", "red", "적색"),
-    "orange": ("조건부", "주황", "오렌지", "orange", "'주의' 등급", "주의 등급"),
-    "clear": ("경고 없", "경고가 없", "위험 신호가 없", "위험 신호도 켜지지 않", "clear"),
-    "unavailable": ("판정 없음", "판정 보류", "판정할 수 없", "판정하지 않", "판정을 내리지 않", "insufficient"),
-}
-_VERDICT_GROUP = {"insufficient": "unavailable"}  # verdict_code → 동의어 그룹(나머지는 코드가 곧 그룹)
-
-
-def _squash(text: str) -> str:
-    return re.sub(r"\s+", "", text).lower()
-
-
-_SQUASHED_SYNONYMS = {group: tuple(_squash(w) for w in words) for group, words in _VERDICT_SYNONYMS.items()}
-
-
-def verdict_matches(verdict_section_md: str, verdict_facts: dict) -> bool:
-    """판정 절이 facts 판정과 모순되지 않는가 — 다른 등급의 동의어를 단정하지 않으면 통과.
-
-    등급 말을 아예 안 쓴 절(생략)은 모순이 아니다. 판정 자료가 없으면(available False)
-    unavailable 그룹이 기대 등급이며, 비추천·조건부·경고 없음 계열 말은 모두 모순이다.
-    """
-    text = _squash(verdict_section_md)
-    code = verdict_facts.get("verdict_code") if verdict_facts.get("available") else "unavailable"
-    group = _VERDICT_GROUP.get(code, code)
-    if group not in _SQUASHED_SYNONYMS:
-        return False
-    return not any(w in text for g, words in _SQUASHED_SYNONYMS.items() if g != group for w in words)
-
-
-def verdict_states_grade(verdict_section_md: str) -> bool:
-    """판정 절이 어느 등급이든 등급 말(동의어)을 쓰는가 — 생략 건수를 세는 참고 지표."""
-    text = _squash(verdict_section_md)
-    return any(w in text for words in _SQUASHED_SYNONYMS.values() for w in words)
+# 동의어 표·대조 규칙은 운영 가드와 같은 단일 원천(domain/services/report_guards.py)을 쓴다.
 
 
 # ── LLM 작성 절 ────────────────────────────────────────────

@@ -9,6 +9,8 @@
 
 본문은 `LLMGatewayPort.stream()`으로 **조각 단위**로 흘린다 (설계서 §3-3③). `SectionSplitter`가
 마커를 기준으로 조각을 갈라 `report_delta`로 그때그때 내보낸다 — 같은 섹션이 여러 번 온다.
+조각은 내보내기 전에 `ReportGuard`(링크 제거·기본 신뢰 태그·예상치 고지·판정 모순 교체)를 거친다 —
+판정 절만은 절이 끝날 때 한 번에 나간다(이미 흘린 조각은 되돌릴 수 없어서).
 턴이 도구 호출로 끝나면 현행 루프대로 도구를 실행하고 다음 스트림 턴을 이어간다. 재프롬프트만
 비스트리밍 `chat()`을 쓴다(짧은 한 턴이고 화면에 나갈 글이 아니다).
 
@@ -50,6 +52,7 @@ from apps.agent.domain.services.report_fallback import (
     analogs_markdown,
     verdict_markdown,
 )
+from apps.agent.domain.services.report_guards import ReportGuard, guard_section
 from apps.agent.domain.services.section_stream import SectionSplitter
 
 LOGGER = logging.getLogger("beyondfacade.agent.loop")
@@ -100,8 +103,10 @@ SYSTEM_PROMPT = """당신은 서울 상권 분석 리포트를 작성하는 단�
 ④ `[FACTS]`의 정형 값과 도구 계산 결과는 [확인된 사실], 검색 결과(`facts.news`·`search_*`)는
    [참고 신호]로 표기한다.
 ⑤ 판정 등급·켜진 신호·대안·지표는 `[FACTS]` 값을 그대로 옮긴다. 등급을 바꾸거나 신호를 새로 만들거나
-   🟢 추천을 쓰지 않는다. 값이 `available: false`면 그 `reason`을 이유로 붙여 "판정 없음"처럼 그대로
-   쓴다 — 없는 값을 지어내지 않는다. `advisory: true` 신호는 켜진 경고가 아니라 "참고"로만 적는다.
+   🟢 추천을 쓰지 않는다. 판정 절에는 등급 이름(비추천·조건부·경고 없음·판정 없음 등)을 쓰지 않는다 —
+   화면 판정 카드가 배지로 보여 준다. 값이 `available: false`면 그 `reason`을 이유로 그대로 쓴다(판정 절은
+   판정할 수 없는 이유를 1문장으로) — 없는 값을 지어내지 않는다. `advisory: true` 신호는 켜진 경고가 아니라
+   "참고"로만 적는다.
    도구는 `[FACTS]`에 없는 것에만 쓴다 — `run_finance_simulation`은 사용자가 13개 입력을 모두
    주었을 때만(예산이 주어졌으면 그 값을 자기자본 기본값으로), `compare_rent_vs_buy`는 임대료 상한을
    계산할 때만, `search_news`·`search_funding`은 facts의 뉴스·공고가 모자랄 때만 호출한다.
@@ -123,9 +128,10 @@ SYSTEM_PROMPT = """당신은 서울 상권 분석 리포트를 작성하는 단�
 
 [verdict 섹션 출력 계약]
 **판정**은 화면의 판정 카드가 배지·신호 목록·근거·산출 시점을 이미 그린다. 글은 그것을 되풀이하지
-않는다. `facts.verdict`의 **배지 한 줄 해석 1~2문장**만 쓴다 — 판정 등급과 켜진 신호 수
-(`on_count`·`strong_count`)만 언급하고, 신호를 하나씩 나열하거나 날짜를 적지 않는다.
-`available: false`면 "판정 없음"과 `reason`만 쓰고 등급을 지어내지 않는다.
+않는다. `facts.verdict`의 **배지 한 줄 해석 1~2문장**만 쓴다. 등급 이름(비추천·조건부·경고 없음·판정 없음 등)을
+쓰지 않는다 — 화면 판정 카드가 배지로 보여 준다. 켜진 신호 수와 그 뜻을 1~2문장으로 해석한다
+(`on_count`·`strong_count`) — 신호를 하나씩 나열하거나 날짜를 적지 않는다.
+`available: false`면 판정할 수 없는 이유(`reason`)를 1문장으로 쓰고 등급을 지어내지 않는다.
 
 [reasons 섹션 출력 계약]
 **왜 안 되나**는 판정에서 켜진 신호마다 한 단락씩 쓴다. 신호의 `evidence`·`percentile`에
@@ -225,7 +231,8 @@ facts에 없는 수치는 지어내지 않는다. 값이 없으면 "자료 없�
 [funding 섹션 출력 계약]
 **대안 업종 지원사업**의 공고 후보는 `facts.funding_candidates`를 쓰고, **자격 확정이 아니라
 해당 가능성**이라고 쓴다. alternatives 절의 **대안 업종**에 해당하는 공고를 먼저 배치한다.
-신청 자격·한도는 원문에서 확인해야 한다고 덧붙이고 원문 링크를 함께 남긴다.
+신청 자격·한도는 원문에서 확인해야 한다고 덧붙인다. 링크·공고 번호를 쓰지 않는다 — 화면의 지원사업
+카드가 원문 링크를 보여 준다.
 금리·한도는 규칙 ③대로 "예상치"임을 고지한다. `external_funding_need`를 알면 그 금액을 이 절의
 헤드라인으로 삼아 "얼마를 어떤 경로로 나눠 조달할지"를 중심에 둔다."""
 
@@ -374,7 +381,8 @@ class AnalysisInteractor(AnalysisUseCase):
         citations: list[dict] = []
         open_stages: dict[str, None] = {}  # 삽입 순서를 유지하는 열린 스테이지 집합
         splitter = SectionSplitter(single_paragraph=_SINGLE_PARAGRAPH_SECTIONS)
-        written: set[str] = set()  # 실제로 조각이 나간 섹션 — 나머지는 폴백이 메운다
+        written: set[str] = set()  # LLM이 조각을 쓴 섹션 — 나머지는 폴백이 메운다
+        guard: ReportGuard  # facts를 모은 뒤 만든다 — 판정 절 대조에 facts.verdict가 필요하다
 
         def close_open_stages() -> Iterator[AgentEvent]:
             """열린 도구 스테이지를 등록 순서대로 닫는다."""
@@ -383,10 +391,17 @@ class AnalysisInteractor(AnalysisUseCase):
                 yield AgentEvent("agent_status", {"agent": stage, "status": "done"})
 
         def emit(chunks: list[tuple[str, str]]) -> Iterator[AgentEvent]:
-            """본문 조각을 report_delta로 흘린다 — 첫 조각이 나오면 도구 스테이지는 끝난 것이다."""
-            for section, chunk in chunks:
+            """본문 조각을 가드에 거쳐 report_delta로 흘린다 — 첫 조각이 나오면 도구 스테이지는 끝난 것이다.
+
+            판정 절은 가드가 절 끝까지 붙들므로 화면에는 늦게 나가지만, 쓴 것으로는 곧바로 친다.
+            """
+            for section, _ in chunks:
                 yield from close_open_stages()
                 written.add(section)
+            yield from deltas(guard.feed(chunks))
+
+        def deltas(chunks: list[tuple[str, str]]) -> Iterator[AgentEvent]:
+            for section, chunk in chunks:
                 yield AgentEvent("report_delta", {"section": section, "markdown": chunk})
 
         def stream_turn(turn: _StreamTurn) -> Iterator[AgentEvent]:
@@ -433,6 +448,7 @@ class AnalysisInteractor(AnalysisUseCase):
         facts = self._facts.collect(region, industry, self._budget, question)
         yield AgentEvent("facts", {"facts": facts})  # 프론트 계약은 중첩이다 (설계서 §4-1)
         yield AgentEvent("agent_status", {"agent": "facts", "status": "done"})
+        guard = ReportGuard(facts.get("verdict"), _fallback_section("verdict", "판정", facts))
 
         messages = [
             {"role": "system", "content": SYSTEM_PROMPT},
@@ -503,6 +519,7 @@ class AnalysisInteractor(AnalysisUseCase):
             yield from stream_turn(_StreamTurn(splitter))
 
         yield from emit(splitter.flush())
+        yield from deltas(guard.close())  # 마지막 절의 끝 — 붙든 판정·고지문이 여기서 나간다
         yield from close_open_stages()
 
         for name, title in _SECTIONS:
@@ -510,7 +527,7 @@ class AnalysisInteractor(AnalysisUseCase):
                 continue
             yield AgentEvent(
                 "report_delta",
-                {"section": name, "markdown": _fallback_section(name, title, facts)},
+                {"section": name, "markdown": guarded_fallback_section(name, title, facts)},
             )
 
         yield AgentEvent("agent_status", {"agent": "writer", "status": "done"})
@@ -574,6 +591,11 @@ def _fallback_section(name: str, title: str, facts: dict) -> str:
     formatter = _FACT_FALLBACKS.get(name)
     markdown = formatter(facts.get(name)) if formatter else None
     return markdown or f"### {title}\n\n분석 데이터가 부족합니다."
+
+
+def guarded_fallback_section(name: str, title: str, facts: dict) -> str:
+    """화면에 나가는 폴백 절 — 폴백 문구는 그대로 두고 LLM 절과 같은 가드(태그·고지문)를 씌운다."""
+    return guard_section(name, _fallback_section(name, title, facts))
 
 
 def _collect_citations(tool: AgentTool, arguments: dict, result: str, region: str) -> list[dict]:

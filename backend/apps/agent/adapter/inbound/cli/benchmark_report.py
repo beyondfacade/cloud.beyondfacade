@@ -11,7 +11,10 @@ AnalysisInteractor를 돌려 시나리오·회차 단위 jsonl로 캐시한 뒤(
   python -m apps.agent.adapter.inbound.cli.benchmark_report judge-import --file PATH
   python -m apps.agent.adapter.inbound.cli.benchmark_report vram
   python -m apps.agent.adapter.inbound.cli.benchmark_report residency --report-model R --intent-model I
-  python -m apps.agent.adapter.inbound.cli.benchmark_report evaluate
+  python -m apps.agent.adapter.inbound.cli.benchmark_report evaluate [--out-dir NAME]
+
+같은 날 재평가는 `--cache-tag NAME`(run·score·judge-*·evaluate 공통)으로 캐시를 `report-NAME/`·`judge-NAME/`에
+나누고, `evaluate --out-dir NAME`으로 기존 결과 폴더를 덮어쓰지 않게 한다.
 """
 
 import argparse
@@ -54,6 +57,7 @@ from apps.agent.app.use_cases.analysis_interactor import (
     SYSTEM_PROMPT,
     AnalysisInteractor,
     _fallback_section,
+    guarded_fallback_section,
 )
 from apps.agent.app.use_cases.report_facts import ReportFactsCollector
 from apps.agent.domain.entities.agent_event_entity import AgentEvent
@@ -143,6 +147,12 @@ def _write_json(path: Path, data) -> None:
     path.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
 
 
+def cache_dirs(tag: str | None) -> tuple[Path, Path]:
+    """(리포트 회차 캐시, 판정 캐시) — 태그가 있으면 `report-<tag>/`·`judge-<tag>/`로 나눈다."""
+    suffix = f"-{tag}" if tag else ""
+    return _CACHE / f"report{suffix}", _CACHE / f"judge{suffix}"
+
+
 def _safe(model: str) -> str:
     return model.replace(":", "_").replace("/", "_")
 
@@ -194,8 +204,10 @@ def _report_text(sections: dict[str, str]) -> str:
 
 
 def _written_sections(sections: dict[str, str], facts: dict) -> set[str]:
-    fallbacks = {name: _fallback_section(name, title, facts) for name, title in _SECTIONS}
-    return llm_sections(sections, fallbacks)
+    """LLM이 쓴 절 — 맨 폴백(v0.67.0 이전 캐시)과 가드를 씌운 폴백(이후) 어느 쪽과도 다른 절."""
+    plain = {name: _fallback_section(name, title, facts) for name, title in _SECTIONS}
+    guarded = {name: guarded_fallback_section(name, title, facts) for name, title in _SECTIONS}
+    return llm_sections(sections, plain) & llm_sections(sections, guarded)
 
 
 def _tool_spec_text() -> str:
@@ -578,7 +590,7 @@ def _cmd_evaluate(args: argparse.Namespace) -> None:
     gemini_runs = _read_jsonl(_run_path(_ONLINE))
     results = {"date": date.today().isoformat(), "report": _report_block(ids), "intent": _intent_block(),
                "residency": _read_json(_RESIDENCY), "cost": gemini_cost(gemini_runs) if gemini_runs else None}
-    out = _RESULTS_ROOT / f"llm-benchmark-{results['date']}"
+    out = _RESULTS_ROOT / (args.out_dir or f"llm-benchmark-{results['date']}")
     _write_json(out / "results.json", results)
     (out / "report.md").write_text(render_llm_report(results), encoding="utf-8")
     print(f"evaluate: 리포트 승자 {results['report']['winner']} · 관문 승자 {results['intent']['winner']} → {out}",
@@ -600,7 +612,11 @@ def main() -> None:
     parser.add_argument("--report-model", default=None)
     parser.add_argument("--intent-model", default=None)
     parser.add_argument("--force", action="store_true", help="freeze: 기존 facts 덮어쓰기")
+    parser.add_argument("--out-dir", default=None, help="evaluate: 결과 폴더 이름(기본 llm-benchmark-YYYY-MM-DD)")
+    parser.add_argument("--cache-tag", default=None, help="run·score·judge-*·evaluate: 캐시를 report-<tag>/·judge-<tag>/로 분리")
     args = parser.parse_args()
+    global _RUNS, _JUDGE  # 명령 함수들이 모듈 경로를 읽는다 — 태그는 실행 시작에 한 번만 바꾼다
+    _RUNS, _JUDGE = cache_dirs(args.cache_tag)
     _COMMANDS[args.command](args)
 
 

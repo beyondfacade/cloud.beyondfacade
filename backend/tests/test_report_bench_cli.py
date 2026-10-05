@@ -254,3 +254,41 @@ def test_보고서는_판정_모순_없음_등급_생략_비용_notes_링크를_
     md = render_llm_report(results)
     assert "판정 모순 없음" in md and "| 3/36 |" in md and "0.039" in md
     assert "$0.0091" in md and "[notes.md](notes.md)" in md
+
+
+def test_가드를_씌운_폴백_절도_LLM이_쓴_절로_세지_않는다():
+    """v0.67.0부터 화면에 나가는 폴백은 태그·고지문이 붙는다 — 옛 캐시(맨 폴백)와 새 캐시 모두 폴백으로 본다."""
+    from apps.agent.app.use_cases.analysis_interactor import _SECTIONS, guarded_fallback_section
+
+    facts = {"verdict": {"available": True, "verdict_code": "red", "on_count": 1, "strong_count": 1, "signals": []}}
+    sections = {name: guarded_fallback_section(name, title, facts) for name, title in _SECTIONS}
+    got = score_run({"sections": sections, "error": None}, facts)
+    assert got["complete"] is False
+    assert got["verdict_ok"] is False  # 판정 절도 폴백이다 — 모델 평가에 넣지 않는다
+
+
+def test_캐시_태그가_없으면_지금_경로_있으면_분리된_경로를_쓴다():
+    from apps.agent.adapter.inbound.cli.benchmark_report import _CACHE, cache_dirs
+
+    assert cache_dirs(None) == (_CACHE / "report", _CACHE / "judge")
+    assert cache_dirs("guards") == (_CACHE / "report-guards", _CACHE / "judge-guards")
+
+
+def test_평가_결과_폴더는_out_dir로_바꿀_수_있다(tmp_path, monkeypatch):
+    import argparse
+
+    from apps.agent.adapter.inbound.cli import benchmark_report as br
+
+    monkeypatch.setattr(br, "_RESULTS_ROOT", tmp_path)
+    monkeypatch.setattr(br, "_RUNS", tmp_path / "runs")
+    monkeypatch.setattr(br, "_scenarios", lambda: [])
+    monkeypatch.setattr(br, "_report_block", lambda ids: {"winner": None})
+    monkeypatch.setattr(br, "_intent_block", lambda: {"winner": None})
+    monkeypatch.setattr(br, "render_llm_report", lambda results: "md")
+
+    br._cmd_evaluate(argparse.Namespace(out_dir="llm-benchmark-2026-10-05-guards"))
+    br._cmd_evaluate(argparse.Namespace(out_dir=None))
+
+    assert (tmp_path / "llm-benchmark-2026-10-05-guards" / "report.md").exists()
+    assert any(p.name.startswith("llm-benchmark-") and p.name != "llm-benchmark-2026-10-05-guards"
+               for p in tmp_path.iterdir())
