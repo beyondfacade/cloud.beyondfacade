@@ -6,7 +6,7 @@ from apps.agent.adapter.outbound.llm.fallback_llm_adapter import FallbackLLMAdap
 from apps.agent.adapter.outbound.llm.gemini_llm_adapter import GeminiLLMAdapter
 from apps.agent.adapter.outbound.llm.ollama_llm_adapter import OllamaLLMAdapter
 from apps.agent.adapter.outbound.repositories.llm_call_repository import SqlAlchemyLlmCallRecorder
-from apps.ops.adapter.outbound.gateways.llm_chain_gateway import FALLBACK_MODEL
+from apps.ops.adapter.outbound.gateways.llm_chain_gateway import FALLBACK_MODEL, FALLBACK_NUM_CTX
 from apps.ops.app.dtos.healthcare_dto import ProbeHitDto, ProbeResultDto
 from apps.ops.app.ports.output.healthcare_port import ProbePort
 from apps.rag.dependencies.rag_dependencies import get_rag_search_use_case
@@ -52,7 +52,7 @@ class LlmProbe(ProbePort):
         started = time.perf_counter()
         llm = FallbackLLMAdapter(
             primary=GeminiLLMAdapter,
-            secondary=lambda: OllamaLLMAdapter(model=FALLBACK_MODEL),
+            secondary=lambda: OllamaLLMAdapter(model=FALLBACK_MODEL, num_ctx=FALLBACK_NUM_CTX),
             recorder=SqlAlchemyLlmCallRecorder(),
         )
         try:

@@ -6,6 +6,7 @@ from core.matrix.grid_keymaker_secret_manager import get_settings
 # agent/dependencies/analysis_dependencies.py 의 hybrid 배선(_hybrid·_local)과 같아야 한다
 PRIMARY_MODEL = "gemini-2.5-flash"
 FALLBACK_MODEL = "gemma4:12b"
+FALLBACK_NUM_CTX = 32768  # 기본 컨텍스트(~2k)는 리포트 프롬프트(13~14k)를 자른다 — _LOCAL_NUM_CTX와 같아야 한다
 
 
 class LlmChainGateway(LlmChainPort):

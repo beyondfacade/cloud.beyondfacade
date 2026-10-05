@@ -206,7 +206,7 @@ main이 전진하면 다시 낡는다 — 배포 전 재빌드가 규칙.
   마이그레이션 `c7a3f1e8d204` 적용·8,905건 전량 재색인(101초) 후 운영 평가(confirmed 233): Hit@5 0.983 / MRR 0.930 (전환 전 qwen3 운영 0.991 / 0.930, `data/eval/results/rag_bge-m3_20261004_231013.json`). 기존 테이블 백업 `data/backups/rag_chunk_qwen1536_20261004.dump`(gitignore).
 - **LLM 모델 평가(10/5)** — 평가셋: 리포트 12 시나리오×3회, 관문 80건(confirmed). 결과: **두 역할 모두 엄격 게이트를 통과한 로컬 모델 없음**. 리포트는 로컬 전원 탈락(Gemini도 규칙 게이트 탈락, 주로 신뢰 등급 표기). 관문은 스펙 범위(missing·out_of_scope 26건) 지어내기로 gemma4:12b 0.077 탈락(이전 범위 0.039 — 서울 밖 지명을 서울 동으로 채움 2건), Gemini는 통과(0.988).
   참고(결정 아님): 리포트 품질 12b 6.00 vs e4b 5.42 동률(+0.58 [−0.17, +1.25]) → VRAM 우선 e4b, 관문 로컬 최고 12b(0.887). 로컬 채택 전 프롬프트·형식 작업(신뢰 등급 태그, 공고 번호·URL 그대로 옮기기) 후 재측정 필요 — 트레이드오프는 `notes.md`.
-  운영 버그(미해결): 운영 Ollama 폴백(`analysis_dependencies._local`)이 num_ctx 없이 호출해 Ollama 0.31.2 기본값으로 약 2k 토큰만 읽는다(§4-4-2). 보고서: `data/eval/results/llm-benchmark-2026-10-05/report.md`·`notes.md`(spec `docs/superpowers/specs/2026-10-04-llm-benchmark-design.md`).
+  운영 버그(10/5 해소, v0.66.1): 운영 Ollama 폴백(`analysis_dependencies._local`)이 num_ctx 없이 호출해 Ollama 0.31.2 기본값으로 약 2k 토큰만 읽던 문제(§4-4-2). 보고서: `data/eval/results/llm-benchmark-2026-10-05/report.md`·`notes.md`(spec `docs/superpowers/specs/2026-10-04-llm-benchmark-design.md`).
 - 두뇌 비교(`data/eval/results/agent_compare.md`)로 리포트는 **혼합(Gemini 우선·로컬 폴백)** 채택 완료.
 
 ### 4-4-1. 도커 컨테이너에서 호스트 Ollama 접근 불가 — 10/4 해소 (v0.65.1)
@@ -214,8 +214,8 @@ main이 전진하면 다시 낡는다 — 배포 전 재빌드가 규칙.
 `Settings.ollama_base_url`(env `OLLAMA_BASE_URL`, 기본 127.0.0.1)로 바꾸고 compose에 `OLLAMA_BASE_URL=http://host.docker.internal:11434` + `extra_hosts: host-gateway`를 넣었다.
 재빌드 후 컨테이너에서 RAG 검색 3건·운영 점검 Ollama 도달(모델 12개) 확인.
 
-### 4-4-2. 운영 Ollama 폴백 컨텍스트 잘림 — 10/5 발견, 미해결
-`analysis_dependencies._local`이 num_ctx를 지정하지 않아 Ollama 0.31.2 기본 컨텍스트로 호출된다. 실측(10/5, 약 29,400자 한국어 합성 입력): 기본 컨텍스트에서 qwen3.5:4b prompt_eval_count 2,050, gemma4:12b 2,051 — num_ctx 32,768에서는 qwen3.5:4b 17,422. 즉 기본값은 입력을 약 2k 토큰에서 잘라 읽는다(합성 입력 수치이며 리포트 프롬프트 자체의 크기가 아님). 실제 리포트 첫 턴 프롬프트는 num_ctx 32,768에서 13.1k~14.1k 토큰으로 실측(도구 없이 13,111, 도구 포함 14,143)이라 운영 폴백은 facts 대부분이 잘린 채 리포트를 쓴다. 벤치마크는 num_ctx 32,768로 측정. 수정 후보: 폴백 어댑터에 num_ctx 지정(어댑터는 인자 지원, v0.66.0). 운영 배선 변경이라 사용자 결정 대기.
+### 4-4-2. 운영 Ollama 폴백 컨텍스트 잘림 — 10/5 해소 (v0.66.1)
+`analysis_dependencies._local`이 num_ctx를 지정하지 않아 Ollama 0.31.2 기본 컨텍스트로 호출된다. 실측(10/5, 약 29,400자 한국어 합성 입력): 기본 컨텍스트에서 qwen3.5:4b prompt_eval_count 2,050, gemma4:12b 2,051 — num_ctx 32,768에서는 qwen3.5:4b 17,422. 즉 기본값은 입력을 약 2k 토큰에서 잘라 읽는다(합성 입력 수치이며 리포트 프롬프트 자체의 크기가 아님). 실제 리포트 첫 턴 프롬프트는 num_ctx 32,768에서 13.1k~14.1k 토큰으로 실측(도구 없이 13,111, 도구 포함 14,143)이라 운영 폴백은 facts 대부분이 잘린 채 리포트를 쓴다. 벤치마크는 num_ctx 32,768로 측정. 해소: 폴백 어댑터(`_local`)와 운영 점검 프로브에 num_ctx 32,768 지정(bge-m3와 동시 상주 9.8GB 실측). 두 상수는 테스트가 같음을 고정한다.
 
 ### 4-5. 외부 대기·자료 한계 (코드로 못 푸는 것)
 - 주민등록 인구 2026.07분 공표 후 1파일 추가

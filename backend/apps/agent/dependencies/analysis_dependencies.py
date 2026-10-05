@@ -27,10 +27,16 @@ from apps.agent.app.use_cases.analysis_interactor import AnalysisInteractor
 from apps.agent.app.use_cases.report_facts import ReportFactsCollector
 from apps.rag.dependencies.rag_dependencies import get_rag_search_use_case
 
+# 로컬 폴백 컨텍스트 길이 — num_ctx를 안 주면 Ollama 0.31.2 기본값이 입력을 약 2k 토큰에서 잘라 읽는다.
+# 리포트 첫 턴 프롬프트는 도구 포함 최대 14.1k 토큰이라 32768로 올린다(벤치 2026-10-05, bge-m3와 동시 상주 9.8GB 실측).
+# ops/adapter/outbound/gateways/llm_chain_gateway.py 의 FALLBACK_NUM_CTX 와 같아야 한다(테스트가 고정)
+_LOCAL_NUM_CTX = 32768
+
+
 # 모델 키 → LLM 어댑터 팩토리 (if/elif 대신 dict 디스패치)
 # 참고: ollama gemma3:12b는 tools capability 없음 → 동일 패밀리 gemma4:12b로 배선
 def _local() -> LLMGatewayPort:
-    return OllamaLLMAdapter(model="gemma4:12b")
+    return OllamaLLMAdapter(model="gemma4:12b", num_ctx=_LOCAL_NUM_CTX)
 
 
 def _hybrid() -> LLMGatewayPort:
