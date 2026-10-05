@@ -169,3 +169,43 @@ def test_회차가_하나뿐인_시나리오는_계산에서_뺀다():
     assert consistency_outcome(runs) == 0.0  # s02만 센다
     assert consistency([_run(rep=0)]) is None  # 비교할 쌍이 없다
     assert consistency(runs)["scenarios"] == 1
+
+
+# --- 코드 절 자동 검사·해석 판정 묶음 (v0.68.0 코드 우선 구조) ---
+
+
+def test_범위_낱말_없이_숫자만_있는_줄을_찾는다():
+    from apps.agent.adapter.inbound.cli.report_bench_scoring import unscoped_number_lines
+
+    markdown = "\n".join([
+        "[확인된 사실] 송정동 한식 연간 폐업률: 2019년 2.8% → 2025년 19.1%.",  # 범위 있음
+        "영업 중 점포 평균 124개월.",  # 범위 없음
+        "- 「2026년 3천만원 지원 공고」 — 중소벤처기업부, 마감 2026-10-07",  # 공고 제목 속 숫자는 세지 않는다
+        "- 상계3.4동 (경고 없음)",  # 숫자가 든 동 이름
+    ])
+
+    assert unscoped_number_lines(markdown, ["송정동", "한식", "서울"], ["상계3.4동"]) == ["영업 중 점포 평균 124개월."]
+
+
+def test_자료가_없는데_이유가_적히지_않은_자리를_찾는다():
+    from apps.agent.adapter.inbound.cli.report_bench_scoring import missing_data_gaps
+
+    facts = {
+        "hour_gap": {"available": False, "reason": "시간대 자료 없음"},
+        "profile": {"available": False, "reason": "프로필 없음"},
+        "verdict": {"available": True, "signals": [{"key": "survival_cliff", "level": "unavailable", "evidence": "표본 부족 — 1곳"}]},
+    }
+    sections = {name: "" for name in ("verdict", "reasons", "analogs", "conditions", "alternatives", "funding")}
+    sections["conditions"] = "시간대: 자료 부족 — 시간대 자료 없음"
+
+    assert missing_data_gaps(facts, sections) == ["profile", "signal:survival_cliff"]
+
+
+def test_해석_판정_묶음은_본문_한_벌과_가린_해석을_싣는다():
+    from apps.agent.adapter.inbound.cli.report_bench_scoring import answer_packets
+
+    packet, mapping = answer_packets("e001", None, "### 판정\n\n본문", {"m1": "해석 하나.", "m2": "해석 둘."}, 0)
+
+    assert sorted(mapping.values()) == ["m1", "m2"]
+    assert packet.count("### 판정") == 1 and "질문: (없음 — 총평)" in packet
+    assert "해석 하나." in packet and "해석 둘." in packet and "m1" not in packet

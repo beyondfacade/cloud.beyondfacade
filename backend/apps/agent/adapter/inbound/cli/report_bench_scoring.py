@@ -1,6 +1,7 @@
 """리포트 벤치 채점 — 순수 로직(DB·네트워크 없음, 결정적).
 
 숫자 지어내기 대조, 판정 일치, LLM 작성 절 판별, 블라인드 판정자 묶음.
+v0.68.0: 코드 절 자동 검사(범위 없는 숫자 줄·이유 빠진 자료 부족 자리)와 해석(answer) 판정 묶음.
 """
 
 from __future__ import annotations
@@ -10,7 +11,7 @@ import json
 import random
 import re
 from collections import Counter, defaultdict
-from collections.abc import Callable
+from collections.abc import Callable, Iterable
 from itertools import combinations
 from statistics import mean
 
@@ -35,6 +36,7 @@ VERDICT_LABELS = {"red": "비추천", "orange": "조건부", "clear": "경고 �
 
 _FACTS_JSON_LIMIT = 3000
 RUBRIC_PATH = "data/eval/report_judge_rubric.md"  # 리포지토리 루트 기준
+ANSWER_RUBRIC_PATH = "data/eval/report_answer_rubric.md"  # 해석 단락 판정 기준(v0.68.0)
 FACTS_DIR = "data/eval/report_facts"
 
 
@@ -215,6 +217,56 @@ def llm_sections(deltas: dict[str, str], fallbacks: dict[str, str]) -> set[str]:
     }
 
 
+# ── 코드 절 자동 검사 (설계서 2026-10-05-report-code-first §7) ──
+
+# 줄에 이 낱말이나 동·업종 이름이 있으면 숫자에 범위가 붙은 것으로 본다
+SCOPE_WORDS = ("서울", "전국", "동 전체", "업종 무관", "최근")
+_QUOTED = re.compile(r"「[^」]*」")  # 공고 제목 원문 — 제목 속 숫자는 주장이 아니다
+
+
+def unscoped_number_lines(markdown: str, scope_words: Iterable[str], names: Iterable[str] = ()) -> list[str]:
+    """사실값 숫자가 있는데 범위 낱말이 하나도 없는 줄.
+
+    숫자 토큰은 지어내기 대조와 같은 규칙(`_tokens` — 단위 없는 10 이하 정수·연도는 버린다)이다.
+    공고 제목(「」)과 이름(숫자가 든 동 이름 "상계3.4동")은 숫자로 세지 않는다.
+    """
+    scope, names = tuple(scope_words), tuple(names)
+    out: list[str] = []
+    for line in markdown.splitlines():
+        text = _QUOTED.sub("", line)
+        for name in names:
+            text = text.replace(name, "")
+        if _tokens(text) and not any(word in line for word in scope):
+            out.append(line)
+    return out
+
+
+# 사실 키 → 그 자료가 없을 때 이유를 적어야 하는 절
+_MISSING_SECTIONS = {
+    "verdict": "verdict", "alternatives": "alternatives", "metrics_history": "reasons", "shocks": "reasons",
+    "analogs": "analogs", "hour_gap": "conditions", "profile": "conditions", "commerce_change": "conditions",
+    "funding_candidates": "funding",
+}
+
+
+def missing_data_gaps(facts: dict, sections: dict[str, str]) -> list[str]:
+    """자료가 없는 자리(available false·표본 부족 신호)인데 해당 절에 그 이유가 그대로 적히지 않은 항목.
+
+    이유를 적는 자리는 코드가 그 줄만 쓴다 — 추정 문장이 끼어들 틈이 없다(report_sections 단위 테스트가 고정).
+    이유 뒤 ": 동코드 × 업종 id" 같은 내부 코드는 화면에 쓰지 않으므로(report_sections `_hours`) 콜론 앞까지만 대조한다.
+    """
+    gaps = [
+        key for key, section in _MISSING_SECTIONS.items()
+        if isinstance(value := facts.get(key), dict) and value.get("available") is False
+        and (value.get("reason") or "").split(":")[0].strip() not in sections[section]
+    ]
+    signals = (facts.get("verdict") or {}).get("signals") or []
+    return gaps + [
+        f"signal:{s.get('key')}" for s in signals
+        if s.get("level") == "unavailable" and (s.get("evidence") or "") not in sections["reasons"]
+    ]
+
+
 # ── 블라인드 판정자 묶음 ───────────────────────────────────
 
 def judge_packets(
@@ -231,6 +283,21 @@ def judge_packets(
              "```json", facts_json, "```"]
     for blind, model in mapping.items():
         parts += ["", f"## 리포트 {blind}", reports[model]]
+    return "\n".join(parts) + "\n", mapping
+
+
+def answer_packets(
+    scenario_id: str, question: str | None, body: str, answers: dict[str, str], seed: int,
+) -> tuple[str, dict[str, str]]:
+    """해석 판정 묶음 — 질문 + 코드가 쓴 본문 한 벌 + 모델명을 A·B…로 가린 해석들. 순서는 시드로 결정적."""
+    models = sorted(answers)
+    random.Random(f"{seed}:{scenario_id}").shuffle(models)
+    mapping = {chr(ord("A") + i): model for i, model in enumerate(models)}
+    parts = [f"# 시나리오 {scenario_id}", "", f"채점 기준: `{ANSWER_RUBRIC_PATH}`", "",
+             f"질문: {question or '(없음 — 총평)'}", "",
+             "## 리포트 본문 (코드가 사실로 쓴 6개 절 — 해석의 유일한 근거)", "", body]
+    for blind, model in mapping.items():
+        parts += ["", f"## 해석 {blind}", answers[model]]
     return "\n".join(parts) + "\n", mapping
 
 
