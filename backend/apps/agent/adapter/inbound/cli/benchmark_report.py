@@ -16,6 +16,7 @@ AnalysisInteractor를 돌려 시나리오·회차 단위 jsonl로 캐시한 뒤(
   python -m apps.agent.adapter.inbound.cli.benchmark_report residency --report-model R --intent-model I
   python -m apps.agent.adapter.inbound.cli.benchmark_report evaluate [--out-dir NAME]
 
+150건 평가셋은 freeze·run·score에 `--scenario-set 150`을 붙인다(시나리오·facts 경로만 바뀐다).
 같은 날 재평가는 `--cache-tag NAME`(run·score·judge-*·evaluate 공통)으로 캐시를 `report-NAME/`·`judge-NAME/`에
 나누고, `evaluate --out-dir NAME`으로 기존 결과 폴더를 덮어쓰지 않게 한다.
 """
@@ -74,8 +75,12 @@ from core.matrix.grid_keymaker_secret_manager import get_settings
 
 # apps/agent/adapter/inbound/cli/benchmark_report.py → parents[6] == 리포지토리 루트
 _REPO_ROOT = Path(__file__).resolve().parents[6]
-_SCENARIOS = _REPO_ROOT / "data/eval/report_scenarios.jsonl"
-_FACTS_DIR = _REPO_ROOT / "data/eval/report_facts"
+# --scenario-set → (시나리오 파일, facts 폴더). 150은 사람 판정용 평가셋(report_scenarios150이 고른다)
+_SCENARIO_SETS = {
+    "12": (_REPO_ROOT / "data/eval/report_scenarios.jsonl", _REPO_ROOT / "data/eval/report_facts"),
+    "150": (_REPO_ROOT / "data/eval/report_scenarios_150.jsonl", _REPO_ROOT / "data/eval/report_facts_150"),
+}
+_SCENARIOS, _FACTS_DIR = _SCENARIO_SETS["12"]
 _CACHE = _REPO_ROOT / "data/eval/cache/llm-benchmark"
 _RUNS = _CACHE / "report"
 _JUDGE = _CACHE / "judge"
@@ -746,11 +751,14 @@ def main() -> None:
     parser.add_argument("--force", action="store_true", help="freeze: 기존 facts 덮어쓰기")
     parser.add_argument("--out-dir", default=None, help="evaluate: 결과 폴더 이름(기본 llm-benchmark-YYYY-MM-DD)")
     parser.add_argument("--cache-tag", default=None, help="run·score·judge-*·evaluate: 캐시를 report-<tag>/·judge-<tag>/로 분리")
+    parser.add_argument("--scenario-set", choices=list(_SCENARIO_SETS), default="12",
+                        help="시나리오 파일·facts 폴더 묶음(기본 12건, 150은 report_scenarios_150·report_facts_150)")
     args = parser.parse_args()
     if error := _argument_error(args):
         parser.error(error)
-    global _RUNS, _JUDGE  # 명령 함수들이 모듈 경로를 읽는다 — 태그는 실행 시작에 한 번만 바꾼다
+    global _RUNS, _JUDGE, _SCENARIOS, _FACTS_DIR  # 명령 함수들이 모듈 경로를 읽는다 — 실행 시작에 한 번만 바꾼다
     _RUNS, _JUDGE = cache_dirs(args.cache_tag)
+    _SCENARIOS, _FACTS_DIR = _SCENARIO_SETS[args.scenario_set]
     _COMMANDS[args.command](args)
 
 

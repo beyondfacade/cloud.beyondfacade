@@ -487,3 +487,18 @@ def test_비교_모드_인자가_잘못되면_parser_error로_끝난다(monkeypa
         with pytest.raises(SystemExit):
             br.main()
     assert called == [] and "--models" in capsys.readouterr().err
+
+
+def test_시나리오_세트_인자가_시나리오_파일과_facts_폴더를_바꾼다(monkeypatch):
+    import sys
+
+    from apps.agent.adapter.inbound.cli import benchmark_report as br
+
+    for name in ("_SCENARIOS", "_FACTS_DIR", "_RUNS", "_JUDGE"):  # main이 바꾸는 모듈 경로 — 테스트 뒤 되돌린다
+        monkeypatch.setattr(br, name, getattr(br, name))
+    seen = []
+    monkeypatch.setitem(br._COMMANDS, "score", lambda args: seen.append((br._SCENARIOS.name, br._FACTS_DIR.name)))
+    for argv in (["score"], ["score", "--scenario-set", "150"]):
+        monkeypatch.setattr(sys, "argv", ["benchmark_report", *argv])
+        br.main()
+    assert seen == [("report_scenarios.jsonl", "report_facts"), ("report_scenarios_150.jsonl", "report_facts_150")]

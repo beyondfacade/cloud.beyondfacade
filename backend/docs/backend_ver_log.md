@@ -1,5 +1,11 @@
 # Backend Version Log
 
+## [v0.67.2] - 2026-10-05
+
+### Added
+- 리포트 평가셋 150건 선택 CLI `apps/agent/adapter/inbound/cli/report_scenarios150.py` — 사람 판정용 평가셋(12건은 오류 0건이어도 상한 25%, 150건이면 약 2%). 기존 12건(e001~e012, `from:sXX`) + `region_industry_verdict`에서 해시 순서로 결정적으로 고른 red 36(red 있는 11업종 라운드로빈)·orange 36·clear 30·insufficient 24, 묶음 안에서 자치구는 덜 쓴 쪽부터. 묶음마다 절반은 질문 없음, 절반은 구어체·예산·시간대·경쟁 질문. 특수 12건(대출 3·특정 집단 3·재난기 2·편의점 2·어린이집 2 — 판정 없는 업종은 `region_industry_metric` 점포 수가 있는 동). 다시 돌리면 같은 150건.
+- 리포트 벤치 `benchmark_report`에 `--scenario-set 12|150`(기본 12) — 시나리오 파일·facts 폴더를 `report_scenarios_150.jsonl`·`report_facts_150/`로 바꾼다. 기존 12건 동작은 그대로.
+
 ## [v0.67.1] - 2026-10-05
 
 ### Fixed
