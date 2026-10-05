@@ -76,7 +76,7 @@ function NextSteps({ facts }: { facts: ReportFacts }) {
 export function ReportView({ state }: ReportViewProps) {
   const sections = SECTION_ORDER.filter((s) => state.facts || state.sections[s]);
 
-  if (sections.length === 0) {
+  if (sections.length === 0 && !state.sections.answer_lead) {
     return (
       <div className={`${styles.reportSheet} ${styles.emptySheet} border-[var(--border)] bg-[var(--bg-surface)]`}>
         <div className={`${styles.reportMasthead} border-[var(--border)] text-[var(--text-secondary)]`}>
@@ -106,7 +106,30 @@ export function ReportView({ state }: ReportViewProps) {
         <span>WARNING REPORT</span><span>{state.error ? "작성 중단" : state.done ? "작성 완료" : "리포트 작성 중"}</span>
       </header>
       <div className={styles.reportBody}>
-        {state.sections.answer && (
+        {state.sections.answer_lead ? (
+          <section aria-label="질문에 대한 답" className={`${styles.reportSection} border-[var(--border)]`}>
+            <h2 className="mb-2 text-xl font-semibold text-[var(--accent)]">질문에 대한 답</h2>
+            <p className="mb-5 text-sm text-[var(--text-secondary)]">첫 문장과 근거는 사실에서 코드가 쓴 것이고, AI 해석은 그 이유를 풀어 쓴 것입니다.</p>
+            <div className={`${styles.markdown} report-markdown`}>
+              <ReactMarkdown remarkPlugins={REMARK_PLUGINS}>{state.sections.answer_lead}</ReactMarkdown>
+            </div>
+            <h3 className="mb-2 mt-5 text-sm font-semibold text-[var(--text-secondary)]">AI 해석</h3>
+            {/* 해석 길이와 무관하게 아래 사실 절의 위치를 유지한다. */}
+            <div role="region" aria-label="AI 해석 본문" tabIndex={0} className="h-32 overflow-y-auto focus-visible:outline-2 focus-visible:outline-[var(--accent)]">
+              {state.sections.answer ? (
+                <div className={`${styles.markdown} report-markdown`}>
+                  <ReactMarkdown remarkPlugins={REMARK_PLUGINS}>{state.sections.answer}</ReactMarkdown>
+                </div>
+              ) : (
+                <div role="status" aria-label="AI 해석 작성 중" className="space-y-3 pt-1 animate-pulse motion-reduce:animate-none">
+                  <div className="h-4 w-full rounded bg-[var(--bg-raised)]" />
+                  <div className="h-4 w-full rounded bg-[var(--bg-raised)]" />
+                  <div className="h-4 w-3/4 rounded bg-[var(--bg-raised)]" />
+                </div>
+              )}
+            </div>
+          </section>
+        ) : state.sections.answer && (
           <section aria-label="해석" className={`${styles.reportSection} border-[var(--border)]`}>
             <h2 className="mb-2 text-xl font-semibold text-[var(--accent)]">해석</h2>
             <p className="mb-5 text-sm text-[var(--text-secondary)]">AI가 아래 사실을 읽고 쓴 해석입니다. 판정과 수치는 아래 사실을 기준으로 보세요.</p>

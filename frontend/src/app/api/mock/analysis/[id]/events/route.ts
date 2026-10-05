@@ -1,7 +1,8 @@
 import { agentEventScript } from "../../../fixtures";
 
-export async function GET(_request: Request) {
-  const script = agentEventScript();
+export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  const script = agentEventScript(id.startsWith("question-"));
   const stream = new ReadableStream({
     async start(controller) {
       const enc = new TextEncoder();
