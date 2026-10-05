@@ -25,7 +25,7 @@ export function SignalBars({ verdict }: { verdict?: ReportFacts["verdict"] }) {
               <div className="mb-1 flex items-center gap-2 text-xs text-[var(--text-secondary)]">
                 <span>{signalLabel(key)}</span>
                 {ADVISORY_SIGNAL_KEYS.has(key) && <span>참고</span>}
-                <span className="ml-auto tabular-nums">{percentile === null ? "미판정" : `${percentile}백분위`}</span>
+                <span className="ml-auto tabular-nums">{signal.band_label ?? (percentile === null ? "미판정" : `${percentile}백분위`)}</span>
               </div>
               <div className="relative h-2 rounded border border-[var(--border)] bg-[var(--bg-raised)]"
                 role={percentile === null ? undefined : "meter"} aria-label={signalLabel(key)}

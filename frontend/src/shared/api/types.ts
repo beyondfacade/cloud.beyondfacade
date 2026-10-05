@@ -525,6 +525,7 @@ export interface PlanQuestionsRequest {
 
 export type VerdictCode = "red" | "orange" | "clear" | "insufficient";
 export type VerdictSignalLevel = "off" | "on" | "strong" | "unavailable";
+export type VerdictBand = "very_bad" | "bad" | "normal" | "good" | "very_good";
 export type VerdictSignalKey =
   | "net_outflow" | "survival_cliff" | "early_closure" | "saturation" | "shrinking"
   | "closure_rate" | "tobacco_gap" | "trade_per_office"; // 업종 특화 — 부동산 폐업률·편의점 담배권 빈자리·사무소당 거래
@@ -537,6 +538,8 @@ export interface VerdictSignal {
   level: VerdictSignalLevel;
   value: number | null;
   percentile: number | null; // 나쁜 방향 백분위 0~100. 이진 신호·미판정은 null
+  band?: VerdictBand | null;
+  band_label?: string | null;
   evidence: string; // 백엔드가 만든 근거 한 문장 — 화면은 그대로 띄운다
   source: VerdictSignalSource;
 }
