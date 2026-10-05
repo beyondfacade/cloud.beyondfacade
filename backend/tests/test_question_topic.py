@@ -56,5 +56,9 @@ def test_질문이_없으면_유형도_없다(question):
     assert classify(question) is None
 
 
+def test_평일_질문은_평일_구간이다():
+    assert classify("평일 점심 장사 위주로 하려는데요") == QuestionTopic("hours", "weekday")
+
+
 def test_여러_유형이_섞이면_대출이_먼저다():
     assert classify("대출로 1억 원 마련해서 저녁 장사 하려는데요") == QuestionTopic("loan")

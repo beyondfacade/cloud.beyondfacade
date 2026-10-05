@@ -47,7 +47,7 @@ def test_경고_없음은_장사가_된다는_근거가_아니라고_쓴다():
 def test_일반_질문은_넘지_않은_기준과_점포당_매출을_근거로_든다():
     text = answer_lead(_facts(), QuestionTopic("general"))
     assert "- [확인된 사실] 넘지 않은 경고 기준(송정동 한식): 포화." in text
-    assert "점포당 월 평균 매출(송정동 한식, 2025년 4분기, 점포 13곳 평균): 약 433만 원" in text
+    assert "점포당 월 평균 매출(송정동 한식, 2025년 4분기, 점포 13곳 평균): 약 433만 원 — 편차가 큽니다." in text
 
 
 def test_예산_질문은_예산으로_시작하고_충분한지는_판단할_수_없다고_쓴다():
@@ -55,7 +55,7 @@ def test_예산_질문은_예산으로_시작하고_충분한지는_판단할_�
     lead = text.split("\n")[0]
     assert lead.startswith("[확인된 사실] 예산 5,000만 원으로 보면 송정동 한식은 권하지 않습니다")
     assert lead.endswith("예산이 충분한지는 이 리포트로 판단할 수 없습니다.")
-    assert "상가 임대료(서울 기타 권역, 2026Q2): ㎡당 월 약 4.9만 원" in text
+    assert "상가 임대료(서울 기타 권역, 2026년 2분기): ㎡당 월 약 4.9만 원" in text
     assert f"- {BUDGET_GAP}" in text
 
 
@@ -106,6 +106,12 @@ def test_시간대_자료가_없으면_자료_부족과_동_사람_흐름을_쓴
 def test_주말_질문은_주말_평일_비를_같은_유형_중앙값과_비교한다():
     text = answer_lead(_facts(), QuestionTopic("hours", "weekend"))
     assert "주말(송정동 동 전체, 2026년 2분기): 주말 하루 유동인구는 평일 하루의 0.99배 — 같은 유형(주거형) 251개 동 중앙값 1.04배." in text
+
+
+def test_평일_질문도_주말_평일_비_줄로_답한다():
+    text = answer_lead(_facts(), QuestionTopic("hours", "weekday"))
+    assert text.startswith("[확인된 사실] 평일 위주로 보면 송정동 한식은")
+    assert "주말 하루 유동인구는 평일 하루의" in text
 
 
 def test_경쟁_질문은_포화_근거와_점포_수_추이와_순유출을_쓴다():

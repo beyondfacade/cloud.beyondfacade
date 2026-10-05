@@ -24,7 +24,7 @@ _BANDS = (
     ("새벽", "night"),
     ("아침", "morning"),
     ("주말", "weekend"),
-    ("평일", "weekend"),
+    ("평일", "weekday"),
 )
 _FOREIGN = re.compile(r"외국인|중국인")
 

@@ -6,6 +6,7 @@ LLM은 그 아래 해석만 쓴다. report_sections의 원칙(숫자에 범위·
 """
 
 import logging
+import re
 from abc import ABC, abstractmethod
 
 from apps.agent.domain.services.question_topic import QuestionTopic
@@ -39,6 +40,7 @@ BAND_NAMES = {
     "night": "밤(21~06시)",
     "morning": "아침(06~11시)",
     "weekend": "주말",
+    "weekday": "평일",
 }
 
 
@@ -91,8 +93,7 @@ def revenue_line(facts: dict) -> str:
     basis = item.get("basis") or {}
     return (
         f"{FACT} 점포당 월 평균 매출({region} {industry}, {quarter_label(basis.get('year_quarter'))}, "
-        f"점포 {basis.get('store_count')}곳 평균): 약 {round(item['value'] / 10_000):,}만 원 — "
-        "신규 점포는 평균 아래서 시작하는 경우가 많습니다."
+        f"점포 {basis.get('store_count')}곳 평균): 약 {round(item['value'] / 10_000):,}만 원 — {item.get('caveat')}"
     )
 
 
@@ -103,8 +104,10 @@ def rent_line(facts: dict) -> str:
         return f"{FACT} 상가 임대료({region}): {missing(reason)}"
     basis = item.get("basis") or {}
     path = str(basis.get("region_path") or "").replace(">", " ")
+    period = str(basis.get("period") or "")
+    when = f"{period[:4]}년 {period[5:]}분기" if re.fullmatch(r"\d{4}Q\d", period) else period
     # 값 단위는 천원/㎡/월 — 만 원으로 쓴다
-    return f"{FACT} 상가 임대료({path} 권역, {basis.get('period')}): ㎡당 월 약 {item['value'] / 10:.1f}만 원 — {item.get('caveat')}"
+    return f"{FACT} 상가 임대료({path} 권역, {when}): ㎡당 월 약 {item['value'] / 10:.1f}만 원 — {item.get('caveat')}"
 
 
 def loan_rate_line(facts: dict) -> str:
@@ -229,7 +232,7 @@ def _weekend_lines(facts: dict, topic: QuestionTopic) -> list[str]:
     ]
 
 
-_HOURS_EVIDENCE = {"weekend": _weekend_lines}  # 나머지 구간은 _band_lines
+_HOURS_EVIDENCE = {"weekend": _weekend_lines, "weekday": _weekend_lines}  # 주말÷평일 비 한 줄이 둘 다 답한다  # 나머지 구간은 _band_lines
 
 
 class HoursAnswer(TopicAnswer):
