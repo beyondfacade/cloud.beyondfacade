@@ -6,6 +6,7 @@ from pathlib import Path
 from apps.agent.domain.services.report_guards import FUNDING_DISCLAIMER
 from apps.agent.domain.services.report_sections import (
     SECTION_TITLES,
+    alternatives_pointer,
     build_sections,
     hour_gap_sentence,
     scarce_lead,
@@ -259,3 +260,12 @@ def test_판정을_내리지_않는_업종은_부족한_자료_대신_비판정_
 
 def test_판정이_난_동네는_자료_부족이_아니다():
     assert scarcity(_BASE) is None  # 송정동 한식 — 비추천
+
+
+def test_대안에_경고_없음이_있으면_대안_절_안내_문장을_쓰고_없으면_쓰지_않는다():
+    clear = {"available": True, "industries": [{"verdict_code": "orange"}], "regions": [{"verdict_code": "clear"}]}
+    none = {"available": True, "industries": [{"verdict_code": "orange"}], "regions": []}
+
+    assert alternatives_pointer({"alternatives": clear}) == "대안 동네·업종 절에 경고 없음으로 나온 곳도 함께 확인해 보세요."
+    assert alternatives_pointer({"alternatives": none}) is None
+    assert alternatives_pointer({"alternatives": _UNAVAILABLE}) is None

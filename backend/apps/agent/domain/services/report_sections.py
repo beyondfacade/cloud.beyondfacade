@@ -388,6 +388,17 @@ def scarce_lead(facts: dict, missing_items: list[str]) -> str:
     return _SCARCE_LEADS[available](f"{region} {industry}{_topic(industry)}", missing_items)
 
 
+def alternatives_pointer(facts: dict) -> str | None:
+    """대안 절에 경고 없음이 한 곳이라도 있으면 그 절을 가리키는 고정 문장, 아니면 None. 추천은 하지 않는다."""
+    alternatives = facts.get("alternatives") or {}
+    if not alternatives.get("available"):
+        return None
+    items = [*(alternatives.get("industries") or []), *(alternatives.get("regions") or [])]
+    if any(item.get("verdict_code") == "clear" for item in items):
+        return "대안 동네·업종 절에 경고 없음으로 나온 곳도 함께 확인해 보세요."
+    return None
+
+
 # 절 이름 → 작성 함수 (dict 디스패치)
 _WRITERS = {
     "verdict": _verdict,

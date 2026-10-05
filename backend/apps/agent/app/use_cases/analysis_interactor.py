@@ -19,7 +19,13 @@ from apps.agent.app.ports.output.agent_port import LLMGatewayPort, LLMUsage
 from apps.agent.app.use_cases.report_facts import ReportFactsCollector
 from apps.agent.domain.entities.agent_event_entity import AgentEvent
 from apps.agent.domain.services.report_guards import guard_answer
-from apps.agent.domain.services.report_sections import SECTION_TITLES, build_sections, scarce_lead, scarcity
+from apps.agent.domain.services.report_sections import (
+    SECTION_TITLES,
+    alternatives_pointer,
+    build_sections,
+    scarce_lead,
+    scarcity,
+)
 from apps.agent.domain.services.section_stream import concat_sections
 
 LOGGER = logging.getLogger("beyondfacade.agent.loop")
@@ -136,11 +142,12 @@ class AnalysisInteractor(AnalysisUseCase):
             {"role": "user", "content": answer_message(facts, question, sections)},
         ]
         names = region_names(facts)
+        pointer = alternatives_pointer(facts)
         for llm in self._answer_models():
             answer = self._attempt(llm, messages, facts.get("verdict"), names)
             if answer:
-                return answer
-        return ANSWER_FALLBACK
+                return f"{answer} {pointer}" if pointer else answer
+        return f"{ANSWER_FALLBACK} {pointer}" if pointer else ANSWER_FALLBACK
 
     def _answer_models(self) -> Iterator[LLMGatewayPort]:
         """시도할 모델 — 첫 모델이 실제로 답한 모델과 같은 다음 모델은 건너뛴다(온도 0이라 같은 답이다).

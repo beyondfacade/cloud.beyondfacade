@@ -8,7 +8,12 @@ from apps.agent.app.ports.output.agent_port import LLMGatewayPort, LLMTurn, LLMU
 from apps.agent.app.use_cases.analysis_interactor import ANSWER_FALLBACK, SYSTEM_PROMPT, AnalysisInteractor
 from apps.agent.app.use_cases.report_facts import ReportFactsCollector
 from apps.agent.domain.entities.agent_event_entity import AgentEvent
-from apps.agent.domain.services.report_sections import SECTION_TITLES, build_sections, scarce_lead, scarcity
+from apps.agent.domain.services.report_sections import (
+    SECTION_TITLES,
+    alternatives_pointer,
+    build_sections, scarce_lead,
+    scarcity,
+)
 
 # 평가셋 고정 facts — 송정동 한식, 판정 red(비추천)
 _FACTS = json.loads(
@@ -84,7 +89,7 @@ def test_이벤트_순서는_사실_코드_여섯_절_해석_완료다():
     ]
     deltas = _deltas(events)
     assert {name: deltas[name] for name in SECTION_TITLES} == build_sections(_FACTS)
-    assert deltas["answer"] == _ANSWER
+    assert deltas["answer"].startswith(_ANSWER)
 
 
 def test_LLM에는_사실_JSON이_아니라_질문과_코드가_쓴_절만_간다():
@@ -112,7 +117,7 @@ def test_질문이_없으면_총평을_요청한다():
 def test_숫자가_든_문장은_해석에서_지운다():
     _, events = _run(FakeLLM(["폐업이 개업보다 많습니다. 폐업률은 31%입니다. 대안 업종을 먼저 보세요."]))
 
-    assert _deltas(events)["answer"] == "폐업이 개업보다 많습니다. 대안 업종을 먼저 보세요."
+    assert _deltas(events)["answer"].startswith("폐업이 개업보다 많습니다. 대안 업종을 먼저 보세요.")
 
 
 def test_분석_동과_대안_동_이름의_숫자는_해석에서_지우지_않는다():
@@ -126,7 +131,7 @@ def test_분석_동과_대안_동_이름의_숫자는_해석에서_지우지_않
 
     events = list(interactor.run("1135067000", "korean_food", None))
 
-    assert _deltas(events)["answer"] == "상계3.4동 한식은 폐업이 많습니다. 휘경제1동을 먼저 보세요."
+    assert _deltas(events)["answer"].startswith("상계3.4동 한식은 폐업이 많습니다. 휘경제1동을 먼저 보세요.")
 
 
 def test_판정과_모순되면_다음_모델이_다시_쓴다():
@@ -135,7 +140,7 @@ def test_판정과_모순되면_다음_모델이_다시_쓴다():
 
     interactor, events = _run(first, retry_llm=second)
 
-    assert _deltas(events)["answer"] == _ANSWER
+    assert _deltas(events)["answer"].startswith(_ANSWER)
     assert [a["model"] for a in interactor.last_answer_attempts] == ["gemini-2.5-flash", "gemma4:12b"]
     assert interactor.last_answer_attempts[0]["contradiction"] == "판정은 **경고 없음"
     assert interactor.last_usage == LLMUsage(input_tokens=60, output_tokens=14)  # 시도마다 누적
@@ -147,7 +152,7 @@ def test_모든_모델이_실패하면_코드_한_줄로_맺는다():
 
     interactor, events = _run(first, retry_llm=second)
 
-    assert _deltas(events)["answer"] == ANSWER_FALLBACK
+    assert _deltas(events)["answer"].startswith(ANSWER_FALLBACK)
     assert events[-1].type == "report_done"
     assert interactor.last_answer_attempts[0]["error"] == "RuntimeError: 429"
 
@@ -161,7 +166,7 @@ def test_hybrid가_Gemini와_로컬_모두_실패하면_로컬을_다시_부르�
 
     interactor, events = _run(hybrid, retry_llm=retry)
 
-    assert _deltas(events)["answer"] == ANSWER_FALLBACK and retry.calls == []
+    assert _deltas(events)["answer"].startswith(ANSWER_FALLBACK) and retry.calls == []
     assert [a["model"] for a in interactor.last_answer_attempts] == ["gemma4:12b"]
 
 
@@ -172,7 +177,7 @@ def test_첫_모델이_이미_로컬로_답했으면_로컬을_다시_부르지_
 
     _, events = _run(first, retry_llm=second)
 
-    assert _deltas(events)["answer"] == ANSWER_FALLBACK and second.calls == []
+    assert _deltas(events)["answer"].startswith(ANSWER_FALLBACK) and second.calls == []
 
 
 def test_인용은_사실_묶음의_뉴스로_만든다():
@@ -218,3 +223,9 @@ def test_자료_부족_동네는_LLM을_부르지_않고_코드_첫_문장만_�
 
     assert _deltas(events)["answer"] == scarce_lead(_SCARCE, scarcity(_SCARCE))
     assert llm.calls == []
+
+
+def test_정상_동네는_해석_끝에_대안_절_안내_문장이_붙는다():  # e001 — 대안에 경고 없음이 있다
+    _, events = _run(FakeLLM([_ANSWER]))
+
+    assert _deltas(events)["answer"] == f"{_ANSWER} {alternatives_pointer(_FACTS)}"
