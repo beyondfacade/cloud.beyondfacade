@@ -61,20 +61,20 @@ export function VerdictCard({ verdict, industryLabel }: { verdict: RegionIndustr
       {fired.length > 0 ? (
         <ul className="flex flex-col gap-1">
           {fired.map((s) => (
-            <li key={s.key} data-testid="fired-signal" className="flex items-baseline gap-1 text-xs leading-snug">
+            <li key={s.key} data-testid="fired-signal" className="flex flex-wrap items-baseline gap-x-1 gap-y-1 text-xs leading-snug">
               <span className="shrink-0 font-medium text-[var(--text-primary)]">{signalLabel(s.key)}</span>
               <span className="shrink-0 text-[11px]" style={{ color: s.level === "strong" ? "var(--danger)" : "var(--warn)" }}>
                 {LEVEL_LABEL[s.level]}
               </span>
               {s.band_label && (
-                <span className="shrink-0 rounded border border-[var(--border)] px-1 text-[11px] text-[var(--text-primary)]">
+                <span className="shrink-0 whitespace-nowrap rounded border border-[var(--border)] px-1 text-[11px] text-[var(--text-primary)]">
                   {s.band_label}
                 </span>
               )}
               <span className="shrink-0 rounded border border-[var(--border)] px-1 text-[10px] text-[var(--text-secondary)]">
                 {SOURCE_LABEL[s.source]}
               </span>
-              <span className="truncate text-[var(--text-secondary)]" title={s.evidence}>{s.evidence}</span>
+              <span className="min-w-0 grow basis-0 truncate text-[var(--text-secondary)]" title={s.evidence}>{s.evidence}</span>
             </li>
           ))}
         </ul>
