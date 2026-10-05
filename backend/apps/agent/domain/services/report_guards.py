@@ -12,6 +12,7 @@ LLM 평가(2026-10-05)에서 리포트 실패의 상당 부분은 "화면이 이
 """
 
 import re
+from collections import Counter
 from collections.abc import Callable
 
 # ── 판정 등급 동의어 (벤치 채점과 같은 단일 원천) ──────────────────
@@ -53,9 +54,68 @@ def verdict_states_grade(verdict_section_md: str) -> bool:
     return any(w in text for words in _SQUASHED_SYNONYMS.values() for w in words)
 
 
+# 운영 가드용 등급 이름 — 벤치 동의어보다 좁다. 이 이름을 **단정**할 때만 모순으로 본다
+# ("조건부로라도 권하기 어렵다"·"빨간불은 켜지지 않았다"처럼 등급 말이 나온 해석은 모순이 아니다).
+GRADE_LABELS = {
+    "red": ("비추천", "빨간색", "빨강", "레드", "적색", "red"),
+    "orange": ("조건부", "주황색", "주황", "orange"),
+    "clear": ("경고 없음", "clear"),
+    "unavailable": ("판정 없음", "판정 보류", "insufficient"),
+}
+# 흔한 낱말이라 강조로 감쌌거나 등급 말이 바로 뒤에 올 때만 단정으로 보는 이름 ("주의가 필요합니다"는 아니다)
+EMPHASIS_ONLY_LABELS = {"orange": ("주의 필요", "주의")}
+# 단정의 모양 — 강조로 감쌈 / 등급 말·서술어·괄호·콜론이 바로 뒤 / "등급은·판정:" 바로 뒤 / 줄 머리에서 끊김
+_QUOTE_PAIRS = (("**", "**"), ("'", "'"), ('"', '"'), ("`", "`"), ("“", "”"), ("‘", "’"))
+_ASSERT_AFTER = r"(?:[ \t]*(?:등급|단계|판정|입니다|이다|이며|\(|:|\.(?!\d))|[ \t]*(?:으로|로)[ \t]*판정)"
+_ASSERT_BEFORE = r"(?:등급|판정)[ \t]*(?:은|는|:)[ \t]*(?:\*\*|['\"`“‘])?[ \t]*"
+_LINE_HEAD = r"(?:^|(?<=\n))[ \t]*(?:[-*+>][ \t]+)?(?:\*\*)?(?:\[[^\]\n]*\](?:\*\*)?[ \t]*)?"
+_LINE_STOP = r"[ \t]*(?:[.—–-]|$)"
+
+
+def _word(label: str) -> str:
+    return r"(?<![A-Za-z])" + r"[ \t]*".join(map(re.escape, label.split())) + r"(?![A-Za-z])"
+
+
+def _emphasized(label: str) -> str:
+    """강조로 감싼 이름(괄호 속 코드 꼬리 허용 — "‘주의 필요(orange)’") 또는 바로 뒤 등급 말."""
+    word = _word(label)
+    inner = rf"[ \t]*{word}(?:[ \t]*\([^)\n]{{0,20}}\))?(?:[ \t]*(?:등급|단계))?[ \t]*"
+    quoted = "|".join(rf"{re.escape(o)}{inner}{re.escape(c)}" for o, c in _QUOTE_PAIRS)
+    return rf"{quoted}|\([ \t]*{word}[ \t]*\)|{word}[ \t]*(?:등급|단계)"
+
+
+def _assertion(label: str) -> str:
+    word = _word(label)
+    return rf"{_emphasized(label)}|{word}{_ASSERT_AFTER}|{_ASSERT_BEFORE}{word}|{_LINE_HEAD}{word}{_LINE_STOP}"
+
+
+# 등급 그룹 → 단정 패턴 (테이블에서 만든다 — 이름을 더하면 패턴이 따라온다)
+_GRADE_ASSERTIONS = {
+    group: re.compile(
+        "|".join([*map(_assertion, labels), *map(_emphasized, EMPHASIS_ONLY_LABELS.get(group, ()))]),
+        re.IGNORECASE | re.MULTILINE,
+    )
+    for group, labels in GRADE_LABELS.items()
+}
+
+
+def verdict_contradiction(text: str, verdict_facts: dict | None) -> str | None:
+    """판정 절이 facts와 **다른 등급을 단정한** 구절 — 없으면 None.
+
+    대조할 판정 자료가 없거나 모르는 등급 코드면 대조하지 않는다(None).
+    """
+    if not verdict_facts:
+        return None
+    code = verdict_facts.get("verdict_code") if verdict_facts.get("available") else "unavailable"
+    group = _VERDICT_GROUP.get(code, code)
+    if group not in _GRADE_ASSERTIONS:
+        return None
+    hits = (pattern.search(text) for other, pattern in _GRADE_ASSERTIONS.items() if other != group)
+    return next((hit.group(0).strip() for hit in hits if hit), None)
+
+
 def contradicts_verdict(text: str, verdict_facts: dict | None) -> bool:
-    """판정 절이 facts와 다른 등급을 단정하는가. 대조할 판정 자료가 없으면 모순이 아니다."""
-    return bool(verdict_facts) and not verdict_matches(text, verdict_facts)
+    return verdict_contradiction(text, verdict_facts) is not None
 
 
 # ── 링크·공고 번호 제거 ──────────────────────────────────────────
@@ -64,27 +124,70 @@ def contradicts_verdict(text: str, verdict_facts: dict | None) -> bool:
 _URL_CHAR = r"[A-Za-z0-9\-._~:/?#@!$&'*+,;=%]"
 _URL_END = r"[A-Za-z0-9\-_~/#@$&*+=%]"  # 문장 끝 마침표·쉼표는 URL에 넣지 않는다
 _URL_BODY = rf"(?:{_URL_CHAR}*{_URL_END})?"
-_LINK = re.compile(
-    rf"[ \t]*(?:https?://{_URL_BODY}|www\.{_URL_BODY}|PBLN_\d+|pblancId=[A-Za-z0-9_]*)"
+_JUNK_CHAR = r"[^\s()\[\]<>`가-힣]"  # "https/www…"처럼 스킴이 깨진 흔적
+_LINK_CORE = (
+    rf"https?://{_URL_BODY}|www\.{_URL_BODY}|PBLN_\d+|pblancId=[A-Za-z0-9_]*"
+    rf"|(?<![A-Za-z])(?:https?|www)(?=[:/.…]){_JUNK_CHAR}*"
 )
+_CORE = re.compile(_LINK_CORE)
+# 링크 바로 앞의 이름표("**원문 링크:**"·"링크:"·"[원문 링크]") — 링크를 지우면 홀로 남으므로 함께 지운다.
+_LINK_NAMES = r"(?:원문[ \t]*링크|공고[ \t]*링크|신청[ \t]*링크|링크|원문|URL|출처|바로가기|홈페이지)"
+_LABEL = rf"(?:\*\*)?(?:\[{_LINK_NAMES}\]|{_LINK_NAMES}(?:\*\*)?[ \t]*:)(?:\*\*)?[ \t]*"
+_LINK = rf"(?:{_LABEL})?(?:{_LINK_CORE})"
+# 지운 뒤 남는 흔적 — 이름표만 남은 마크다운 링크, 빈 괄호·대괄호·백틱 쌍
+_DEAD_MD_LINK = rf"\[[ \t]*(?:{_LINK_NAMES})?[ \t]*\]\([ \t]*\)"
+_EMPTY_PAIR = r"\([ \t]*\)|\[[ \t]*\]|(?<!`)`[ \t]*`(?!`)"
+_KEEP_MD_LABEL = re.compile(r"\[([^\]\n]+)\]\([ \t]*\)")
+_EMPTY_ITEM = re.compile(r"(?m)^[ \t]*(?:[-*+]|\d+[.)])[ \t]*(?:\n|$)")  # 내용이 다 지워진 목록 항목
+
 _LINK_STARTS = ("https://", "http://", "www.", "PBLN_", "pblancId=")
 # 꼬리가 아직 끝나지 않은 링크 — 다음 조각에서 더 이어질 수 있다.
-_OPEN_LINK = re.compile(rf"(?:https?://|www\.|PBLN_|pblancId=){_URL_CHAR}*$")
-# 링크 앞에 붙은 여는 괄호·공백 — 링크를 지우면 빈 괄호로 남으므로 함께 붙든다.
-_BEFORE_LINK = re.compile(r"[ \t]*[(\[]?$")
-_EMPTY_BRACKETS = re.compile(r"[ \t]*(?:\(\s*\)|\[\s*\])")
+_OPEN_LINK = re.compile(
+    rf"(?:(?:https?://|www\.|PBLN_|pblancId=){_URL_CHAR}*|(?<![A-Za-z])(?:https?|www)[:/.…]{_JUNK_CHAR}*)$"
+)
+# 여는 괄호·백틱·굵은 표시 + 아직 덜 온 이름표 앞부분("(원문", "**원문 링") — 낱말 둘까지만 붙든다.
+_OPENER_WORD = r"(?:[(`]|\*{1,2})(?:[가-힣A-Za-z]{1,6}(?:[ \t]+[가-힣A-Za-z]{0,6})?)?"
+# 링크 앞에 올 수 있는 것의 연속 — 여는 괄호·백틱, 이름표, 닫혔거나 아직 열린 "[글자](" — 링크와 함께
+# 지우거나 다듬어야 하므로 붙든다(먼저 내보내면 통째로 처리할 때와 결과가 달라진다).
+_BEFORE_LINK = re.compile(
+    rf"[ \t]*(?:(?:{_OPENER_WORD}|\[[^\]\n]{{0,80}}(?:\]\(?)?|{_LABEL})[ \t]*)*$"
+)
+# 아직 짧은 목록 항목·굵은 글씨·대괄호 줄 — 뒤에 링크가 오면 줄째 지워야 하므로 줄 머리부터 붙든다.
+_BARE_ITEM = re.compile(r"[ \t]*(?:[-*+]|\d+[.)])?[ \t]*")
+_LISTISH_LINE = re.compile(r"[ \t]*(?:(?:[-*+]|\d+[.)])(?:[ \t][^\n]{0,30})?|(?:\*\*|\[)[^\n]{0,30})")
 
 
-def strip_links(text: str) -> str:
-    """URL·공고 번호를 지우고, 지운 자리에 남은 빈 괄호를 정리한다."""
-    return _EMPTY_BRACKETS.sub("", _LINK.sub("", text))
+def _drop(pattern: str, text: str) -> str:
+    """흔적 지우기 — 줄 머리면 뒤 공백까지, 줄 중간이면 앞 공백까지 함께 지운다."""
+    text = re.sub(rf"(?m)^[ \t]*(?:{pattern})[ \t]*", "", text)
+    return re.sub(rf"[ \t]*(?:{pattern})", "", text)
+
+
+def strip_links(text: str, at_line_start: bool = True) -> str:
+    """URL·공고 번호(와 이름표)를 지우고, 남은 빈 괄호·백틱·빈 목록 항목을 정리한다."""
+    sentinel = "\n" if at_line_start else "\x00"  # 조각 머리가 실제 줄 머리인지 정규식에 알린다
+    text = _drop(_LINK, sentinel + text)
+    while True:
+        cleaned = _drop(_EMPTY_PAIR, _KEEP_MD_LABEL.sub(r"\1", _drop(_DEAD_MD_LINK, text)))
+        if cleaned == text:
+            break
+        text = cleaned
+    return _EMPTY_ITEM.sub("", text)[1:]
 
 
 def _hold_from(text: str) -> int:
-    """붙들기 시작할 위치 — 끝나지 않은 링크나 링크 시작의 앞부분, 그 앞 괄호·공백까지."""
+    """붙들기 시작할 위치 — 끝나지 않은 링크·링크 시작의 앞부분과 그 앞 괄호·이름표, 짧은 목록 줄."""
     open_link = _OPEN_LINK.search(text)
     edge = open_link.start() if open_link else len(text) - _partial_start_length(text)
-    return _BEFORE_LINK.search(text[:edge]).start()
+    edge = _BEFORE_LINK.search(text[:edge]).start()
+    line_start = text.rfind("\n", 0, edge) + 1
+    line = text[line_start:edge]
+    if _LISTISH_LINE.fullmatch(line) or _BARE_ITEM.fullmatch(strip_links(line)):
+        return line_start  # 짧은 목록 줄, 또는 링크를 지우면 표지만 남는 줄 — 줄바꿈과 함께 지워야 한다
+    # 여는 괄호 뒤가 (링크를 지우고 나면) 비어 있으면 닫는 괄호가 오기 전까지 붙든다 — "([링크](…)" + ")"
+    openers = (i for i in range(line_start, edge) if text[i] in "([`")
+    empty = next((i for i in openers if not strip_links(text[i + 1 : edge], False).strip()), None)
+    return edge if empty is None else _BEFORE_LINK.search(text[:empty]).start()
 
 
 def _partial_start_length(text: str) -> int:
@@ -96,49 +199,58 @@ def _partial_start_length(text: str) -> int:
 
 
 class UrlStripper:
-    """조각 스트림에서 링크를 지우는 필터. 남은 꼬리는 `flush()`로 비운다."""
+    """조각 스트림에서 링크를 지우는 필터. 남은 꼬리는 `flush()`로 비운다. 지운 링크 수를 센다."""
 
-    def __init__(self) -> None:
+    def __init__(self, events: Counter | None = None) -> None:
         self._tail = ""
+        self._line_start = True
+        self.events = Counter() if events is None else events
 
     def feed(self, chunk: str) -> str:
         text = self._tail + chunk
         edge = _hold_from(text)
         self._tail = text[edge:]
-        return strip_links(text[:edge])
+        return self._release(text[:edge])
 
     def flush(self) -> str:
         text, self._tail = self._tail, ""
-        return strip_links(text)
+        return self._release(text)
+
+    def _release(self, text: str) -> str:
+        if not text:
+            return ""
+        self.events["links_stripped"] += len(_CORE.findall(text))
+        cleaned = strip_links(text, self._line_start)
+        self._line_start = text.endswith("\n")
+        return cleaned
 
 
 # ── 기본 신뢰 태그 ───────────────────────────────────────────────
 
-_TRUST_TAGS = ("[확인된 사실]", "[참고 신호]")
-DEFAULT_TAG = "[확인된 사실] "
-
-
-def _split_heading(buffer: str) -> tuple[str, str] | None:
-    """(헤딩 줄+공백, 본문). 헤딩 줄이 아직 끝나지 않았으면 None."""
-    start = 0
-    if buffer.startswith("#"):
-        newline = buffer.find("\n")
-        if newline < 0:
-            return None
-        start = newline + 1
-    body = buffer[start:].lstrip()
-    return buffer[: len(buffer) - len(body)], body
+_TRUST_TAGS = ("[확인된 사실]", "[참고 신호]", "**[확인된 사실]**", "**[참고 신호]**")
+DEFAULT_TAG = "[확인된 사실]"
+_BLOCK_START = re.compile(r"(?:[-*+][ \t]|\d+[.)][ \t]|\||>)")  # 목록·표·인용 — 태그를 따로 한 문단으로
+_MAYBE_BLOCK = re.compile(r"[-*+]|\d+[.)]?")  # 다음 글자를 봐야 목록인지 안다
+_HEADING_SLACK = 16  # 제목 줄에 붙을 수 있는 `### `·`**`·`:`·공백 몫
 
 
 class LeadingTagGuard:
-    """절 본문(헤딩 다음)이 신뢰 태그로 시작하지 않으면 `[확인된 사실]`을 붙인다.
+    """절 본문(제목 줄 다음)이 신뢰 태그로 시작하지 않으면 `[확인된 사실]`을 붙인다.
 
-    본문 첫 글자가 나올 때까지(태그의 앞부분이면 태그가 끝날 때까지) 붙들었다가 판단한다.
+    모델은 제목을 `### 판정`·맨 `판정`·`**판정**`·`판정:`으로 쓴다 — 첫 줄이 그 절 제목이면 제목으로
+    본다(`판정: 본문`처럼 콜론 뒤에 이어 쓰면 콜론 뒤가 본문). 본문이 목록·표·인용으로 시작하면 태그를
+    따로 한 문단으로 둔다. 본문 첫 글자가 나올 때까지(태그·목록 표지의 앞부분이면 판별될 때까지) 붙든다.
     """
 
-    def __init__(self) -> None:
+    def __init__(self, title: str = "", events: Counter | None = None) -> None:
+        self._title = title
+        name = re.escape(title) if title else r"(?!)"
+        self._line_heading = re.compile(rf"#{{1,6}}[ \t][^\n]*|(?:#{{1,6}}[ \t]+)?\**{name}\**:?\**[ \t]*")
+        self._inline_heading = re.compile(rf"(?:#{{1,6}}[ \t]+)?\**{name}\**[ \t]*:\**[ \t]*(?=\S)")
         self._buffer = ""
         self._decided = False
+        self.body_seen = False
+        self.events = Counter() if events is None else events
 
     def feed(self, chunk: str) -> str:
         if self._decided:
@@ -151,21 +263,52 @@ class LeadingTagGuard:
             return ""
         return self._decide(final=True)
 
+    def _body_start(self, final: bool) -> int | None:
+        """본문이 시작하는 위치 — 첫 줄이 제목인지 아직 모르면 None."""
+        buffer = self._buffer
+        lead = len(buffer) - len(buffer.lstrip())
+        newline = buffer.find("\n", lead)
+        line = buffer[lead:] if newline < 0 else buffer[lead:newline]
+        inline = self._inline_heading.match(line)
+        if inline:
+            return lead + inline.end()
+        if newline < 0 and not final and self._may_be_heading(line):
+            return None
+        if self._line_heading.fullmatch(line):
+            return len(buffer) if newline < 0 else newline + 1
+        return lead
+
+    def _may_be_heading(self, line: str) -> bool:
+        if line.startswith("#"):
+            return True
+        if not self._title or len(line) > len(self._title) + _HEADING_SLACK:
+            return False
+        rest = line.lstrip("*")
+        after = rest[len(self._title):]
+        return self._title.startswith(rest) or (rest.startswith(self._title) and not after.strip("*: \t"))
+
     def _decide(self, final: bool) -> str:
-        split = _split_heading(self._buffer)
-        body = split[1] if split else ""
-        pending = not body or any(tag.startswith(body) and tag != body for tag in _TRUST_TAGS)
+        start = self._body_start(final)
+        body = self._buffer[start:].lstrip() if start is not None else ""
+        pending = (
+            not body
+            or any(tag.startswith(body) and tag != body for tag in _TRUST_TAGS)
+            or bool(_MAYBE_BLOCK.fullmatch(body))
+        )
         if pending and not final:
             return ""
         text, self._buffer, self._decided = self._buffer, "", True
+        self.body_seen = bool(body)
         if not body or body.startswith(_TRUST_TAGS):
             return text
-        head, rest = split
-        return head + DEFAULT_TAG + rest
+        self.events["tags_added"] += 1
+        head = text[: len(text) - len(body)]
+        separator = "\n\n" if _BLOCK_START.match(body) else " "
+        return head + DEFAULT_TAG + separator + body
 
 
-def ensure_leading_tag(text: str) -> str:
-    guard = LeadingTagGuard()
+def ensure_leading_tag(text: str, title: str = "") -> str:
+    guard = LeadingTagGuard(title)
     return guard.feed(text) + guard.flush()
 
 
@@ -181,12 +324,15 @@ def disclaimer_suffix(text: str) -> str:
 
 # ── 절별 가드 조립 ───────────────────────────────────────────────
 
+GUARD_EVENTS = ("verdict_replaced", "links_stripped", "tags_added", "disclaimer_added")
+
 
 class _PlainGuard:
     """링크만 지운다 (유사 사례·계약 밖 섹션)."""
 
-    def __init__(self) -> None:
-        self._links = UrlStripper()
+    def __init__(self, events: Counter, title: str = "") -> None:
+        self._events = events
+        self._links = UrlStripper(events)
 
     def feed(self, chunk: str) -> str:
         return self._links.feed(chunk)
@@ -199,9 +345,9 @@ class _PlainGuard:
 class _TaggedGuard(_PlainGuard):
     """링크 제거 + 기본 신뢰 태그 (왜 안 되나·그래도 한다면·대안)."""
 
-    def __init__(self) -> None:
-        super().__init__()
-        self._tag = LeadingTagGuard()
+    def __init__(self, events: Counter, title: str = "") -> None:
+        super().__init__(events, title)
+        self._tag = LeadingTagGuard(title, events)
 
     def feed(self, chunk: str) -> str:
         return self._tag.feed(super().feed(chunk))
@@ -213,8 +359,8 @@ class _TaggedGuard(_PlainGuard):
 class _FundingGuard(_TaggedGuard):
     """지원사업 — 절이 끝날 때 예상치 고지문을 덧붙인다(이미 나간 본문에 있으면 생략)."""
 
-    def __init__(self) -> None:
-        super().__init__()
+    def __init__(self, events: Counter, title: str = "") -> None:
+        super().__init__(events, title)
         self._sent = ""
 
     def feed(self, chunk: str) -> str:
@@ -224,22 +370,26 @@ class _FundingGuard(_TaggedGuard):
 
     def end(self) -> str:
         text = super().end()
-        text += disclaimer_suffix(self._sent + text)
-        self._sent += text
-        return text
+        suffix = disclaimer_suffix(self._sent + text)
+        self._events["disclaimer_added"] += bool(suffix)
+        self._sent += text + suffix
+        return text + suffix
 
 
 class _VerdictGuard(_TaggedGuard):
     """판정 — 절을 통째로 붙들었다가 끝날 때 facts와 대조한다.
 
-    모순이면 facts로 쓴 판정 절로 바꾼다. 같은 절이 다시 열려 또 모순이면, 이미 판정을 내보냈으므로
-    그 조각만 버린다(교체문을 두 번 내지 않는다).
+    다른 등급을 단정했거나 링크를 지우고 나니 본문이 없으면 facts로 쓴 판정 절로 바꾼다. 같은 절이 다시
+    열려 또 모순이면, 이미 판정을 내보냈으므로 그 조각만 버린다(교체문을 두 번 내지 않는다).
     """
 
-    def __init__(self, verdict_facts: dict | None, fallback: str) -> None:
-        super().__init__()
+    def __init__(
+        self, events: Counter, title: str, verdict_facts: dict | None, fallback: str, replacements: list
+    ) -> None:
+        super().__init__(events, title)
         self._facts = verdict_facts
         self._fallback = fallback
+        self._replacements = replacements
         self._held = ""
         self._sent = False
 
@@ -249,23 +399,36 @@ class _VerdictGuard(_TaggedGuard):
 
     def end(self) -> str:
         text, self._held = self._held + super().end(), ""
-        if contradicts_verdict(text, self._facts):
+        reason = verdict_contradiction(text, self._facts) or ("" if self._tag.body_seen else "본문 없음")
+        if reason:
+            self._replacements.append(("verdict", reason))
+            self._events["verdict_replaced"] += not self._sent
             text = "" if self._sent else ensure_leading_tag(self._fallback)
         self._sent = self._sent or bool(text)
         return text
 
 
 class ReportGuard:
-    """섹션 조각 스트림 → 가드를 거친 조각 스트림. 절 전환·`close()`가 곧 그 절의 끝이다."""
+    """섹션 조각 스트림 → 가드를 거친 조각 스트림. 절 전환·`close()`가 곧 그 절의 끝이다.
 
-    def __init__(self, verdict_facts: dict | None, verdict_fallback: str) -> None:
+    `events`는 개입 횟수(GUARD_EVENTS), `replacements`는 판정 절을 바꾸거나 버린 (섹션, 이유) 목록이다.
+    """
+
+    def __init__(
+        self, verdict_facts: dict | None, verdict_fallback: str, titles: dict[str, str] | None = None
+    ) -> None:
+        self.events: Counter = Counter({name: 0 for name in GUARD_EVENTS})
+        self.replacements: list[tuple[str, str]] = []
+        self._titles = titles or {}
         # 섹션 이름 → 가드 생성기 (if/elif 대신 테이블 디스패치). 없는 이름은 링크만 지운다.
-        self._factories: dict[str, Callable[[], _PlainGuard]] = {
-            "verdict": lambda: _VerdictGuard(verdict_facts, verdict_fallback),
-            "reasons": _TaggedGuard,
-            "conditions": _TaggedGuard,
-            "alternatives": _TaggedGuard,
-            "funding": _FundingGuard,
+        self._factories: dict[str, Callable[[str], _PlainGuard]] = {
+            "verdict": lambda title: _VerdictGuard(
+                self.events, title, verdict_facts, verdict_fallback, self.replacements
+            ),
+            "reasons": lambda title: _TaggedGuard(self.events, title),
+            "conditions": lambda title: _TaggedGuard(self.events, title),
+            "alternatives": lambda title: _TaggedGuard(self.events, title),
+            "funding": lambda title: _FundingGuard(self.events, title),
         }
         self._guards: dict[str, _PlainGuard] = {}
         self._current: str | None = None
@@ -288,7 +451,8 @@ class ReportGuard:
 
     def _guard(self, section: str) -> _PlainGuard:
         if section not in self._guards:
-            self._guards[section] = self._factories.get(section, _PlainGuard)()
+            factory = self._factories.get(section, lambda title: _PlainGuard(self.events, title))
+            self._guards[section] = factory(self._titles.get(section, ""))
         return self._guards[section]
 
 
@@ -296,7 +460,7 @@ def _pair(section: str, text: str) -> list[tuple[str, str]]:
     return [(section, text)] if text else []
 
 
-def guard_section(name: str, markdown: str) -> str:
+def guard_section(name: str, markdown: str, title: str = "") -> str:
     """한 절 통째로 가드를 씌운다 — 폴백 문구용(판정 대조는 하지 않는다: 폴백이 곧 facts다)."""
-    guard = ReportGuard(None, "")
+    guard = ReportGuard(None, "", {name: title})
     return "".join(text for _, text in [*guard.feed([(name, markdown)]), *guard.close()])

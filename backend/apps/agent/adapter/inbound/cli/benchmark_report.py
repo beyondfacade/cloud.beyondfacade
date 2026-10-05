@@ -61,6 +61,7 @@ from apps.agent.app.use_cases.analysis_interactor import (
 )
 from apps.agent.app.use_cases.report_facts import ReportFactsCollector
 from apps.agent.domain.entities.agent_event_entity import AgentEvent
+from apps.agent.domain.services.report_guards import GUARD_EVENTS
 from apps.agent.domain.services.section_stream import concat_sections
 from apps.rag.dependencies.rag_dependencies import get_rag_search_use_case
 from core.matrix.grid_benchmark_manager import paired_bootstrap_ci, percentile, pick_winner, resident_models
@@ -242,6 +243,40 @@ def score_run(record: dict, facts: dict, question: str | None = None, tools_give
     }
 
 
+def score_record(record: dict, facts: dict, question: str | None = None, tools_given: bool = True) -> dict:
+    """화면 본문(가드 후)과 LLM 원문(가드 전, `raw_*`)을 따로 채점한다. 원문이 없는 옛 캐시는 화면 본문으로 대신."""
+    raw = {**record, "sections": record.get("raw_sections", record["sections"])}
+    return {
+        **score_run(record, facts, question, tools_given),
+        **{f"raw_{key}": value for key, value in score_run(raw, facts, question, tools_given).items()},
+    }
+
+
+def guard_summary(runs: list[dict]) -> dict:
+    """모델별 가드 개입 합계(`guard`)와 가드 전 원문 지표(`raw`). 개입 기록이 없는 옛 회차는 0으로 친다."""
+    n = len(runs)
+    totals = Counter({key: 0 for key in GUARD_EVENTS})
+    for r in runs:
+        totals.update(r.get("guard") or {})
+    return {
+        "guard": dict(totals),
+        "raw": {
+            "completion": sum(r["raw_complete"] for r in runs) / n,
+            "verdict_match": sum(r["raw_verdict_ok"] for r in runs) / n,
+            "fabrication": sum(bool(r["raw_unmatched"]) for r in runs) / n,
+            "rule_violations_keyword": sum(len(r["raw_rule_hits"]) for r in runs),
+        },
+    }
+
+
+def run_record(scenario_id: str, rep: int, got: dict, error: str | None, tool_results: list[str], interactor) -> dict:
+    """캐시 한 줄 — 화면 본문(`sections`)과 가드 전 원문(`raw_sections`)·가드 개입 횟수(`guard`)를 함께 남긴다."""
+    usage = interactor.last_usage
+    return {"id": scenario_id, "rep": rep, **got, "raw_sections": interactor.last_raw_sections,
+            "guard": interactor.last_guard_events, "error": error, "tool_results": tool_results,
+            "usage": {"input_tokens": usage.input_tokens, "output_tokens": usage.output_tokens}}
+
+
 def _p95(values: list[float | None]) -> float | None:
     clean = [v for v in values if v is not None]
     return percentile(clean, 95) if clean else None
@@ -342,8 +377,7 @@ def _cmd_run(args: argparse.Namespace) -> None:
             if not error and usage.output_tokens == 0 and not _written_sections(got["sections"], _facts_of(s["id"])):
                 error = "no_llm_output"
                 print(f"run: 경고 {model.name} {s['id']} rep{rep} LLM 출력 없음", flush=True)
-            row = {"id": s["id"], "rep": rep, **got, "error": error, "tool_results": tool_results,
-                   "usage": {"input_tokens": usage.input_tokens, "output_tokens": usage.output_tokens}}
+            row = run_record(s["id"], rep, got, error, tool_results, interactor)
             with path.open("a", encoding="utf-8") as f:
                 f.write(json.dumps(row, ensure_ascii=False) + "\n")
             print(f"run: {model.name} {s['id']} rep{rep} total={got['total_ms']} error={error}", flush=True)
@@ -357,7 +391,7 @@ def _cmd_score(args: argparse.Namespace) -> None:
         records = _read_jsonl(_run_path(name))
         if not records:
             continue
-        runs = [{**r, **score_run(r, facts[r["id"]], questions[r["id"]], REPORT_MODELS[name].tools)} for r in records]
+        runs = [{**r, **score_record(r, facts[r["id"]], questions[r["id"]], REPORT_MODELS[name].tools)} for r in records]
         n = len(runs)
         summary = {
             "model": name, "n": n,
@@ -370,8 +404,9 @@ def _cmd_score(args: argparse.Namespace) -> None:
             "rule_violations_keyword": sum(len(r["rule_hits"]) for r in runs),
             "first_p95_ms": _p95([r["first_ms"] for r in runs]),
             "total_p95_ms": _p95([r["total_ms"] for r in runs]),
-            "runs": [{k: r[k] for k in ("id", "rep", "complete", "verdict_ok", "unmatched", "rule_hits",
-                                        "first_ms", "total_ms", "error")} for r in runs],
+            **guard_summary(runs),
+            "runs": [{k: r[k] for k in ("id", "rep", "complete", "verdict_ok", "raw_verdict_ok", "unmatched",
+                                        "rule_hits", "first_ms", "total_ms", "error")} for r in runs],
         }
         _write_json(_score_path(name), summary)
         print(f"score: {name} → {_score_path(name)}", flush=True)
@@ -498,7 +533,8 @@ def build_report_block(scores: dict[str, dict], judge: dict, vram: dict, scenari
                      "verdict_no_grade": score.get("verdict_no_grade"),
                      "fabrication": score["fabrication"], "rule_violations": merged["rule_violations"],
                      "first_p95_ms": score["first_p95_ms"], "total_p95_ms": score["total_p95_ms"],
-                     "gates": gates, "note": note, "local": model.local, "excluded": excluded})
+                     "gates": gates, "note": note, "local": model.local, "excluded": excluded,
+                     "guard": score.get("guard"), "raw": score.get("raw")})
         if excluded is None:
             eligible.append(name)
             per_row[name], p95_by[name] = quality, score["total_p95_ms"]

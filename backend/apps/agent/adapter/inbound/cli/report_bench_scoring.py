@@ -227,6 +227,24 @@ def _report_row(r: dict) -> list[str]:
             _ox(r["gates"]["all"]), r.get("note", "")]
 
 
+def _guard_lines(rows: list[dict]) -> list[str]:
+    """v0.67.0 코드 가드 개입 — 모델별 횟수와 가드 전 원문 지표. 개입 기록이 있는 결과에만 싣는다."""
+    guarded = [r for r in rows if r.get("guard")]
+    if not guarded:
+        return []
+    table = _table(
+        ["모델", "판정 교체", "링크 제거", "태그 추가", "고지문", "원문 판정 모순 없음", "원문 지어내기"],
+        [[r["model"], *(str(r["guard"].get(k, 0)) for k in
+                        ("verdict_replaced", "links_stripped", "tags_added", "disclaimer_added")),
+          f"{r['raw']['verdict_match']:.2f}", f"{r['raw']['fabrication']:.2f}"] for r in guarded],
+    )
+    return ["", "## 코드 가드 개입", "",
+            "표의 지표는 화면 본문(가드 후) 기준이다. 아래는 모델별 가드 개입 횟수(전 회차 합)와 가드 전 원문 지표.", "",
+            *table, "",
+            "- 첫 글자 p95는 판정 절 전체를 붙드는 시간을 포함한다(판정 절은 끝날 때 한 번에 나간다) — "
+            "2026-10-05 기준선의 첫 글자와 비교할 수 없다."]
+
+
 def _intent_row(r: dict) -> list[str]:
     return [r["model"], _cell(r, "vram_mib", "{:.0f}"), _cell(r, "both", "{:.3f}"), _cell(r, "region", "{:.3f}"),
             _cell(r, "industry", "{:.3f}"), _cell(r, "budget", "{:.3f}"), _cell(r, "schema_rate", "{:.3f}"),
@@ -310,6 +328,7 @@ def render_llm_report(results: dict) -> str:
     lines += ["", "## 판정", "", _verdict_line("리포트", results["report"]), _verdict_line("관문", results["intent"]),
               _residency_line(results.get("residency"))]
     lines += _reference_lines(results["report"])
+    lines += _guard_lines(results["report"]["rows"])
     lines += _cost_lines(results.get("cost"))
     lines += ["", "## 한계", "",
               "- 숫자 대조는 관대하게 맞춘다(프롬프트·도구 설명 숫자도 근거, 복합 금액 허용폭이 넓음) — 지어내기 비율은 하한이다. "

@@ -292,3 +292,71 @@ def test_평가_결과_폴더는_out_dir로_바꿀_수_있다(tmp_path, monkeypa
     assert (tmp_path / "llm-benchmark-2026-10-05-guards" / "report.md").exists()
     assert any(p.name.startswith("llm-benchmark-") and p.name != "llm-benchmark-2026-10-05-guards"
                for p in tmp_path.iterdir())
+
+
+# --- 가드 전 원문 보존 (리뷰 1차) ---
+
+_GUARD = {"verdict_replaced": 1, "links_stripped": 2, "tags_added": 5, "disclaimer_added": 1}
+
+
+def test_회차_기록에_가드_전_원문과_개입_횟수를_남긴다():
+    from types import SimpleNamespace
+
+    from apps.agent.adapter.inbound.cli.benchmark_report import run_record
+    from apps.agent.app.ports.output.agent_port import LLMUsage
+
+    interactor = SimpleNamespace(
+        last_usage=LLMUsage(input_tokens=3, output_tokens=4),
+        last_raw_sections={"verdict": "판정 등급: **판정 없음**"},
+        last_guard_events=_GUARD,
+    )
+    got = {"first_ms": 1.0, "total_ms": 2.0, "sections": {"verdict": "교체문"}, "tool_calls": []}
+
+    row = run_record("s01", 0, got, None, ["r"], interactor)
+
+    assert row["raw_sections"] == {"verdict": "판정 등급: **판정 없음**"}
+    assert row["sections"] == {"verdict": "교체문"}
+    assert row["guard"] == _GUARD
+    assert row["usage"] == {"input_tokens": 3, "output_tokens": 4}
+
+
+def test_채점은_가드_전_원문도_따로_매기고_옛_캐시는_화면_본문으로_대신한다():
+    from apps.agent.adapter.inbound.cli.benchmark_report import score_record
+
+    facts = {"verdict": {"available": True, "verdict_code": "red"}}
+    record = {"sections": {"verdict": "비추천입니다."}, "raw_sections": {"verdict": "조건부입니다."}, "error": None}
+
+    got = score_record(record, facts)
+    old = score_record({"sections": {"verdict": "비추천입니다."}, "error": None}, facts)
+
+    assert got["verdict_ok"] is True and got["raw_verdict_ok"] is False
+    assert old["raw_verdict_ok"] is True
+
+
+def test_모델_요약에_가드_개입_합계와_원문_지표를_싣는다():
+    from apps.agent.adapter.inbound.cli.benchmark_report import guard_summary
+
+    runs = [
+        {"guard": _GUARD, "raw_complete": True, "raw_verdict_ok": False, "raw_unmatched": ["3%"], "raw_rule_hits": []},
+        {"raw_complete": False, "raw_verdict_ok": True, "raw_unmatched": [], "raw_rule_hits": ["x"]},  # 옛 캐시
+    ]
+
+    got = guard_summary(runs)
+
+    assert got["guard"] == _GUARD
+    assert got["raw"] == {"completion": 0.5, "verdict_match": 0.5, "fabrication": 0.5, "rule_violations_keyword": 1}
+
+
+def test_보고서에_가드_개입_표와_첫_글자_지연_주의를_싣는다():
+    ids = ["a"]
+    score = {**_score(), "guard": _GUARD, "raw": {"completion": 0.5, "verdict_match": 0.75, "fabrication": 0.25,
+                                                   "rule_violations_keyword": 1}}
+    block = build_report_block({"qwen3.5:4b": score}, {"qwen3.5:4b": _judge([4], ids)}, {"qwen3.5:4b": 3400}, ids)
+    results = {"date": "2026-10-06", "report": block, "intent": {"rows": [], "winner": None, "tied": []},
+               "residency": None}
+
+    md = render_llm_report(results)
+
+    assert "## 코드 가드 개입" in md
+    assert "| qwen3.5:4b | 1 | 2 | 5 | 1 | 0.75 | 0.25 |" in md
+    assert "판정 절 전체를 붙드는 시간" in md

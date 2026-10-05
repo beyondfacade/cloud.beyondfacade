@@ -1090,3 +1090,56 @@ def test_시스템_프롬프트가_지원사업_절에_링크를_쓰지_못하�
     contract = prompt[prompt.find("[funding 섹션 출력 계약]") :]
     assert "링크·공고 번호를 쓰지 않는다 — 화면의 지원사업 카드가 원문 링크를 보여 준다" in contract
     assert "원문 링크를 함께 남긴다" not in contract
+
+
+# --- 가드 보강 (리뷰 1차) ---
+
+
+def test_맨_제목으로_시작하는_절은_제목_다음_줄에_태그를_붙인다():
+    """실제 모델은 절을 `왜 안 되나\\n본문`·`**대안 업종 지원사업**\\n…`으로 연다 — 제목에 태그가 붙으면 화면이 제목을 못 뗀다."""
+    text = (
+        "[SECTION:verdict]\n판정\n켜진 신호 1개는 버티기 어렵다는 뜻이다.\n"
+        "[SECTION:reasons]\n왜 안 되나\n생존 절벽이 켜졌다.\n"
+        "[SECTION:alternatives]\n**대안 동네·업종**\n- 제과점\n"
+    )
+    llm = FakeLLM([_final_turn(text)], chunk=4)
+    interactor = _interactor(llm, [_market_tool()], facts=FakeFactsCollector(_RED_FACTS))
+
+    report = _report_of(interactor.run("1168064000", "korean_food", None))
+
+    assert report["verdict"] == "판정\n[확인된 사실] 켜진 신호 1개는 버티기 어렵다는 뜻이다."
+    assert report["reasons"] == "왜 안 되나\n[확인된 사실] 생존 절벽이 켜졌다."
+    assert report["alternatives"] == "**대안 동네·업종**\n[확인된 사실]\n\n- 제과점"
+
+
+def test_가드_전_원문과_개입_횟수를_남기고_판정_교체를_기록한다(caplog, monkeypatch):
+    import logging
+
+    # conftest의 alembic fileConfig가 이미 만든 로거를 꺼 둔다 — 이 테스트에서만 다시 켠다
+    monkeypatch.setattr(logging.getLogger("beyondfacade.agent.loop"), "disabled", False)
+
+    text = _FINAL_TEXT.replace("🔴 위험.", "판정 등급: **판정 없음**").replace("공고 2건.", "공고 2건 https://a.kr/x")
+    llm = FakeLLM([_final_turn(text)], chunk=5)
+    interactor = _interactor(llm, [_market_tool()], facts=FakeFactsCollector(_RED_FACTS))
+
+    with caplog.at_level(logging.INFO, logger="beyondfacade.agent.loop"):
+        list(interactor.run("1168064000", "korean_food", None))
+
+    assert interactor.last_raw_sections["verdict"] == "### 판정\n\n판정 등급: **판정 없음**"
+    assert interactor.last_raw_sections["funding"] == "### 대안 업종 지원사업\n\n공고 2건 https://a.kr/x"
+    assert interactor.last_guard_events == {
+        "verdict_replaced": 1, "links_stripped": 1, "tags_added": 5, "disclaimer_added": 1,
+    }
+    logged = [r.getMessage() for r in caplog.records if "판정 절 교체" in r.getMessage()]
+    assert len(logged) == 1 and "red" in logged[0] and "판정 없음" in logged[0]
+
+
+def test_시스템_프롬프트의_지원사업_계약은_원문_확인과_예상치_고지를_코드에_맡긴다():
+    """고지문은 코드가 붙인다 — 프롬프트가 또 시키면 같은 말이 두 번 나온다."""
+    from apps.agent.app.use_cases.analysis_interactor import SYSTEM_PROMPT
+
+    prompt = " ".join(SYSTEM_PROMPT.split())
+    contract = prompt[prompt.find("[funding 섹션 출력 계약]") :]
+    assert "원문에서 확인" not in contract
+    assert "예상치" not in contract
+    assert "금리·한도는 \"예상치\"임을 고지한다" in prompt  # 규칙 ③은 다른 절을 위해 남긴다

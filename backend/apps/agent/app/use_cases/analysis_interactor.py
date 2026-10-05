@@ -231,9 +231,8 @@ facts에 없는 수치는 지어내지 않는다. 값이 없으면 "자료 없�
 [funding 섹션 출력 계약]
 **대안 업종 지원사업**의 공고 후보는 `facts.funding_candidates`를 쓰고, **자격 확정이 아니라
 해당 가능성**이라고 쓴다. alternatives 절의 **대안 업종**에 해당하는 공고를 먼저 배치한다.
-신청 자격·한도는 원문에서 확인해야 한다고 덧붙인다. 링크·공고 번호를 쓰지 않는다 — 화면의 지원사업
-카드가 원문 링크를 보여 준다.
-금리·한도는 규칙 ③대로 "예상치"임을 고지한다. `external_funding_need`를 알면 그 금액을 이 절의
+링크·공고 번호를 쓰지 않는다 — 화면의 지원사업 카드가 원문 링크를 보여 준다. 원문 확인·금리 고지
+문장은 코드가 절 끝에 붙이므로 쓰지 않는다. `external_funding_need`를 알면 그 금액을 이 절의
 헤드라인으로 삼아 "얼마를 어떤 경로로 나눠 조달할지"를 중심에 둔다."""
 
 # JSON 타입 선언 → 파이썬 타입 (jsonschema 의존 없이 최소 검사만 한다).
@@ -364,6 +363,9 @@ class AnalysisInteractor(AnalysisUseCase):
         self._budget = budget  # facts 수집에 그대로 넘긴다 (finance 도구 기본값과 같은 값)
         self._now = now  # 테스트가 시계를 넣는다 — 벽시계 예산을 실제로 기다리지 않게
         self.last_usage = LLMUsage(input_tokens=0, output_tokens=0)
+        # 직전 실행의 가드 전 LLM 원문(섹션별)과 가드 개입 횟수 — 벤치가 둘 다 남겨 채점한다
+        self.last_raw_sections: dict[str, str] = {}
+        self.last_guard_events: dict[str, int] = {}
 
     def myself(self) -> dict:
         return {
@@ -376,6 +378,8 @@ class AnalysisInteractor(AnalysisUseCase):
     def run(self, region: str, industry: str, question: str | None) -> Iterator[AgentEvent]:
         report_id = uuid.uuid4().hex
         self.last_usage = LLMUsage(input_tokens=0, output_tokens=0)
+        self.last_raw_sections, self.last_guard_events = {}, {}
+        raw_sections: dict[str, str] = {}  # 가드 전 LLM 원문
         tools_by_name = {tool.spec.name: tool for tool in self._tools}
         specs = [tool.spec for tool in self._tools]
         citations: list[dict] = []
@@ -395,9 +399,10 @@ class AnalysisInteractor(AnalysisUseCase):
 
             판정 절은 가드가 절 끝까지 붙들므로 화면에는 늦게 나가지만, 쓴 것으로는 곧바로 친다.
             """
-            for section, _ in chunks:
+            for section, chunk in chunks:
                 yield from close_open_stages()
                 written.add(section)
+                raw_sections[section] = raw_sections.get(section, "") + chunk
             yield from deltas(guard.feed(chunks))
 
         def deltas(chunks: list[tuple[str, str]]) -> Iterator[AgentEvent]:
@@ -448,7 +453,7 @@ class AnalysisInteractor(AnalysisUseCase):
         facts = self._facts.collect(region, industry, self._budget, question)
         yield AgentEvent("facts", {"facts": facts})  # 프론트 계약은 중첩이다 (설계서 §4-1)
         yield AgentEvent("agent_status", {"agent": "facts", "status": "done"})
-        guard = ReportGuard(facts.get("verdict"), _fallback_section("verdict", "판정", facts))
+        guard = ReportGuard(facts.get("verdict"), _fallback_section("verdict", "판정", facts), dict(_SECTIONS))
 
         messages = [
             {"role": "system", "content": SYSTEM_PROMPT},
@@ -521,6 +526,10 @@ class AnalysisInteractor(AnalysisUseCase):
         yield from emit(splitter.flush())
         yield from deltas(guard.close())  # 마지막 절의 끝 — 붙든 판정·고지문이 여기서 나간다
         yield from close_open_stages()
+        self.last_raw_sections, self.last_guard_events = raw_sections, dict(guard.events)
+        verdict_code = (facts.get("verdict") or {}).get("verdict_code")
+        for section, reason in guard.replacements:
+            LOGGER.info("판정 절 교체 — section=%s verdict_code=%s 이유=%s", section, verdict_code, reason[:60])
 
         for name, title in _SECTIONS:
             if name in written:
@@ -595,7 +604,7 @@ def _fallback_section(name: str, title: str, facts: dict) -> str:
 
 def guarded_fallback_section(name: str, title: str, facts: dict) -> str:
     """화면에 나가는 폴백 절 — 폴백 문구는 그대로 두고 LLM 절과 같은 가드(태그·고지문)를 씌운다."""
-    return guard_section(name, _fallback_section(name, title, facts))
+    return guard_section(name, _fallback_section(name, title, facts), title)
 
 
 def _collect_citations(tool: AgentTool, arguments: dict, result: str, region: str) -> list[dict]:
