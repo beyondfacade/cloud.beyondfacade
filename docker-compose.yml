@@ -42,6 +42,8 @@ services:
   backend:
     build: ./backend
     container_name: beyondfacade-api
+    # 외부 API 키(Gemini·OAuth·공공데이터)는 backend/.env 단일 원천 — 아래 environment가 접속 주소를 컨테이너용으로 덮어쓴다
+    env_file: ./backend/.env
     environment:
       DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-beyondfacade}:${POSTGRES_PASSWORD:-beyondfacade}@db:5432/${POSTGRES_DB:-beyondfacade}
       NEO4J_URI: bolt://neo4j:7687

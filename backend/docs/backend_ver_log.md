@@ -1,5 +1,10 @@
 # Backend Version Log
 
+## [v0.67.1] - 2026-10-05
+
+### Fixed
+- 백엔드 컨테이너(8200)가 외부 API 키를 하나도 받지 못하던 문제 — compose가 `backend/.env`를 넘기지 않고 `.dockerignore`가 `.env`를 이미지에서 빼서, 컨테이너는 `GEMINI_API_KEY` 없이 리포트를 로컬 gemma4:12b 단독으로 쓰고(리포트 1건 약 2분), 구글 로그인 버튼도 숨겨져 있었다. `docker-compose.yml` backend에 `env_file: ./backend/.env` 추가 — 접속 주소(DB·Neo4j·Redis·Ollama)는 `environment:`가 우선해 컨테이너용 값이 유지된다. 실측: 같은 리포트 129초(로컬) → 8초(Gemini), `/admin/auth/providers` google true.
+
 ## [v0.67.0] - 2026-10-05
 
 ### Added
