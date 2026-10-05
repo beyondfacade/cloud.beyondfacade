@@ -9,6 +9,7 @@ LLM은 맨 위 해석(answer) 한 단락만 쓴다. 원칙:
 """
 
 import logging
+import re
 
 from apps.agent.domain.services.report_guards import FUNDING_DISCLAIMER
 
@@ -265,12 +266,64 @@ def _staying(change: dict, region: str) -> str:
     )
 
 
+# 동 이름 꼬리(번호·"제"·"가"·"동") — 남은 어간이 기사에 나오면 이 동 기사로 본다(상도제1동→상도, 종로1.2.3.4가동→종로)
+_DONG_SUFFIX = re.compile(r"(?:제?\d+(?:\.\d+)*가?동|동)$")
+_NEWS_MAX = 3
+
+
+def resident_line(facts: dict) -> str:
+    """주민 연령 구성(주민등록)과 아파트 평균 시가(참고값) — 사람 검수 "거주민 생활수준" 메모(설계서 §6)."""
+    region, _ = subject_names(facts)
+    population = facts.get("population") or {}
+    ages = population.get("age_distribution") or {}
+    total = sum(ages.values())
+    reason = missing_reason(population)
+    if reason is not None or not total:
+        head = f"{FACT} 주민({region}): {missing(reason or '연령별 인구 없음')}"
+    else:
+        old = sum(v for k, v in ages.items() if int(k) >= 60) / total
+        young = sum(v for k, v in ages.items() if 20 <= int(k) < 40) / total
+        period = str(population.get("period") or "")
+        head = (
+            f"{FACT} 주민({region}, {period[:4]}년 {int(period[4:])}월 주민등록): "
+            f"60세 이상 {old * 100:.0f}%, 20~39세 {young * 100:.0f}%"
+        )
+    price = (facts.get("profile") or {}).get("apartment_avg_price_won")
+    tail = f" · 아파트 평균 시가 약 {price / 100_000_000:.1f}억 원(동별 편차가 커 참고값입니다)" if price else ""
+    return f"{head}{tail}."
+
+
+def news_line(facts: dict) -> str | None:
+    """동 이름이 든 기사만 최신순 최대 3건 — 뉴스 검색은 다른 구 기사가 섞여 와서 거른다. 없으면 None(줄 생략)."""
+    region, _ = subject_names(facts)
+    base = _DONG_SUFFIX.sub("", region)
+    news = facts.get("news")
+    if len(base) < 2 or not isinstance(news, list):
+        return None
+    hits = sorted(
+        (h for h in news if base in (h.get("content") or "")),
+        key=lambda h: h.get("published_at") or "",
+        reverse=True,
+    )
+    unique: dict[str, dict] = {}
+    for hit in hits:
+        unique.setdefault(hit.get("url") or hit.get("content"), hit)
+    items = [
+        f"{(h.get('content') or '').split(chr(10))[0].lstrip(chr(0xFEFF)).strip()}({(h.get('published_at') or '')[:10]})"
+        for h in list(unique.values())[:_NEWS_MAX]
+    ]
+    return f"{SIGNAL} {region} 이름이 나온 최근 뉴스: " + " · ".join(items) if items else None
+
+
 def _conditions(facts: dict) -> str:
     region, industry = subject_names(facts)
+    news = news_line(facts)
     lines = [
         _hours(facts.get("hour_gap") or {}, region, industry),
         _profile(facts.get("profile") or {}, region),
         _staying(facts.get("commerce_change") or {}, region),
+        resident_line(facts),
+        *([news] if news else []),
         *([_BUDGET_LINE] if facts.get("budget") is not None else []),
     ]
     return "\n\n".join(lines)
