@@ -993,5 +993,38 @@
       "why": "전국 · 창업"
     }
   ],
-  "budget": null
+  "budget": null,
+  "finance": {
+    "available": true,
+    "expected_monthly_revenue": {
+      "value": null,
+      "basis": {},
+      "caveat": "이 동네엔 이 업종의 매출 자료가 없습니다. 예상 월매출을 직접 넣으세요.",
+      "unit": "원/월"
+    },
+    "rent_per_m2": {
+      "value": 90.36,
+      "basis": {
+        "region_path": "서울>도심",
+        "building_type": "medium_large",
+        "period": "2026Q2",
+        "level": "권역",
+        "small_per_m2": 74.11,
+        "source": "R-ONE"
+      },
+      "caveat": "행정동 단위 임대료 자료가 없어 도심 권역(R-ONE, 중대형 상가) 평균입니다. 실제 매물과 다를 수 있습니다.",
+      "unit": "천원/㎡/월"
+    },
+    "loan_rate": {
+      "value": 0.0405,
+      "basis": {
+        "rate_type": "loan_facility",
+        "period": "202608",
+        "rate_pct": 4.05,
+        "source": "ECOS"
+      },
+      "caveat": "공시 평균 금리입니다. 실제 심사 금리와 다릅니다.",
+      "unit": "비율"
+    }
+  }
 }

@@ -54,15 +54,19 @@ from apps.agent.adapter.inbound.cli.report_bench_scoring import (
     unscoped_number_lines,
 )
 from apps.agent.adapter.outbound.gateways.event_analog_facts_gateway import EventAnalogFactsGateway
+from apps.agent.adapter.outbound.gateways.finance_facts_gateway import FinanceFactsGateway
 from apps.agent.adapter.outbound.gateways.funding_facts_gateway import FundingFactsGateway
+from apps.agent.adapter.outbound.gateways.question_budget_gateway import QuestionBudgetGateway
 from apps.agent.adapter.outbound.gateways.region_facts_gateway import RegionFactsGateway
 from apps.agent.adapter.outbound.gateways.verdict_facts_gateway import VerdictFactsGateway
 from apps.agent.adapter.outbound.llm.gemini_llm_adapter import GeminiLLMAdapter
 from apps.agent.adapter.outbound.llm.ollama_llm_adapter import OllamaLLMAdapter
-from apps.agent.app.ports.output.agent_port import LLMGatewayPort
-from apps.agent.app.use_cases.analysis_interactor import ANSWER_FALLBACK, AnalysisInteractor, region_names
+from apps.agent.app.ports.output.agent_port import FinanceFactsPort, LLMGatewayPort, QuestionBudgetPort
+from apps.agent.app.use_cases.analysis_interactor import ANSWER_FALLBACK, LEAD_FALLBACK, AnalysisInteractor, region_names
 from apps.agent.app.use_cases.report_facts import ReportFactsCollector
 from apps.agent.domain.entities.agent_event_entity import AgentEvent
+from apps.agent.domain.services.question_answer import answer_lead
+from apps.agent.domain.services.question_topic import classify
 from apps.agent.domain.services.report_guards import blank_names, contradicts_verdict
 from apps.agent.domain.services.report_sampling import REPORT_SEED, REPORT_TEMPERATURE
 from apps.agent.domain.services.report_sections import build_sections, scarcity
@@ -227,7 +231,7 @@ def score_run(record: dict, facts: dict) -> dict:
     attempts = record.get("answer_attempts") or []
     return {
         "complete": not record.get("error") and bool(answer),
-        "fallback": answer == ANSWER_FALLBACK,
+        "fallback": answer.startswith((ANSWER_FALLBACK, LEAD_FALLBACK)),
         "verdict_ok": not contradicts_verdict(answer, facts.get("verdict")),
         "digits": len(_DIGITS.findall(blank_names(answer, region_names(facts)))),
         "removed_sentences": sum(a.get("removed_sentences", 0) for a in attempts),
@@ -295,12 +299,14 @@ def _collector() -> tuple[ReportFactsCollector, RegionFactsGateway, object]:
         funding_facts=FundingFactsGateway(),
         news_search=rag_search,
         analog_facts=EventAnalogFactsGateway(),
+        finance_facts=FinanceFactsGateway(),
+        question_budget=QuestionBudgetGateway(),
     )
     return collector, region_facts, rag_search
 
 
 def _cmd_sections_check(args: argparse.Namespace) -> None:
-    """코드 절 자동 검사(설계서 §7) — 세트 전체 facts로 6개 절을 써서 범위 없는 숫자 줄·이유 빠진 자료 부족 자리를 센다.
+    """코드 절 자동 검사(설계서 §7) — 세트 전체 facts로 6개 절과 직접 답을 써서 범위 없는 숫자 줄·이유 빠진 자료 부족 자리를 센다.
 
     모델을 부르지 않는다. 결과는 `sections_check.json`(문제 있는 시나리오만 줄 단위로)이다.
     """
@@ -309,6 +315,9 @@ def _cmd_sections_check(args: argparse.Namespace) -> None:
     for s in scenarios:
         facts = _facts_of(s["id"])
         sections = build_sections(facts)
+        topic = classify(s["question"])
+        if topic is not None and scarcity(facts) is None:
+            sections = {**sections, "answer_lead": answer_lead(facts, topic)}
         region = facts.get("region") or {}
         regions = (facts.get("alternatives") or {}).get("regions") or []
         # 동 이름에 숫자가 든다("상계3.4동") — 이름은 숫자로 세지 않는다
@@ -324,7 +333,27 @@ def _cmd_sections_check(args: argparse.Namespace) -> None:
     print(f"sections-check: {len(scenarios)}건 중 문제 {len(issues)}건 → {_RUNS / 'sections_check.json'}", flush=True)
 
 
+def augment_facts(
+    facts: dict, question: str | None, finance: FinanceFactsPort, budget: QuestionBudgetPort, region: str, industry: str
+) -> dict:
+    """얼린 facts에 v0.69.0 키만 더한다 — 나머지 키는 그대로라 이전 결과와 비교할 수 있다(설계서 §10-2)."""
+    try:
+        prefill = finance.prefill(region, industry)
+    except Exception as error:
+        prefill = {"available": False, "reason": f"{type(error).__name__}: {error}"}
+    parsed = budget.parse(question) if question and facts.get("budget") is None else None
+    return {**facts, "budget": facts.get("budget") if parsed is None else parsed, "finance": prefill}
+
+
 def _cmd_freeze(args: argparse.Namespace) -> None:
+    if args.augment:
+        for s in _scenarios():
+            path = _FACTS_DIR / f"{s['id']}.json"
+            augmented = augment_facts(_read_json(path), s["question"], FinanceFactsGateway(), QuestionBudgetGateway(),
+                                      s["region_code"], s["industry_id"])
+            _write_json(path, augmented)
+            print(f"freeze --augment: {s['id']}", flush=True)
+        return
     collector, _, _ = _collector()
     for s in _scenarios():
         path = _FACTS_DIR / f"{s['id']}.json"
@@ -414,16 +443,17 @@ def _cmd_score(args: argparse.Namespace) -> None:
         print(f"score: {name} → {_score_path(name)}", flush=True)
 
 
-def _first_rep_answers() -> dict[str, tuple[str, dict[str, str]]]:
-    """{시나리오 id: (코드 6개 절 본문, {모델: 1회차 해석})} — 해석의 모델명은 가린다. 본문은 모델과 무관하게 같다."""
-    out: dict[str, tuple[str, dict[str, str]]] = {}
+def _first_rep_answers() -> dict[str, tuple[str, str | None, dict[str, str]]]:
+    """{시나리오 id: (코드 6개 절 본문, 직접 답, {모델: 1회차 해석})} — 해석의 모델명은 가린다. 본문·직접 답은 모델과 무관하게 같다."""
+    out: dict[str, tuple[str, str | None, dict[str, str]]] = {}
     code_only = _code_only_ids()
     for name in REPORT_MODELS:
         for r in _read_jsonl(_run_path(name)):
             answer = r["sections"].get("answer")
             if r["rep"] == 0 and answer and r["id"] not in code_only:
-                body = concat_sections((k, v) for k, v in r["sections"].items() if k != "answer")
-                out.setdefault(r["id"], (body, {}))[1][name] = mask_model_names(answer)
+                body = concat_sections((k, v) for k, v in r["sections"].items() if k not in ("answer", "answer_lead"))
+                lead = r["sections"].get("answer_lead")
+                out.setdefault(r["id"], (body, lead, {}))[2][name] = mask_model_names(answer)
     return out
 
 
@@ -465,8 +495,8 @@ def _cmd_judge_export(args: argparse.Namespace) -> None:
     _JUDGE.mkdir(parents=True, exist_ok=True)
     questions = {s["id"]: s["question"] for s in _scenarios()}
     mapping: dict[str, dict[str, str]] = {}
-    for sid, (body, answers) in _first_rep_answers().items():
-        packet, mapping[sid] = answer_packets(sid, questions.get(sid), body, answers, _JUDGE_SEED)
+    for sid, (body, lead, answers) in _first_rep_answers().items():
+        packet, mapping[sid] = answer_packets(sid, questions.get(sid), body, answers, _JUDGE_SEED, lead=lead)
         (_JUDGE / f"packet_{sid}.md").write_text(packet, encoding="utf-8")
     _write_json(_JUDGE / "mapping.json", mapping)
     # 사람 검수 표본 — 같은 시드면 같은 20건
@@ -731,6 +761,7 @@ def main() -> None:
     parser.add_argument("--report-model", default=None)
     parser.add_argument("--intent-model", default=None)
     parser.add_argument("--force", action="store_true", help="freeze: 기존 facts 덮어쓰기")
+    parser.add_argument("--augment", action="store_true", help="freeze: 기존 facts에 finance·질문 속 예산만 더하기")
     parser.add_argument("--out-dir", default=None, help="evaluate: 결과 폴더 이름(기본 llm-benchmark-YYYY-MM-DD)")
     parser.add_argument("--cache-tag", default=None, help="run·score·judge-*·evaluate: 캐시를 report-<tag>/·judge-<tag>/로 분리")
     parser.add_argument("--scenario-set", choices=list(_SCENARIO_SETS), default="12",

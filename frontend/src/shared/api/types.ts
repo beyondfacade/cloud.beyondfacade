@@ -1,8 +1,8 @@
 export type AgentName = "orchestrator" | "facts" | "writer" | "market" | "shock" | "funding";
 
-export type ReportSection = "answer" | "verdict" | "reasons" | "analogs" | "conditions" | "alternatives" | "funding";
-/** 코드가 사실로 쓰는 6개 절 — 맨 위 해석(answer)을 뺀 나머지. 그림·제목은 이 절들에만 있다. */
-export type FactSection = Exclude<ReportSection, "answer">;
+export type ReportSection = "answer_lead" | "answer" | "verdict" | "reasons" | "analogs" | "conditions" | "alternatives" | "funding";
+/** 코드가 사실로 쓰는 6개 절 — 맨 위 직접 답과 해석을 뺀 나머지. 그림·제목은 이 절들에만 있다. */
+export type FactSection = Exclude<ReportSection, "answer" | "answer_lead">;
 
 export type AgentEvent =
   | { type: "agent_status"; agent: AgentName; status: "running" | "done" | "error" }
@@ -37,6 +37,15 @@ export interface ReportFacts {
   news: Array<Record<string, unknown>> | UnavailableFact;
   funding_candidates: ReportFundingCandidate[] | UnavailableFact;
   budget: number | null;
+  finance?: ReportFinance;
+}
+
+export interface ReportFinance {
+  available: boolean;
+  reason?: string;
+  expected_monthly_revenue?: PrefillValue;
+  rent_per_m2?: PrefillValue;
+  loan_rate?: PrefillValue;
 }
 
 /** 이벤트 기준 분기(1분기 = 이벤트 달부터 3개월). overlaps는 그 분기에 시작한 다른 유형 이벤트 이름. */

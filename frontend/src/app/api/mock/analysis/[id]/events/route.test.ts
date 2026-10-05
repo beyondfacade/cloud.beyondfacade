@@ -5,12 +5,13 @@ import {
   LATEST_PROFILE_QUARTER, metricRows, regionProfileOf, verdictOf,
 } from "../../../fixtures";
 import { GET } from "./route";
+import { POST } from "../../route";
 
 afterEach(() => vi.useRealTimers());
 
-async function readEvents() {
+async function readEvents(id = "a1") {
   vi.useFakeTimers();
-  const response = await GET(new Request("http://test/api/mock/analysis/a1/events"));
+  const response = await GET(new Request(`http://test/api/mock/analysis/${id}/events`), { params: Promise.resolve({ id }) });
   expect(response.status).toBe(200);
   expect(response.headers.get("Content-Type")).toBe("text/event-stream");
   const body = response.text();
@@ -150,4 +151,18 @@ it("SSE 해석은 여섯 사실 절 뒤에 한 번 오고 숫자를 담지 않�
     new Set(["verdict", "reasons", "analogs", "conditions", "alternatives", "funding"]),
   );
   expect(answers[0].markdown).not.toMatch(/\d/);
+});
+
+it.each(["창업해도 될까요?", undefined])("분석 질문 %s의 유무에 따라 직접 답을 여섯 사실 절보다 먼저 보내거나 생략한다", async (question) => {
+  const response = await POST(new Request("http://test/api/mock/analysis", {
+    method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ region: "1168064000", industry: "cafe", question }),
+  }));
+  expect(response.status).toBe(200);
+  const { analysis_id } = await response.json();
+  const deltas = (await readEvents(analysis_id)).filter((e) => e.type === "report_delta");
+  expect([...new Set(deltas.map((e) => e.section))]).toEqual([
+    ...(question ? ["answer_lead"] : []), "verdict", "reasons", "analogs", "conditions", "alternatives", "funding", "answer",
+  ]);
+  if (question) expect(deltas[0].markdown).toMatch(/^\[확인된 사실\].+\n\n- \[확인된 사실\]/);
 });

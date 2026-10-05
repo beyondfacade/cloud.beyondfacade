@@ -9,6 +9,7 @@ LLM은 맨 위 해석(answer) 한 단락만 쓴다. 원칙:
 """
 
 import logging
+import re
 
 from apps.agent.domain.services.report_guards import FUNDING_DISCLAIMER
 
@@ -28,9 +29,9 @@ SECTION_TITLES = {
 }
 
 # 판정 코드 → 라벨. 프론트 `shared/verdict.ts` LABELS와 같은 어휘다.
-_VERDICT_LABELS = {"red": "비추천", "orange": "조건부", "clear": "경고 없음", "insufficient": "판정 보류"}
+VERDICT_LABELS = {"red": "비추천", "orange": "조건부", "clear": "경고 없음", "insufficient": "판정 보류"}
 # 신호 키 → 이름. 프론트 `shared/verdict.ts` SIGNAL_LABELS와 같은 어휘다.
-_SIGNAL_LABELS = {
+SIGNAL_LABELS = {
     "net_outflow": "순유출",
     "survival_cliff": "생존 절벽",
     "early_closure": "조기 폐업",
@@ -51,7 +52,7 @@ HOUR_BAND_LABELS = {
 }
 _MAX_PER_AXIS = 3  # 대안 두 축 각 최대 3개
 _DISASTER_YEARS = range(2020, 2023)
-_DISASTER_NOTE = "2020~2022년 폐업률은 재난지원금·손실보상으로 폐업이 늦춰져 왜곡됐을 수 있습니다."
+DISASTER_NOTE = "2020~2022년 폐업률은 재난지원금·손실보상으로 폐업이 늦춰져 왜곡됐을 수 있습니다."
 _BUDGET_LINE = f"{FACT} 입력한 예산으로 총 준비자금·조달 필요액·손익분기 매출을 계산하려면 자금 계획 화면을 이용하세요."
 # 충격 목록이 이 업종 것인지(True) 전 업종 공통으로 되돌린 것인지(False) — report_facts._shocks가 정한다
 _SHOCK_SCOPES = {True: "{industry}에 영향을 준 충격", False: "{industry} 전용 기록은 없어 전 업종 공통 충격"}
@@ -61,7 +62,7 @@ def missing(reason: str | None) -> str:
     return f"자료 부족 — {reason or '이유 미상'}"
 
 
-def _missing_reason(value: object) -> str | None:
+def missing_reason(value: object) -> str | None:
     """수집 실패·판정 불가 자리(`{"available": False, "reason": ...}`)면 그 이유, 아니면 None.
 
     목록 자리(지표 이력·충격·공고)도 실패하면 이 dict가 온다 — 모양을 보고 가른다.
@@ -71,12 +72,12 @@ def _missing_reason(value: object) -> str | None:
     return None
 
 
-def _names(facts: dict) -> tuple[str, str]:
+def subject_names(facts: dict) -> tuple[str, str]:
     region = facts.get("region") or {}
     return region.get("name") or "이 동", region.get("industry_name") or "이 업종"
 
 
-def _quarter(year_quarter: str | None) -> str:
+def quarter_label(year_quarter: str | None) -> str:
     """'20262' → '2026년 2분기'."""
     return f"{year_quarter[:4]}년 {year_quarter[4:]}분기" if year_quarter else "최신 분기"
 
@@ -85,13 +86,13 @@ def _quarter(year_quarter: str | None) -> str:
 
 
 def _verdict(facts: dict) -> str:
-    region, industry = _names(facts)
+    region, industry = subject_names(facts)
     verdict = facts.get("verdict") or {}
     if not verdict.get("available"):
         return f"{FACT} {region} {industry} 판정: {missing(verdict.get('reason'))}"
     judged = [s for s in verdict.get("signals") or [] if not s.get("advisory")]
     short = sum(s.get("level") == "unavailable" for s in judged)
-    label = _VERDICT_LABELS.get(verdict.get("verdict_code"), verdict.get("verdict_code"))
+    label = VERDICT_LABELS.get(verdict.get("verdict_code"), verdict.get("verdict_code"))
     tail = f", {short}개는 자료 부족으로 계산하지 못함" if short else ""
     return (
         f"{FACT} {region} {industry} 판정: **{label}** — 경고 신호 {len(judged)}개 중 "
@@ -115,14 +116,14 @@ def _signals(verdict: dict, region: str, industry: str) -> str:
         return f"{FACT} 경고 신호({region} {industry}): {missing(verdict.get('reason'))}"
     where = f"{region} {industry}"
     lines = [
-        _SIGNAL_LINES[bool(s.get("advisory"))](_SIGNAL_LABELS.get(s.get("key"), s.get("key")), s.get("evidence"), where)
+        _SIGNAL_LINES[bool(s.get("advisory"))](SIGNAL_LABELS.get(s.get("key"), s.get("key")), s.get("evidence"), where)
         for s in verdict.get("signals") or []
         if s.get("level") != "off"
     ]
     return "\n".join(lines) or f"{FACT} {where}: 켜진 경고 신호 없음."
 
 
-def _current_year(facts: dict) -> str | None:
+def current_year(facts: dict) -> str | None:
     """사실 묶음의 기준 연도 — 분기 자료('20262')의 연도. 이 해의 폐업률은 아직 진행 중인 부분 연도다."""
     for key in ("commerce_change", "profile"):
         year_quarter = (facts.get(key) or {}).get("year_quarter")
@@ -132,7 +133,7 @@ def _current_year(facts: dict) -> str | None:
 
 
 def _closure_trend(history: object, region: str, industry: str, current_year: str | None) -> str:
-    reason = _missing_reason(history)
+    reason = missing_reason(history)
     rows = [r for r in history or [] if r.get("closure_rate") is not None] if reason is None else []
     if not rows:
         return f"{FACT} {region} {industry} 연간 폐업률: {missing(reason or '연도별 폐업률 없음')}"
@@ -142,11 +143,11 @@ def _closure_trend(history: object, region: str, industry: str, current_year: st
         f"{FACT} {region} {industry} 연간 폐업률: {first['year']}년 {first['closure_rate'] * 100:.1f}% → "
         f"{last['year']}년{partial} {last['closure_rate'] * 100:.1f}%(점포 {first['store_count']}곳 → {last['store_count']}곳)."
     )
-    return line + (f" {_DISASTER_NOTE}" if any(r["year"] in _DISASTER_YEARS for r in rows) else "")
+    return line + (f" {DISASTER_NOTE}" if any(r["year"] in _DISASTER_YEARS for r in rows) else "")
 
 
 def _shocks(shocks: object, industry: str) -> str:
-    reason = _missing_reason(shocks)
+    reason = missing_reason(shocks)
     if reason is not None or not shocks:
         return f"{FACT} 외부 충격({industry}): {missing(reason or '기록 없음')}"
     scope = _SHOCK_SCOPES[bool(shocks[0].get("industry_specific"))].format(industry=industry)
@@ -155,11 +156,11 @@ def _shocks(shocks: object, industry: str) -> str:
 
 
 def _reasons(facts: dict) -> str:
-    region, industry = _names(facts)
+    region, industry = subject_names(facts)
     return "\n\n".join(
         [
             _signals(facts.get("verdict") or {}, region, industry),
-            _closure_trend(facts.get("metrics_history"), region, industry, _current_year(facts)),
+            _closure_trend(facts.get("metrics_history"), region, industry, current_year(facts)),
             _shocks(facts.get("shocks"), industry),
         ]
     )
@@ -184,20 +185,20 @@ def _category_paragraph(analogs: dict, category: str) -> str:
     return " ".join(parts)
 
 
-def _topic(word: str) -> str:
+def topic_particle(word: str) -> str:
     """주제 조사 — 받침이 있으면 '은', 없으면 '는'."""
     return "은" if (ord(word[-1]) - 0xAC00) % 28 else "는"
 
 
 def _show_industry_name(text: str, industry_id: str, industry: str) -> str:
     """문장 속 업종 id를 업종 이름으로 — 고정 문장에 박혀 온 주제 조사 '는'은 받침에 맞춰 '은'으로 고친다."""
-    return text.replace(f"{industry_id}는", f"{industry}{_topic(industry)}").replace(industry_id, industry)
+    return text.replace(f"{industry_id}는", f"{industry}{topic_particle(industry)}").replace(industry_id, industry)
 
 
 def _analogs(facts: dict) -> str:
-    _, industry = _names(facts)
+    _, industry = subject_names(facts)
     analogs = facts.get("analogs") or {}
-    reason = _missing_reason(analogs)
+    reason = missing_reason(analogs)
     if reason is not None:
         return f"{FACT} 유사 사례(서울 전체 {industry}): {missing(reason)}"
     # 질문 속 상황 유형을 먼저, 운영자가 등록한 진행 중 유형을 뒤에
@@ -235,42 +236,94 @@ def _hours(hour_gap: dict, region: str, industry: str) -> str:
         reason = (hour_gap.get("reason") or "").split(":")[0].strip()
         return f"{FACT} 시간대({region} {industry}): {missing(reason)}"
     sentence = hour_gap_sentence(hour_gap.get("bands") or []) or missing("시간대 구간 없음")
-    return f"{FACT} 시간대({region} 유동인구·{industry} 매출, {_quarter(hour_gap.get('year_quarter'))}): {sentence}"
+    return f"{FACT} 시간대({region} 유동인구·{industry} 매출, {quarter_label(hour_gap.get('year_quarter'))}): {sentence}"
 
 
 def _profile(profile: dict, region: str) -> str:
-    reason = _missing_reason(profile)
+    reason = missing_reason(profile)
     if reason is not None:
         return f"{FACT} 동네 유형({region}): {missing(reason)}"
     # 흐름 이름이 가장 많은 때와 같으면 같은 말을 두 번 하지 않는다
     label = profile.get("time_label_name")
     flow = "" if label == profile.get("peak_block_name") else f"{label} — "
     return (
-        f"{FACT} 동네 유형({region}, {_quarter(profile.get('year_quarter'))}): {profile.get('type_name')} — "
+        f"{FACT} 동네 유형({region}, {quarter_label(profile.get('year_quarter'))}): {profile.get('type_name')} — "
         f"{profile.get('type_reason')} 사람 흐름: {flow}가장 많은 때 "
         f"{profile.get('peak_block_name')}, 가장 적은 때 {profile.get('trough_block_name')}."
     )
 
 
 def _staying(change: dict, region: str) -> str:
-    reason = _missing_reason(change)
+    reason = missing_reason(change)
     if reason is not None:
         return f"{FACT} 상권 영업 기간({region}): {missing(reason)}"
     seoul = change.get("seoul") or {}
     return (
-        f"{FACT} 상권 영업 기간({region} 상권 전체·업종 무관, {_quarter(change.get('year_quarter'))}): "
+        f"{FACT} 상권 영업 기간({region} 상권 전체·업종 무관, {quarter_label(change.get('year_quarter'))}): "
         f"영업 중 점포 평균 {change['operating_months']:.0f}개월, 폐업 점포 평균 {change['closed_months']:.0f}개월 — "
         f"서울 동 상권 전체 기준값은 {seoul['operating_months']:.0f}개월·{seoul['closed_months']:.0f}개월입니다. "
         f"상권변화지표: {change.get('change_name')}."
     )
 
 
+# 동 이름 꼬리(번호·"제"·"가"·"동") — 남은 어간이 기사에 나오면 이 동 기사로 본다(상도제1동→상도, 종로1.2.3.4가동→종로)
+_DONG_SUFFIX = re.compile(r"(?:제?\d+(?:\.\d+)*가?동|동)$")
+_NEWS_MAX = 3
+
+
+def resident_line(facts: dict) -> str:
+    """주민 연령 구성(주민등록)과 아파트 평균 시가(참고값) — 사람 검수 "거주민 생활수준" 메모(설계서 §6)."""
+    region, _ = subject_names(facts)
+    population = facts.get("population") or {}
+    ages = population.get("age_distribution") or {}
+    total = sum(ages.values())
+    reason = missing_reason(population)
+    if reason is not None or not total:
+        head = f"{FACT} 주민({region}): {missing(reason or '연령별 인구 없음')}"
+    else:
+        old = sum(v for k, v in ages.items() if int(k) >= 60) / total
+        young = sum(v for k, v in ages.items() if 20 <= int(k) < 40) / total
+        period = str(population.get("period") or "")
+        head = (
+            f"{FACT} 주민({region}, {period[:4]}년 {int(period[4:])}월 주민등록): "
+            f"60세 이상 {old * 100:.0f}%, 20~39세 {young * 100:.0f}%"
+        )
+    price = (facts.get("profile") or {}).get("apartment_avg_price_won")
+    tail = f" · 아파트 평균 시가 약 {price / 100_000_000:.1f}억 원(동별 편차가 커 참고값입니다)" if price else ""
+    return f"{head}{tail}."
+
+
+def news_line(facts: dict) -> str | None:
+    """동 이름이 든 기사만 최신순 최대 3건 — 뉴스 검색은 다른 구 기사가 섞여 와서 거른다. 없으면 None(줄 생략)."""
+    region, _ = subject_names(facts)
+    base = _DONG_SUFFIX.sub("", region)
+    news = facts.get("news")
+    if len(base) < 2 or not isinstance(news, list):
+        return None
+    hits = sorted(
+        (h for h in news if base in (h.get("content") or "")),
+        key=lambda h: h.get("published_at") or "",
+        reverse=True,
+    )
+    unique: dict[str, dict] = {}
+    for hit in hits:
+        unique.setdefault(hit.get("url") or hit.get("content"), hit)
+    items = [
+        f"{(h.get('content') or '').split(chr(10))[0].lstrip(chr(0xFEFF)).strip()}({(h.get('published_at') or '')[:10]})"
+        for h in list(unique.values())[:_NEWS_MAX]
+    ]
+    return f"{SIGNAL} {region} 이름이 나온 최근 뉴스: " + " · ".join(items) if items else None
+
+
 def _conditions(facts: dict) -> str:
-    region, industry = _names(facts)
+    region, industry = subject_names(facts)
+    news = news_line(facts)
     lines = [
         _hours(facts.get("hour_gap") or {}, region, industry),
         _profile(facts.get("profile") or {}, region),
         _staying(facts.get("commerce_change") or {}, region),
+        resident_line(facts),
+        *([news] if news else []),
         *([_BUDGET_LINE] if facts.get("budget") is not None else []),
     ]
     return "\n\n".join(lines)
@@ -284,13 +337,13 @@ def _axis(items: list[dict] | None, name_key: str) -> list[str]:
     if not items:
         return ["- 대안 없음"]
     return [
-        f"- {item.get(name_key)} ({_VERDICT_LABELS.get(item.get('verdict_code'), item.get('verdict_code'))})"
+        f"- {item.get(name_key)} ({VERDICT_LABELS.get(item.get('verdict_code'), item.get('verdict_code'))})"
         for item in items[:_MAX_PER_AXIS]
     ]
 
 
 def _alternatives(facts: dict) -> str:
-    region, industry = _names(facts)
+    region, industry = subject_names(facts)
     alternatives = facts.get("alternatives") or {}
     if not alternatives.get("available"):
         return f"{FACT} 대안({region} {industry}): {missing(alternatives.get('reason'))}"
@@ -317,9 +370,9 @@ def _due(candidate: dict) -> str:
 
 
 def _funding(facts: dict) -> str:
-    region, industry = _names(facts)
+    region, industry = subject_names(facts)
     candidates = facts.get("funding_candidates")
-    reason = _missing_reason(candidates)
+    reason = missing_reason(candidates)
     if reason is not None:
         return f"{FACT} 지원사업 후보({region} {industry}): {missing(reason)}\n\n{FUNDING_DISCLAIMER}"
     if not candidates:
@@ -373,19 +426,19 @@ def scarcity(facts: dict) -> list[str] | None:
     if verdict.get("available") and verdict.get("verdict_code") != "insufficient":
         return None
     signals = [
-        _MISSING_SIGNAL_LABELS.get(s.get("key"), _SIGNAL_LABELS.get(s.get("key"), s.get("key")))
+        _MISSING_SIGNAL_LABELS.get(s.get("key"), SIGNAL_LABELS.get(s.get("key"), s.get("key")))
         for s in verdict.get("signals") or []
         if s.get("level") == "unavailable"
     ]
-    items = [label for key, label in _MISSING_FACT_LABELS.items() if _missing_reason(facts.get(key)) is not None]
+    items = [label for key, label in _MISSING_FACT_LABELS.items() if missing_reason(facts.get(key)) is not None]
     return list(dict.fromkeys([*signals, *items]))
 
 
 def scarce_lead(facts: dict, missing_items: list[str]) -> str:
     """자료 부족 동네 해석의 고정 첫 문장 — 결론은 틀리면 안 되므로 코드가 쓴다. 숫자는 쓰지 않는다."""
-    region, industry = _names(facts)
+    region, industry = subject_names(facts)
     available = bool((facts.get("verdict") or {}).get("available"))
-    return _SCARCE_LEADS[available](f"{region} {industry}{_topic(industry)}", missing_items)
+    return _SCARCE_LEADS[available](f"{region} {industry}{topic_particle(industry)}", missing_items)
 
 
 def alternatives_pointer(facts: dict) -> str | None:

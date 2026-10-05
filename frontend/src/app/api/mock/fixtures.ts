@@ -336,7 +336,7 @@ function eventAnalogsDemo(industryId: string, industryName: string): EventAnalog
   };
 }
 
-export function agentEventScript(): AgentEvent[] {
+export function agentEventScript(hasQuestion = false): AgentEvent[] {
   const regionCode = "1168064000";
   const industryId = "cafe";
   const verdict = verdictOf(regionCode, industryId);
@@ -383,6 +383,12 @@ export function agentEventScript(): AgentEvent[] {
     { type: "agent_status", agent: "facts", status: "done" },
     { type: "agent_status", agent: "writer", status: "running" },
   ];
+  if (hasQuestion) {
+    events.push({
+      type: "report_delta", section: "answer_lead",
+      markdown: `[확인된 사실] ${facts.region.name} ${facts.region.industry_name} 창업은 ${verdictLabel(verdict.verdict_code).name} 판정입니다 — 켜진 경고 신호 ${verdict.on_count}개를 확인하세요.\n\n- [확인된 사실] 강한 경고 신호는 ${verdict.strong_count}개입니다.\n- [확인된 사실] 보증금·권리금·인테리어 비용 자료가 없어 예산이 충분한지는 판단할 수 없습니다 — 자금 계획 화면에서 계산하세요.`,
+    });
+  }
   const industryAlternatives = alternatives.industries.map((item) => `${item.industry_name}(${verdictLabel(item.verdict_code).name})`).join(", ") || "자료 없음";
   const regionAlternatives = alternatives.regions.map((item) => `${item.region_name}(${verdictLabel(item.verdict_code).name})`).join(", ") || "자료 없음";
   // 문장 경계에서 직접 나누어 소수점·마크다운·공백을 손상시키지 않는다.

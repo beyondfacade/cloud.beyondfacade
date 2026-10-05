@@ -9,6 +9,8 @@ from apps.agent.domain.services.report_sections import (
     alternatives_pointer,
     build_sections,
     hour_gap_sentence,
+    news_line,
+    resident_line,
     scarce_lead,
     scarcity,
 )
@@ -144,7 +146,8 @@ def test_그래도_한다면은_시간대_부족_이유와_상권_전체_기준�
         "[확인된 사실] 동네 유형(송정동, 2026년 2분기): 주거형 — 직장인구가 상주인구보다 적습니다. "
         "사람 흐름: 가장 많은 때 밤(21~06시), 가장 적은 때 저녁(17~21시).\n\n"
         "[확인된 사실] 상권 영업 기간(송정동 상권 전체·업종 무관, 2026년 2분기): 영업 중 점포 평균 124개월, "
-        "폐업 점포 평균 54개월 — 서울 동 상권 전체 기준값은 118개월·54개월입니다. 상권변화지표: 정체."
+        "폐업 점포 평균 54개월 — 서울 동 상권 전체 기준값은 118개월·54개월입니다. 상권변화지표: 정체.\n\n"
+        "[확인된 사실] 주민(송정동, 2026년 6월 주민등록): 60세 이상 32%, 20~39세 31%."
     )
 
 
@@ -269,3 +272,33 @@ def test_대안에_경고_없음이_있으면_대안_절_안내_문장을_쓰고
     assert alternatives_pointer({"alternatives": clear}) == "대안 동네·업종 절에 경고 없음으로 나온 곳도 함께 확인해 보세요."
     assert alternatives_pointer({"alternatives": none}) is None
     assert alternatives_pointer({"alternatives": _UNAVAILABLE}) is None
+
+
+def test_그래도_한다면에_주민_연령과_아파트_시가를_쓴다():
+    facts = {
+        **_BASE,
+        "population": {"period": "202606", "age_distribution": {"10": 20, "20": 30, "35": 10, "60": 25, "85": 15}},
+        "profile": {**_BASE["profile"], "apartment_avg_price_won": 480_839_259},
+    }
+    assert resident_line(facts) == (
+        "[확인된 사실] 주민(송정동, 2026년 6월 주민등록): 60세 이상 40%, 20~39세 40%"
+        " · 아파트 평균 시가 약 4.8억 원(동별 편차가 커 참고값입니다)."
+    )
+    assert resident_line(facts) in build_sections(facts)["conditions"]
+
+
+def test_뉴스_줄은_동_이름이_든_기사만_최신순으로_싣는다():
+    news = [
+        {"content": "송파구 쿠킹 클래스\n본문", "url": "u1", "published_at": "2026-09-30T00:00:00"},
+        {"content": "송정동 골목 상점가 지정\n송정동 본문", "url": "u2", "published_at": "2026-09-01T00:00:00"},
+        {"content": "\ufeff송정 시장 새단장\n본문", "url": "u3", "published_at": "2026-09-20T00:00:00"},
+    ]
+    assert news_line({**_BASE, "news": news}) == (
+        "[참고 신호] 송정동 이름이 나온 최근 뉴스: 송정 시장 새단장(2026-09-20) · 송정동 골목 상점가 지정(2026-09-01)"
+    )
+
+
+def test_동_이름이_든_기사가_없으면_뉴스_줄을_뺀다():
+    facts = {**_BASE, "news": [{"content": "송파구 기사", "url": "u1", "published_at": "2026-09-30T00:00:00"}]}
+    assert news_line(facts) is None
+    assert "최근 뉴스" not in build_sections(facts)["conditions"]

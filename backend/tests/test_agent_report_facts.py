@@ -8,7 +8,9 @@ import pytest
 
 from apps.agent.app.ports.output.agent_port import (
     EventAnalogFactsPort,
+    FinanceFactsPort,
     FundingFactsPort,
+    QuestionBudgetPort,
     RegionFactsPort,
     VerdictFactsPort,
 )
@@ -143,12 +145,51 @@ def _collector(region=None, verdict=None, funding=None, news=None) -> ReportFact
     )
 
 
-def test_열세_키를_빠짐없이_모은다():
+def test_열네_키를_빠짐없이_모은다():
     """프론트 시각 자료가 키 하나에 하나씩 달린다 — 키가 빠지면 그림이 사라진다 (설계서 §5)."""
     facts = _collector().collect("1168064000", "korean_food", 50_000_000)
 
     assert list(facts) == list(FACTS_KEYS)
-    assert len(FACTS_KEYS) == 13
+    assert len(FACTS_KEYS) == 14 and FACTS_KEYS[-1] == "finance"
+
+
+class FakeFinanceFacts(FinanceFactsPort):
+    def __init__(self, failing: bool = False) -> None:
+        self._failing = failing
+
+    def prefill(self, region_code: str, industry_id: str) -> dict:
+        if self._failing:
+            raise RuntimeError("프리필 조회 실패")
+        return {"available": True, "loan_rate": {"value": 0.0405, "unit": "비율", "basis": {"period": "202608"}, "caveat": "공시"}}
+
+
+class FakeQuestionBudget(QuestionBudgetPort):
+    def parse(self, question: str) -> int | None:
+        return 50_000_000 if "5천만" in question else None
+
+
+def _with_new_ports(finance=None) -> ReportFactsCollector:
+    return ReportFactsCollector(
+        region_facts=FakeRegionFacts(),
+        verdict_facts=FakeVerdictFacts(),
+        funding_facts=FakeFundingFacts(),
+        news_search=FakeNewsSearch(),
+        finance_facts=finance or FakeFinanceFacts(),
+        question_budget=FakeQuestionBudget(),
+    )
+
+
+def test_자금_계획_프리필을_싣고_실패하면_그_자리만_비운다():
+    assert _with_new_ports().collect("1168064000", "korean_food")["finance"]["loan_rate"]["value"] == 0.0405
+    failed = _with_new_ports(FakeFinanceFacts(failing=True)).collect("1168064000", "korean_food")["finance"]
+    assert failed["available"] is False and "프리필 조회 실패" in failed["reason"]
+
+
+def test_폼_예산이_없으면_질문_속_금액을_예산으로_싣는다():
+    collector = _with_new_ports()
+    assert collector.collect("1168064000", "hair_salon", None, "모아 둔 돈이 5천만 원")["budget"] == 50_000_000
+    assert collector.collect("1168064000", "hair_salon", 70_000_000, "모아 둔 돈이 5천만 원")["budget"] == 70_000_000
+    assert collector.collect("1168064000", "hair_salon", None, None)["budget"] is None
 
 
 class FakeAnalogFacts(EventAnalogFactsPort):

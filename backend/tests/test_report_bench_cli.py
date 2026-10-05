@@ -5,6 +5,7 @@ from apps.agent.adapter.inbound.cli.benchmark_report import (
     build_intent_block,
     build_report_block,
     FrozenFacts,
+    augment_facts,
     collect_run,
     gemini_cost,
     score_run,
@@ -15,6 +16,7 @@ from apps.agent.adapter.inbound.cli.report_bench_scoring import (
     render_llm_report,
     report_gates,
 )
+from apps.agent.app.ports.output.agent_port import FinanceFactsPort, QuestionBudgetPort
 from apps.agent.domain.entities.agent_event_entity import AgentEvent
 
 
@@ -450,3 +452,31 @@ def test_자료_부족_시나리오는_코드만_쓴_해석이라_채점과_판�
     br._cmd_score(None)
 
     assert written["data"]["n"] == 1 and list(br._first_rep_answers()) == ["e001"]
+
+
+def test_facts_보강은_finance와_질문_속_예산만_더하고_나머지는_그대로_둔다():
+    class Finance(FinanceFactsPort):
+        def prefill(self, region_code, industry_id):
+            return {"available": True}
+
+    class Budget(QuestionBudgetPort):
+        def parse(self, question):
+            return 50_000_000
+
+    facts = {"region": {"code": "1"}, "budget": None, "news": []}
+    out = augment_facts(facts, "5천만 원 있는데", Finance(), Budget(), "1", "cafe")
+
+    assert out == {"region": {"code": "1"}, "budget": 50_000_000, "news": [], "finance": {"available": True}}
+
+
+def test_facts_보강은_프리필이_실패해도_그_자리만_비운다():
+    class Finance(FinanceFactsPort):
+        def prefill(self, region_code, industry_id):
+            raise RuntimeError("없음")
+
+    class Budget(QuestionBudgetPort):
+        def parse(self, question):
+            return None
+
+    out = augment_facts({"budget": None}, None, Finance(), Budget(), "1", "cafe")
+    assert out["finance"]["available"] is False and out["budget"] is None

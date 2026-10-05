@@ -158,6 +158,42 @@ it("해석이 오면 여섯 사실 절보다 위에 '해석' 블록으로 그린
   const labels = screen.getAllByRole("region").map((region) => region.getAttribute("aria-label"));
   expect(labels.indexOf("해석")).toBeLessThan(labels.indexOf("판정"));
   expect(within(screen.getByRole("region", { name: "해석" })).getByText("먼저 시간대를 확인하세요.")).toBeInTheDocument();
+  expect(screen.getByText("AI가 아래 사실을 읽고 쓴 해석입니다. 판정과 수치는 아래 사실을 기준으로 보세요.")).toBeInTheDocument();
+  expect(screen.queryByRole("heading", { name: "질문에 대한 답" })).not.toBeInTheDocument();
+});
+
+it("직접 답 조각이 먼저 오면 즉시 질문에 대한 답과 근거, AI 해석 자리 표시를 보여 주고 해석으로 교체한다", () => {
+  let state = applyAgentEvent(initialAgentState(), {
+    type: "report_delta", section: "answer_lead", markdown: "[확인된 사실] 미용실은 권하지 않습니다.",
+  });
+  const { rerender } = render(<ReportView state={state} />);
+  expect(screen.getByRole("heading", { name: "질문에 대한 답" })).toBeInTheDocument();
+  expect(screen.getByText("[확인된 사실] 미용실은 권하지 않습니다.")).toBeInTheDocument();
+  expect(screen.getByText("첫 문장과 근거는 사실에서 코드가 쓴 것이고, AI 해석은 그 이유를 풀어 쓴 것입니다.")).toBeInTheDocument();
+  expect(screen.getByText("AI 해석", { exact: true })).toBeInTheDocument();
+  expect(screen.getByRole("status", { name: "AI 해석 작성 중" })).toBeInTheDocument();
+
+  state = applyAgentEvent(state, {
+    type: "report_delta", section: "answer_lead", markdown: "\n\n- [확인된 사실] 켜진 경고 신호 2개.",
+  });
+  state = applyAgentEvent(state, { type: "report_delta", section: "verdict", markdown: "### 판정\n\n판정 본문" });
+  state = applyAgentEvent(state, { type: "report_delta", section: "answer", markdown: "포화와 조기 폐업 신호를 함께 살펴보세요." });
+  rerender(<ReportView state={state} />);
+  const box = screen.getByRole("region", { name: "질문에 대한 답" });
+  expect(within(box).getByText("[확인된 사실] 미용실은 권하지 않습니다.")).toBeInTheDocument();
+  expect(within(box).getByRole("listitem")).toHaveTextContent("[확인된 사실] 켜진 경고 신호 2개.");
+  expect(within(box).getByText("포화와 조기 폐업 신호를 함께 살펴보세요.")).toBeInTheDocument();
+  expect(screen.queryByRole("status", { name: "AI 해석 작성 중" })).not.toBeInTheDocument();
+  expect(box.compareDocumentPosition(screen.getByRole("region", { name: "판정" })) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+});
+
+it("직접 답이 있고 작성이 끝났는데 해석이 없으면 스켈레톤 대신 미수신 안내를 표시한다", () => {
+  const state = applyAgentEvent(initialAgentState(), {
+    type: "report_delta", section: "answer_lead", markdown: "[확인된 사실] 미용실은 권하지 않습니다.",
+  });
+  render(<ReportView state={{ ...state, done: true }} />);
+  expect(screen.queryByRole("status", { name: "AI 해석 작성 중" })).not.toBeInTheDocument();
+  expect(screen.getByText("AI 해석을 받지 못했습니다.")).toBeInTheDocument();
 });
 
 it("해석이 없는 옛 리포트는 해석 블록 없이 여섯 절을 그대로 그린다", () => {

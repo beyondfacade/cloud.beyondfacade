@@ -148,3 +148,22 @@ class EventAnalogFactsPort(ABC):
     @abstractmethod
     def analogs(self, industry_id: str, question: str | None) -> dict:
         """유형·진행 중 이벤트·지난 사례(창별 대상 업종 변동폭·강세/약세 업종)·해석 주의사항."""
+
+
+class FinanceFactsPort(ABC):
+    """Driven Port — finance BC의 자금 계획 프리필(동·업종 점포당 월 평균 매출·권역 임대료·공시 금리).
+
+    질문 직접 답의 예산·대출 근거로 쓴다 (설계서 2026-10-05-question-answer §7).
+    """
+
+    @abstractmethod
+    def prefill(self, region_code: str, industry_id: str) -> dict:
+        """{"available": True, "expected_monthly_revenue"|"rent_per_m2"|"loan_rate": {value, unit, basis, caveat}}."""
+
+
+class QuestionBudgetPort(ABC):
+    """Driven Port — 질문 속 금액(원). 의도 관문과 같은 규칙을 쓴다."""
+
+    @abstractmethod
+    def parse(self, question: str) -> int | None:
+        """금액이 없으면 None."""
