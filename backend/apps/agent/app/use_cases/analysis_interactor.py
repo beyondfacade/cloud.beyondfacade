@@ -6,7 +6,7 @@
 순서: 사실 수집(`facts`) → 코드가 facts로 쓴 6개 절을 곧바로 `report_delta`로 → LLM 해석(`answer`) 한 단락을
 끝까지 모아 가드(링크 제거·판정 모순 검사·숫자 문장 삭제)를 거쳐 한 번에 → `report_done`.
 가드에 걸리거나 호출이 실패하면 다음 모델(`retry_llm`)로, 그래도 안 되면 코드 한 줄(`ANSWER_FALLBACK`)로 맺는다.
-자료 부족 동네(`scarcity`)는 결론 첫 문장을 코드가 쓰고(`scarce_lead`), LLM은 현장에서 직접 확인할 것만 붙인다.
+자료 부족 동네(`scarcity`)는 LLM을 부르지 않는다 — 해석은 자료 부족만 밝히는 코드 첫 문장(`scarce_lead`)뿐이다.
 도구 루프는 없다 — 평가 252회에서 도구 호출 0회였고, 자금 계획은 별도 화면이다.
 """
 
@@ -26,12 +26,7 @@ LOGGER = logging.getLogger("beyondfacade.agent.loop")
 
 ANSWER_FALLBACK = "질문에 대한 해석을 만들지 못했습니다. 아래 사실을 직접 확인해 주세요."
 
-_RESPONSE_RULES = """[응답 규칙]
-① 외국인 관련 내용은 업종 타깃 정합성 문맥으로만 쓴다. 비하·차별 표현은 금지한다.
-② 코로나 재난지원 시기(재난지원금·손실보상으로 폐업이 늦춰졌을 수 있는 해)의 폐업률은 왜곡됐을 수 있음을 감안한다.
-③ 대출 중개와 특정 은행·상품 추천은 금지한다. 금리·한도를 말하면 "예상치"라고 밝힌다."""
-
-SYSTEM_PROMPT = f"""당신은 서울 창업 경고 리포트 맨 위의 "해석" 한 단락을 쓴다.
+SYSTEM_PROMPT = """당신은 서울 창업 경고 리포트 맨 위의 "해석" 한 단락을 쓴다.
 사용자 메시지에 질문(없으면 총평 요청)과, 화면에 이미 나간 리포트 본문 6개 절이 주어진다.
 본문은 코드가 사실에서 쓴 글이다 — 본문만 근거로 삼는다.
 
@@ -43,38 +38,21 @@ SYSTEM_PROMPT = f"""당신은 서울 창업 경고 리포트 맨 위의 "해석"
 - 판정 등급을 바꾸거나 새로 매기지 않는다. 본문에 없는 사실을 보태지 않는다.
 - 본문이 "자료 부족"이라고 한 곳은 추정으로 메우지 않고 "자료가 부족해 판단할 수 없다"고 말한다.
 
-{_RESPONSE_RULES}"""
-
-# 자료 부족 동네 전용 — "판단하기 어렵다"는 첫 문장은 코드가 이미 붙인다. LLM은 현장에서 직접 확인할 것만 쓴다.
-SCARCE_SYSTEM_PROMPT = f"""당신은 서울 창업 경고 리포트 맨 위 "해석"의 이어지는 단락을 쓴다.
-사용자 메시지에 질문(없으면 총평 요청), 화면에 이미 나간 리포트 본문 6개 절, 부족한 자료 목록이 주어진다.
-본문은 코드가 사실에서 쓴 글이다 — 본문만 근거로 삼는다.
-이 동네는 자료가 부족해 진입 판단을 내리지 않는다. 그 결론 문장은 코드가 이미 단락 맨 앞에 썼다.
-
-[출력 규칙]
-- 판정·전망·추천을 쓰지 말고, 부족한 자료를 대신해 현장에서 직접 확인할 것 2~3문장만 쓴다
-  (예: 시간대별 유동 인구, 인근 같은 업종 점포 수·영업 상태, 임대 조건). 한 단락, 제목·목록·표·굵은 글씨를 쓰지 않는다.
-- 숫자를 쓰지 않는다 — 아라비아 숫자는 한 글자도 쓰지 않는다. 링크·공고 번호도 쓰지 않는다.
-- 질문이 있으면 그 질문과 관련된 확인 항목을 먼저 쓴다.
-
-{_RESPONSE_RULES}"""
+[응답 규칙]
+① 외국인 관련 내용은 업종 타깃 정합성 문맥으로만 쓴다. 비하·차별 표현은 금지한다.
+② 코로나 재난지원 시기(재난지원금·손실보상으로 폐업이 늦춰졌을 수 있는 해)의 폐업률은 왜곡됐을 수 있음을 감안한다.
+③ 대출 중개와 특정 은행·상품 추천은 금지한다. 금리·한도를 말하면 "예상치"라고 밝힌다."""
 
 _NO_QUESTION = "질문 없음 — 이 동네에서 이 업종을 한다면 먼저 볼 것을 총평하라."
 
 
-def answer_message(
-    facts: dict, question: str | None, sections: dict[str, str], missing: list[str] | None = None
-) -> str:
-    """해석 LLM의 사용자 메시지 — 질문(자료 부족 동네면 부족한 자료 목록)과 화면에 나간 6개 절 그대로.
-
-    원본 facts JSON은 넘기지 않는다(설계서 §5).
-    """
+def answer_message(facts: dict, question: str | None, sections: dict[str, str]) -> str:
+    """해석 LLM의 사용자 메시지 — 질문과 화면에 나간 6개 절 그대로. 원본 facts JSON은 넘기지 않는다(설계서 §5)."""
     region = facts.get("region") or {}
     return "\n".join(
         [
             f"분석 지역: {region.get('name')} / 업종: {region.get('industry_name')}",
             f"사용자 질문: {question}" if question else _NO_QUESTION,
-            *([f"부족한 자료: {', '.join(missing)}"] if missing else []),
             "[리포트 본문]",
             concat_sections(sections.items(), order=SECTION_TITLES),
         ]
@@ -148,26 +126,21 @@ class AnalysisInteractor(AnalysisUseCase):
         yield AgentEvent("report_done", {"report_id": report_id, "citations": _news_citations(facts.get("news"))})
 
     def _answer(self, facts: dict, question: str | None, sections: dict[str, str]) -> str:
-        """해석 한 단락 — 자료 부족 동네면 코드 첫 문장 + 현장 확인 단락(실패하면 첫 문장만).
-
-        그 밖에는 가드를 통과한 LLM 단락, 없으면 코드 한 줄.
-        """
+        """해석 한 단락 — 자료 부족 동네면 코드 첫 문장만(판단은 사용자에게), 아니면 모델을 차례로 시도해
+        가드를 통과한 첫 단락, 없으면 코드 한 줄."""
         missing = scarcity(facts)
-        if missing is None:
-            return self._paragraph(SYSTEM_PROMPT, answer_message(facts, question, sections), facts) or ANSWER_FALLBACK
-        lead = scarce_lead(facts, missing)
-        paragraph = self._paragraph(SCARCE_SYSTEM_PROMPT, answer_message(facts, question, sections, missing), facts)
-        return f"{lead} {paragraph}" if paragraph else lead
-
-    def _paragraph(self, system: str, user: str, facts: dict) -> str | None:
-        """모델을 차례로 시도해 가드를 통과한 첫 단락, 없으면 None."""
-        messages = [{"role": "system", "content": system}, {"role": "user", "content": user}]
+        if missing is not None:
+            return scarce_lead(facts, missing)
+        messages = [
+            {"role": "system", "content": SYSTEM_PROMPT},
+            {"role": "user", "content": answer_message(facts, question, sections)},
+        ]
         names = region_names(facts)
         for llm in self._answer_models():
             answer = self._attempt(llm, messages, facts.get("verdict"), names)
             if answer:
                 return answer
-        return None
+        return ANSWER_FALLBACK
 
     def _answer_models(self) -> Iterator[LLMGatewayPort]:
         """시도할 모델 — 첫 모델이 실제로 답한 모델과 같은 다음 모델은 건너뛴다(온도 0이라 같은 답이다).

@@ -65,7 +65,7 @@ from apps.agent.app.use_cases.report_facts import ReportFactsCollector
 from apps.agent.domain.entities.agent_event_entity import AgentEvent
 from apps.agent.domain.services.report_guards import blank_names, contradicts_verdict
 from apps.agent.domain.services.report_sampling import REPORT_SEED, REPORT_TEMPERATURE
-from apps.agent.domain.services.report_sections import build_sections, scarce_lead, scarcity
+from apps.agent.domain.services.report_sections import build_sections, scarcity
 from apps.agent.domain.services.section_stream import concat_sections
 from apps.rag.dependencies.rag_dependencies import get_rag_search_use_case
 from core.matrix.grid_benchmark_manager import paired_bootstrap_ci, percentile, pick_winner, resident_models
@@ -225,12 +225,9 @@ def score_run(record: dict, facts: dict) -> dict:
     """
     answer = record["sections"].get("answer", "")
     attempts = record.get("answer_attempts") or []
-    missing = scarcity(facts)
-    # 자료 부족 동네는 LLM이 실패하면 코드 첫 문장만 남는다 — 그것도 폴백이다
-    fallbacks = {ANSWER_FALLBACK, *([scarce_lead(facts, missing)] if missing is not None else [])}
     return {
         "complete": not record.get("error") and bool(answer),
-        "fallback": answer in fallbacks,
+        "fallback": answer == ANSWER_FALLBACK,
         "verdict_ok": not contradicts_verdict(answer, facts.get("verdict")),
         "digits": len(_DIGITS.findall(blank_names(answer, region_names(facts)))),
         "removed_sentences": sum(a.get("removed_sentences", 0) for a in attempts),
@@ -398,15 +395,21 @@ def _cmd_run(args: argparse.Namespace) -> None:
             print(f"run: {model.name} {s['id']} rep{rep} total={got['total_ms']} error={error}", flush=True)
 
 
+def _code_only_ids() -> set[str]:
+    """자료 부족 시나리오(`scarcity`) — 해석이 LLM 없이 코드 첫 문장뿐이라 해석 채점·판정 묶음에서 뺀다."""
+    return {s["id"] for s in _scenarios() if scarcity(_facts_of(s["id"])) is not None}
+
+
 def _cmd_score(args: argparse.Namespace) -> None:
     facts = {s["id"]: _facts_of(s["id"]) for s in _scenarios()}
+    code_only = _code_only_ids()
     for name in REPORT_MODELS:
         records = _read_jsonl(_run_path(name))
         if not records:
             continue
         if any("answer_attempts" not in r for r in records):
             raise SystemExit("옛 형식 캐시 — 새 구조 벤치는 --cache-tag로 돌린 run만 채점")
-        runs = [{**r, **score_run(r, facts[r["id"]])} for r in records]
+        runs = [{**r, **score_run(r, facts[r["id"]])} for r in records if r["id"] not in code_only]
         _write_json(_score_path(name), score_summary(name, runs))
         print(f"score: {name} → {_score_path(name)}", flush=True)
 
@@ -414,10 +417,11 @@ def _cmd_score(args: argparse.Namespace) -> None:
 def _first_rep_answers() -> dict[str, tuple[str, dict[str, str]]]:
     """{시나리오 id: (코드 6개 절 본문, {모델: 1회차 해석})} — 해석의 모델명은 가린다. 본문은 모델과 무관하게 같다."""
     out: dict[str, tuple[str, dict[str, str]]] = {}
+    code_only = _code_only_ids()
     for name in REPORT_MODELS:
         for r in _read_jsonl(_run_path(name)):
             answer = r["sections"].get("answer")
-            if r["rep"] == 0 and answer:
+            if r["rep"] == 0 and answer and r["id"] not in code_only:
                 body = concat_sections((k, v) for k, v in r["sections"].items() if k != "answer")
                 out.setdefault(r["id"], (body, {}))[1][name] = mask_model_names(answer)
     return out
@@ -462,8 +466,7 @@ def _cmd_judge_export(args: argparse.Namespace) -> None:
     questions = {s["id"]: s["question"] for s in _scenarios()}
     mapping: dict[str, dict[str, str]] = {}
     for sid, (body, answers) in _first_rep_answers().items():
-        scarce = scarcity(_facts_of(sid)) is not None
-        packet, mapping[sid] = answer_packets(sid, questions.get(sid), body, answers, _JUDGE_SEED, scarce)
+        packet, mapping[sid] = answer_packets(sid, questions.get(sid), body, answers, _JUDGE_SEED)
         (_JUDGE / f"packet_{sid}.md").write_text(packet, encoding="utf-8")
     _write_json(_JUDGE / "mapping.json", mapping)
     # 사람 검수 표본 — 같은 시드면 같은 20건

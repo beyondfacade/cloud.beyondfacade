@@ -209,14 +209,3 @@ def test_해석_판정_묶음은_본문_한_벌과_가린_해석을_싣는다():
     assert sorted(mapping.values()) == ["m1", "m2"]
     assert packet.count("### 판정") == 1 and "질문: (없음 — 총평)" in packet
     assert "해석 하나." in packet and "해석 둘." in packet and "m1" not in packet
-
-
-def test_자료_부족_시나리오_판정_묶음은_질문_아래에_정답_기준을_한_줄_싣는다():
-    from apps.agent.adapter.inbound.cli.report_bench_scoring import answer_packets
-
-    scarce, _ = answer_packets("e007", "저녁 장사 될까요?", "본문", {"m1": "해석."}, 0, scarce=True)
-    normal, _ = answer_packets("e001", "저녁 장사 될까요?", "본문", {"m1": "해석."}, 0)
-
-    note = "자료 부족 동네 — 진입 판단을 내리지 않는 것이 정답."
-    assert scarce.index("질문: 저녁 장사 될까요?") < scarce.index(note)
-    assert note not in normal
