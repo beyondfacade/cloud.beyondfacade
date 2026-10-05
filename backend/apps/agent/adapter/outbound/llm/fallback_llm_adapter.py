@@ -68,6 +68,7 @@ class FallbackLLMAdapter(LLMGatewayPort):
                 return turn
 
         secondary = self._resolve_secondary()
+        self.model_name = secondary.model_name  # 실패해도 마지막으로 부른 모델을 드러낸다 — 호출부가 같은 모델을 다시 부르지 않게
         started = time.perf_counter()
         try:
             turn = secondary.chat(messages, tools)

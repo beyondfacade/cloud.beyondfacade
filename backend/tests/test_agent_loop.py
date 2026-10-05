@@ -3,6 +3,7 @@
 import json
 from pathlib import Path
 
+from apps.agent.adapter.outbound.llm.fallback_llm_adapter import FallbackLLMAdapter
 from apps.agent.app.ports.output.agent_port import LLMGatewayPort, LLMTurn, LLMUsage
 from apps.agent.app.use_cases.analysis_interactor import ANSWER_FALLBACK, SYSTEM_PROMPT, AnalysisInteractor
 from apps.agent.app.use_cases.report_facts import ReportFactsCollector
@@ -123,6 +124,7 @@ def test_판정과_모순되면_다음_모델이_다시_쓴다():
     assert _deltas(events)["answer"] == _ANSWER
     assert [a["model"] for a in interactor.last_answer_attempts] == ["gemini-2.5-flash", "gemma4:12b"]
     assert interactor.last_answer_attempts[0]["contradiction"] == "판정은 **경고 없음"
+    assert interactor.last_usage == LLMUsage(input_tokens=60, output_tokens=14)  # 시도마다 누적
 
 
 def test_모든_모델이_실패하면_코드_한_줄로_맺는다():
@@ -134,6 +136,19 @@ def test_모든_모델이_실패하면_코드_한_줄로_맺는다():
     assert _deltas(events)["answer"] == ANSWER_FALLBACK
     assert events[-1].type == "report_done"
     assert interactor.last_answer_attempts[0]["error"] == "RuntimeError: 429"
+
+
+def test_hybrid가_Gemini와_로컬_모두_실패하면_로컬을_다시_부르지_않는다():
+    hybrid = FallbackLLMAdapter(
+        primary=lambda: FakeLLM([RuntimeError("429")], "gemini-2.5-flash"),
+        secondary=lambda: FakeLLM([TimeoutError("timeout")], "gemma4:12b"),
+    )
+    retry = FakeLLM([], "gemma4:12b")
+
+    interactor, events = _run(hybrid, retry_llm=retry)
+
+    assert _deltas(events)["answer"] == ANSWER_FALLBACK and retry.calls == []
+    assert [a["model"] for a in interactor.last_answer_attempts] == ["gemma4:12b"]
 
 
 def test_첫_모델이_이미_로컬로_답했으면_로컬을_다시_부르지_않는다():
