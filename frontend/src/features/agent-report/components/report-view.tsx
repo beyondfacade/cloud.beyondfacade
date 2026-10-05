@@ -113,19 +113,20 @@ export function ReportView({ state }: ReportViewProps) {
             <div className={`${styles.markdown} report-markdown`}>
               <ReactMarkdown remarkPlugins={REMARK_PLUGINS}>{state.sections.answer_lead}</ReactMarkdown>
             </div>
-            <h3 className="mb-2 mt-5 text-sm font-semibold text-[var(--text-secondary)]">AI 해석</h3>
-            {/* 해석 길이와 무관하게 아래 사실 절의 위치를 유지한다. */}
-            <div role="region" aria-label="AI 해석 본문" tabIndex={0} className="h-32 overflow-y-auto focus-visible:outline-2 focus-visible:outline-[var(--accent)]">
+            <p className="mb-2 mt-5 text-sm font-semibold text-[var(--text-secondary)]">AI 해석</p>
+            <div role="region" aria-label="AI 해석 본문" className="min-h-32">
               {state.sections.answer ? (
                 <div className={`${styles.markdown} report-markdown`}>
                   <ReactMarkdown remarkPlugins={REMARK_PLUGINS}>{state.sections.answer}</ReactMarkdown>
                 </div>
-              ) : (
+              ) : !state.done && !state.error ? (
                 <div role="status" aria-label="AI 해석 작성 중" className="space-y-3 pt-1 animate-pulse motion-reduce:animate-none">
                   <div className="h-4 w-full rounded bg-[var(--bg-raised)]" />
                   <div className="h-4 w-full rounded bg-[var(--bg-raised)]" />
                   <div className="h-4 w-3/4 rounded bg-[var(--bg-raised)]" />
                 </div>
+              ) : (
+                <p className="text-sm text-[var(--text-secondary)]">AI 해석을 받지 못했습니다.</p>
               )}
             </div>
           </section>

@@ -187,6 +187,15 @@ it("직접 답 조각이 먼저 오면 즉시 질문에 대한 답과 근거, AI
   expect(box.compareDocumentPosition(screen.getByRole("region", { name: "판정" })) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
 });
 
+it("직접 답이 있고 작성이 끝났는데 해석이 없으면 스켈레톤 대신 미수신 안내를 표시한다", () => {
+  const state = applyAgentEvent(initialAgentState(), {
+    type: "report_delta", section: "answer_lead", markdown: "[확인된 사실] 미용실은 권하지 않습니다.",
+  });
+  render(<ReportView state={{ ...state, done: true }} />);
+  expect(screen.queryByRole("status", { name: "AI 해석 작성 중" })).not.toBeInTheDocument();
+  expect(screen.getByText("AI 해석을 받지 못했습니다.")).toBeInTheDocument();
+});
+
 it("해석이 없는 옛 리포트는 해석 블록 없이 여섯 절을 그대로 그린다", () => {
   let state = initialAgentState();
   for (const [section, title] of SECTIONS) {
