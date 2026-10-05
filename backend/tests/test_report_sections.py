@@ -139,7 +139,7 @@ def test_그래도_한다면은_시간대_부족_이유와_상권_전체_기준�
     assert body == (
         "[확인된 사실] 시간대(송정동 한식): 자료 부족 — 시간대 어긋남 자료가 없다\n\n"
         "[확인된 사실] 동네 유형(송정동, 2026년 2분기): 주거형 — 직장인구가 상주인구보다 적습니다. "
-        "사람 흐름: 밤(21~06시) — 가장 많은 때 밤(21~06시), 가장 적은 때 저녁(17~21시).\n\n"
+        "사람 흐름: 가장 많은 때 밤(21~06시), 가장 적은 때 저녁(17~21시).\n\n"
         "[확인된 사실] 상권 영업 기간(송정동 상권 전체·업종 무관, 2026년 2분기): 영업 중 점포 평균 124개월, "
         "폐업 점포 평균 54개월 — 서울 동 상권 전체 기준값은 118개월·54개월입니다. 상권변화지표: 정체."
     )
@@ -183,3 +183,36 @@ def test_지원사업은_공고_제목_원문과_해당_가능성과_예상치_�
         f"{FUNDING_DISCLAIMER}"
     )
     assert "http" not in body and "PBLN_" not in body
+
+
+def test_시간대_자료_부족_이유에서_내부_코드를_뺀다():
+    body = _body("conditions", hour_gap={"available": False, "reason": "시간대 어긋남 자료가 없다: 1120072000 × korean_food"})
+
+    assert body.startswith("[확인된 사실] 시간대(송정동 한식): 자료 부족 — 시간대 어긋남 자료가 없다\n\n")
+    assert "1120072000" not in body and "korean_food" not in body
+
+
+def test_올해_부분연도_폐업률은_올해_현재까지로_표기한다():
+    history = [
+        {"year": 2019, "store_count": 41, "closure_rate": 0.0278},
+        {"year": 2026, "store_count": 33, "closure_rate": 0.30952380952380953},
+    ]
+
+    body = _body("reasons", metrics_history=history)  # _BASE의 상권 분기 자료가 20262
+
+    assert "2019년 2.8% → 2026년(올해 현재까지) 31.0%(점포 41곳 → 33곳)" in body
+
+
+def test_접수_기간_원문이_상시_접수면_접수를_다시_붙이지_않는다():
+    candidates = [{"title": "상시 공고", "org": "서울특별시", "deadline": None, "apply_period": "상시 접수"}]
+
+    assert "- 「상시 공고」 — 서울특별시, 상시 접수\n" in _body("funding", funding_candidates=candidates)
+
+
+def test_유사_사례_고정_문장_속_업종_id는_업종_이름으로_바꾼다():
+    region = {"code": "1126057500", "name": "면목제3.8동", "industry_id": "convenience_store", "industry_name": "편의점"}
+    analogs = {"categories": [{"category": "minimum_wage", "reason": "current"}],
+               "current_events": [{"category": "minimum_wage", "summary_sentence": "서울 전체 convenience_store는 평소와 비슷했습니다.",
+                                   "overlap_sentence": None}]}
+
+    assert _body("analogs", region=region, analogs=analogs) == "[확인된 사실] 서울 전체 편의점은 평소와 비슷했습니다."

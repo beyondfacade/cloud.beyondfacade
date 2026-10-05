@@ -118,15 +118,25 @@ def _signals(verdict: dict, region: str, industry: str) -> str:
     return "\n".join(lines) or f"{FACT} {where}: 켜진 경고 신호 없음."
 
 
-def _closure_trend(history: object, region: str, industry: str) -> str:
+def _current_year(facts: dict) -> str | None:
+    """사실 묶음의 기준 연도 — 분기 자료('20262')의 연도. 이 해의 폐업률은 아직 진행 중인 부분 연도다."""
+    for key in ("commerce_change", "profile"):
+        year_quarter = (facts.get(key) or {}).get("year_quarter")
+        if year_quarter:
+            return year_quarter[:4]
+    return None
+
+
+def _closure_trend(history: object, region: str, industry: str, current_year: str | None) -> str:
     reason = _missing_reason(history)
     rows = [r for r in history or [] if r.get("closure_rate") is not None] if reason is None else []
     if not rows:
         return f"{FACT} {region} {industry} 연간 폐업률: {missing(reason or '연도별 폐업률 없음')}"
     first, last = rows[0], rows[-1]
+    partial = "(올해 현재까지)" if str(last["year"]) == current_year else ""
     line = (
         f"{FACT} {region} {industry} 연간 폐업률: {first['year']}년 {first['closure_rate'] * 100:.1f}% → "
-        f"{last['year']}년 {last['closure_rate'] * 100:.1f}%(점포 {first['store_count']}곳 → {last['store_count']}곳)."
+        f"{last['year']}년{partial} {last['closure_rate'] * 100:.1f}%(점포 {first['store_count']}곳 → {last['store_count']}곳)."
     )
     return line + (f" {_DISASTER_NOTE}" if any(r["year"] in _DISASTER_YEARS for r in rows) else "")
 
@@ -145,7 +155,7 @@ def _reasons(facts: dict) -> str:
     return "\n\n".join(
         [
             _signals(facts.get("verdict") or {}, region, industry),
-            _closure_trend(facts.get("metrics_history"), region, industry),
+            _closure_trend(facts.get("metrics_history"), region, industry, _current_year(facts)),
             _shocks(facts.get("shocks"), industry),
         ]
     )
@@ -170,6 +180,12 @@ def _category_paragraph(analogs: dict, category: str) -> str:
     return " ".join(parts)
 
 
+def _show_industry_name(text: str, industry_id: str, industry: str) -> str:
+    """문장 속 업종 id를 업종 이름으로 — 고정 문장에 박혀 온 주제 조사 '는'은 받침에 맞춰 '은'으로 고친다."""
+    topic = "은" if (ord(industry[-1]) - 0xAC00) % 28 else "는"
+    return text.replace(f"{industry_id}는", f"{industry}{topic}").replace(industry_id, industry)
+
+
 def _analogs(facts: dict) -> str:
     _, industry = _names(facts)
     analogs = facts.get("analogs") or {}
@@ -178,7 +194,13 @@ def _analogs(facts: dict) -> str:
         return f"{FACT} 유사 사례(서울 전체 {industry}): {missing(reason)}"
     # 질문 속 상황 유형을 먼저, 운영자가 등록한 진행 중 유형을 뒤에
     categories = sorted(analogs.get("categories") or [], key=lambda c: c.get("reason") != "question")
-    paragraphs = [p for p in (_category_paragraph(analogs, c.get("category")) for c in categories) if p]
+    # 고정 문장에 업종 id가 그대로 박혀 오는 경우가 있다 — 사용자에게는 업종 이름을 보인다
+    industry_id = (facts.get("region") or {}).get("industry_id")
+    paragraphs = [
+        _show_industry_name(p, industry_id, industry) if industry_id else p
+        for p in (_category_paragraph(analogs, c.get("category")) for c in categories)
+        if p
+    ]
     return "\n\n".join(paragraphs) or f"{FACT} 서울 전체 {industry}: 비교할 과거 사례가 없습니다."
 
 
@@ -201,7 +223,9 @@ def hour_gap_sentence(bands: list[dict]) -> str | None:
 
 def _hours(hour_gap: dict, region: str, industry: str) -> str:
     if not hour_gap.get("available"):
-        return f"{FACT} 시간대({region} {industry}): {missing(hour_gap.get('reason'))}"
+        # 이유 뒤 ": 동코드 × 업종 id" 같은 내부 코드는 사용자에게 보이지 않는다
+        reason = (hour_gap.get("reason") or "").split(":")[0].strip()
+        return f"{FACT} 시간대({region} {industry}): {missing(reason)}"
     sentence = hour_gap_sentence(hour_gap.get("bands") or []) or missing("시간대 구간 없음")
     return f"{FACT} 시간대({region} 유동인구·{industry} 매출, {_quarter(hour_gap.get('year_quarter'))}): {sentence}"
 
@@ -210,9 +234,12 @@ def _profile(profile: dict, region: str) -> str:
     reason = _missing_reason(profile)
     if reason is not None:
         return f"{FACT} 동네 유형({region}): {missing(reason)}"
+    # 흐름 이름이 가장 많은 때와 같으면 같은 말을 두 번 하지 않는다
+    label = profile.get("time_label_name")
+    flow = "" if label == profile.get("peak_block_name") else f"{label} — "
     return (
         f"{FACT} 동네 유형({region}, {_quarter(profile.get('year_quarter'))}): {profile.get('type_name')} — "
-        f"{profile.get('type_reason')} 사람 흐름: {profile.get('time_label_name')} — 가장 많은 때 "
+        f"{profile.get('type_reason')} 사람 흐름: {flow}가장 많은 때 "
         f"{profile.get('peak_block_name')}, 가장 적은 때 {profile.get('trough_block_name')}."
     )
 
@@ -277,7 +304,8 @@ def _due(candidate: dict) -> str:
     """마감일이 있으면 마감, 없으면 접수 기간 원문("예산 소진시까지"·"상시 접수")."""
     if candidate.get("deadline"):
         return f"마감 {candidate['deadline']}"
-    return f"접수 {candidate.get('apply_period') or '기간 미상'}"
+    period = candidate.get("apply_period") or "기간 미상"
+    return period if period.startswith("상시") else f"접수 {period}"
 
 
 def _funding(facts: dict) -> str:
