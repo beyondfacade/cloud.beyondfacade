@@ -128,7 +128,7 @@ it("SSE 문장 조각은 같은 섹션에 반복되고 이어 붙이면 여섯 �
     ["verdict", "판정"], ["reasons", "왜 안 되나"], ["analogs", "유사 사례"], ["conditions", "그래도 한다면"],
     ["alternatives", "대안 동네·업종"], ["funding", "대안 업종 지원사업"],
   ] as const;
-  expect([...new Set(deltas.map((e) => e.section))]).toEqual(sections.map(([section]) => section));
+  expect([...new Set(deltas.map((e) => e.section))]).toEqual([...sections.map(([section]) => section), "answer"]);
   for (const [section, title] of sections) {
     const chunks = deltas.filter((e) => e.section === section).map((e) => e.markdown);
     expect(chunks.length).toBeGreaterThan(1);
@@ -138,4 +138,16 @@ it("SSE 문장 조각은 같은 섹션에 반복되고 이어 붙이면 여섯 �
     expect(markdown.startsWith(`### ${title}\n\n`)).toBe(true);
     expect(markdown.slice(`### ${title}\n\n`.length).trim().length).toBeGreaterThan(0);
   }
+});
+
+it("SSE 해석은 여섯 사실 절 뒤에 한 번 오고 숫자를 담지 않는다", async () => {
+  const events = await readEvents();
+  const deltas = events.filter((e): e is Extract<AgentEvent, { type: "report_delta" }> => e.type === "report_delta");
+  const answers = deltas.filter((e) => e.section === "answer");
+  expect(answers).toHaveLength(1);
+  expect(deltas.at(-1)).toEqual(answers[0]);
+  expect(new Set(deltas.slice(0, -1).map((e) => e.section))).toEqual(
+    new Set(["verdict", "reasons", "analogs", "conditions", "alternatives", "funding"]),
+  );
+  expect(answers[0].markdown).not.toMatch(/\d/);
 });

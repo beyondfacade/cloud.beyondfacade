@@ -1,5 +1,5 @@
 import { expect, it } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import { ReportView } from "./report-view";
 import { applyAgentEvent, initialAgentState } from "../lib/agent-events";
 
@@ -149,4 +149,23 @@ it.each([
 it("리포트 article의 접근성 이름은 창업 경고 리포트다", () => {
   render(<ReportView state={{ ...initialAgentState(), facts: reportFacts() }} />);
   expect(screen.getByRole("article", { name: "창업 경고 리포트" })).toBeInTheDocument();
+});
+
+it("해석이 오면 여섯 사실 절보다 위에 '해석' 블록으로 그린다", () => {
+  let state = applyAgentEvent(initialAgentState(), { type: "report_delta", section: "verdict", markdown: "### 판정\n\n판정 본문" });
+  state = applyAgentEvent(state, { type: "report_delta", section: "answer", markdown: "먼저 시간대를 확인하세요." });
+  render(<ReportView state={state} />);
+  const labels = screen.getAllByRole("region").map((region) => region.getAttribute("aria-label"));
+  expect(labels.indexOf("해석")).toBeLessThan(labels.indexOf("판정"));
+  expect(within(screen.getByRole("region", { name: "해석" })).getByText("먼저 시간대를 확인하세요.")).toBeInTheDocument();
+});
+
+it("해석이 없는 옛 리포트는 해석 블록 없이 여섯 절을 그대로 그린다", () => {
+  let state = initialAgentState();
+  for (const [section, title] of SECTIONS) {
+    state = applyAgentEvent(state, { type: "report_delta", section, markdown: `### ${title}\n\n본문` });
+  }
+  render(<ReportView state={state} />);
+  expect(screen.queryByRole("region", { name: "해석" })).not.toBeInTheDocument();
+  expect(screen.getAllByRole("heading", { level: 3 }).map((h) => h.textContent)).toEqual(SECTIONS.map(([, title]) => title));
 });

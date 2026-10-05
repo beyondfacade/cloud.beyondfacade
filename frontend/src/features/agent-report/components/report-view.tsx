@@ -1,7 +1,7 @@
 import Link from "next/link";
 import ReactMarkdown, { type Options } from "react-markdown";
 import remarkGfm from "remark-gfm";
-import type { ReportFacts, ReportSection } from "@/shared/api/types";
+import type { FactSection, ReportFacts } from "@/shared/api/types";
 import { GradeBadge } from "@/shared/ui/grade-badge";
 import type { AgentState } from "../lib/agent-events";
 import { analogAnchors, gradedParagraphs } from "../lib/graded-paragraphs";
@@ -11,8 +11,8 @@ import styles from "./analysis-workspace.module.css";
 // 본문엔 "50~299인"처럼 범위 물결표가 흔하다 — 물결표 하나짜리 취소선을 끄지 않으면 두 범위 사이가 그어진다
 const REMARK_PLUGINS: Options["remarkPlugins"] = [[remarkGfm, { singleTilde: false }]];
 
-const SECTION_ORDER: ReportSection[] = ["verdict", "reasons", "analogs", "conditions", "alternatives", "funding"];
-const SECTION_LABEL: Record<ReportSection, string> = {
+const SECTION_ORDER: FactSection[] = ["verdict", "reasons", "analogs", "conditions", "alternatives", "funding"];
+const SECTION_LABEL: Record<FactSection, string> = {
   verdict: "판정",
   reasons: "왜 안 되나",
   analogs: "유사 사례",
@@ -22,12 +22,12 @@ const SECTION_LABEL: Record<ReportSection, string> = {
 };
 
 // 섹션별 본문 모양 — 유사 사례는 근거 표기 단위 문단·문장 단위 줄로, 유형마다 사실 → 신호 순서로 다시 짠다
-const SECTION_FORMAT: Partial<Record<ReportSection, (markdown: string, facts: AgentState["facts"]) => string>> = {
+const SECTION_FORMAT: Partial<Record<FactSection, (markdown: string, facts: AgentState["facts"]) => string>> = {
   analogs: (markdown, facts) => gradedParagraphs(markdown, analogAnchors(facts?.analogs)),
 };
 
 /** 사실 그림이 제목을 이미 달았으면 본문 앞머리의 같은 제목 줄을 뗀다. */
-function sectionBody(state: AgentState, section: ReportSection): string {
+function sectionBody(state: AgentState, section: FactSection): string {
   const markdown = state.sections[section] ?? "";
   return state.facts
     ? markdown.replace(new RegExp(`^(#{1,6}\\s+)?${SECTION_LABEL[section]}\\s*(\\n|$)`), "")
@@ -106,6 +106,15 @@ export function ReportView({ state }: ReportViewProps) {
         <span>WARNING REPORT</span><span>{state.error ? "작성 중단" : state.done ? "작성 완료" : "리포트 작성 중"}</span>
       </header>
       <div className={styles.reportBody}>
+        {state.sections.answer && (
+          <section aria-label="해석" className={`${styles.reportSection} border-[var(--border)]`}>
+            <h2 className="mb-2 text-xl font-semibold text-[var(--accent)]">해석</h2>
+            <p className="mb-5 text-sm text-[var(--text-secondary)]">AI가 아래 사실을 읽고 쓴 해석입니다. 판정과 수치는 아래 사실을 기준으로 보세요.</p>
+            <div className={`${styles.markdown} report-markdown`}>
+              <ReactMarkdown remarkPlugins={REMARK_PLUGINS}>{state.sections.answer}</ReactMarkdown>
+            </div>
+          </section>
+        )}
         {sections.map((section, index) => (
           <section key={section} aria-label={SECTION_LABEL[section]} className={`${styles.reportSection} border-[var(--border)]`}>
             <p className={`${styles.sectionNumber} text-[var(--accent)]`} aria-hidden="true">{String(index + 1).padStart(2, "0")} / ANALYSIS</p>
