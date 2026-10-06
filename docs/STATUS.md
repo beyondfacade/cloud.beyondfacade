@@ -250,10 +250,14 @@ main이 전진하면 다시 낡는다 — 배포 전 재빌드가 규칙.
 
 ## 5. 코드·기능 — 무엇이 어디까지 됐나
 
-### 5-1. API 15개 라우터 (`backend/main.py`)
-`/analysis`(SSE 리포트) · `/intent`(관문 파서+진단) · `/profiles`(동네 프로필·유형·지표 목록) · `/hour-gaps` ·
-`/commerce-changes`(지도·상세+서울평균) · `/metrics` · `/regions` · `/stores` · `/finance`(simulate·prefill·questions) ·
-`/funding`(목록·candidates) · `/news` · `/shocks` · `/childcare-centers` · `/childcare-center-stats` · `/convenience-stores`
+### 5-1. API 공개 라우터 (`backend/main.py`, 관리자 제외)
+`/analysis`(SSE 리포트) · `/intent`(관문 파서+진단) · `/profiles/{region_code}`(동네 프로필) · `/regions` · `/stores` ·
+`/finance`(simulate·prefill·questions) · `/funding`(목록·candidates·support) · `/news` · `/childcare-centers` ·
+`/convenience-stores`(목록·summary) · `/verdicts`(목록·동·대안)
+
+2026-10-06 BE v0.79.0에서 프론트가 부르지 않는 9개(`/metrics`·`/hour-gaps`·`/shocks`·`/shocks/analogs`·`/commerce-changes`·
+`/commerce-changes/{region}`·`/profiles`·`/profiles/types`·`/childcare-center-stats/summary`)를 지웠다. 9/29 화면 재편(FE v0.31.0)에서
+지도 지표 레이어·패널 상세를 뺀 뒤 남은 입구였고, 같은 데이터는 리포트가 내부에서 읽는다(SSE `facts`).
 
 ### 5-2. 프론트 4 라우트 · feature 5개
 `/`(랜딩+관문 `intent-gate`) · `/map`(`map-explorer`: **판정 단계구분도만** + brief 한 화면 — 9/29 화면 재편 FE v0.31.0, 지표 8개 선택기는 제거) ·

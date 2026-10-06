@@ -179,12 +179,6 @@ export interface ReportShock extends Record<string, unknown> {
 
 export type MetricKey = "closure_rate" | "growth_rate" | "store_count";
 
-/** GET /profiles?metric= 가 지도에 올리는 파생 지표 (동×분기 숫자, v0.30.0의 7종 중 화면에 노출하는 둘). */
-export type ProfileMetricKey = "night_index" | "fnb_share";
-
-/** GET /commerce-changes 가 지원하는 지표 (동×분기 숫자). */
-export type CommerceChangeMetricKey = "operating_months";
-
 /** 범주 계약({region_code, type_code})으로 오는 지표. 숫자 계약과 경로가 다르다 (map-metric-contract §5).
  *  verdict는 API가 {region_code, value}로 주지만 api.ts가 type_code로 옮겨 같은 범주 파이프라인을 탄다. */
 export type CategoricalMetricKey = "neighborhood_type" | "verdict";
@@ -194,7 +188,7 @@ export interface MetricRow {
   value: number;
 }
 
-/** 범주 단계구분도 행 (GET /profiles/types). 한 타입에 value/category를 섞어 null로 두지 않는다. */
+/** 판정 지도용 범주 단계구분도 행. GET /verdicts의 value를 type_code로 옮긴다. */
 export interface CategoryRow {
   region_code: string;
   type_code: string; // office | campus | dining | hub | residential | mixed
@@ -235,17 +229,6 @@ export interface ChildcareCenter {
   capacity: number;
   child_count: number;
   waiting_count: number | null; // 원천 공란 null — 0으로 추정하지 않음
-}
-
-/** 행정동 어린이집 요약 (GET /childcare-center-stats/summary?region=). */
-export interface ChildcareRegionSummary {
-  region_code: string;
-  base_date: string | null;
-  center_count: number;
-  capacity: number;
-  child_count: number;
-  occupancy_rate: number | null; // 현원/정원 — 정원 0이면 null
-  waiting_count: number | null; // 입소대기 합(중복 신청 포함) — 전 시설 공란이면 null
 }
 
 /** 편의점 지도 마커 — 좌표 보유 현행 편의점 (GET /convenience-stores?region=). */
@@ -296,13 +279,13 @@ export interface BlockIntensities {
   night: number;
 }
 
-/** 같은 분기의 서울 전체 평균 — 동의 값 옆에 놓는 비교 기준 (GET /commerce-changes/{region_code}). */
+/** 리포트 facts의 같은 분기 서울 전체 평균 — 동의 값 옆에 놓는 비교 기준. */
 export interface SeoulCommerceBaseline {
   operating_months: number | null;
   closed_months: number | null;
 }
 
-/** 동별 상권 변화 상세 (GET /commerce-changes/{region_code}?year_quarter=). 분기 생략 시 최신. */
+/** 리포트 facts의 동별 상권 변화 상세. */
 export interface RegionCommerceChangeDetail {
   region_code: string;
   year_quarter: string;
@@ -321,7 +304,7 @@ export interface HourGapBand {
   gap: number;
 }
 
-/** 동×업종×분기 시간대 어긋남 (GET /hour-gaps?region=&industry=). 매출 원천이 20254까지라 프로필과 최신 분기가 다르다. */
+/** 리포트 facts의 동×업종×분기 시간대 어긋남. 매출 원천이 20254까지라 프로필과 최신 분기가 다르다. */
 export interface RegionIndustryHourGap {
   region_code: string;
   industry_id: string;

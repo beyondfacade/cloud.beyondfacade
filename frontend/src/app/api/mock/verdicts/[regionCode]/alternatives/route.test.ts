@@ -35,10 +35,13 @@ it("두 축 모두 기준보다 신호가 적은 clear·orange만 3개까지, �
 
 it("업종 고정 축의 동은 기준 동과 같은 동네 유형이다", async () => {
   const body = await (await call("1168064000")).json();
-  const { GET: profiles } = await import("../../../profiles/types/route");
-  const rows = await (await profiles(new Request("http://test/api/mock/profiles/types?year_quarter=20262"))).json();
-  const typeOf = (code: string) => rows.find((r: { region_code: string }) => r.region_code === code)?.type_code;
-  for (const a of body.regions) expect(typeOf(a.region_code)).toBe(body.neighborhood_type);
+  const { GET: profile } = await import("../../../profiles/[regionCode]/route");
+  for (const a of body.regions) {
+    const response = await profile(new Request(`http://test/api/mock/profiles/${a.region_code}?year_quarter=20262`), {
+      params: Promise.resolve({ regionCode: a.region_code }),
+    });
+    expect((await response.json()).neighborhood_type).toBe(body.neighborhood_type);
+  }
 });
 
 it("모르는 동은 404 VERDICT_NOT_FOUND, 판정 대상이 아닌 업종은 404 INDUSTRY_NOT_FOUND", async () => {
