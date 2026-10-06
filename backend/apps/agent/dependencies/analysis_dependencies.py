@@ -44,31 +44,33 @@ def _local() -> LLMGatewayPort:
     )
 
 
+# 해석 모델 — 2026-10-06 평가(116건, opus 판정): gemini-3.8-flash 일반 6.9% · claude-opus-5-5 4.3%(구간 겹침) ·
+# gemini-2.5-flash 16.5%. 3.8 일반이 오퍼스의 약 1/10 비용이라 1차, 오퍼스는 폴백(사용자 결정).
+# ops/adapter/outbound/gateways/llm_chain_gateway.py 의 PRIMARY_MODEL·SECONDARY_MODEL 과 같아야 한다
+REPORT_PRIMARY_MODEL = "gemini-3.8-flash"
+REPORT_FALLBACK_MODEL = "claude-opus-5-5"
+
+
 def _gemini() -> LLMGatewayPort:
-    """키가 없으면 생성 시점에 ValueError — 폴백 어댑터가 그 예외로 키 유무를 판정한다."""
-    return GeminiLLMAdapter(temperature=REPORT_TEMPERATURE, seed=REPORT_SEED)
-
-
-# 1차 해석 모델 — 2026-10-06 평가(116건, opus 판정) Opus 5.5 1.7% · Gemini 16.5% · 12b 30.2%.
-# ops/adapter/outbound/gateways/llm_chain_gateway.py 의 PRIMARY_MODEL 과 같아야 한다
-REPORT_PRIMARY_MODEL = "claude-opus-5-5"
+    """키가 없으면 생성 시점에 ValueError — 폴백 어댑터가 그 예외로 키 유무를 판정한다. 3.8 Flash 일반 모드(사전 추론 끔)."""
+    return GeminiLLMAdapter(model=REPORT_PRIMARY_MODEL, temperature=REPORT_TEMPERATURE, seed=REPORT_SEED)
 
 
 def _opus() -> LLMGatewayPort:
     """키가 없으면 생성 시점에 ValueError. Opus 5.5는 생각을 끌 수 없어 effort low로 줄인다(온도는 받지 않는다)."""
-    return AnthropicLLMAdapter(REPORT_PRIMARY_MODEL, effort="low")
+    return AnthropicLLMAdapter(REPORT_FALLBACK_MODEL, effort="low")
 
 
-def _gemini_then_local() -> LLMGatewayPort:
-    """Gemini로 가되 키가 없거나 호출이 실패하면 로컬로 내려간다 — 오퍼스 다음 단계이자 가드 재시도 모델."""
-    return FallbackLLMAdapter(primary=_gemini, secondary=_local, recorder=SqlAlchemyLlmCallRecorder())
+def _opus_then_local() -> LLMGatewayPort:
+    """오퍼스로 가되 키가 없거나 호출이 실패하면 로컬로 내려간다 — Gemini 다음 단계이자 가드 재시도 모델."""
+    return FallbackLLMAdapter(primary=_opus, secondary=_local, recorder=SqlAlchemyLlmCallRecorder())
 
 
 def _hybrid() -> LLMGatewayPort:
-    """기본 배선 — 오퍼스 → Gemini → 로컬. 어댑터는 키가 없으면 **생성 시점에** ValueError를 던지고,
+    """기본 배선 — Gemini 3.8 → 오퍼스 → 로컬. 어댑터는 키가 없으면 **생성 시점에** ValueError를 던지고,
     폴백 어댑터가 그 예외를 잡는 것이 곧 키 유무 판정이다 — 키 값을 읽지도 남기지도 않는다.
     """
-    return FallbackLLMAdapter(primary=_opus, secondary=_gemini_then_local, recorder=SqlAlchemyLlmCallRecorder())
+    return FallbackLLMAdapter(primary=_gemini, secondary=_opus_then_local, recorder=SqlAlchemyLlmCallRecorder())
 
 
 _LLM_REGISTRY: dict[str, Callable[[], LLMGatewayPort]] = {
@@ -79,9 +81,9 @@ _LLM_REGISTRY: dict[str, Callable[[], LLMGatewayPort]] = {
     "opus": _opus,
 }
 
-# 해석이 가드에 걸리면(판정 모순·숫자만 남은 단락) 다음 모델 — 운영 hybrid만 Gemini(실패 시 로컬)로 한 번 더 쓴다(설계서 §5).
+# 해석이 가드에 걸리면(판정 모순·숫자만 남은 단락) 다음 모델 — 운영 hybrid만 오퍼스(실패 시 로컬)로 한 번 더 쓴다(설계서 §5).
 # 단일 모델 직접 지정(벤치·run_agent_eval)은 그 모델만 평가한다.
-_RETRY_REGISTRY: dict[str, Callable[[], LLMGatewayPort]] = {"hybrid": _gemini_then_local}
+_RETRY_REGISTRY: dict[str, Callable[[], LLMGatewayPort]] = {"hybrid": _opus_then_local}
 
 
 def build_analysis_use_case(model: str = "hybrid", budget: int | None = None) -> AnalysisUseCase:
@@ -109,7 +111,7 @@ def build_analysis_use_case(model: str = "hybrid", budget: int | None = None) ->
 
 
 def get_analysis_use_case() -> AnalysisUseCase:
-    """FastAPI Depends 기본 배선 — hybrid(오퍼스 우선, 실패 시 Gemini, 그다음 로컬)."""
+    """FastAPI Depends 기본 배선 — hybrid(Gemini 3.8 우선, 실패 시 오퍼스, 그다음 로컬)."""
     return build_analysis_use_case("hybrid")
 
 

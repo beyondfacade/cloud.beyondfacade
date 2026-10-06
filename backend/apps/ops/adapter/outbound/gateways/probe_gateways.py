@@ -7,7 +7,7 @@ from apps.agent.adapter.outbound.llm.gemini_llm_adapter import GeminiLLMAdapter
 from apps.agent.adapter.outbound.llm.ollama_llm_adapter import OllamaLLMAdapter
 from apps.agent.adapter.outbound.repositories.llm_call_repository import SqlAlchemyLlmCallRecorder
 from apps.agent.domain.services.report_sampling import REPORT_SEED, REPORT_TEMPERATURE
-from apps.ops.adapter.outbound.gateways.llm_chain_gateway import FALLBACK_MODEL, FALLBACK_NUM_CTX
+from apps.ops.adapter.outbound.gateways.llm_chain_gateway import FALLBACK_MODEL, FALLBACK_NUM_CTX, PRIMARY_MODEL
 from apps.ops.app.dtos.healthcare_dto import ProbeHitDto, ProbeResultDto
 from apps.ops.app.ports.output.healthcare_port import ProbePort
 from apps.rag.dependencies.rag_dependencies import get_rag_search_use_case
@@ -47,13 +47,13 @@ class RagProbe(ProbePort):
 
 
 class LlmProbe(ProbePort):
-    """분석 기본 배선(hybrid: Gemini → 실패 시 로컬)에 도구 없이 한 턴."""
+    """분석 1차 모델(Gemini 3.8)에 도구 없이 한 턴 — 실패 시 로컬. 오퍼스 폴백 단계는 점검하지 않는다."""
 
     def run(self, message: str) -> ProbeResultDto:
         started = time.perf_counter()
         llm = FallbackLLMAdapter(
             # 리포트 배선(analysis_dependencies._hybrid)과 같은 샘플링 — 점검이 실제 리포트 호출을 재현하게
-            primary=lambda: GeminiLLMAdapter(temperature=REPORT_TEMPERATURE, seed=REPORT_SEED),
+            primary=lambda: GeminiLLMAdapter(model=PRIMARY_MODEL, temperature=REPORT_TEMPERATURE, seed=REPORT_SEED),
             secondary=lambda: OllamaLLMAdapter(
                 model=FALLBACK_MODEL, num_ctx=FALLBACK_NUM_CTX, temperature=REPORT_TEMPERATURE, seed=REPORT_SEED
             ),
