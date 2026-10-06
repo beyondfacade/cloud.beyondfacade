@@ -136,6 +136,11 @@ REPORT_MODELS: dict[str, ReportModel] = {m.name: m for m in (
     _ollama("exaone3.5:7.8b", None, tools=False),
     ReportModel(_ONLINE, lambda: GeminiLLMAdapter(model=_ONLINE, temperature=REPORT_TEMPERATURE, seed=REPORT_SEED),
                 True, False),
+    ReportModel("gemini-3.8-flash", lambda: GeminiLLMAdapter(model="gemini-3.8-flash", temperature=REPORT_TEMPERATURE,
+                                                            seed=REPORT_SEED), True, False),
+    # 같은 3.8 Flash의 추론 모드(사전 추론 켬, 모델 기본) — 일반 모드와 나란히 잰다
+    ReportModel("gemini-3.8-flash-think", lambda: GeminiLLMAdapter(model="gemini-3.8-flash", temperature=REPORT_TEMPERATURE,
+                                                                  seed=REPORT_SEED, think=True), True, False),
     # 온도는 Haiku 4.5만 받는다. Sonnet 5.5는 생각을 between_tools로 끄고, Opus 5.5는 끌 수 없어 effort low로 줄인다
     ReportModel("claude-haiku-4-5", lambda: AnthropicLLMAdapter("claude-haiku-4-5", temperature=REPORT_TEMPERATURE),
                 False, False),

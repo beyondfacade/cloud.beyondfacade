@@ -1,5 +1,11 @@
 # Backend Version Log
 
+## [v0.74.0] - 2026-10-06
+
+### Added
+- 리포트 벤치 모델 gemini-3.8-flash(사전 추론 끔)·gemini-3.8-flash-think(추론 모드, 모델 기본) — 유료 키로 쓸 수 있는 3.8 Flash를 두 모드로 비교한다.
+- `GeminiLLMAdapter(think=True)` — flash 계열이어도 사전 추론을 끄지 않는다. gemini-3.8-flash도 budget 0을 받아 끄는 대상에 넣었다(실측 1.8초 → 1.3초).
+
 ## [v0.73.0] - 2026-10-06
 
 ### Changed

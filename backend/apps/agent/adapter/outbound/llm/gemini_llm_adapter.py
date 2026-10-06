@@ -31,7 +31,8 @@ _RETRY_BUDGET_SECONDS = 30.0
 # 시스템 프롬프트·facts): thinking ON 첫 토큰 11.7초·완료 22.5초 → OFF 첫 토큰 1.1초·완료 8.4~9.0초.
 _THINKING_OFF = types.ThinkingConfig(thinking_budget=0)
 # Pro는 thinking을 끌 수 없다 — budget 0을 보내면 호출이 400으로 거절된다. flash 계열에만 건다.
-_THINKING_OFF_PREFIX = "gemini-2.5-flash"
+# gemini-3.8-flash도 budget 0을 받는다(2026-10-06 실측 1.8초 → 1.3초)
+_THINKING_OFF_PREFIXES = ("gemini-2.5-flash", "gemini-3.8-flash")
 
 
 def to_gemini_contents(messages: list[dict]) -> tuple[str, list[dict]]:
@@ -118,11 +119,16 @@ class GeminiLLMAdapter(LLMGatewayPort):
         api_key: str | None = None,
         temperature: float | None = None,
         seed: int | None = None,
+        think: bool = False,
     ) -> None:
-        """temperature·seed는 지정했을 때만 generationConfig에 싣는다(미지정이면 지금과 같은 요청)."""
+        """temperature·seed는 지정했을 때만 generationConfig에 싣는다(미지정이면 지금과 같은 요청).
+
+        think=True면 flash 계열이어도 사전 추론을 끄지 않는다(모델 기본 동작) — 추론 모드 평가용.
+        """
         self.model_name = model
         self._temperature = temperature
         self._seed = seed
+        self._think = think
         self._client = genai.Client(api_key=api_key or get_settings().gemini_api_key)
         self._last_request_at: float | None = None
 
@@ -173,7 +179,7 @@ class GeminiLLMAdapter(LLMGatewayPort):
         return types.GenerateContentConfig(
             system_instruction=system_instruction or None,
             thinking_config=(
-                _THINKING_OFF if self.model_name.startswith(_THINKING_OFF_PREFIX) else None
+                _THINKING_OFF if not self._think and self.model_name.startswith(_THINKING_OFF_PREFIXES) else None
             ),
             tools=(
                 [types.Tool(function_declarations=to_function_declarations(tools))]

@@ -204,6 +204,30 @@ def test_gemini는_사전_추론을_끄고_부른다(gemini):
     assert [call["config"].thinking_config.thinking_budget for call in models.calls] == [0, 0]
 
 
+def test_gemini_3_8_flash도_사전_추론을_끈다(monkeypatch):
+    """2026-10-06 실측 — gemini-3.8-flash는 budget 0을 받는다(1.8초 → 1.3초, 답 같음)."""
+    models = _StubModels([_StubChunk(text="글", usage=_StubUsage(1, 1))])
+    monkeypatch.setattr(
+        gemini_llm_adapter.genai, "Client", lambda **kwargs: type("C", (), {"models": models})()
+    )
+
+    GeminiLLMAdapter(model="gemini-3.8-flash", api_key="stub-key").chat([{"role": "user", "content": "써줘"}], [])
+
+    assert models.calls[0]["config"].thinking_config.thinking_budget == 0
+
+
+def test_think를_켜면_flash도_사전_추론을_끄지_않는다(monkeypatch):
+    """3.8 Flash 추론 모드 평가(2026-10-06 사용자 요청) — 같은 모델을 생각 켬/끔 둘 다 잰다."""
+    models = _StubModels([_StubChunk(text="글", usage=_StubUsage(1, 1))])
+    monkeypatch.setattr(
+        gemini_llm_adapter.genai, "Client", lambda **kwargs: type("C", (), {"models": models})()
+    )
+
+    GeminiLLMAdapter(model="gemini-3.8-flash", api_key="stub-key", think=True).chat([{"role": "user", "content": "써줘"}], [])
+
+    assert models.calls[0]["config"].thinking_config is None
+
+
 def test_gemini_pro는_사전_추론을_끄지_않는다(gemini, monkeypatch):
     """Pro는 thinking을 끌 수 없다 — budget 0을 보내면 호출 자체가 400으로 거절된다."""
     models = _StubModels([[_StubChunk(text="글")]])

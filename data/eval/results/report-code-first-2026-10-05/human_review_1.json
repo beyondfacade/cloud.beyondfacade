@@ -1,0 +1,230 @@
+{
+ "e011-A": {
+  "answered": false,
+  "core_error": null,
+  "hard": false,
+  "note": ""
+ },
+ "e011-B": {
+  "answered": false,
+  "core_error": null,
+  "hard": false,
+  "note": ""
+ },
+ "e025-A": {
+  "answered": false,
+  "core_error": null,
+  "hard": false,
+  "note": ""
+ },
+ "e025-B": {
+  "answered": false,
+  "core_error": null,
+  "hard": false,
+  "note": ""
+ },
+ "e036-A": {
+  "answered": null,
+  "core_error": false,
+  "hard": false,
+  "note": ""
+ },
+ "e036-B": {
+  "answered": null,
+  "core_error": false,
+  "hard": false,
+  "note": ""
+ },
+ "e038-A": {
+  "answered": null,
+  "core_error": false,
+  "hard": false,
+  "note": ""
+ },
+ "e038-B": {
+  "answered": null,
+  "core_error": false,
+  "hard": false,
+  "note": ""
+ },
+ "e056-A": {
+  "answered": null,
+  "core_error": null,
+  "hard": true,
+  "note": ""
+ },
+ "e056-B": {
+  "answered": null,
+  "core_error": null,
+  "hard": true,
+  "note": ""
+ },
+ "e065-A": {
+  "answered": null,
+  "core_error": null,
+  "hard": true,
+  "note": ""
+ },
+ "e065-B": {
+  "answered": null,
+  "core_error": null,
+  "hard": true,
+  "note": ""
+ },
+ "e067-A": {
+  "answered": null,
+  "core_error": null,
+  "hard": true,
+  "note": ""
+ },
+ "e067-B": {
+  "answered": null,
+  "core_error": null,
+  "hard": true,
+  "note": ""
+ },
+ "e073-A": {
+  "answered": null,
+  "core_error": null,
+  "hard": true,
+  "note": ""
+ },
+ "e073-B": {
+  "answered": null,
+  "core_error": null,
+  "hard": true,
+  "note": ""
+ },
+ "e078-A": {
+  "answered": null,
+  "core_error": null,
+  "hard": true,
+  "note": ""
+ },
+ "e078-B": {
+  "answered": null,
+  "core_error": null,
+  "hard": true,
+  "note": ""
+ },
+ "e080-A": {
+  "answered": false,
+  "core_error": null,
+  "hard": false,
+  "note": ""
+ },
+ "e080-B": {
+  "answered": false,
+  "core_error": null,
+  "hard": false,
+  "note": ""
+ },
+ "e092-A": {
+  "answered": false,
+  "core_error": null,
+  "hard": false,
+  "note": ""
+ },
+ "e092-B": {
+  "answered": false,
+  "core_error": null,
+  "hard": false,
+  "note": ""
+ },
+ "e099-A": {
+  "answered": null,
+  "core_error": null,
+  "hard": true,
+  "note": ""
+ },
+ "e099-B": {
+  "answered": null,
+  "core_error": null,
+  "hard": true,
+  "note": ""
+ },
+ "e104-A": {
+  "answered": null,
+  "core_error": null,
+  "hard": true,
+  "note": ""
+ },
+ "e104-B": {
+  "answered": null,
+  "core_error": null,
+  "hard": true,
+  "note": ""
+ },
+ "e108-A": {
+  "answered": null,
+  "core_error": null,
+  "hard": true,
+  "note": ""
+ },
+ "e108-B": {
+  "answered": null,
+  "core_error": null,
+  "hard": true,
+  "note": ""
+ },
+ "e123-A": {
+  "answered": false,
+  "core_error": null,
+  "hard": true,
+  "note": ""
+ },
+ "e123-B": {
+  "answered": false,
+  "core_error": null,
+  "hard": true,
+  "note": ""
+ },
+ "e125-A": {
+  "answered": null,
+  "core_error": null,
+  "hard": true,
+  "note": ""
+ },
+ "e125-B": {
+  "answered": null,
+  "core_error": null,
+  "hard": true,
+  "note": ""
+ },
+ "e131-A": {
+  "answered": null,
+  "core_error": null,
+  "hard": true,
+  "note": ""
+ },
+ "e131-B": {
+  "answered": null,
+  "core_error": null,
+  "hard": true,
+  "note": ""
+ },
+ "e137-A": {
+  "answered": null,
+  "core_error": null,
+  "hard": true,
+  "note": ""
+ },
+ "e137-B": {
+  "answered": null,
+  "core_error": null,
+  "hard": true,
+  "note": ""
+ },
+ "e150-A": {
+  "answered": null,
+  "core_error": null,
+  "hard": true,
+  "note": ""
+ },
+ "e150-B": {
+  "answered": null,
+  "core_error": null,
+  "hard": true,
+  "note": ""
+ }
+}
