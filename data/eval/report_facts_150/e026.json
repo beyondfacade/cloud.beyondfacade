@@ -1110,58 +1110,7 @@
     ],
     "recent_news": []
   },
-  "news": [
-    {
-      "chunk_id": "news:3e54f9c9d5b9672e444d",
-      "source_type": "news",
-      "source_id": "3e54f9c9d5b9672e444d",
-      "content": "강동구 천호3동, 고분다리전통시장서 주민·상인 합동 축제 성료\n서울 강동구(구청장 이수희) 천호3동에서 주민노래자랑과 먹거리 야시장을 한자리에서 즐기는 ‘천삼 주민... 인근에는 공영주차장이 조성돼 있으며, 상인회는 먹거리 야시장과 주민축제 등을 통해 골목상권 활성화를...",
-      "score": 0.46524099965775756,
-      "url": "https://www.siminilbo.co.kr/news/newsview.php?ncode=1160277811209146",
-      "org": null,
-      "published_at": "2026-10-02T12:28:00"
-    },
-    {
-      "chunk_id": "news:bb934e4ae0165dbb06b5",
-      "source_type": "news",
-      "source_id": "bb934e4ae0165dbb06b5",
-      "content": "관악구, 남현동 ‘사당오락(舍堂五樂) 달빛야장’ 최종 선정\n이투데이=박일경 기자 | ‘남현예술길’부터 레트로 포차까지…최대 20억 지원 확보 사당역 5번 출구에 ‘5가지 즐거움’ 선사 차량 제한 ‘상생 야장’ 운영…환경 개선 서울특별시 관악구 남현동 상권이 골목 맛 집과...",
-      "score": 0.4416182103184181,
-      "url": "https://www.etoday.co.kr/news/view/2626740",
-      "org": null,
-      "published_at": "2026-09-17T11:26:00"
-    },
-    {
-      "chunk_id": "news:fa3f4c8b694bff31a600",
-      "source_type": "news",
-      "source_id": "fa3f4c8b694bff31a600",
-      "content": "석계역 가을밤 ‘리듬 속의 그 춤을’…노원구 “제3회 석계역 달빛야시...\n노원구에 따르면 올해로 3회째를 맞는 석계역 달빛야시장은 문화 콘텐츠와 골목상권을 연계해 지역에 활력을 더하는 월계동의 대표 야간축제다. 지역의 특색 있는 먹거리와 수제맥주부터 추억의 즐길거리, 레트로 감성...",
-      "score": 0.4413006112634239,
-      "url": "https://www.munhwa.com/article/11615542?ref=naver",
-      "org": null,
-      "published_at": "2026-09-09T06:47:00"
-    },
-    {
-      "chunk_id": "news:ed5574ddacc850b4b18c",
-      "source_type": "news",
-      "source_id": "ed5574ddacc850b4b18c",
-      "content": "\"사당역 5번출구에 5가지 즐거움\"…관악구 '사당오락 야장'\n남현동 상권 '달빛야장' 추진…예술거리와 레트로 포차로 구성 서울 관악구(구청장 박준희)는 남현동 상권의 '사당오락'(舍堂五樂)이 골목 맛집과 문화자원을 잇는 서울시 '달빛야장 조성사업' 공모에 선정됨에 따라 환경...",
-      "score": 0.4295845115680207,
-      "url": "https://www.yna.co.kr/view/AKR20260915036000004?input=1195m",
-      "org": null,
-      "published_at": "2026-09-15T09:04:00"
-    },
-    {
-      "chunk_id": "news:bcced353dca489104818",
-      "source_type": "news",
-      "source_id": "bcced353dca489104818",
-      "content": "동작구 사당1동먹자골목, '서울 달빛야장' 1기 선정… 최대 20억 원 사업...\n이를 통해 구는 사당1동먹자골목을 서울 서남권을 대표하는 야간경제 거점으로 육성하고, 야간 방문객의 체류를 늘려 지역 골목상권 활성화를 이끌 계획이다. 류삼영 동작구청장은 \"사당1동먹자골목은 사당역과 가까운...",
-      "score": 0.4271018250523978,
-      "url": "https://www.cnbizm.com/news/articleView.html?idxno=315441",
-      "org": null,
-      "published_at": "2026-09-16T21:22:00"
-    }
-  ],
+  "news": [],
   "funding_candidates": [
     {
       "program_id": "PBLN_000000000126270",

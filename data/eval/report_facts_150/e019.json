@@ -1135,58 +1135,7 @@
     ],
     "recent_news": []
   },
-  "news": [
-    {
-      "chunk_id": "news:609b508b720738525bea",
-      "source_type": "news",
-      "source_id": "609b508b720738525bea",
-      "content": "레드포스PC방 신논현점, SBS ‘모닝와이드’ 소개…복합형 PC방 운영 확...\n서울 강남구 신논현역 인근에 위치한 신논현점은 약 200평 규모로 조성됐으며, e스포츠 경기석과 관중석을... 앞서 일부 매장에서는 셰프와 협업한 메뉴를 선보이고 대학가 등 상권별 이용자 특성을 반영한 공간 설계를...",
-      "score": 0.586696575486456,
-      "url": "https://www.gosiweek.com/article/1065599079170783",
-      "org": null,
-      "published_at": "2026-09-18T16:48:00"
-    },
-    {
-      "chunk_id": "news:0c83bc125e67b18c276b",
-      "source_type": "news",
-      "source_id": "0c83bc125e67b18c276b",
-      "content": "종량제봉투 열어 혼합배출 잡는다…관악구, 신림사거리 집중단속\n신림사거리는 순대타운과 신원시장 등을 중심으로 음식점과 상업시설이 밀집해 주민뿐 아니라 외부 방문객의 유동이 많은 관악구 대표 상권 중 하나다. 그만큼 음식물쓰레기와 일반폐기물, 재활용품 등의 올바른...",
-      "score": 0.5103067274876619,
-      "url": "https://www.job-post.co.kr/news/articleView.html?idxno=223775",
-      "org": null,
-      "published_at": "2026-08-12T11:26:00"
-    },
-    {
-      "chunk_id": "news:3da3e481e7d75a271cdc",
-      "source_type": "news",
-      "source_id": "3da3e481e7d75a271cdc",
-      "content": "'무단투기보안관' 투입...관악구, 신림사거리 쓰레기 혼합 배출 집중 계...\n문화경제=안용호 기자 | 순대타운과 신원시장, 다양한 음식점이 밀집해 주민과 방문객의 발길이 이어지는 신림사거리는 관악구의 대표 상권이다. 서울 관악구(구청장 박준희)는 대표 상권에 걸맞은 깨끗하고 쾌적한 거리...",
-      "score": 0.4991657141849115,
-      "url": "https://www.cnbizm.com/news/articleView.html?idxno=311321",
-      "org": null,
-      "published_at": "2026-08-12T13:48:00"
-    },
-    {
-      "chunk_id": "news:ca576238eab780a9513f",
-      "source_type": "news",
-      "source_id": "ca576238eab780a9513f",
-      "content": "레드포스 PC방, 게이밍·F&B·e스포츠 결합한 창업 모델 확대\n서울 종로구에 있는 레드포스 PC 아레나 종각점은 최근 한국의 일상과 문화를 소개하는 글로벌 대상 영상... 비엔엠컴퍼니는 종각점 운영 사례를 바탕으로 입지와 상권, 고객 구성에 맞는 창업 컨설팅을 제공할 계획이다....",
-      "score": 0.49499970704329477,
-      "url": "https://www.gosiweek.com/article/1065598441327466",
-      "org": null,
-      "published_at": "2026-08-19T16:38:00"
-    },
-    {
-      "chunk_id": "news:8b7eb42f767364621a5a",
-      "source_type": "news",
-      "source_id": "8b7eb42f767364621a5a",
-      "content": "오버플레이스(주) 한식 브랜드 '신일곰탕', 주요상권 중심 출점 확대…...\n오버플레이스(주)는 유통시설과 지역 상권을 함께 공략하며 신일곰탕의 매장 유형과 고객 접점을 다양화하고 있다. 오는 2026년 9월에는 서울 종로구 인사동의 복합문화공간 '안녕인사동'에 신일곰탕 본점을 오픈할...",
-      "score": 0.4916255494057381,
-      "url": "https://www.gukjenews.com/news/articleView.html?idxno=3676662",
-      "org": null,
-      "published_at": "2026-08-27T14:26:00"
-    }
-  ],
+  "news": [],
   "funding_candidates": [
     {
       "program_id": "PBLN_000000000126270",

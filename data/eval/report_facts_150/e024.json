@@ -1009,58 +1009,7 @@
     ],
     "recent_news": []
   },
-  "news": [
-    {
-      "chunk_id": "news:d83a777428dfd10c94ae",
-      "source_type": "news",
-      "source_id": "d83a777428dfd10c94ae",
-      "content": "25년 한식 연구 담았다...윤스푸드랩, 쿠킹클래스·전통 디저트로 한식...\n중구청과 중구 상권발전소가 추진하는 행사에도 참여해 한식과 한식 디저트를 알리는 활동을 펼치고 있다. 한식 도시락과 단체 주문도 향후 확대할 분야다. 도시락은 반찬 가짓수보다 영양 균형과 신선한 식재료에 초점을...",
-      "score": 0.46754171785711574,
-      "url": "https://www.womentimes.co.kr/news/articleView.html?idxno=106472",
-      "org": null,
-      "published_at": "2026-09-23T14:46:00"
-    },
-    {
-      "chunk_id": "news:56ddab283c30a1a4a229",
-      "source_type": "news",
-      "source_id": "56ddab283c30a1a4a229",
-      "content": "동서발전, 추석 맞아 울산 취약계층 400가구에 명절음식 전달\n동서발전은 16일 오전 11시 울산 중구 본사 로비에서 조손가정과 한부모 가정 등 지역 취약계층을 위한... 취약계층 지원과 지역 상권 지원을 함께 추진한다는 점에서 명절 사회공헌의 범위를 지역경제와 연결하려는 성격도...",
-      "score": 0.4524123597563785,
-      "url": "https://www.pinpointnews.co.kr/news/articleView.html?idxno=487565",
-      "org": null,
-      "published_at": "2026-09-16T13:50:00"
-    },
-    {
-      "chunk_id": "news:5e67cbb2dbc8f4460d07",
-      "source_type": "news",
-      "source_id": "5e67cbb2dbc8f4460d07",
-      "content": "현대그린푸드, 강남에 ‘다이닝 특화’ 이탈리 4호점 열었다\n현대백화점그룹 계열 종합식품기업 현대그린푸드가 서울 강남 상권의 프리미엄 외식 수요를 공략하기 위해 이탈리안 그로서란트 ‘이탈리(EATALY)’의 다이닝 특화 매장을 선보인다고 27일 밝혔다. 매장은 서울 강남구...",
-      "score": 0.45170456357303024,
-      "url": "https://biz.heraldcorp.com/article/10853761?ref=naver",
-      "org": null,
-      "published_at": "2026-08-27T10:07:00"
-    },
-    {
-      "chunk_id": "news:315150c2d97d241ca024",
-      "source_type": "news",
-      "source_id": "315150c2d97d241ca024",
-      "content": "[e커머스 라운지] 쿠팡·배민·컬리·GS샵·SSG닷컴...\"빠른 배송·현장 ...\n민트스타 부스에서는 서울 광진구 자양동 일대의 선정 음식점 20곳을 소개해 관람객이 지역 상권을 친숙하게 접하도록 돕는다. 행사장 메인 구역에는 신전떡볶이와 자양전통시장 호떡 등 총 2000인분의 간식을 무료로...",
-      "score": 0.4516678144528101,
-      "url": "http://www.kdfnews.com/news/articleView.html?idxno=187818",
-      "org": null,
-      "published_at": "2026-09-10T17:12:00"
-    },
-    {
-      "chunk_id": "news:59e39a0f81ff12177a84",
-      "source_type": "news",
-      "source_id": "59e39a0f81ff12177a84",
-      "content": "중구공단, 임산부ㆍ영유아 가정 추석 선물세트 전달\n지역 상권에도 활력을 더했다. 이번 활동은 '세계 자원봉사자의 해'를 맞아 균형 있는 영양 섭취가 특히 중요한 임산부와 영유아 가정을 지원해 '아이 키우기 좋은 중구'를 만드는 데 힘을 보태자는 취지에서 마련됐다....",
-      "score": 0.44506306077879554,
-      "url": "https://www.hg-times.com/news/articleView.html?idxno=305523",
-      "org": null,
-      "published_at": "2026-09-22T11:28:00"
-    }
-  ],
+  "news": [],
   "funding_candidates": [
     {
       "program_id": "PBLN_000000000126270",

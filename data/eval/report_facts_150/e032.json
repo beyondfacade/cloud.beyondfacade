@@ -1007,58 +1007,7 @@
     ],
     "recent_news": []
   },
-  "news": [
-    {
-      "chunk_id": "news:1407104feca5412a9bec",
-      "source_type": "news",
-      "source_id": "1407104feca5412a9bec",
-      "content": "외국인이 바꾼 라면 지도…신라면골드·툼바 서울 중구서 1·2위\n이 같은 결과의 배경에는 중구가 가진 독보적인 상권 특성이 있다. 중구는 명동, 남대문시장, 동대문... 7%)에서는 짜파게티가 1위에 올랐으며, 2030세대 비중이 높은 성북·용산·성동·광진구에서도 모디슈머(조합 소비)...",
-      "score": 0.4814012701458267,
-      "url": "http://www.smedaily.co.kr/news/articleView.html?idxno=361019",
-      "org": null,
-      "published_at": "2026-07-29T15:10:00"
-    },
-    {
-      "chunk_id": "news:6fce24269d7bbb170352",
-      "source_type": "news",
-      "source_id": "6fce24269d7bbb170352",
-      "content": "울산 중구, 2회 추경 436억 늘어난 5952억 '복지·돌봄' 방점\n중구는 지역 상권 경쟁력 강화, 주민 편의 증진, 복지·돌봄 및 사회 안전망 강화, 생활 기반 시설 확충, 국·시비 보조사업 및 주요 현안 사업의 차질 없는 추진 등에 중점을 두고 예산을 편성했다. 중구는 △전통시장...",
-      "score": 0.48117075243229523,
-      "url": "https://www.ksilbo.co.kr/news/articleView.html?idxno=1065228",
-      "org": null,
-      "published_at": "2026-08-24T00:02:00"
-    },
-    {
-      "chunk_id": "news:9dd5da34747295a365ba",
-      "source_type": "news",
-      "source_id": "9dd5da34747295a365ba",
-      "content": "대전 중구, 위생 합격 ‘별 5개’ 달면 수도요금 깎아준다\n대전 중구가 구민들이 신뢰할 수 있는 먹거리 환경을 구축하고 골목상권의 위생 경쟁력을 높이기 위해 국가 공인 ‘식품안심업소’ 지정 확대와 홍보에 속도를...",
-      "score": 0.4753605263809051,
-      "url": "http://www.breaknews.com/1240578",
-      "org": null,
-      "published_at": "2026-10-01T17:36:00"
-    },
-    {
-      "chunk_id": "news:9a09ffca6496f8d88ae3",
-      "source_type": "news",
-      "source_id": "9a09ffca6496f8d88ae3",
-      "content": "울산 중구, 2026년 제2회 추경예산안 5,952억원 편성\n중구는 지역 상권 경쟁력 강화, 주민 편의 증진, 복지·돌봄 및 사회 안전망 강화, 생활 기반 시설 확충, 국·시비 보조사업 및 주요 현안 사업의 차질 없는 추진 등에 중점을 두고 예산을 편성했다. 중구는...",
-      "score": 0.47429002131850284,
-      "url": "https://www.iusm.co.kr/news/articleView.html?idxno=1066934",
-      "org": null,
-      "published_at": "2026-08-23T17:32:00"
-    },
-    {
-      "chunk_id": "news:2776449807d55fdae96a",
-      "source_type": "news",
-      "source_id": "2776449807d55fdae96a",
-      "content": "중구 전통시장·상점가, 17~19일 가을축제 잇따라 개최\n중구는 인현시장과 신중앙시장, 약수시장 골목형상점가에서 각각 상권의 특색을 살린 축제를 열고 주민과 방문객들에게 다양한 먹거리와 볼거리를 선보인다고 8일 밝혔다. 첫 행사는 오는 17일 오후 5시부터 8시까지...",
-      "score": 0.4711693370654678,
-      "url": "https://www.shinailbo.co.kr/news/articleView.html?idxno=5060003",
-      "org": null,
-      "published_at": "2026-09-08T15:46:00"
-    }
-  ],
+  "news": [],
   "funding_candidates": [
     {
       "program_id": "PBLN_000000000126270",

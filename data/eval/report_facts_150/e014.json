@@ -1007,58 +1007,7 @@
     ],
     "recent_news": []
   },
-  "news": [
-    {
-      "chunk_id": "news:d83a777428dfd10c94ae",
-      "source_type": "news",
-      "source_id": "d83a777428dfd10c94ae",
-      "content": "25년 한식 연구 담았다...윤스푸드랩, 쿠킹클래스·전통 디저트로 한식...\n중구청과 중구 상권발전소가 추진하는 행사에도 참여해 한식과 한식 디저트를 알리는 활동을 펼치고 있다. 한식 도시락과 단체 주문도 향후 확대할 분야다. 도시락은 반찬 가짓수보다 영양 균형과 신선한 식재료에 초점을...",
-      "score": 0.5243453921448287,
-      "url": "https://www.womentimes.co.kr/news/articleView.html?idxno=106472",
-      "org": null,
-      "published_at": "2026-09-23T14:46:00"
-    },
-    {
-      "chunk_id": "news:448b8bb0eb350d7f030a",
-      "source_type": "news",
-      "source_id": "448b8bb0eb350d7f030a",
-      "content": "샘표, 이천 아트팩토리 프로젝트→현대그린푸드, 삼성동 이탈리 특화 매...\n식품업계에서 생산 현장에 공공미술을 접목하고 상권 맞춤형 외식 공간을 확장하며 일상과 식문화의... 사진=현대그린푸드 현대그린푸드는 28일 서울 강남구 삼성동 현대백화점 무역센터점 10층에 이탈리의 다이닝...",
-      "score": 0.49611107993457515,
-      "url": "https://www.slist.kr/news/articleView.html?idxno=761740",
-      "org": null,
-      "published_at": "2026-08-27T11:24:00"
-    },
-    {
-      "chunk_id": "news:ce0b427fabe23d73180b",
-      "source_type": "news",
-      "source_id": "ce0b427fabe23d73180b",
-      "content": "서금원·우리은행·선한영향력가게, 영세자영업자 성장 돕는 '인정가게...\n서울 마포구 소재 중식당 '연화식탁'에서 '인정가게' 현판식을 개최했다\"고 8일 밝혔다. '인정가게'는... 연화식탁은 홍익대학교 상권 인근에서 청년 자영업자가 운영하는 중식당으로 올해 5월 문을 열었다. 10개 남짓한...",
-      "score": 0.4856459753650777,
-      "url": "http://www.enewstoday.co.kr/news/articleView.html?idxno=2467958",
-      "org": null,
-      "published_at": "2026-09-08T10:55:00"
-    },
-    {
-      "chunk_id": "news:2500cdb21c212b93b58a",
-      "source_type": "news",
-      "source_id": "2500cdb21c212b93b58a",
-      "content": "울산 문화의거리 '이디엠(EDM)야시장&얼쑤야장' 성황…원도심 밤 밝혔다\n중구 관계자는 \"이번 행사를 통해 중앙길(문화의거리)상가가 야간에도 활기를 띠는 상권으로 자리매김하길 기대한다\"며 \"앞으로도 상권 경쟁력 향상을 위한 다양한 사업을 적극적으로 지원하겠다\"고 밝혔다.",
-      "score": 0.47857368886378615,
-      "url": "https://www.iusm.co.kr/news/articleView.html?idxno=1066914",
-      "org": null,
-      "published_at": "2026-08-23T15:50:00"
-    },
-    {
-      "chunk_id": "news:35068b33638ba2befc1a",
-      "source_type": "news",
-      "source_id": "35068b33638ba2befc1a",
-      "content": "상봉먹자골목 찾은 오세훈…\"야장·야간경제 서울 성장동력으로\"\n지난해 서울시 '로컬브랜드 상권' 선정에 이어 올해에는 '야간음식문화 활성화 지원사업' 대상으로 선정됐다. 이를 바탕으로 중랑구는 축제를 열고 다채로운 야간 문화 콘텐츠를 선보이며 상봉먹자골목을 지역 대표 야간...",
-      "score": 0.4710849471840377,
-      "url": "https://www.yna.co.kr/view/AKR20260710057400004?input=1195m",
-      "org": null,
-      "published_at": "2026-07-10T17:00:00"
-    }
-  ],
+  "news": [],
   "funding_candidates": [
     {
       "program_id": "PBLN_000000000126270",

@@ -957,58 +957,7 @@
     ],
     "recent_news": []
   },
-  "news": [
-    {
-      "chunk_id": "news:05c6f1b85a3a791c97bd",
-      "source_type": "news",
-      "source_id": "05c6f1b85a3a791c97bd",
-      "content": "시몬스, 서울 방배동에 직영 플래그십 스토어 '시몬스 갤러리' 오픈\n시몬스 갤러리 방배점'의 '테크니컬 앨리' (사진=시몬스) 수면 전문 브랜드 시몬스가 서울 서초구 방배동에... 약 90평 규모의 방배점은 '네이버후드 럭셔리'를 콘셉트로 방배동의 지역적 특성과 주거 상권을 반영했다. 방배...",
-      "score": 0.5688382217634378,
-      "url": "https://www.delighti.co.kr/news/articleView.html?idxno=120913",
-      "org": null,
-      "published_at": "2026-08-28T14:34:00"
-    },
-    {
-      "chunk_id": "news:f4a3a1d9f174f9132fcc",
-      "source_type": "news",
-      "source_id": "f4a3a1d9f174f9132fcc",
-      "content": "시몬스, 90평 규모 '갤러리 방배점' 개점…웰컴 라운지 첫 도입\n[시몬스]  시몬스가 서울 서초구 방배동에 직영 플래그십 스토어 '시몬스 갤러리 방배점'을 열었다. 시몬스는... 매장에는 친숙한 주거 상권에서 고급 브랜드를 경험할 수 있도록 하는 '네이버후드 럭셔리' 콘셉트를...",
-      "score": 0.5535035883357994,
-      "url": "https://www.ziksir.com/news/articleView.html?idxno=144585",
-      "org": null,
-      "published_at": "2026-08-28T09:58:00"
-    },
-    {
-      "chunk_id": "news:ffd18bc4ae2d657430d4",
-      "source_type": "news",
-      "source_id": "ffd18bc4ae2d657430d4",
-      "content": "시몬스 침대, '시몬스 갤러리 방배점' 오픈…'네이버후드 럭셔리' 콘셉...\n서울 서초구 방배동에 직영 플래그십 스토어인 '시몬스 갤러리 방배점'을 신규 오픈했다고 28일 밝혔다. 약 90평 규모의 방배점은 친숙한 주거 상권에서 프리미엄 브랜드 경험을 전달하는 '네이버후드 럭셔리' 콘셉트를...",
-      "score": 0.5518154809970415,
-      "url": "https://news.tf.co.kr/read/economy/2359059.htm",
-      "org": null,
-      "published_at": "2026-08-28T10:15:00"
-    },
-    {
-      "chunk_id": "news:61a83a4f8ed3b7283c18",
-      "source_type": "news",
-      "source_id": "61a83a4f8ed3b7283c18",
-      "content": "[유통24시] 지평탁주, 롯데마트 63개점 입점 外\n◆시몬스, 직영매장 '시몬스 갤러리 방배점' 개점 시몬스가 서울 서초구 방배동에 직영 매장 '시몬스 갤러리 방배점'을 열었다. 약 90평 규모로 주거 상권에서 프리미엄 제품을 체험할 수 있는 '네이버후드 럭셔리...",
-      "score": 0.5484847589875746,
-      "url": "https://news.dealsitetv.com/articles/175335",
-      "org": null,
-      "published_at": "2026-08-28T13:44:00"
-    },
-    {
-      "chunk_id": "news:f0c8a8c5df45c38d2a3b",
-      "source_type": "news",
-      "source_id": "f0c8a8c5df45c38d2a3b",
-      "content": "[A 오늘의 유통] 코레일유통·시몬스·배달의민족 外\n◇시몬스, 방배 주거상권에 직영점 개점=시몬스가 서울 서초구 방배동에 약 90평 규모의 직영 플래그십 매장 '시몬스 갤러리 방배점'을 열었다. 대규모 재건축 단지와 문화시설이 밀집한 지역 특성을 고려해 혼수·입주...",
-      "score": 0.5480555728657492,
-      "url": "https://www.asiaa.co.kr/news/articleView.html?idxno=260363",
-      "org": null,
-      "published_at": "2026-08-28T15:30:00"
-    }
-  ],
+  "news": [],
   "funding_candidates": [
     {
       "program_id": "PBLN_000000000126270",

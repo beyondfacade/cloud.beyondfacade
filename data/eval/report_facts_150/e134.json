@@ -989,58 +989,7 @@
     ],
     "recent_news": []
   },
-  "news": [
-    {
-      "chunk_id": "news:1ee470a3422a39787b24",
-      "source_type": "news",
-      "source_id": "1ee470a3422a39787b24",
-      "content": "제이지루나, 한식주점 ‘삐딱’ 을지로 직영점 개점…전국 7호점 달성\n신규 입점한 을지로 직영점은 유동 인구와 상업 시설이 밀집한 서울 중구 핵심 상권에 자리 잡았다. 회사 측은 인근 직장인 회식과 청년층 모임 수요를 흡수해 매장 인지도를 높일 계획이다. ㈜제이지루나는 을지로점...",
-      "score": 0.5216576146091684,
-      "url": "http://www.segyebiz.com/newsView/20260917511713?OutUrl=naver",
-      "org": null,
-      "published_at": "2026-09-17T14:14:00"
-    },
-    {
-      "chunk_id": "news:d83a777428dfd10c94ae",
-      "source_type": "news",
-      "source_id": "d83a777428dfd10c94ae",
-      "content": "25년 한식 연구 담았다...윤스푸드랩, 쿠킹클래스·전통 디저트로 한식...\n중구청과 중구 상권발전소가 추진하는 행사에도 참여해 한식과 한식 디저트를 알리는 활동을 펼치고 있다. 한식 도시락과 단체 주문도 향후 확대할 분야다. 도시락은 반찬 가짓수보다 영양 균형과 신선한 식재료에 초점을...",
-      "score": 0.5141676357884852,
-      "url": "https://www.womentimes.co.kr/news/articleView.html?idxno=106472",
-      "org": null,
-      "published_at": "2026-09-23T14:46:00"
-    },
-    {
-      "chunk_id": "news:0a13448a65f8dc0e3ebc",
-      "source_type": "news",
-      "source_id": "0a13448a65f8dc0e3ebc",
-      "content": "\"강남 외식 수요 잡는다\"⋯현대그린푸드, 다이닝 특화 '이탈리' 출격\n현대그린푸드는 오는 28일 서울 강남구 현대백화점 무역센터점 10층에 다이닝 기능을 강화한 이탈리 매장을 오픈한다고 27일 밝혔다. 강남 상권 특성을 고려해 숯불 요리와 코스 메뉴를 도입하고 프라이빗 공간을...",
-      "score": 0.5130356840470254,
-      "url": "http://www.inews24.com/view/1999023",
-      "org": null,
-      "published_at": "2026-08-27T16:12:00"
-    },
-    {
-      "chunk_id": "news:cde51dcbb24345be6460",
-      "source_type": "news",
-      "source_id": "cde51dcbb24345be6460",
-      "content": "강남 현대백화점에 최고급 다이닝 '이탈리' 오픈...\"전세계 70번째 매장...\n현대백화점그룹 계열 종합식품기업 현대그린푸드는 서울 강남구 삼성동 현대백화점 무역센터점 10층에... 선보이는 상권 맞춤형 매장\"이라며 \"앞으로도 외식 트렌드를 선도하는 동시에, 상권에 최적화한 특화...",
-      "score": 0.499384790475605,
-      "url": "https://www.mt.co.kr/living/2026/08/27/2026082709084520482",
-      "org": null,
-      "published_at": "2026-08-27T09:33:00"
-    },
-    {
-      "chunk_id": "news:e66597b0e736539489c5",
-      "source_type": "news",
-      "source_id": "e66597b0e736539489c5",
-      "content": "[단독] 자신감 붙은 애슐리퀸즈, 잠실에도 ‘그랜드’ 점포 연다\n최근 직장인, 가족, 관광객 수요를 공략할 수 있는 잠실 상권 내 패밀리 레스토랑의 출점이 이어지고 있다. 현대그린푸드는 지난 4월 송파구 방이동에 텍사스로드하우스 잠실본점을 열었고, 아워홈도 다음 달 롯데월드...",
-      "score": 0.49840369792050776,
-      "url": "https://biz.heraldcorp.com/article/10886977?ref=naver",
-      "org": null,
-      "published_at": "2026-09-29T08:50:00"
-    }
-  ],
+  "news": [],
   "funding_candidates": [
     {
       "program_id": "PBLN_000000000126270",

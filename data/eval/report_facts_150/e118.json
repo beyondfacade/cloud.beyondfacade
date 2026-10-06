@@ -1132,58 +1132,7 @@
     ],
     "recent_news": []
   },
-  "news": [
-    {
-      "chunk_id": "news:c52e7a9d5d0c908159cc",
-      "source_type": "news",
-      "source_id": "c52e7a9d5d0c908159cc",
-      "content": "\"신당동이 국평 30억 아파트를?\" 포스코 하이엔드 입는 신당8구역 [르포...\n3일 오전 서울 중구 신당동. 수도권 지하철 5·6호선 청구역 3번 출구에서 나와 대로변을 따라 약 2분을... 신당동 떡볶이 거리 등 지역을 대표하는 상권은 있지만, 대규모 상업시설이나 학원가가 밀집한 지역은...",
-      "score": 0.5322393380882565,
-      "url": "https://realty.chosun.com/site/data/html_dir/2026/09/04/2026090402716.html",
-      "org": null,
-      "published_at": "2026-09-07T06:02:00"
-    },
-    {
-      "chunk_id": "news:86ffc723b1812f505538",
-      "source_type": "news",
-      "source_id": "86ffc723b1812f505538",
-      "content": "운동부터 수면까지…‘웰니스 성지’ 노린다는 이 백화점\n21일 업계에 따르면 서울 양천구에 위치한 현대백화점 목동점은 올해 오픈 3주년을 맞은 리조트휘트니스... 상권과 고객 특성을 고려한 브랜드와 콘텐츠를 새롭게 구성해 목동점의 대표 리빙 공간으로 육성한다는...",
-      "score": 0.4975025664259649,
-      "url": "https://www.mk.co.kr/article/12132998",
-      "org": null,
-      "published_at": "2026-08-21T10:30:00"
-    },
-    {
-      "chunk_id": "news:0cc3ffd9ead1cd3c055b",
-      "source_type": "news",
-      "source_id": "0cc3ffd9ead1cd3c055b",
-      "content": "신당역 골목에 야장 펼친다…중구, 18일부터 3곳 운영\n남대문·충무로·약수·장충남소영길로 순차 확대 서울 중구(구청장 김길성)는 오는 18일부터 신당역 일대 전통시장과 골목상권 3곳에서 '중구형 상생야장'을 운영한다고 10일 밝혔다. 중구형 상생야장은 상인들이 시장별...",
-      "score": 0.49684663107534166,
-      "url": "https://news.tf.co.kr/read/life/2364318.htm",
-      "org": null,
-      "published_at": "2026-09-10T12:31:00"
-    },
-    {
-      "chunk_id": "news:2eb1aa4ba6b5438e33af",
-      "source_type": "news",
-      "source_id": "2eb1aa4ba6b5438e33af",
-      "content": "'몸 만들기' 공식 바뀌었다…달라진 여름 다이어트 풍경\n러닝 열풍에 비만약까지 유행하면서 젊은 친구들이 등록을 안 해요.\"서울 동대문구에서 10년 넘게 헬스장을... 9일 서울시 상권분석서비스에 따르면 서울 지역 체력단련시설 신규 개업은 2024년 1분기 263곳에서 올해 1분기...",
-      "score": 0.488416017482759,
-      "url": "https://www.asiatoday.co.kr/kn/view.php?key=20260809010002712",
-      "org": null,
-      "published_at": "2026-08-09T15:10:00"
-    },
-    {
-      "chunk_id": "news:8f71f0c9731b11100312",
-      "source_type": "news",
-      "source_id": "8f71f0c9731b11100312",
-      "content": "홍대서 '에버핏' 팝업…NS홈쇼핑, 중소 협력사 키운다\nNS홈쇼핑은 다음달 30일까지 서울 마포구 뷰티플레이 홍대점에서 협력사 에버핏의 '에버핏 다이어트... 이번 팝업 역시 온라인 중심으로 판매되던 협력사 상품을 유동 인구가 많은 홍대 상권에서 직접 경험할 수 있도록...",
-      "score": 0.4841401335692237,
-      "url": "https://www.widedaily.com/news/articleView.html?idxno=298920",
-      "org": null,
-      "published_at": "2026-08-06T09:44:00"
-    }
-  ],
+  "news": [],
   "funding_candidates": [
     {
       "program_id": "PBLN_000000000126270",

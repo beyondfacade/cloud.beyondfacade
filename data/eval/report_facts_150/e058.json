@@ -984,58 +984,7 @@
     ],
     "recent_news": []
   },
-  "news": [
-    {
-      "chunk_id": "news:ea4b9d2f98d429bb812b",
-      "source_type": "news",
-      "source_id": "ea4b9d2f98d429bb812b",
-      "content": "\"팀장님, 2차는 술집 대신 가챠숍 가요\"\n홍대 상권이 있는 마포구에서는 장난감 가게가 지난해 49곳에서 올해 70곳으로 42.9% 급증했다. 같은 기간 마포구 호프주점과 간이주점은 252곳과 212곳으로 각각 7%, 11.8% 감소했다. 가챠숍 인기는 얼어붙은 청년 고용...",
-      "score": 0.5463832450926658,
-      "url": "https://www.hankyung.com/article/2026081641881",
-      "org": null,
-      "published_at": "2026-08-16T18:13:00"
-    },
-    {
-      "chunk_id": "news:0f476a8388a763dad4be",
-      "source_type": "news",
-      "source_id": "0f476a8388a763dad4be",
-      "content": "호프집 지고 가챠숍 떴다... 1년 만에 장난감 가게 20% 급증한 이유\n홍대 상권을 품은 서울 마포구의 장난감가게는 지난해 49곳에서 올해 70곳으로 42.9% 급증했다. 반면 마포구 호프주점은 271곳에서 252곳으로 7.0% 줄었고, 간이주점은 212곳에서 187곳으로 11.8% 감소했다. 술집이 사라진...",
-      "score": 0.543595867277432,
-      "url": "https://www.insight.co.kr/news/568209",
-      "org": null,
-      "published_at": "2026-08-14T09:36:00"
-    },
-    {
-      "chunk_id": "news:520b4ceee3603d52c6be",
-      "source_type": "news",
-      "source_id": "520b4ceee3603d52c6be",
-      "content": "[자막뉴스] 홍대 술집 사라진 곳에 '40%' 급증…\"술 대신 이곳\" 2030 사로...\n홍대 상권이 있는 서울 마포구의 장난감 가게는 지난해 49곳에서 올해 70곳으로 42.9% 급증한 반면, 같은 기간 마포구의 호프주점은 7%, 간이주점은 11% 넘게 줄었습니다. 술집이 줄어든 자리는 돈을 내고 캡슐 속 캐릭터...",
-      "score": 0.5412007359861521,
-      "url": "https://news.sbs.co.kr/news/endPage.do?news_id=N1008706060&plink=ORI&cooper=NAVER",
-      "org": null,
-      "published_at": "2026-08-14T17:50:00"
-    },
-    {
-      "chunk_id": "news:96708d85fd2fc45aeaa4",
-      "source_type": "news",
-      "source_id": "96708d85fd2fc45aeaa4",
-      "content": "\"팀장님, 2차는 가챠숍 가요\"…호프집 망할 때 대박 난 곳 [김익환의 부...\n홍대 상권이 있는 마포구의 장난감가게는 지난해 49곳에서 올해 70곳으로 42.9% 급증했다. 같은 기간 마포구 호프주점은 271곳에서 252곳으로 7.0% 감소했고 간이주점은 212곳에서 187곳으로 11.8% 줄었다. 술집이 줄어든...",
-      "score": 0.5407706256087904,
-      "url": "https://www.hankyung.com/article/202608116202i",
-      "org": null,
-      "published_at": "2026-08-12T06:01:00"
-    },
-    {
-      "chunk_id": "news:10fa4763bac8bc9fd053",
-      "source_type": "news",
-      "source_id": "10fa4763bac8bc9fd053",
-      "content": "“호프집 2000곳 사라졌다”…2030이 술집 떠나자 생긴 일, 가챠숍·피규...\n홍대 상권이 있는 서울 마포구의 장난감가게는 지난해 49곳에서 올해 70곳으로 42.9% 급증했다. 같은 기간 마포구 호프주점은 271곳에서 252곳으로 7.0% 줄었고, 간이주점은 212곳에서 187곳으로 11.8% 감소했다. 술집이...",
-      "score": 0.5394470597631942,
-      "url": "https://biz.heraldcorp.com/article/10840794?ref=naver",
-      "org": null,
-      "published_at": "2026-08-13T21:45:00"
-    }
-  ],
+  "news": [],
   "funding_candidates": [
     {
       "program_id": "PBLN_000000000126270",

@@ -24,8 +24,6 @@ def _input(**overrides) -> SignalInput:
         cohort_size=37, cohort_survived=14,
         closed_3y_count=60, closed_3y_median_months=19.0,
         latest_store_count=94, resident_total=10_000,
-        change_code="HL", change_name="상권축소", change_quarter="20262",
-        closed_months=20.0, seoul_closed_months=27.0,
         gap_candidates=200, gap_blocked=150,
     )
     base.update(overrides)
@@ -37,13 +35,13 @@ def test_신호_키_상수와_빈자리_가드():
     assert T.min_gap_candidates == 30
 
 
-def test_인허가_프로필은_공통_신호_5개_그대로다():
+def test_인허가_프로필은_공통_신호_4개_그대로다():
     profile = PermitProfile()
     assert profile.basis == "permit"
     assert tuple(s.key for s in profile.signals()) == SIGNAL_KEYS
 
 
-def test_편의점_프로필은_공통_5개에_담배권_빈자리를_더하고_원천을_담배소매인으로_표기한다():
+def test_편의점_프로필은_공통_4개에_담배권_빈자리를_더하고_원천을_담배소매인으로_표기한다():
     profile = TobaccoProxyProfile()
     assert profile.basis == "proxy"
     assert tuple(s.key for s in profile.signals()) == SIGNAL_KEYS + ("tobacco_gap",)
@@ -51,7 +49,6 @@ def test_편의점_프로필은_공통_5개에_담배권_빈자리를_더하고_
     assert results["net_outflow"].source == "tobacco"
     assert results["net_outflow"].value == pytest.approx(0.13)
     assert results["saturation"].source == "tobacco"
-    assert results["shrinking"].source == "neighborhood"
     assert results["tobacco_gap"].source == "tobacco"
 
 
@@ -59,7 +56,7 @@ def test_부동산_프로필은_폐업률과_포화만_계산하고_코호트_�
     profile = AggregateProfile()
     assert profile.basis == "aggregate"
     assert tuple(s.key for s in profile.signals()) == (
-        "closure_rate", "survival_cliff", "early_closure", "saturation", "shrinking", "trade_per_office",
+        "closure_rate", "survival_cliff", "early_closure", "saturation", "trade_per_office",
     )
     results = {s.key: s.evaluate(_input(), T, [0.1]) for s in profile.signals()}
     for key in ("survival_cliff", "early_closure"):
@@ -92,7 +89,7 @@ def test_담배권_빈자리는_막힌_자리_비율이고_후보_30곳_미만�
 
 
 def test_담배권_빈자리는_참고_신호라_등급_계산에서_빠진다():
-    assert "tobacco_gap" in ADVISORY_SIGNAL_KEYS and "shrinking" in ADVISORY_SIGNAL_KEYS
+    assert "tobacco_gap" in ADVISORY_SIGNAL_KEYS
     results = [
         SignalResult("tobacco_gap", LEVEL_STRONG, 0.9, 99.0, "근거", "tobacco"),
         SignalResult("net_outflow", LEVEL_OFF, 0.0, 10.0, "근거", "tobacco"),

@@ -1113,58 +1113,7 @@
     ],
     "recent_news": []
   },
-  "news": [
-    {
-      "chunk_id": "news:bd5bf42fd728de1cb507",
-      "source_type": "news",
-      "source_id": "bd5bf42fd728de1cb507",
-      "content": "캐치테이블, 점심 웨이팅 1년 새 45% 증가…여의도동 비중 69.2%\n상권별 점심 웨이팅 비중은 서울 영등포구 여의도동이 69.2%로 가장 높았다. 평균 대기 시간이 가장 긴 지역은 서울 마포구 망원동으로, 점심 평균 대기 시간이 80분을 넘었다. 연령별로는 40대 이상 이용자 비중이...",
-      "score": 0.547070909774685,
-      "url": "http://digitalchosun.dizzo.com/site/data/html_dir/2026/09/21/2026092180153.html",
-      "org": null,
-      "published_at": "2026-09-21T15:28:00"
-    },
-    {
-      "chunk_id": "news:88398d83fb007ed754be",
-      "source_type": "news",
-      "source_id": "88398d83fb007ed754be",
-      "content": "추석 당일은 집밥, 다음날은?…점심 웨이팅 1.8배\n상권별로는 대표 오피스 상권인 영등포구 여의도동이 점심 웨이팅 비율 69.2%로 전국 1위를 기록했다. 평균 대기시간이 가장 긴 곳은 마포구 망원동으로, 점심 평균 대기 시간이 80분을 넘었다. 또 40대 이상 중장년층의...",
-      "score": 0.5200680911439801,
-      "url": "https://www.newsis.com/view/NISX20260921_0003797683",
-      "org": null,
-      "published_at": "2026-09-21T09:26:00"
-    },
-    {
-      "chunk_id": "news:d7b43415fc9b8548c64a",
-      "source_type": "news",
-      "source_id": "d7b43415fc9b8548c64a",
-      "content": "K컬처 열풍 타고… 카페 업계, 美시장 재공략\n● 투썸 25년 만에 美 버지니아 진출 3일 투썸플레이스는 서울 영등포구 여의도 콘래드 서울에서... 한인 상권이 발달한 로스앤젤레스(LA)나 뉴욕 대신 현지인 유동이 많은 상권을 택해 미국 소비자를 직접 공략하려는...",
-      "score": 0.5148785916990658,
-      "url": "https://www.donga.com/news/Economy/article/all/20260903/134601827/2",
-      "org": null,
-      "published_at": "2026-09-04T00:31:00"
-    },
-    {
-      "chunk_id": "news:ad74dd5c9d1fb3d00d88",
-      "source_type": "news",
-      "source_id": "ad74dd5c9d1fb3d00d88",
-      "content": "이자카야 우규, 여의도점 오픈…수도권 핵심 오피스 상권 진출\n연어·육회 전문 이자카야 프랜차이즈 우규(운영사 ㈜SH524)는 서울 영등포구 여의도동 일대에 '여의도점'을... 복합 상권이다. 우규는 여의도점에 브랜드 특유의 아늑한 주점 분위기를 적용하고, 직장인과 지역 고객이 모두...",
-      "score": 0.5076067021030303,
-      "url": "https://www.cwn.kr/news/articleView.html?idxno=52922",
-      "org": null,
-      "published_at": "2026-08-11T17:44:00"
-    },
-    {
-      "chunk_id": "news:6501cf24db7396fd7b44",
-      "source_type": "news",
-      "source_id": "6501cf24db7396fd7b44",
-      "content": "‘스초생’ 들고 미국 간 투썸…메인스트림서 K카페 도전\n24년간 매장 1750개 늘었지만..출점 둔화에 해외로 눈길 투썸플레이스는 3일 서울 영등포구 콘래드 서울에서... 카페 시장의 경쟁이 치열한 데다 기존 가맹점 상권까지 고려하면 신규 점포를 공격적으로 늘리기 어렵기...",
-      "score": 0.5045661786783713,
-      "url": "https://www.inthenews.co.kr/news/article.html?no=91401",
-      "org": null,
-      "published_at": "2026-09-04T06:32:00"
-    }
-  ],
+  "news": [],
   "funding_candidates": [
     {
       "program_id": "PBLN_000000000126270",

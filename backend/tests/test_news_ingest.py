@@ -62,3 +62,21 @@ def test_ingest_dedups_within_batch_and_across_runs():
         ).scalar()
     assert stored == 3
     _cleanup()
+
+
+class _RecordingRepository(SqlAlchemyNewsArticleRepository):
+    def __init__(self) -> None:
+        self.cutoffs: list[datetime] = []
+
+    def delete_published_before(self, cutoff: datetime) -> int:
+        self.cutoffs.append(cutoff)
+        return 7
+
+
+def test_보관_정리는_게시_21일이_지난_기사를_지운다():
+    """네이버 검색 API 특약 2.4 — 서버 보관은 최대 21일."""
+    repository = _RecordingRepository()
+    interactor = NewsArticleInteractor(repository=repository, gateway=FakeGateway())
+
+    assert interactor.purge(datetime(2026, 10, 22, 9, 0)) == 7
+    assert repository.cutoffs == [datetime(2026, 10, 1, 9, 0)]

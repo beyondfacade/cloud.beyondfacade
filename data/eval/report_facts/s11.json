@@ -1099,58 +1099,7 @@
     ],
     "recent_news": []
   },
-  "news": [
-    {
-      "chunk_id": "news:3f580c6f5f5ccf31a1a8",
-      "source_type": "news",
-      "source_id": "3f580c6f5f5ccf31a1a8",
-      "content": "[강동완의 탐방] 문정동 에이에스커피 가보니…직장인 상권에 맞춘 메뉴...\n서울 송파구 문정동 법원로 일대는 업무시설과 상업시설이 함께 들어선 오피스 상권이다. 출근 시간부터 점심, 퇴근 시간까지 시간대별 소비층이 달라 카페 역시 이용 목적에 따른 대응이 필요한 지역이다. 이곳에서 만난...",
-      "score": 0.5439618387085853,
-      "url": "https://www.shinailbo.co.kr/news/articleView.html?idxno=5061720",
-      "org": null,
-      "published_at": "2026-09-14T14:10:00"
-    },
-    {
-      "chunk_id": "news:75c5af37dffb99bb546f",
-      "source_type": "news",
-      "source_id": "75c5af37dffb99bb546f",
-      "content": "클라피24·키픽·세자커피, 무인 운영·유통채널 확대\n세자커피 운영사 디딛은 8월 28일 부산 중구 비프광장로에 위치한 올리브영 남포타운점 3층 K-FOOD존에... 매장이 위치한 남포동은 BIFF광장과 국제시장, 자갈치시장 등이 인접한 관광 상권이다. 프랜차이즈 업계 관계자는...",
-      "score": 0.5136691058282673,
-      "url": "https://www.shinailbo.co.kr/news/articleView.html?idxno=5057065",
-      "org": null,
-      "published_at": "2026-09-01T16:10:00"
-    },
-    {
-      "chunk_id": "news:ba93c1776232fa358e59",
-      "source_type": "news",
-      "source_id": "ba93c1776232fa358e59",
-      "content": "스타벅스 성공 신화 이을까…카페 시장에 해외 브랜드 ‘속속’\n해외 브랜드 한국행 14일 업계에 따르면 차지는 최근 서울 종로구 종각역 인근에 국내 8호점인 종로점을 열었다. 종로점은 국내 첫 2층형 매장으로 대형 오피스와 관광 수요가 공존하는 상권 특성을 겨냥했다. 차지는 강남...",
-      "score": 0.5118397474289522,
-      "url": "https://www.news2day.co.kr/article/20260813500250",
-      "org": null,
-      "published_at": "2026-08-14T07:02:00"
-    },
-    {
-      "chunk_id": "news:6501cf24db7396fd7b44",
-      "source_type": "news",
-      "source_id": "6501cf24db7396fd7b44",
-      "content": "‘스초생’ 들고 미국 간 투썸…메인스트림서 K카페 도전\n24년간 매장 1750개 늘었지만..출점 둔화에 해외로 눈길 투썸플레이스는 3일 서울 영등포구 콘래드 서울에서... 카페 시장의 경쟁이 치열한 데다 기존 가맹점 상권까지 고려하면 신규 점포를 공격적으로 늘리기 어렵기...",
-      "score": 0.5109328666685379,
-      "url": "https://www.inthenews.co.kr/news/article.html?no=91401",
-      "org": null,
-      "published_at": "2026-09-04T06:32:00"
-    },
-    {
-      "chunk_id": "news:639afcbb448c69b52dde",
-      "source_type": "news",
-      "source_id": "639afcbb448c69b52dde",
-      "content": "동작구, 15개 동 순회 '민선9기 비전 공유·주민 소통의 날' 개최\n2부에서는 정비구역과 공사현장, 전통시장 및 상권, 문화·복지·체육시설 등 동별 주요 현장을 방문해 사업 추진 상황을 점검하고, 주민 불편사항과 건의사항을 직접 청취하며 해결 방안을 모색한다. 간담회는 동작구...",
-      "score": 0.5094239126949532,
-      "url": "https://www.hg-times.com/news/articleView.html?idxno=303425",
-      "org": null,
-      "published_at": "2026-07-08T11:56:00"
-    }
-  ],
+  "news": [],
   "funding_candidates": [
     {
       "program_id": "PBLN_000000000126270",

@@ -1008,58 +1008,7 @@
     ],
     "recent_news": []
   },
-  "news": [
-    {
-      "chunk_id": "news:72eebb16a3868b3ccec3",
-      "source_type": "news",
-      "source_id": "72eebb16a3868b3ccec3",
-      "content": "우아한형제들, 한강 드론라이트쇼서 지역 음식점·시장 연계 프로그램 ...\n우아한형제들은 지역 기반 미식 가이드 ‘민트스타’를 통해 광진구 자양동 일대 음식점 20곳을 소개하는... “지역 상권과 연계한 현장 프로그램을 통해 배달 서비스와 지역 음식점의 접점을 넓히고 있다”고 말했다.",
-      "score": 0.42590709140277494,
-      "url": "http://www.lawissue.co.kr/view.php?ud=20260910193347127204ead0791_12",
-      "org": null,
-      "published_at": "2026-09-10T19:36:00"
-    },
-    {
-      "chunk_id": "news:b5bd02040b3b0abc4345",
-      "source_type": "news",
-      "source_id": "b5bd02040b3b0abc4345",
-      "content": "화교 노동자의 한 끼, 국민음식이 되다\n청관 상권의 전성기로 꼽힌다(인천광역시). 화교 상류층이 모여 살던 언덕 위 주거지는 현재 ‘삼국지... 2007년에는 인천 중구가 ‘차이나타운 지역특화발전특구’로 다시 지정돼 관광 인프라를 다질 수 있었다. 한중...",
-      "score": 0.41556894779207987,
-      "url": "https://kookbang.dema.mil.kr/newsWeb/20260904/1/ATCE_CTGR_0020020024/view.do",
-      "org": null,
-      "published_at": "2026-09-03T15:28:00"
-    },
-    {
-      "chunk_id": "news:a3c0bfa859b5740bb920",
-      "source_type": "news",
-      "source_id": "a3c0bfa859b5740bb920",
-      "content": "[단독]인사동 거리 '치킨집·한복집 메이크업' 영업규제 풀린다\n전통문화 보존 원칙은 유지하되 외국인 관광객 수요와 달라진 상권 현실을 반영해 금지 업종을 탄력적으로 조정할 방침이다. 4일 머니투데이 취재를 종합하면 종로구는 이 같은 내용을 담은 '인사동 문화지구 관리계획...",
-      "score": 0.4144906989898798,
-      "url": "https://www.mt.co.kr/policy/2026/08/05/2026080408401515836",
-      "org": null,
-      "published_at": "2026-08-04T17:06:00"
-    },
-    {
-      "chunk_id": "news:315150c2d97d241ca024",
-      "source_type": "news",
-      "source_id": "315150c2d97d241ca024",
-      "content": "[e커머스 라운지] 쿠팡·배민·컬리·GS샵·SSG닷컴...\"빠른 배송·현장 ...\n민트스타 부스에서는 서울 광진구 자양동 일대의 선정 음식점 20곳을 소개해 관람객이 지역 상권을 친숙하게 접하도록 돕는다. 행사장 메인 구역에는 신전떡볶이와 자양전통시장 호떡 등 총 2000인분의 간식을 무료로...",
-      "score": 0.4094677459559254,
-      "url": "http://www.kdfnews.com/news/articleView.html?idxno=187818",
-      "org": null,
-      "published_at": "2026-09-10T17:12:00"
-    },
-    {
-      "chunk_id": "news:cddf8d7f0c85767a15b6",
-      "source_type": "news",
-      "source_id": "cddf8d7f0c85767a15b6",
-      "content": "[문화 트렌드] 창작가무극 '청사초롱 불 밝혀라' 8월 22일 개막 外\n가오리 골목형상점가는 가오리역에서 국립재활원 방향으로 이어지는 삼각산로 일대 상권이다. 강북구는 주민들에게 가오리 상권을 알리고 상인들의 매출 증대와 상권 경쟁력 강화를 위해 이번 행사를 마련했다....",
-      "score": 0.40861185007660683,
-      "url": "https://www.ibabynews.com/news/articleView.html?idxno=153800",
-      "org": null,
-      "published_at": "2026-08-19T18:58:00"
-    }
-  ],
+  "news": [],
   "funding_candidates": [
     {
       "program_id": "PBLN_000000000126270",

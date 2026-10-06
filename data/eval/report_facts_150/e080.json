@@ -1002,58 +1002,7 @@
     ],
     "recent_news": []
   },
-  "news": [
-    {
-      "chunk_id": "news:6df729fe44225ac7a2dc",
-      "source_type": "news",
-      "source_id": "6df729fe44225ac7a2dc",
-      "content": "﻿프랜차이즈 '이장군족발보쌈', 명일점 오픈…족발·보쌈에 주류 할인...\n족발·보쌈 프랜차이즈 '이장군족발보쌈'이 지난 8월 12일 서울 강동구 명일점을 새롭게 오픈했다. 신규... 또 신규 매장 오픈 이후에도 지역 상권 특성에 맞춰 고객 접점을 만들어가는 데 초점을 두고 있다. 단순히 매장을...",
-      "score": 0.4968698767009534,
-      "url": "https://www.epnc.co.kr/news/articleView.html?idxno=406005",
-      "org": null,
-      "published_at": "2026-08-25T11:06:00"
-    },
-    {
-      "chunk_id": "news:d83a777428dfd10c94ae",
-      "source_type": "news",
-      "source_id": "d83a777428dfd10c94ae",
-      "content": "25년 한식 연구 담았다...윤스푸드랩, 쿠킹클래스·전통 디저트로 한식...\n중구청과 중구 상권발전소가 추진하는 행사에도 참여해 한식과 한식 디저트를 알리는 활동을 펼치고 있다. 한식 도시락과 단체 주문도 향후 확대할 분야다. 도시락은 반찬 가짓수보다 영양 균형과 신선한 식재료에 초점을...",
-      "score": 0.46473760797794994,
-      "url": "https://www.womentimes.co.kr/news/articleView.html?idxno=106472",
-      "org": null,
-      "published_at": "2026-09-23T14:46:00"
-    },
-    {
-      "chunk_id": "news:c2598e97d62e24c01719",
-      "source_type": "news",
-      "source_id": "c2598e97d62e24c01719",
-      "content": "보드람치킨, 개봉1동점…후라이드 중심 메뉴 '가족과 함께'\n서울 구로구 개봉1동에 위치한 보드람치킨 개봉1동점은 개봉푸르지오와 호반써밋 개봉동 일대에서 접근할 수... 예상 매출과 비용 구조, 상권 특성 등을 함께 비교하는 것이 중요하다\"고 말했다. [신아일보] 강동완 선임기자",
-      "score": 0.4561863792775779,
-      "url": "https://www.shinailbo.co.kr/news/articleView.html?idxno=5052275",
-      "org": null,
-      "published_at": "2026-08-19T09:10:00"
-    },
-    {
-      "chunk_id": "news:14eb64f2f9d14e828456",
-      "source_type": "news",
-      "source_id": "14eb64f2f9d14e828456",
-      "content": "소진공·하나금융·소공연, ‘2판 9990원짜리 계란’ 동네슈퍼 공급\n소상공인시장진흥공단은 지난 4일 서울 중구 하나금융그룹 명동사옥에서 인태연 소진공 이사장, 함영주... 협약을 통해 골목상권의 소상공인과 소비자 모두가 만족하는 풍성한 한가위가 되기를 기대한다”고 밝혔다.",
-      "score": 0.4425971297782674,
-      "url": "https://www.khan.co.kr/article/202609061057001",
-      "org": null,
-      "published_at": "2026-09-06T10:57:00"
-    },
-    {
-      "chunk_id": "news:0511a30966223a69c5ab",
-      "source_type": "news",
-      "source_id": "0511a30966223a69c5ab",
-      "content": "하나금융, 두판에 9900원 '착한계란' 12만판 푼다\n서울 중구 명동사옥에서 소상공인시장진흥공단, 소상공인연합회와 '동네슈퍼 착한계란 공급을 통한 물가 안정화 지원' 업무협약을 체결했다고 6일 밝혔다. 고물가와 소비 침체로 어려움을 겪는 골목상권을 돕고 소비자...",
-      "score": 0.4419161400395115,
-      "url": "https://www.newsinside.kr/news/articleView.html?idxno=4978860",
-      "org": null,
-      "published_at": "2026-09-06T11:48:00"
-    }
-  ],
+  "news": [],
   "funding_candidates": [
     {
       "program_id": "PBLN_000000000126270",

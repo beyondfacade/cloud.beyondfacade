@@ -963,58 +963,7 @@
     ],
     "recent_news": []
   },
-  "news": [
-    {
-      "chunk_id": "news:6df729fe44225ac7a2dc",
-      "source_type": "news",
-      "source_id": "6df729fe44225ac7a2dc",
-      "content": "﻿프랜차이즈 '이장군족발보쌈', 명일점 오픈…족발·보쌈에 주류 할인...\n족발·보쌈 프랜차이즈 '이장군족발보쌈'이 지난 8월 12일 서울 강동구 명일점을 새롭게 오픈했다. 신규... 또 신규 매장 오픈 이후에도 지역 상권 특성에 맞춰 고객 접점을 만들어가는 데 초점을 두고 있다. 단순히 매장을...",
-      "score": 0.5210297007419253,
-      "url": "https://www.epnc.co.kr/news/articleView.html?idxno=406005",
-      "org": null,
-      "published_at": "2026-08-25T11:06:00"
-    },
-    {
-      "chunk_id": "news:20431bcef7907043c1e5",
-      "source_type": "news",
-      "source_id": "20431bcef7907043c1e5",
-      "content": "배민, '한강 드론라이트쇼'에서 떡볶이·호떡 2000인분 쏜다\n뚝섬한강공원과 인접한 서울 광진구 자양동 일대에서 민트스타에 선정된 음식점 20곳을 소개해 관람객의 지역 상권 방문을 유도한다. 무료 먹거리도 제공한다. 뚝섬한강공원 메인 구역에서 푸드트럭 2대를 운영하고...",
-      "score": 0.509607073209173,
-      "url": "https://www.ngetnews.com/news/articleView.html?idxno=553234",
-      "org": null,
-      "published_at": "2026-09-10T12:22:00"
-    },
-    {
-      "chunk_id": "news:d83a777428dfd10c94ae",
-      "source_type": "news",
-      "source_id": "d83a777428dfd10c94ae",
-      "content": "25년 한식 연구 담았다...윤스푸드랩, 쿠킹클래스·전통 디저트로 한식...\n중구청과 중구 상권발전소가 추진하는 행사에도 참여해 한식과 한식 디저트를 알리는 활동을 펼치고 있다. 한식 도시락과 단체 주문도 향후 확대할 분야다. 도시락은 반찬 가짓수보다 영양 균형과 신선한 식재료에 초점을...",
-      "score": 0.504088906240462,
-      "url": "https://www.womentimes.co.kr/news/articleView.html?idxno=106472",
-      "org": null,
-      "published_at": "2026-09-23T14:46:00"
-    },
-    {
-      "chunk_id": "news:72eebb16a3868b3ccec3",
-      "source_type": "news",
-      "source_id": "72eebb16a3868b3ccec3",
-      "content": "우아한형제들, 한강 드론라이트쇼서 지역 음식점·시장 연계 프로그램 ...\n우아한형제들은 지역 기반 미식 가이드 ‘민트스타’를 통해 광진구 자양동 일대 음식점 20곳을 소개하는... “지역 상권과 연계한 현장 프로그램을 통해 배달 서비스와 지역 음식점의 접점을 넓히고 있다”고 말했다.",
-      "score": 0.5027127112877114,
-      "url": "http://www.lawissue.co.kr/view.php?ud=20260910193347127204ead0791_12",
-      "org": null,
-      "published_at": "2026-09-10T19:36:00"
-    },
-    {
-      "chunk_id": "news:0838f7c5f0122da2cbfa",
-      "source_type": "news",
-      "source_id": "0838f7c5f0122da2cbfa",
-      "content": "짭조름한 보리굴비에 고소한 김치볶음밥…‘2TV 생생정보’ 여름 입맛 ...\n먼저 서울 강동구 우리동네키움센터 강동9호점에서 운영되는 ‘서울아이 든든한끼’를 소개한다. 방학 기간... 누구에게나 익숙한 김치볶음밥을 자신만의 방식으로 발전시키고, 치열한 상권에서 경쟁력을 갖추기까지의...",
-      "score": 0.4970330613654521,
-      "url": "https://www.wikitree.co.kr/articles/1148684",
-      "org": null,
-      "published_at": "2026-07-27T17:34:00"
-    }
-  ],
+  "news": [],
   "funding_candidates": [
     {
       "program_id": "PBLN_000000000126270",

@@ -1114,58 +1114,7 @@
     ],
     "recent_news": []
   },
-  "news": [
-    {
-      "chunk_id": "news:c9fc6fc4505cb107a96e",
-      "source_type": "news",
-      "source_id": "c9fc6fc4505cb107a96e",
-      "content": "“낡은 붉은 벽돌집의 변신”… 해방촌 카페 '트랍' 정식 개장\n서울 용산구 신흥로에 자리 잡은 카페 '트랍'(TRAP)은 지난 1일 임시 영업을 시작했다. 오는 11일 정식... 전통시장에서 개성 있는 음식점과 카페, 술집 등이 모인 식음료 상권으로 빠르게 변하고 있다. 트랍은 오래된 건물을...",
-      "score": 0.5024484689626079,
-      "url": "http://www.beyondpost.co.kr/view.php?ud=20260810145812455818ef25b590_30",
-      "org": null,
-      "published_at": "2026-08-10T15:00:00"
-    },
-    {
-      "chunk_id": "news:50ed5cf94254c5af9569",
-      "source_type": "news",
-      "source_id": "50ed5cf94254c5af9569",
-      "content": "“한국서 잘 팔리네”…핵심 상권 파고드는 이 브랜드들\n서울 서초구 강남역에 신규 매장을 연다. 기존 강남점을 이전해 새롭게 문을 여는 것으로, 국내 2호점인 자카페(Zacaffè)도 함께 선보일 예정이다. 주요 상권에서 매장 경쟁력을 높이는 동시에 브랜드 경험을 강화하려는...",
-      "score": 0.49746887438650367,
-      "url": "https://www.mk.co.kr/article/12135890",
-      "org": null,
-      "published_at": "2026-08-25T16:29:00"
-    },
-    {
-      "chunk_id": "news:17dca35a38fe372ec0ef",
-      "source_type": "news",
-      "source_id": "17dca35a38fe372ec0ef",
-      "content": "코카콜라, 해방촌 상권과 손잡는다\n코카콜라가 서울 용산구 신흥시장에서 시작한 지역상권 협업을 해방촌 전역으로 확대한다. 지역 상인들이 직접 만드는 동네 축제에 참여해 음식점과 공연, 영화제 등을 연계하며 소비자 접점을 넓힌다. 코카콜라는...",
-      "score": 0.4907081463958616,
-      "url": "https://www.naeil.com/news/read/601822?ref=naver",
-      "org": null,
-      "published_at": "2026-09-10T13:06:00"
-    },
-    {
-      "chunk_id": "news:c95a689961f21cd35e10",
-      "source_type": "news",
-      "source_id": "c95a689961f21cd35e10",
-      "content": "관악 '강감찬 버스' 이용객 3.5배 껑충…하루 1000명 넘게 탄다\n사당역과 관악산 입구 등을 오가는 2노선 이용객에게 버스 안에서 지역 상권 정보와 할인 행사 등을 안내해 주변 상점 방문을 유도하고 지역경제 활성화에도 도움을 준다는 구상이다. 강감찬 버스는 관악구 주민이...",
-      "score": 0.4887215521999613,
-      "url": "https://www.job-post.co.kr/news/articleView.html?idxno=223618",
-      "org": null,
-      "published_at": "2026-08-11T10:32:00"
-    },
-    {
-      "chunk_id": "news:2c4a89b7306b62147928",
-      "source_type": "news",
-      "source_id": "2c4a89b7306b62147928",
-      "content": "류삼영 \"주민 소통 강화, 민선9기 비전 공유에 최선\"\n2부에서는 정비구역, 공사현장, 전통시장, 상권, 문화·복지·체육시설 등 동별 주요 현장을 방문해 사업 추진 상황을 점검하고, 주민 불편사항과 건의사항을 직접 청취해 해결 방안을 모색한다. 동작구민 누구나...",
-      "score": 0.48756472017484054,
-      "url": "https://www.gukjenews.com/news/articleView.html?idxno=3630189",
-      "org": null,
-      "published_at": "2026-07-08T17:34:00"
-    }
-  ],
+  "news": [],
   "funding_candidates": [
     {
       "program_id": "PBLN_000000000126270",

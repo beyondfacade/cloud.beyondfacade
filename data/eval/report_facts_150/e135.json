@@ -1132,58 +1132,7 @@
     ],
     "recent_news": []
   },
-  "news": [
-    {
-      "chunk_id": "news:940f76b8fc02ec751a53",
-      "source_type": "news",
-      "source_id": "940f76b8fc02ec751a53",
-      "content": "중곡1동 노후 주택가→2200가구 아파트로 탈바꿈한다\n서울 지하철 7호선 중곡·군자역 인근 광진구 중곡1동 254-15 일대 노후주택가가 최고 35층, 2200가구의... 구역 내 상권이 활성화된 상업지역은 관광숙박 특화구역으로 지정, 오는 2029년 1월4일까지 건축허가 신청할 경우...",
-      "score": 0.5253905178980358,
-      "url": "https://view.asiae.co.kr/article/2026092907560369674",
-      "org": null,
-      "published_at": "2026-09-29T10:00:00"
-    },
-    {
-      "chunk_id": "news:5026019da555a0c86208",
-      "source_type": "news",
-      "source_id": "5026019da555a0c86208",
-      "content": "[生기업TALK] 한국투자부동산신탁, 올 가을 접수했다...서울 중곡·마포...\n향후 개발이 본격화되면 대규모 주택 공급과 함께 주거환경 정비, 상권 활성화 등 원도심 전반에 새로운... 서울 광진구 중곡동 210-7번지 일원에서 추진되는 이번 사업은 약 1,607세대 규모의 공동주택과 생활편의시설을...",
-      "score": 0.5001481474418298,
-      "url": "http://www.sisacast.kr/news/articleView.html?idxno=99929",
-      "org": null,
-      "published_at": "2026-09-17T13:56:00"
-    },
-    {
-      "chunk_id": "news:6f32412d2d1eea0de651",
-      "source_type": "news",
-      "source_id": "6f32412d2d1eea0de651",
-      "content": "(광고)착한 분양가 '더샵 중앙로역센터폴' 선착순 동호수 지정 분양 돌...\n대구 중구 사일동 15-1번지 일원에 있는 이 단지는 내달 중 입주가 예정된 후분양 단지로 준공을 앞두고 있어... 여기에 동성로 상권과 연결되는 지하 쇼핑몰도 이용할 수 있어 교통·상업·생활 인프라를 원스톱으로 누릴...",
-      "score": 0.4972152098977205,
-      "url": "https://www.idaegu.co.kr/news/articleView.html?idxno=558726",
-      "org": null,
-      "published_at": "2026-09-06T13:04:00"
-    },
-    {
-      "chunk_id": "news:745fa251835cd6cb9e0a",
-      "source_type": "news",
-      "source_id": "745fa251835cd6cb9e0a",
-      "content": "서울 구청장들 1호 결재는 ‘주택공급’\n일자리·상권 상생 추진계획’을 승인했다. 중랑구는 교육 취약계층 지원과 심리·정서 지원, 진로·진학 지원을 확대하는 조례 제정을 선택했다. 최기찬 금천구청장은 주거지 인근 데이터센터 건립 문제를 1호 결재로...",
-      "score": 0.48839911334497144,
-      "url": "https://www.donga.com/news/Society/article/all/20260709/134262741/2",
-      "org": null,
-      "published_at": "2026-07-09T04:31:00"
-    },
-    {
-      "chunk_id": "news:3727dacee9387efa4f03",
-      "source_type": "news",
-      "source_id": "3727dacee9387efa4f03",
-      "content": "50년된 중곡동 노후주택지 35층 2200가구로 재개발 … 강남 한솔·이촌 ...\n강남구 일원동 한솔아파트와 용산구 이촌동 반도아파트, 강서구 염창우성1·2차·삼천리아파트 재건축... 상권이 활성화된 상업지역을 관광숙박 특화구역으로 지정하고 일정 기준을 충족한 관광숙박시설에는...",
-      "score": 0.47808473898348314,
-      "url": "https://www.newdaily.co.kr/site/data/html/2026/09/29/2026092900100.html",
-      "org": null,
-      "published_at": "2026-09-29T10:50:00"
-    }
-  ],
+  "news": [],
   "funding_candidates": [
     {
       "program_id": "PBLN_000000000126270",

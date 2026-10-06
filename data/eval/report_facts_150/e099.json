@@ -961,58 +961,7 @@
     ],
     "recent_news": []
   },
-  "news": [
-    {
-      "chunk_id": "news:d83a777428dfd10c94ae",
-      "source_type": "news",
-      "source_id": "d83a777428dfd10c94ae",
-      "content": "25년 한식 연구 담았다...윤스푸드랩, 쿠킹클래스·전통 디저트로 한식...\n중구청과 중구 상권발전소가 추진하는 행사에도 참여해 한식과 한식 디저트를 알리는 활동을 펼치고 있다. 한식 도시락과 단체 주문도 향후 확대할 분야다. 도시락은 반찬 가짓수보다 영양 균형과 신선한 식재료에 초점을...",
-      "score": 0.49605584238628686,
-      "url": "https://www.womentimes.co.kr/news/articleView.html?idxno=106472",
-      "org": null,
-      "published_at": "2026-09-23T14:46:00"
-    },
-    {
-      "chunk_id": "news:0cc3ffd9ead1cd3c055b",
-      "source_type": "news",
-      "source_id": "0cc3ffd9ead1cd3c055b",
-      "content": "신당역 골목에 야장 펼친다…중구, 18일부터 3곳 운영\n남대문·충무로·약수·장충남소영길로 순차 확대 서울 중구(구청장 김길성)는 오는 18일부터 신당역 일대 전통시장과 골목상권 3곳에서 '중구형 상생야장'을 운영한다고 10일 밝혔다. 중구형 상생야장은 상인들이 시장별...",
-      "score": 0.48903857204203294,
-      "url": "https://news.tf.co.kr/read/life/2364318.htm",
-      "org": null,
-      "published_at": "2026-09-10T12:31:00"
-    },
-    {
-      "chunk_id": "news:4cbc01deb56d889ee7ca",
-      "source_type": "news",
-      "source_id": "4cbc01deb56d889ee7ca",
-      "content": "중구, 충무로 골목형상점가 상인회 주관으로 '제4회 충무로 인쇄문화거...\n문화경제 | CNB저널 | 씨앤비저널 서울 중구는 오는 27일과 28일 이틀간 오후 4시부터 오후 9시까지 충무로2길... 골목형상점가는 외식업·서비스업 등 다양한 업종의 소상공인이 모여 있는 골목상권을 제도적으로 인정하고...",
-      "score": 0.4829940548556957,
-      "url": "https://www.cnbizm.com/news/articleView.html?idxno=312503",
-      "org": null,
-      "published_at": "2026-08-24T16:40:00"
-    },
-    {
-      "chunk_id": "news:3f4df8ad0eb3ff61f42c",
-      "source_type": "news",
-      "source_id": "3f4df8ad0eb3ff61f42c",
-      "content": "중구 전통시장·골목상권, 이틀 간 '가을맞이 3색 축제' 펼친다\n중구 전통시장과 골목상권이 가을을 맞아 잇따라 축제를 열고 지역상권에 활기를 더한다. 구는 오는 17일부터 19일까지 인현시장, 신중앙시장, 약수시장 골목형상점가에서 상권별 특성을 살린 가을 축제를 순차적으로...",
-      "score": 0.4825344435768075,
-      "url": "https://www.jeonmae.co.kr/news/articleView.html?idxno=1291117",
-      "org": null,
-      "published_at": "2026-09-08T10:22:00"
-    },
-    {
-      "chunk_id": "news:404d2ad0ac3fabd135fb",
-      "source_type": "news",
-      "source_id": "404d2ad0ac3fabd135fb",
-      "content": "‘1석 3조’ 광진 경로당 외식데이\n서울 광진구는 어르신들의 목소리를 듣고, 경로당을 직접 찾아 시설과 이용환경을 살피는 등 현장행정을... 골목상권에도 활력을 더할 것으로 기대한다. 김 구청장은 지난 11일 중곡1동 제1경로당과 장수경로당을 시작으로...",
-      "score": 0.47590696955281764,
-      "url": "https://www.seoul.co.kr/news/publicnews/seoul_local/news_seoul/2026/08/21/20260821020002?wlog_tag3=naver",
-      "org": null,
-      "published_at": "2026-08-21T05:03:00"
-    }
-  ],
+  "news": [],
   "funding_candidates": [
     {
       "program_id": "PBLN_000000000126270",

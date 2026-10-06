@@ -1066,58 +1066,7 @@
     ],
     "recent_news": []
   },
-  "news": [
-    {
-      "chunk_id": "news:404d2ad0ac3fabd135fb",
-      "source_type": "news",
-      "source_id": "404d2ad0ac3fabd135fb",
-      "content": "‘1석 3조’ 광진 경로당 외식데이\n서울 광진구는 어르신들의 목소리를 듣고, 경로당을 직접 찾아 시설과 이용환경을 살피는 등 현장행정을... 골목상권에도 활력을 더할 것으로 기대한다. 김 구청장은 지난 11일 중곡1동 제1경로당과 장수경로당을 시작으로...",
-      "score": 0.4520332090736169,
-      "url": "https://www.seoul.co.kr/news/publicnews/seoul_local/news_seoul/2026/08/21/20260821020002?wlog_tag3=naver",
-      "org": null,
-      "published_at": "2026-08-21T05:03:00"
-    },
-    {
-      "chunk_id": "news:940f76b8fc02ec751a53",
-      "source_type": "news",
-      "source_id": "940f76b8fc02ec751a53",
-      "content": "중곡1동 노후 주택가→2200가구 아파트로 탈바꿈한다\n서울 지하철 7호선 중곡·군자역 인근 광진구 중곡1동 254-15 일대 노후주택가가 최고 35층, 2200가구의... 구역 내 상권이 활성화된 상업지역은 관광숙박 특화구역으로 지정, 오는 2029년 1월4일까지 건축허가 신청할 경우...",
-      "score": 0.4477247280167084,
-      "url": "https://view.asiae.co.kr/article/2026092907560369674",
-      "org": null,
-      "published_at": "2026-09-29T10:00:00"
-    },
-    {
-      "chunk_id": "news:ba0f3c5cf5e5c04a8874",
-      "source_type": "news",
-      "source_id": "ba0f3c5cf5e5c04a8874",
-      "content": "서울 오피스텔 시장 상승세에 '힐스테이트 송파더그리드' 주목\n이 같은 F&B 중심의 상업시설 조성 전략은 배후 상권 활성화에도 힘을 보탤 것으로 기대된다.... 16층, 10개 동, 전용면적 34~119㎡, 총 1,393실 규모다. 견본주택은 서울시 강남구 자곡로 (벤츠 자곡전시장 건너편)에 위치한다.",
-      "score": 0.44750084370347376,
-      "url": "https://magazine.hankyung.com/money/article/202610020862c",
-      "org": null,
-      "published_at": "2026-10-04T09:02:00"
-    },
-    {
-      "chunk_id": "news:ed4d83ac61b89746ea40",
-      "source_type": "news",
-      "source_id": "ed4d83ac61b89746ea40",
-      "content": "광진구의회, 제295회 제1차 정례회 개회\n광진구의회는 최근 제295회 제1차 정례회를 개회했다. 제10대 광진구의회의 첫 정례회인 이번 정례회는... 마지막으로 최규철 의원은 화양동 상권의 지속가능한 발전을 위해 골목별 맞춤형 상권정책 마련과 상설 관리...",
-      "score": 0.44299062484895924,
-      "url": "https://www.jeonmae.co.kr/news/articleView.html?idxno=1288959",
-      "org": null,
-      "published_at": "2026-09-01T11:04:00"
-    },
-    {
-      "chunk_id": "news:de82bce47c3ae5e15810",
-      "source_type": "news",
-      "source_id": "de82bce47c3ae5e15810",
-      "content": "힐스테이트 송파더그리드, 20일(일) 예비당첨자 동·호수 추첨 및 계약 ...\n이 같은 F&B 중심의 상업시설 조성 전략은 배후 상권 활성화에도 힘을 보탤 것으로 기대된다. 인근에는... 수서역까지 한 정거장인 교통환경 등이 강점\"이라고 말했다. 견본주택은 서울시 강남구 자곡로 일원에 위치한다.",
-      "score": 0.44095816691477063,
-      "url": "http://www.ikld.kr/news/articleView.html?idxno=341020",
-      "org": null,
-      "published_at": "2026-09-19T13:50:00"
-    }
-  ],
+  "news": [],
   "funding_candidates": [
     {
       "program_id": "PBLN_000000000126270",

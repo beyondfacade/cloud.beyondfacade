@@ -1092,58 +1092,7 @@
     ],
     "recent_news": []
   },
-  "news": [
-    {
-      "chunk_id": "news:609b508b720738525bea",
-      "source_type": "news",
-      "source_id": "609b508b720738525bea",
-      "content": "레드포스PC방 신논현점, SBS ‘모닝와이드’ 소개…복합형 PC방 운영 확...\n서울 강남구 신논현역 인근에 위치한 신논현점은 약 200평 규모로 조성됐으며, e스포츠 경기석과 관중석을... 앞서 일부 매장에서는 셰프와 협업한 메뉴를 선보이고 대학가 등 상권별 이용자 특성을 반영한 공간 설계를...",
-      "score": 0.5213149833907036,
-      "url": "https://www.gosiweek.com/article/1065599079170783",
-      "org": null,
-      "published_at": "2026-09-18T16:48:00"
-    },
-    {
-      "chunk_id": "news:b202e9b3dba11ad967d8",
-      "source_type": "news",
-      "source_id": "b202e9b3dba11ad967d8",
-      "content": "‘오타쿠 성지’ 용산 아이파크몰· 홍대 AK플라자 “콘텐츠로 취향 저...\n\" 지난 14일 오후 1시 30분 서울 용산구 HDC아이파크몰 용산점 리빙파크 3층 내 '치이카와샵' 인근에서 만난... 성향과 상권 특성을 반영해 국내외 서브컬처·IP에 대한 전문성과 취향성 위주로 브랜드와 콘텐츠를...",
-      "score": 0.4946025721984959,
-      "url": "https://www.ekn.kr/web/view.php?key=20260914025454286",
-      "org": null,
-      "published_at": "2026-09-14T17:46:00"
-    },
-    {
-      "chunk_id": "news:956ebab97343c785dada",
-      "source_type": "news",
-      "source_id": "956ebab97343c785dada",
-      "content": "제우스 PC방 망원점, ZOWIE x C5 PUBG 클랜파티 개최\n망원역과 마포구청역을 잇는 도로에 위치해 대중교통 접근성이 좋다. 망원시장과 망원동 월드컵시장, 망리단길과도 가까워 게임 대회 참가와 지역 상권 방문을 함께 할 수 있다. 매장은 전 좌석에 인텔 15세대...",
-      "score": 0.4914881081648721,
-      "url": "http://www.thebigdata.co.kr/view.php?ud=20260909151510308937600e7ec7_23",
-      "org": null,
-      "published_at": "2026-09-09T15:22:00"
-    },
-    {
-      "chunk_id": "news:7bdee1469ba7423b1a13",
-      "source_type": "news",
-      "source_id": "7bdee1469ba7423b1a13",
-      "content": "[강동완의 탐방] 용산 백온생순대 \"국밥 한 끼의 기본기에 집중한 매장...\n서울 용산구 이촌동, 지하철 이촌역에서 도보로 이동 가능한 골목 안쪽에 자리한 '백온생순대 용산본점'은... 외식업계에서는 최근 국밥 전문점이 대형 상권보다 생활권 중심으로 확장되는 흐름에 주목하고 있다. 한...",
-      "score": 0.4834741190203311,
-      "url": "https://www.shinailbo.co.kr/news/articleView.html?idxno=5051732",
-      "org": null,
-      "published_at": "2026-08-19T10:10:00"
-    },
-    {
-      "chunk_id": "news:ca576238eab780a9513f",
-      "source_type": "news",
-      "source_id": "ca576238eab780a9513f",
-      "content": "레드포스 PC방, 게이밍·F&B·e스포츠 결합한 창업 모델 확대\n서울 종로구에 있는 레드포스 PC 아레나 종각점은 최근 한국의 일상과 문화를 소개하는 글로벌 대상 영상... 비엔엠컴퍼니는 종각점 운영 사례를 바탕으로 입지와 상권, 고객 구성에 맞는 창업 컨설팅을 제공할 계획이다....",
-      "score": 0.4819698348416701,
-      "url": "https://www.gosiweek.com/article/1065598441327466",
-      "org": null,
-      "published_at": "2026-08-19T16:38:00"
-    }
-  ],
+  "news": [],
   "funding_candidates": [
     {
       "program_id": "PBLN_000000000126270",

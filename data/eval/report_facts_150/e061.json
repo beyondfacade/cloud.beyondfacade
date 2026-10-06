@@ -1088,58 +1088,7 @@
     ],
     "recent_news": []
   },
-  "news": [
-    {
-      "chunk_id": "news:44b9ec49de7bc03c4518",
-      "source_type": "news",
-      "source_id": "44b9ec49de7bc03c4518",
-      "content": "도봉구 창동역 먹자골목, ‘달빛야장’으로 재탄생\n또한 기존 상인을 중심으로 도봉구, 서울아레나, 통장협의회, 도봉구양말제조연합회 등이 참여하는 상생협의체를 구성해 상권의 지속 가능한 발전을 도모한다. 창동역 달빛야장은 서울아레나 개관 시기에 맞춰 본격...",
-      "score": 0.480650408994859,
-      "url": "https://www.munhwa.com/article/11618628?ref=naver",
-      "org": null,
-      "published_at": "2026-09-21T14:36:00"
-    },
-    {
-      "chunk_id": "news:bcc6361f86184708ffde",
-      "source_type": "news",
-      "source_id": "bcc6361f86184708ffde",
-      "content": "창동역 먹자골목, '달빛야장'으로 재탄생...서울아레나서 공연 보고 뒷...\n또한 기존 상인을 중심으로 도봉구, 서울아레나, 통장협의회, 도봉구양말제조연합회 등이 참여하는 상생협의체를 구성해 상권의 지속 가능한 발전을 도모한다. 창동역 달빛야장은 서울아레나 개관 시기에 맞춰 본격...",
-      "score": 0.46899921625880026,
-      "url": "https://www.cnbizm.com/news/articleView.html?idxno=315596",
-      "org": null,
-      "published_at": "2026-09-18T09:30:00"
-    },
-    {
-      "chunk_id": "news:6f1d2f0852eae2edd1d8",
-      "source_type": "news",
-      "source_id": "6f1d2f0852eae2edd1d8",
-      "content": "창동역서 서울아레나까지 'K-컬처 거리' 만든다…내년 5월 완공 목표\n도봉구는 창동역과 서울아레나를 연결하는 공간이 완성되면 공연 관람객의 체류 시간이 늘어나면서 주변 상권 활성화에도 도움이 될 것으로 기대하고 있다. 김동욱 도봉구청장은 \"창동역 일대는 서울아레나 개장과 함께...",
-      "score": 0.4644405064978172,
-      "url": "https://www.job-post.co.kr/news/articleView.html?idxno=226166",
-      "org": null,
-      "published_at": "2026-09-04T11:18:00"
-    },
-    {
-      "chunk_id": "news:4f54016a36120b08a264",
-      "source_type": "news",
-      "source_id": "4f54016a36120b08a264",
-      "content": "창동역~서울아레나, ‘체류형 문화공간’으로 조성\n서울 도봉구(구청장 김동욱)가 창동역에서 서울아레나로 이어지는 거리를 머물고 쉬어가며 문화를 즐기는... 휴게·조망·문화 기능을 결합해 사업 대상지 일대의 체류 시간을 늘리고 인근 거리와 상권을 활성화하는 데...",
-      "score": 0.4615171230908943,
-      "url": "https://view.asiae.co.kr/article/2026090407590252631",
-      "org": null,
-      "published_at": "2026-09-04T07:59:00"
-    },
-    {
-      "chunk_id": "news:db47cd50739d5fa12379",
-      "source_type": "news",
-      "source_id": "db47cd50739d5fa12379",
-      "content": "도봉구, 창동 컬처링크 밑그림 완성\n창동역 일대 디자인스폿 야간 경관 설계안[사진=서울시 도시경관담당관] 도봉구가 창동역에서 서울아레나로... 이번 사업은 휴식과 조망, 문화 요소가 어우러진 거리를 만들어 인근 지역 상권에 활력을 불어넣는 서울시...",
-      "score": 0.4611097024549228,
-      "url": "https://www.jeonmae.co.kr/news/articleView.html?idxno=1290200",
-      "org": null,
-      "published_at": "2026-09-04T09:36:00"
-    }
-  ],
+  "news": [],
   "funding_candidates": [
     {
       "program_id": "PBLN_000000000126270",

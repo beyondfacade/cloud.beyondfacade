@@ -114,15 +114,6 @@ def overlap_sentence(quarters: list[dict]) -> str | None:
     return f"같은 기간 {shown}도 있었습니다." + (f" 그 밖에 {rest}개 분기에도 다른 정책이 겹쳤습니다." if rest > 0 else "")
 
 
-def news_sentence(recent: dict) -> str:
-    if not recent.get("checked"):
-        return f"{recent.get('label')} 최근 소식은 확인하지 못했습니다."
-    subject = f"최근 {recent.get('days')}일 {'·'.join(recent.get('keywords') or [])}"
-    if not recent.get("article_count"):
-        return f"{subject} 같은 조치 소식은 없습니다."
-    return f"{subject} 관련 뉴스는 {recent['article_count']}건입니다."
-
-
 def _industry_name(analogs: dict) -> str:
     events = [*(analogs.get("current_events") or []), *(analogs.get("analogs") or [])]
     series = (s for e in events for s in e.get("series") or [] if s.get("role") == "target")
@@ -176,7 +167,7 @@ def _representatives(analogs: dict) -> set[int]:
 
 
 def with_sentences(analogs: dict) -> dict:
-    """사례·유형 종합·뉴스마다 LLM이 그대로 옮길 완성 문장을 붙인 사본 (원본은 그대로, 없는 목록은 두고)."""
+    """사례·유형 종합마다 LLM이 그대로 옮길 완성 문장을 붙인 사본 (원본은 그대로, 없는 목록은 두고)."""
     if analogs.get("available") is False:
         return analogs
     industry_name = f"{AREA} {_industry_name(analogs)}"
@@ -215,6 +206,5 @@ def with_sentences(analogs: dict) -> dict:
             }
             for o in analogs.get("outlooks") or []
         ],
-        "recent_news": [{**r, "sentence": news_sentence(r)} for r in analogs.get("recent_news") or []],
     }
     return {**analogs, **{key: items for key, items in enriched.items() if key in analogs}}

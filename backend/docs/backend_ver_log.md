@@ -1,5 +1,22 @@
 # Backend Version Log
 
+## [v0.83.0] - 2026-10-06
+
+### Changed
+- 뉴스(네이버 검색 API)는 원문 링크로만 쓴다 — 검색 API 특약 2.2(가공 없이 노출)·2.3(AI 입력·평가 활용 금지)·2.4(서버 보관 최대 21일). 사용자 결정: 이용조건 1번 (b)
+  - 리포트 본문(= 해석 LLM 입력)에서 뉴스를 뺐다: 조건 절의 "[참고 신호] ○○ 이름이 나온 최근 뉴스" 줄, 유사 사례 문단 끝의 최근 조치 뉴스 건수 문장(`news_sentence`). 해석 지시문의 "뉴스는 [참고 신호]라고 밝히고만 쓴다" 줄도 뺐다
+  - `facts.news`는 RAG 검색 결과(발췌 포함)가 아니라 news_article에서 동 이름이 나온 최근 21일 기사 원문 링크 최대 3건 `{title, url, published_at, press}`다(`NewsLinksPort`·`NewsLinksGateway`). `report_done.citations`도 같은 모양 + `grade`
+  - 리포트 저장(`analysis_report`) 때 인용을 저장하지 않는다(`citations_json = []`)
+- RAG 색인에서 뉴스를 뺐다 — 색인 원천은 정책 공고(funding)뿐 (`NewsRagSourceGateway`·`build_news_chunk` 삭제). 평가셋 `rag_evalset.jsonl`·검수 시트의 뉴스 문항 60개 삭제(260 → 200, 공고만)
+- 평가용 facts 픽스처(`data/eval/report_facts*/` 162개)의 `news`를 비웠다
+
+### Added
+- 뉴스 수집기가 적재 뒤 게시 21일이 지난 기사를 지운다 (`NewsArticleUseCase.purge`, `delete_published_before`, `RETENTION_DAYS = 21`)
+
+### Removed
+- 판정 신호 "상권 축소"(`ShrinkingSignal`) — 여러 시점 백테스트에서 0.91~0.96×로 정보가 없었다(docs/verdict-backtest-multi.md ②, 사용자 결정). 참고 신호라 등급 계산에는 원래 안 들어갔다 → 판정 등급은 그대로, 카드·리포트의 신호 목록에서만 빠진다. 그 신호만 쓰던 입력(`SignalInput`·`RegionContext`의 상권변화지표 5개 필드, `RegionContextGateway`의 상권변화 조회)도 뺐다. 상권변화지표 자체는 동 맥락 사실로 계속 쓴다
+- `agent_tools.hit_to_dict`(뉴스 RAG 결과 직렬화) — 쓰는 곳이 없어졌다
+
 ## [v0.79.1] - 2026-10-06
 
 ### Removed

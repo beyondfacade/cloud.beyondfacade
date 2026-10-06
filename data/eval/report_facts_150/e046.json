@@ -1007,58 +1007,7 @@
     ],
     "recent_news": []
   },
-  "news": [
-    {
-      "chunk_id": "news:bbdb59aed94fd02aed1e",
-      "source_type": "news",
-      "source_id": "bbdb59aed94fd02aed1e",
-      "content": "칼국수부터 닭강정까지...15일 '생방송 투데이' 양천구 맛집은\n특히 주거 지역과 상권이 자연스럽게 어우러진 동네에서는 꾸준한 입소문을 바탕으로 손님들의 발길을 붙잡는 곳을 어렵지 않게 만날 수 있다. 이날 SBS '생방송 투데이'에서는 서울 양천구 신정동의 다양한 먹거리들이...",
-      "score": 0.5249105066170725,
-      "url": "https://www.wikitree.co.kr/articles/1159719",
-      "org": null,
-      "published_at": "2026-09-15T17:24:00"
-    },
-    {
-      "chunk_id": "news:d83a777428dfd10c94ae",
-      "source_type": "news",
-      "source_id": "d83a777428dfd10c94ae",
-      "content": "25년 한식 연구 담았다...윤스푸드랩, 쿠킹클래스·전통 디저트로 한식...\n중구청과 중구 상권발전소가 추진하는 행사에도 참여해 한식과 한식 디저트를 알리는 활동을 펼치고 있다. 한식 도시락과 단체 주문도 향후 확대할 분야다. 도시락은 반찬 가짓수보다 영양 균형과 신선한 식재료에 초점을...",
-      "score": 0.4860781837096406,
-      "url": "https://www.womentimes.co.kr/news/articleView.html?idxno=106472",
-      "org": null,
-      "published_at": "2026-09-23T14:46:00"
-    },
-    {
-      "chunk_id": "news:4083f1321227d1f9c023",
-      "source_type": "news",
-      "source_id": "4083f1321227d1f9c023",
-      "content": "한식의 가치를 잇는 마곡 '윤스푸드랩'...﻿K-식문화를 전하다\n최근에는 중구청과 중구 상권발전소가 추진하는 행사에 참여해 한식과 한식 디저트를 알리는 프로그램에도 함께하고 있다. 지역의 역사적 자원과 한식 문화를 연결하는 행사에서 한식 디저트 분야를 담당하며 새로운...",
-      "score": 0.4819615547796181,
-      "url": "https://www.getnews.co.kr/news/articleView.html?idxno=882134",
-      "org": null,
-      "published_at": "2026-09-29T20:36:00"
-    },
-    {
-      "chunk_id": "news:217c0471948d4554513a",
-      "source_type": "news",
-      "source_id": "217c0471948d4554513a",
-      "content": "탕화쿵푸마라탕, 신도림점 오픈\n탕화쿵푸마라탕이 서울 구로구 신도림동에 신도림점을 오픈했다. 6월 11일 문을 연 신도림점은 지하철... 형성된 상권에 자리하고 있다. 매장은 주거지와 업무시설이 혼재된 상권 특성을 반영해 다양한 방문 수요를 고려한...",
-      "score": 0.46968584621457365,
-      "url": "http://www.e2news.com/news/articleView.html?idxno=331252",
-      "org": null,
-      "published_at": "2026-06-11T13:36:00"
-    },
-    {
-      "chunk_id": "news:1ee470a3422a39787b24",
-      "source_type": "news",
-      "source_id": "1ee470a3422a39787b24",
-      "content": "제이지루나, 한식주점 ‘삐딱’ 을지로 직영점 개점…전국 7호점 달성\n신규 입점한 을지로 직영점은 유동 인구와 상업 시설이 밀집한 서울 중구 핵심 상권에 자리 잡았다. 회사 측은 인근 직장인 회식과 청년층 모임 수요를 흡수해 매장 인지도를 높일 계획이다. ㈜제이지루나는 을지로점...",
-      "score": 0.46896230599228783,
-      "url": "http://www.segyebiz.com/newsView/20260917511713?OutUrl=naver",
-      "org": null,
-      "published_at": "2026-09-17T14:14:00"
-    }
-  ],
+  "news": [],
   "funding_candidates": [
     {
       "program_id": "PBLN_000000000126270",

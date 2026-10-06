@@ -961,58 +961,7 @@
     ],
     "recent_news": []
   },
-  "news": [
-    {
-      "chunk_id": "news:60056dd863ff858fe06b",
-      "source_type": "news",
-      "source_id": "60056dd863ff858fe06b",
-      "content": "마포 전통시장·골목상권, 가을밤 야시장으로 변신\n서울 마포구 전통시장과 골목형 상점가가 먹거리와 체험 프로그램을 결합한 야시장으로 변신하며 가을밤 지역 상권에 활력을 더했다. 유동균 마포구청장은 지난 4일 아현시장에서 열린 야간 음식문화 행사 '아현시대'와...",
-      "score": 0.5062387758822648,
-      "url": "https://www.shinailbo.co.kr/news/articleView.html?idxno=5058857",
-      "org": null,
-      "published_at": "2026-09-06T10:44:00"
-    },
-    {
-      "chunk_id": "news:5622932ad654d170dc00",
-      "source_type": "news",
-      "source_id": "5622932ad654d170dc00",
-      "content": "일본 로컬 맛! 회기동 맛집 '오호리'\n동네를 향한 진심: 회기동 상권에 애정을 가진 사장님들이 모여 만드는 사람 냄새 나는 온기와 섬세한 사케... 한 잔으로 작은 일본을 완성한 에디터의 또 갈 집, 회기의 오호리였습니다. 주소: 서울 동대문구 회기로18길 12 1층",
-      "score": 0.5001143664360714,
-      "url": "https://www.esquirekorea.co.kr/article/1907145",
-      "org": null,
-      "published_at": "2026-08-01T11:00:00"
-    },
-    {
-      "chunk_id": "news:a0b6c111b24848470cff",
-      "source_type": "news",
-      "source_id": "a0b6c111b24848470cff",
-      "content": "현대그린푸드, 삼성동 직장인·기업 모임 겨냥한 '이탈리' 연다\n프라이빗룸과 숯불 요리, 기업용 선물 상품을 강화해 상권 맞춤형 외식 매장으로 운영한다는 전략이다. 현대그린푸드는 오는 28일 서울 강남구 삼성동 현대백화점 무역센터점 10층에 이탈리 다이닝 특화 매장을 연다고...",
-      "score": 0.49837987100784487,
-      "url": "https://www.newsquest.co.kr/news/articleView.html?idxno=272412",
-      "org": null,
-      "published_at": "2026-08-27T10:08:00"
-    },
-    {
-      "chunk_id": "news:448b8bb0eb350d7f030a",
-      "source_type": "news",
-      "source_id": "448b8bb0eb350d7f030a",
-      "content": "샘표, 이천 아트팩토리 프로젝트→현대그린푸드, 삼성동 이탈리 특화 매...\n식품업계에서 생산 현장에 공공미술을 접목하고 상권 맞춤형 외식 공간을 확장하며 일상과 식문화의... 사진=현대그린푸드 현대그린푸드는 28일 서울 강남구 삼성동 현대백화점 무역센터점 10층에 이탈리의 다이닝...",
-      "score": 0.4980272344464587,
-      "url": "https://www.slist.kr/news/articleView.html?idxno=761740",
-      "org": null,
-      "published_at": "2026-08-27T11:24:00"
-    },
-    {
-      "chunk_id": "news:19a497832cad4e722a75",
-      "source_type": "news",
-      "source_id": "19a497832cad4e722a75",
-      "content": "현대그린푸드, 서울 강남 이탈리 '다이닝 특화' 매장 연다\n오는 28일 오픈하는 서울시 강남구 현대백화점 무역센터점 10층에 오픈하는 다이닝 특화 이탈리 매장 내부... 이번 매장은 단순히 메뉴를 늘리는 방식보다 상권의 이용 목적을 세분화한 점이 특징으로 분석됐다. 식사...",
-      "score": 0.49226836606719837,
-      "url": "https://www.pinpointnews.co.kr/news/articleView.html?idxno=481270",
-      "org": null,
-      "published_at": "2026-08-27T17:50:00"
-    }
-  ],
+  "news": [],
   "funding_candidates": [
     {
       "program_id": "PBLN_000000000126270",

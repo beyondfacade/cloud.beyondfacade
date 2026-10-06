@@ -222,9 +222,7 @@ class RegionIndustryVerdictInteractor(RegionIndustryVerdictUseCase):
         return SignalInput(
             region_code=ctx.region_code, industry_id=industry.industry_id, industry_name=industry.name,
             latest_store_count=counts.get((ctx.region_code, industry.industry_id)),
-            resident_total=ctx.resident_total, change_code=ctx.change_code, change_name=ctx.change_name,
-            change_quarter=ctx.change_quarter, closed_months=ctx.closed_months,
-            seoul_closed_months=ctx.seoul_closed_months, **stat_fields,
+            resident_total=ctx.resident_total, **stat_fields,
         )
 
     def _judge_industry(

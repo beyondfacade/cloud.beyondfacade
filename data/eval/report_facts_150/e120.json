@@ -1004,58 +1004,7 @@
     ],
     "recent_news": []
   },
-  "news": [
-    {
-      "chunk_id": "news:5bc707e2a4b766326ec3",
-      "source_type": "news",
-      "source_id": "5bc707e2a4b766326ec3",
-      "content": "계란 2판을 9990원에…하나금융, ‘the착한계란’ 프로젝트\n하나금융은 4일 서울 중구 하나금융 명동사옥에서 소상공인시장진흥공단, 소상공인연합회와 ‘동네슈퍼 착한계란 공급을 통한 물가안정화 지원’ 업무협약을 맺었다. 고물가와 소비 침체로 어려움을 겪는 골목상권을...",
-      "score": 0.4865807802908777,
-      "url": "https://www.donga.com/news/Economy/article/all/20260904/134608603/1",
-      "org": null,
-      "published_at": "2026-09-06T08:31:00"
-    },
-    {
-      "chunk_id": "news:d83a777428dfd10c94ae",
-      "source_type": "news",
-      "source_id": "d83a777428dfd10c94ae",
-      "content": "25년 한식 연구 담았다...윤스푸드랩, 쿠킹클래스·전통 디저트로 한식...\n중구청과 중구 상권발전소가 추진하는 행사에도 참여해 한식과 한식 디저트를 알리는 활동을 펼치고 있다. 한식 도시락과 단체 주문도 향후 확대할 분야다. 도시락은 반찬 가짓수보다 영양 균형과 신선한 식재료에 초점을...",
-      "score": 0.4853126687184729,
-      "url": "https://www.womentimes.co.kr/news/articleView.html?idxno=106472",
-      "org": null,
-      "published_at": "2026-09-23T14:46:00"
-    },
-    {
-      "chunk_id": "news:d90b29042b4ed92d1dd9",
-      "source_type": "news",
-      "source_id": "d90b29042b4ed92d1dd9",
-      "content": "[금융로드] \"계란 2판 9,990원\"…하나금융, '착한계란'으로 골목상권·물...\n하나금융그룹이 소상공인시장진흥공단, 소상공인연합회와 손잡고 추석을 앞두고 골목상권 활성화와 물가... 협약식은 서울 중구 하나금융그룹 명동사옥에서 열렸으며, 함영주 회장, 인태연 이사장, 권혁환 소공연 부회장...",
-      "score": 0.48304406035249503,
-      "url": "http://www.newsroad.co.kr/news/articleView.html?idxno=63848",
-      "org": null,
-      "published_at": "2026-09-06T08:30:00"
-    },
-    {
-      "chunk_id": "news:a0b6c111b24848470cff",
-      "source_type": "news",
-      "source_id": "a0b6c111b24848470cff",
-      "content": "현대그린푸드, 삼성동 직장인·기업 모임 겨냥한 '이탈리' 연다\n프라이빗룸과 숯불 요리, 기업용 선물 상품을 강화해 상권 맞춤형 외식 매장으로 운영한다는 전략이다. 현대그린푸드는 오는 28일 서울 강남구 삼성동 현대백화점 무역센터점 10층에 이탈리 다이닝 특화 매장을 연다고...",
-      "score": 0.4741264252813908,
-      "url": "https://www.newsquest.co.kr/news/articleView.html?idxno=272412",
-      "org": null,
-      "published_at": "2026-08-27T10:08:00"
-    },
-    {
-      "chunk_id": "news:4d879f8692b9b4118194",
-      "source_type": "news",
-      "source_id": "4d879f8692b9b4118194",
-      "content": "드론쇼 보며 떡볶이·호떡 한입…배민, 2000인분 음식 쏜다\n안내하고 외국어 소통이 가능한 인력을 배치해 외국인 관람객의 이용을 돕는다. 지역 상권과 연계한 혜택도 마련했다. 서울 광진구와 성동구 일대에서 배민으로 주문할 때 사용할 수 있는 할인쿠폰을 행사장에서 배포한다.",
-      "score": 0.472572841473756,
-      "url": "https://www.newsis.com/view/NISX20260910_0003783702",
-      "org": null,
-      "published_at": "2026-09-10T09:30:00"
-    }
-  ],
+  "news": [],
   "funding_candidates": [
     {
       "program_id": "PBLN_000000000126270",

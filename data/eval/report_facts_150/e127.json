@@ -1108,58 +1108,7 @@
     ],
     "recent_news": []
   },
-  "news": [
-    {
-      "chunk_id": "news:f19f011f74bcb769e513",
-      "source_type": "news",
-      "source_id": "f19f011f74bcb769e513",
-      "content": "압구정2구역 통합심의 통과…최고 66층·2,381세대 특별건축\n구로구 오류동 38-7번지 일대의 '오류시장 정비사업' 또한 통합심의를 통과하면서 최고 29층, 2개 동, 230세대 규모의 주거·상업 복합 공간으로 전환한다. 저층 판매시설에는 전통시장 기능을 그대로 보존해 지역 상권과...",
-      "score": 0.5045407113706866,
-      "url": "http://www.srtimes.kr/news/articleView.html?idxno=206726",
-      "org": null,
-      "published_at": "2026-07-03T16:32:00"
-    },
-    {
-      "chunk_id": "news:bad14a23ff6cc6a92bc8",
-      "source_type": "news",
-      "source_id": "bad14a23ff6cc6a92bc8",
-      "content": "오류동 현대연립 재건축 본궤도…최고 25층 520가구 조성\n서측 오류로변에는 연도형 상가를 배치하고 전면공지를 활용한 보행 가로공간을 마련해 주변 상권 활성화도 도모한다. 시는 이번 계획이 인근 천왕역 역세권 개발사업과 맞물려 구로구 전역의 주택공급 흐름을...",
-      "score": 0.49638864484104395,
-      "url": "https://www.bizwork.co.kr/news/articleView.html?idxno=416422",
-      "org": null,
-      "published_at": "2026-06-11T12:56:00"
-    },
-    {
-      "chunk_id": "news:4f5765a2dbc0524f7a58",
-      "source_type": "news",
-      "source_id": "4f5765a2dbc0524f7a58",
-      "content": "오류동 현대연립, 정비계획 변경… 층수 및 세대수 늘었다\n서측 오류로변에는 연도형 상가를 배치하고 전면공지를 활용한 열린 보행 가로공간을 만들어 주변 상권을 활성화할 계획이다. 시는 현대연립 재건축사업이 인근 천왕역 역세권 개발사업과 맞물려 구로구 전역의...",
-      "score": 0.49362120222413564,
-      "url": "https://www.arunews.com/news/articleView.html?idxno=63626",
-      "org": null,
-      "published_at": "2026-06-11T15:04:00"
-    },
-    {
-      "chunk_id": "news:1596c415afe29ec8c5d6",
-      "source_type": "news",
-      "source_id": "1596c415afe29ec8c5d6",
-      "content": "멈춘 오류동 현대연립 재건축, 다시 속도…520가구로 재탄생\n서측 오류로변에는 연도형 상가를 배치하고 전면공지를 활용한 열린 보행 가로공간을 만들어 주변 상권을 활성화한다. 시는 이번 계획을 통해 인근 천왕역 역세권 개발사업과 맞물려 구로구 전역의 주택 공급 흐름을...",
-      "score": 0.49053556347544003,
-      "url": "https://www.edaily.co.kr/news/newspath.asp?newsid=03339046645480736",
-      "org": null,
-      "published_at": "2026-06-11T10:02:00"
-    },
-    {
-      "chunk_id": "news:c28d264f5fb13db2ebfd",
-      "source_type": "news",
-      "source_id": "c28d264f5fb13db2ebfd",
-      "content": "[아유경제_재건축] 오류현대연립 재건축, 지상 최고 25층 공동주택 520가...\n주변 상권 활성화를 유도한다는 방침이다. 서울시 관계자는 \"이번 계획으로 오류현대연립 재건축이 본격화되며 오류동 일대 노후 주거환경이 크게 개선될 것\"이라며 \"천왕역세권 개발사업과 더불어 구로구 일대 주택...",
-      "score": 0.45675817131999075,
-      "url": "http://www.areyou.co.kr/news/articleView.html?idxno=94083",
-      "org": null,
-      "published_at": "2026-06-11T12:00:00"
-    }
-  ],
+  "news": [],
   "funding_candidates": [
     {
       "program_id": "PBLN_000000000126270",

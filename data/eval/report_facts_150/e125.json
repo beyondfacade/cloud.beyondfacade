@@ -1003,58 +1003,7 @@
     ],
     "recent_news": []
   },
-  "news": [
-    {
-      "chunk_id": "news:c269386d71282e09d677",
-      "source_type": "news",
-      "source_id": "c269386d71282e09d677",
-      "content": "용산구, 이태원 1·2동 매장형 중소기업과 소상공인 대상 총 10억원 규모...\n김경대 용산구청장은 \"이번 저금리 융자가 이태원 1·2동에서 사업체를 운영하는 중소기업과 소상공인들에게 실질적인 도움이 되길 바란다\"며 \"앞으로도 지역 상권에 도움이 되는 지원책을 지속적으로 마련하겠다\"고...",
-      "score": 0.5010959806018277,
-      "url": "https://www.cnbizm.com/news/articleView.html?idxno=311663",
-      "org": null,
-      "published_at": "2026-08-14T14:16:00"
-    },
-    {
-      "chunk_id": "news:5596f254aaf438fcce0a",
-      "source_type": "news",
-      "source_id": "5596f254aaf438fcce0a",
-      "content": "용산구, 이태원 1·2동 중소기업·소상공인에 10억원 저금리 융자 지원\n김경대 용산구청장은 이번 지원이 이태원 1·2동 내 중소기업과 소상공인들에게 실질적으로 도움이 되길 바란다고 전했다. 이어 앞으로도 지역 상권 지원을 위한 다양한 대책을 마련하겠다고 밝혔다.",
-      "score": 0.49074783645512854,
-      "url": "https://www.gukjenews.com/news/articleView.html?idxno=3664500",
-      "org": null,
-      "published_at": "2026-08-14T09:00:00"
-    },
-    {
-      "chunk_id": "news:be058c0b37a33a6a8fd6",
-      "source_type": "news",
-      "source_id": "be058c0b37a33a6a8fd6",
-      "content": "용산구, 이태원참사 이후 경영난 겪는 소상공인 1.5%저리 융자 지원[서울...\n김경대 용산구청장은 “이번 저금리 융자가 이태원 1·2동에서 사업체를 운영하는 중소기업과 소상공인들에게 실질적인 도움이 되길 바란다”며 “앞으로도 지역 상권에 도움이 되는 지원책을 지속적으로 마련하겠다”...",
-      "score": 0.445621470715559,
-      "url": "https://www.khan.co.kr/article/202608141115001",
-      "org": null,
-      "published_at": "2026-08-14T11:15:00"
-    },
-    {
-      "chunk_id": "news:494ac3ea865645dfb252",
-      "source_type": "news",
-      "source_id": "494ac3ea865645dfb252",
-      "content": "[핀포인트] [현대백화점그룹] 복정역세권개발에 지분 태운 현대百, '복합...\n인접 상권에 이미 현대백화점 계열 점포가 자리 잡고 있어서다. 사업지와 같은 송파구 장지동에는 현대시티몰 가든파이브점이, 성남 분당권에는 현대백화점 판교점이, 강동권에는 현대백화점 천호점이 각각 영업...",
-      "score": 0.4403497420907636,
-      "url": "https://news.dealsitetv.com/articles/175498",
-      "org": null,
-      "published_at": "2026-09-05T08:02:00"
-    },
-    {
-      "chunk_id": "news:6d66397793d3bce97eb1",
-      "source_type": "news",
-      "source_id": "6d66397793d3bce97eb1",
-      "content": "교촌號 메밀단편, 판교 사옥에 4호점 선봬…'외식 영토 확장' 드라이브\nIT 기업과 젊은 직장인들이 대거 밀집한 판교 상권의 특성을 고려해 외부 소비자와의 접점을 한층 넓히고... 지난 2024년 2월 금융권 중심지인 서울 여의도에 1호점을 낸 이래 서울 강동구(2호점), 경기 수원 광교 카페거리...",
-      "score": 0.43236963573226084,
-      "url": "http://www.newsian.co.kr/news/articleView.html?idxno=95813",
-      "org": null,
-      "published_at": "2026-09-22T10:22:00"
-    }
-  ],
+  "news": [],
   "funding_candidates": [
     {
       "program_id": "PBLN_000000000126270",

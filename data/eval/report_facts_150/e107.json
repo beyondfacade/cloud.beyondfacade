@@ -961,58 +961,7 @@
     ],
     "recent_news": []
   },
-  "news": [
-    {
-      "chunk_id": "news:f218ef4f605991f4406e",
-      "source_type": "news",
-      "source_id": "f218ef4f605991f4406e",
-      "content": "신사·논현역 도보 5분 단독주택 1층…가로수길도 가까운 단기임대\n서울 서초구 잠원동에서 단독주택 1층이 단기임대 매물로 나왔다. 지하철 논현역과 신사역을 모두 걸어서... 주변에는 신사동 가로수길 상권을 비롯해 마트, 편의점, 약국, 병원, 카페 등 생활 편의시설도 있다....",
-      "score": 0.42977175091499875,
-      "url": "https://realty.chosun.com/site/data/html_dir/2026/09/03/2026090302873.html",
-      "org": null,
-      "published_at": "2026-09-04T06:02:00"
-    },
-    {
-      "chunk_id": "news:60168723ca51433562ab",
-      "source_type": "news",
-      "source_id": "60168723ca51433562ab",
-      "content": "강남·명동 건물주 된 '1,000원 숍' 다이소... 대출은 얼마나 받았을까\n명동 상권 한가운데 건물까지 매입했다. 29일 업계에 따르면 아성다이소의 모회사인 아성에이치엠피(아성HMP)는 지난 8월27일 신한은행으로부터 서울 중구 명동 신한익스페이스 건물을 1,280억원에 사들였다. 이달...",
-      "score": 0.4142915934312148,
-      "url": "https://www.lawtv.kr/news/articleView.html?idxno=61037",
-      "org": null,
-      "published_at": "2026-09-29T14:54:00"
-    },
-    {
-      "chunk_id": "news:808a338c2d33d6eb7f87",
-      "source_type": "news",
-      "source_id": "808a338c2d33d6eb7f87",
-      "content": "서초 잠원하길서 ‘19금 신비파티’…1만원 쓰면 맥주 무제한\n‘19금 신비파티’는 19세 이상 성인을 대상으로 신사역과 논현역 사이 잠원하길 상권에서 열리는 금요일 비어파티 콘셉트의 상권 축제다. 서초구가 주최하고 잠원하길 골목형상점가 상인회가 공동 주관한다. 잠원동...",
-      "score": 0.4124014008878455,
-      "url": "https://www.munhwa.com/article/11615546?ref=naver",
-      "org": null,
-      "published_at": "2026-09-09T06:51:00"
-    },
-    {
-      "chunk_id": "news:0cc3ffd9ead1cd3c055b",
-      "source_type": "news",
-      "source_id": "0cc3ffd9ead1cd3c055b",
-      "content": "신당역 골목에 야장 펼친다…중구, 18일부터 3곳 운영\n남대문·충무로·약수·장충남소영길로 순차 확대 서울 중구(구청장 김길성)는 오는 18일부터 신당역 일대 전통시장과 골목상권 3곳에서 '중구형 상생야장'을 운영한다고 10일 밝혔다. 중구형 상생야장은 상인들이 시장별...",
-      "score": 0.4047916176790963,
-      "url": "https://news.tf.co.kr/read/life/2364318.htm",
-      "org": null,
-      "published_at": "2026-09-10T12:31:00"
-    },
-    {
-      "chunk_id": "news:436cba45209570b6920d",
-      "source_type": "news",
-      "source_id": "436cba45209570b6920d",
-      "content": "강남 이어 명동까지…'1000원숍' 다이소 서울 빌딩 큰손 됐다\n탄탄한 현금 창출력을 바탕으로 핵심 상권 부동산을 잇따라 사들이며 ‘부동산 큰손’으로 떠올랐다.... 서울 중구 명동 소재 상업용 오피스 건물 ‘신한익스페이스’의 매매 계약 체결 단계에 돌입했다. 현재 잔금...",
-      "score": 0.3989511967643069,
-      "url": "https://realty.chosun.com/site/data/html_dir/2026/09/28/2026092801068.html",
-      "org": null,
-      "published_at": "2026-09-28T09:38:00"
-    }
-  ],
+  "news": [],
   "funding_candidates": [
     {
       "program_id": "PBLN_000000000126270",

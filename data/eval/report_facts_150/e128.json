@@ -1094,58 +1094,7 @@
     ],
     "recent_news": []
   },
-  "news": [
-    {
-      "chunk_id": "news:3f580c6f5f5ccf31a1a8",
-      "source_type": "news",
-      "source_id": "3f580c6f5f5ccf31a1a8",
-      "content": "[강동완의 탐방] 문정동 에이에스커피 가보니…직장인 상권에 맞춘 메뉴...\n서울 송파구 문정동 법원로 일대는 업무시설과 상업시설이 함께 들어선 오피스 상권이다. 출근 시간부터 점심, 퇴근 시간까지 시간대별 소비층이 달라 카페 역시 이용 목적에 따른 대응이 필요한 지역이다. 이곳에서 만난...",
-      "score": 0.5109618902206566,
-      "url": "https://www.shinailbo.co.kr/news/articleView.html?idxno=5061720",
-      "org": null,
-      "published_at": "2026-09-14T14:10:00"
-    },
-    {
-      "chunk_id": "news:04c1c1e74381bf0fa771",
-      "source_type": "news",
-      "source_id": "04c1c1e74381bf0fa771",
-      "content": "‘알테쉬’에 풍비박산… 새살 돋는 K패션 뿌리\n서울 종로구 창신동 언덕을 지켜온 차경남 서울봉제산업협회장은 1980~90년대 창신동의 모습을 묻는 질문에... 봉제산업의 침체는 인근 골목상권으로도 번졌다. 봉제거리 인근 창신골목시장에서 18년째 김치와 젓갈을...",
-      "score": 0.5109360548664038,
-      "url": "https://www.kmib.co.kr/article/view.asp?arcid=9000011291&cp=nv",
-      "org": null,
-      "published_at": "2026-09-12T00:04:00"
-    },
-    {
-      "chunk_id": "news:82c8dffe88d64a42fed7",
-      "source_type": "news",
-      "source_id": "82c8dffe88d64a42fed7",
-      "content": "낡은 붉은 벽돌집의 변신…해방촌 카페 ‘트랍’ 문 연다\n서울 용산구 신흥로 101-4에 자리 잡은 카페 ‘트랍’(TRAP)은 지난 1일 임시 영업을 시작했다. 오는 11일 정식... 과거 동네 주민들이 찾던 전통시장에서 개성 있는 음식점과 카페, 술집 등이 모인 식음료 상권으로 빠르게...",
-      "score": 0.5094550825464529,
-      "url": "https://www.naeil.com/news/read/598228?ref=naver",
-      "org": null,
-      "published_at": "2026-08-09T19:40:00"
-    },
-    {
-      "chunk_id": "news:749aaa80a57e02f0ed56",
-      "source_type": "news",
-      "source_id": "749aaa80a57e02f0ed56",
-      "content": "이노티안경, 서울연신내점 60여 평 규모로 리뉴얼 오픈\n서울연신내점은 서울시 은평구에 있으며, 지하철 3호선 연신내역과 가까운 역세권에 위치해 대중교통으로... 가맹점에는 상권 분석과 마케팅, 교육 시스템 등을 지원하며, 서울연신내점 역시 본사의 지원을 바탕으로 지역...",
-      "score": 0.4832008327007715,
-      "url": "https://www.enetnews.co.kr/news/articleView.html?idxno=54965",
-      "org": null,
-      "published_at": "2026-10-02T13:06:00"
-    },
-    {
-      "chunk_id": "news:1d2c61e768e082a4ed5e",
-      "source_type": "news",
-      "source_id": "1d2c61e768e082a4ed5e",
-      "content": "요즘 MZ는 홍대·성수보다 이 곳을 찾는다...가성비 좋은 이곳은?\n지난 6일 찾은 서울 종로구 창신동 문구·완구거리. 한때는 개학 시즌과 어린이날 특수에만 반짝 손님이 몰리던 상권이었지만, 최근 말랑이 유행으로 10~30대 방문객이 꾸준히 늘면서 평일에도 사람들로 북적인다. 창신동...",
-      "score": 0.482490872594455,
-      "url": "https://www.ekoreanews.co.kr/news/articleView.html?idxno=87357",
-      "org": null,
-      "published_at": "2026-08-08T07:56:00"
-    }
-  ],
+  "news": [],
   "funding_candidates": [
     {
       "program_id": "PBLN_000000000126270",

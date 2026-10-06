@@ -998,58 +998,7 @@
     ],
     "recent_news": []
   },
-  "news": [
-    {
-      "chunk_id": "news:b5f315b4c8b1bb6ecd7f",
-      "source_type": "news",
-      "source_id": "b5f315b4c8b1bb6ecd7f",
-      "content": "알스퀘어, 베리시 성수 2호점 출점 자문 수행\n상업용 부동산 종합 서비스 기업 알스퀘어는는 최근 서울 성동구 성수동에 문을 연 ‘베리시 성수 이스트’... 알스퀘어는 입지 발굴과 상권 분석, 매물 제안, 임대차 조건 협의, 계약 체결을 맡았다. 이번 프로젝트의...",
-      "score": 0.5116413817834988,
-      "url": "https://byline.network/?p=9004111222622057",
-      "org": null,
-      "published_at": "2026-10-02T08:46:00"
-    },
-    {
-      "chunk_id": "news:f226af6ff3f277fd6407",
-      "source_type": "news",
-      "source_id": "f226af6ff3f277fd6407",
-      "content": "교육청도 추석맞이 온정 행보…복지시설 찾고 전통시장 장보고\n30분 중구 태화종합시장을 찾았다. 직원들은 명절 제사용품과 추석 선물 등을 구매하며 전통시장 이용에 동참했다. 이어 시장 내 식당에서 점심 식사를 함께하며 지역 상권 활성화에도 힘을 보탰다. 같은 날 오후에는 조...",
-      "score": 0.5037072305333212,
-      "url": "https://weekly.hankooki.com/news/articleView.html?idxno=7185617",
-      "org": null,
-      "published_at": "2026-09-22T15:44:00"
-    },
-    {
-      "chunk_id": "news:03a26a1a34cb1ab3f6d1",
-      "source_type": "news",
-      "source_id": "03a26a1a34cb1ab3f6d1",
-      "content": "울산시교육청, 추석맞이 전통시장 장보기·복지시설 위문\n직원들은 중구 태화종합시장을 찾았다. 직원들은 전통시장에서 명절 제사용품과 추석 선물 등을 구매한 뒤 시장 내 식당에서 점식 식사를 하며 지역 상권 활성화에 힘을 보탰다. 같은 날 오후에는 조 교육감과 교육청...",
-      "score": 0.49362117432289043,
-      "url": "https://www.iusm.co.kr/news/articleView.html?idxno=1068259",
-      "org": null,
-      "published_at": "2026-09-21T17:22:00"
-    },
-    {
-      "chunk_id": "news:49a890d9aed2fe8642e4",
-      "source_type": "news",
-      "source_id": "49a890d9aed2fe8642e4",
-      "content": "LF 던스트, 성수에 두 번째 플래그십 오픈…글로벌 고객 접점 확대\n22일 LF에 따르면 던스트는 서울 성동구 연무장길에 지상 3층, 총 75평 규모의 ‘던스트 성수 서울 플래그십’... 과거 산업지역이었던 성수가 최근 패션과 디자인, 음악, 식음료(F&B) 브랜드 등이 모이는 상권으로 변화한...",
-      "score": 0.49034677762355416,
-      "url": "https://www.fntimes.com/html/view.php?ud=202609221536191301b5b890e35c_18",
-      "org": null,
-      "published_at": "2026-09-22T15:40:00"
-    },
-    {
-      "chunk_id": "news:d83a777428dfd10c94ae",
-      "source_type": "news",
-      "source_id": "d83a777428dfd10c94ae",
-      "content": "25년 한식 연구 담았다...윤스푸드랩, 쿠킹클래스·전통 디저트로 한식...\n중구청과 중구 상권발전소가 추진하는 행사에도 참여해 한식과 한식 디저트를 알리는 활동을 펼치고 있다. 한식 도시락과 단체 주문도 향후 확대할 분야다. 도시락은 반찬 가짓수보다 영양 균형과 신선한 식재료에 초점을...",
-      "score": 0.4898774988262581,
-      "url": "https://www.womentimes.co.kr/news/articleView.html?idxno=106472",
-      "org": null,
-      "published_at": "2026-09-23T14:46:00"
-    }
-  ],
+  "news": [],
   "funding_candidates": [
     {
       "program_id": "PBLN_000000000126270",

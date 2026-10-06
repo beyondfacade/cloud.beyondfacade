@@ -60,15 +60,10 @@ class StoreSignalStat:
 
 @dataclass(frozen=True)
 class RegionContext:
-    """동 단위 맥락 — 전 행정동 1행씩 (프로필·변화지표가 없으면 None)."""
+    """동 단위 맥락 — 전 행정동 1행씩 (프로필이 없으면 None)."""
 
     region_code: str
     resident_total: int | None
-    change_code: str | None
-    change_name: str | None
-    change_quarter: str | None
-    closed_months: float | None
-    seoul_closed_months: float | None
 
 
 @dataclass(frozen=True)

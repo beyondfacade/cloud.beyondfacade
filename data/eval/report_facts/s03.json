@@ -1001,58 +1001,7 @@
     ],
     "recent_news": []
   },
-  "news": [
-    {
-      "chunk_id": "news:2ef7e6a8bab8604cb730",
-      "source_type": "news",
-      "source_id": "2ef7e6a8bab8604cb730",
-      "content": "대구 동성로 '더샵 중앙로역센터폴' 선착순 동호수 지정 분양\n대구 중구 동성로에 들어서는 '더샵 중앙로역센터폴'이 선착순 동호수 지정 분양에 들어갔다.... 단지가 들어서는 동성로 일대는 대구 도심 핵심 상권으로 꼽히는 지역이다. 교통 여건에서는 대구도시철도 1호선...",
-      "score": 0.4614719885768843,
-      "url": "https://www.kyongbuk.co.kr/news/articleView.html?idxno=4083305",
-      "org": null,
-      "published_at": "2026-09-06T17:32:00"
-    },
-    {
-      "chunk_id": "news:b84947a503e62fec851e",
-      "source_type": "news",
-      "source_id": "b84947a503e62fec851e",
-      "content": "[비바100] “흥행 공로상, 학세권 아파트 입니다!”\n동문건설이 서울 동작구 상도동 일원에 공급하는 ‘동작 센트럴 동문 디 이스트’ 역시 교육 특화... 단지 반경 1㎞ 내 고현시장, 디큐브백화점과 장평동, 고현동 상권이 위치하며, 삼성중공업 거제조선소가 인접해...",
-      "score": 0.45157228554574336,
-      "url": "https://www.viva100.com/article/20260721500508",
-      "org": null,
-      "published_at": "2026-08-05T07:02:00"
-    },
-    {
-      "chunk_id": "news:d281dbd0d67949667fec",
-      "source_type": "news",
-      "source_id": "d281dbd0d67949667fec",
-      "content": "\"걸어서 역, 걸어서 상권\"... 원스톱 생활권 신규 아파트 주목\n동문건설이 서울 동작구 상도동 일원에 공급하는 '동작 센트럴 동문 디 이스트'를 분양 중이다. 지하 8층... 단지 주변에는 동작구 종합행정타운이 인접해 있으며 영화초, 장승중, 영등포고 등 도보권 학군과 장승공원...",
-      "score": 0.44051984910846775,
-      "url": "https://www.getnews.co.kr/news/articleView.html?idxno=875839",
-      "org": null,
-      "published_at": "2026-07-23T12:08:00"
-    },
-    {
-      "chunk_id": "news:a87db4b0b25a729208e5",
-      "source_type": "news",
-      "source_id": "a87db4b0b25a729208e5",
-      "content": "대구시 '동성로 트로피컬 페스타' 개최\n대구시와 중구가 오는 22일부터 23일까지 이틀간 동성로 보행자 전용구간 일원에서 '동성로 트로피컬 페스타'를 개최한다고 밝혔다. 이번 행사는 동성로 상권 활성화 사업의 일환으로 전국 대표 로컬 브랜드 40여 곳이...",
-      "score": 0.4403326571483557,
-      "url": "https://www.cnbnews.com/news/articleView.html?idxno=1012309",
-      "org": null,
-      "published_at": "2026-08-21T16:40:00"
-    },
-    {
-      "chunk_id": "news:be5afacac19ebdfc5850",
-      "source_type": "news",
-      "source_id": "be5afacac19ebdfc5850",
-      "content": "‘생애최초 특별공급’ 최고 1024 대 1…동문건설, ‘동작 센트럴 동문...\n서울 동작구 상도동 일원에서 공급 중인 ‘동작 센트럴 동문 디 이스트’의 해당지역 1순위 청약을... 또 장승배기역 인근 상권과 여의도 더현대 서울, 영등포 타임스퀘어, 신세계백화점, 롯데백화점 등 대형 쇼핑...",
-      "score": 0.43929254785046135,
-      "url": "https://www.mk.co.kr/article/12098058",
-      "org": null,
-      "published_at": "2026-07-14T12:09:00"
-    }
-  ],
+  "news": [],
   "funding_candidates": [
     {
       "program_id": "PBLN_000000000126270",

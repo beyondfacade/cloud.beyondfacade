@@ -2,7 +2,6 @@
 
 import json
 import time
-from datetime import datetime
 
 import pytest
 
@@ -10,13 +9,12 @@ from apps.agent.app.ports.output.agent_port import (
     EventAnalogFactsPort,
     FinanceFactsPort,
     FundingFactsPort,
+    NewsLinksPort,
     QuestionBudgetPort,
     RegionFactsPort,
     VerdictFactsPort,
 )
 from apps.agent.app.use_cases.report_facts import FACTS_KEYS, ReportFactsCollector
-from apps.rag.app.ports.input.rag_use_case import RagSearchUseCase
-from apps.rag.domain.entities.rag_chunk_entity import RagHit
 
 
 class FakeRegionFacts(RegionFactsPort):
@@ -116,24 +114,13 @@ class FakeFundingFacts(FundingFactsPort):
         }
 
 
-class FakeNewsSearch(RagSearchUseCase):
+class FakeNewsLinks(NewsLinksPort):
     def __init__(self) -> None:
-        self.queries: list[tuple[str, str | None]] = []
+        self.calls: list[tuple[str, int]] = []
 
-    def search(self, query: str, top_k: int = 5, source_type: str | None = None) -> list[RagHit]:
-        self.queries.append((query, source_type))
-        return [
-            RagHit(
-                chunk_id="news:1",
-                source_type="news",
-                source_id="1",
-                content="역삼동 한식 상권 기사",
-                score=0.8,
-                url="https://news.example/1",
-                org="한국일보",
-                published_at=datetime(2026, 9, 1, 12, 0),
-            )
-        ]
+    def mentioning(self, name: str, limit: int) -> list[dict]:
+        self.calls.append((name, limit))
+        return [{"title": "역삼동 한식 상권 기사", "url": "https://news.example/1", "published_at": "2026-09-01", "press": None}]
 
 
 def _collector(region=None, verdict=None, funding=None, news=None) -> ReportFactsCollector:
@@ -141,7 +128,7 @@ def _collector(region=None, verdict=None, funding=None, news=None) -> ReportFact
         region_facts=region or FakeRegionFacts(),
         verdict_facts=verdict or FakeVerdictFacts(),
         funding_facts=funding or FakeFundingFacts(),
-        news_search=news or FakeNewsSearch(),
+        news_links=news or FakeNewsLinks(),
     )
 
 
@@ -173,7 +160,7 @@ def _with_new_ports(finance=None) -> ReportFactsCollector:
         region_facts=FakeRegionFacts(),
         verdict_facts=FakeVerdictFacts(),
         funding_facts=FakeFundingFacts(),
-        news_search=FakeNewsSearch(),
+        news_links=FakeNewsLinks(),
         finance_facts=finance or FakeFinanceFacts(),
         question_budget=FakeQuestionBudget(),
     )
@@ -214,7 +201,7 @@ def test_유사_사례는_업종과_질문으로_조회한다():
         region_facts=FakeRegionFacts(),
         verdict_facts=FakeVerdictFacts(),
         funding_facts=FakeFundingFacts(),
-        news_search=FakeNewsSearch(),
+        news_links=FakeNewsLinks(),
         analog_facts=analog,
     )
     facts = collector.collect("1168064000", "cafe", None, "바이러스가 돌면?")
@@ -232,7 +219,7 @@ def test_유사_사례_조회가_실패해도_나머지는_뜬다():
         region_facts=FakeRegionFacts(),
         verdict_facts=FakeVerdictFacts(),
         funding_facts=FakeFundingFacts(),
-        news_search=FakeNewsSearch(),
+        news_links=FakeNewsLinks(),
         analog_facts=FakeAnalogFacts(failing=True),
     )
     facts = collector.collect("1168064000", "cafe", None)
@@ -261,14 +248,16 @@ def test_예산은_받은_값을_그대로_싣는다():
     assert _collector().collect("1168064000", "korean_food", None)["budget"] is None
 
 
-def test_뉴스는_동_이름과_업종명으로_검색한다():
-    news = FakeNewsSearch()
+def test_뉴스는_동_이름이_나온_기사의_원문_링크만_싣는다():
+    """네이버 검색 결과는 링크로만 보여 준다 — 발췌는 싣지 않는다(검색 API 특약 2.2·2.3). 동 번호는 떼고 찾는다."""
+    news = FakeNewsLinks()
 
     facts = _collector(news=news).collect("1168064000", "korean_food", None)
 
-    assert news.queries == [("역삼1동 한식", "news")]
-    assert facts["news"][0]["org"] == "한국일보"
-    assert facts["news"][0]["published_at"] == "2026-09-01T12:00:00"
+    assert news.calls == [("역삼", 3)]
+    assert facts["news"] == [
+        {"title": "역삼동 한식 상권 기사", "url": "https://news.example/1", "published_at": "2026-09-01", "press": None}
+    ]
 
 
 def test_지원사업_후보는_업종과_동으로_받는다():
@@ -326,9 +315,9 @@ def test_한_항목이_실패해도_나머지_사실은_나간다():
     assert facts["verdict"]["verdict_code"] == "red"
 
 
-def test_요약이_실패해도_지역_키와_뉴스_검색은_코드로_돈다():
-    """이름을 못 얻어도 나머지 수집을 멈추지 않는다."""
-    news = FakeNewsSearch()
+def test_요약이_실패하면_지역_키는_코드로_메우고_뉴스는_찾지_않는다():
+    """이름을 못 얻어도 나머지 수집을 멈추지 않는다. 동 이름 없이 찾을 뉴스는 없다."""
+    news = FakeNewsLinks()
     collector = _collector(region=FakeRegionFacts(failing={"summary"}), news=news)
 
     facts = collector.collect("1168064000", "korean_food", None)
@@ -336,7 +325,7 @@ def test_요약이_실패해도_지역_키와_뉴스_검색은_코드로_돈다(
     assert facts["region"]["name"] == "1168064000"  # FE는 string으로 읽는다 — null을 주지 않는다
     assert facts["region"]["industry_name"] == "korean_food"
     assert facts["region"]["code"] == "1168064000"
-    assert news.queries == [("1168064000 korean_food", "news")]
+    assert news.calls == [] and facts["news"] == []
 
 
 def test_판정이_실패하면_그_자리만_이유와_함께_비운다():

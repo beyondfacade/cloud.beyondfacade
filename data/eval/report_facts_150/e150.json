@@ -852,58 +852,7 @@
     ],
     "recent_news": []
   },
-  "news": [
-    {
-      "chunk_id": "news:93080817e9443bc7b462",
-      "source_type": "news",
-      "source_id": "93080817e9443bc7b462",
-      "content": "암사초록길부터 가래여울까지…강동구, '한강 그린웨이' 추진\n녹색 여가축 조성…199억원 투입 서울 강동구(구청장 이수희)가 암사초록길에서 가래여울마을까지 4.9㎞에... 지역 상권으로 이어간다. 구는 해당 사업을 원활히 진행하기 위해 세부 사업별 여건과 관계 기관 협의 사항 등을...",
-      "score": 0.39799131178959746,
-      "url": "https://news.tf.co.kr/read/life/2366482.htm",
-      "org": null,
-      "published_at": "2026-09-16T19:29:00"
-    },
-    {
-      "chunk_id": "news:d04c86ae32e94f13f9b1",
-      "source_type": "news",
-      "source_id": "d04c86ae32e94f13f9b1",
-      "content": "성북구 종암동, 친환경과 지역상권 살리기 품은 '종암장터·종암살리장...\n사진=성북구 종암동주민자치회가 개최한, 환경보호 실천과 골목상권 활력 더한 '종암장터·종암살리장' 모습/성북구청 서울 성북구(구청장 이승로) 종암동주민자치회가 지난 5일 하루 종일 종암동주민센터와 명동골목...",
-      "score": 0.3890228767950221,
-      "url": "https://www.gukjenews.com/news/articleView.html?idxno=3688088",
-      "org": null,
-      "published_at": "2026-09-08T11:00:00"
-    },
-    {
-      "chunk_id": "news:9fc67705a1e842bf3b9d",
-      "source_type": "news",
-      "source_id": "9fc67705a1e842bf3b9d",
-      "content": "종로구, 종로3가 야장거리 관리…개방화장실 확대 지정\n서울 종로구(구청장 유찬종)가 종로3가 일대 야장거리를 안전하고 쾌적한 환경으로 가꾸겠다고 29일 밝혔다.... 있다\"며 \"상권의 활력은 살리면서 주민의 일상과 보행 안전, 방문객의 편의가 조화를 이루는 깨끗하고 질서...",
-      "score": 0.3765172653116342,
-      "url": "https://www.newsis.com/view/NISX20260929_0003807057",
-      "org": null,
-      "published_at": "2026-09-29T13:55:00"
-    },
-    {
-      "chunk_id": "news:624036f1170968af8d29",
-      "source_type": "news",
-      "source_id": "624036f1170968af8d29",
-      "content": "서울시의회 G3 동행성장분과, 대학상권 현장방문\n▲ 서울시의회 'G3 서울플랜 기획위원회 동행성장분과'가 20일 동작구 흑석시장 골목형상점가에서 상인, 대학, 학생 관계자들과 대학가 상권 활성화 방안을 논의했다. [사진=서울시청 제공] G3 서울플랜 기획위원회는 민선...",
-      "score": 0.3754969539628237,
-      "url": "https://www.megaeconomy.co.kr/news/newsview.php?ncode=1065573088132812",
-      "org": null,
-      "published_at": "2026-08-31T16:08:00"
-    },
-    {
-      "chunk_id": "news:70d3188d6f6b9cedda0c",
-      "source_type": "news",
-      "source_id": "70d3188d6f6b9cedda0c",
-      "content": "해 지면 더 뜨는 종로3가의 밤… 야장으로 세계 홀렸다\n2030·외국인으로 북적한 골목 상권 영국 매체 ‘세계 최고 멋진 동네’ 1위 어르신 거리서 관광지로 환골탈태 지난 21일 오후 8시쯤 서울 종로구 종로3가 돈화문로 11길과 갈매기살 골목. 평일이지만 선선한 초가을 하늘...",
-      "score": 0.3725195608974977,
-      "url": "https://www.seoul.co.kr/news/publicnews/local_govern/news_local/2026/09/24/20260924020001?wlog_tag3=naver",
-      "org": null,
-      "published_at": "2026-09-24T05:02:00"
-    }
-  ],
+  "news": [],
   "funding_candidates": [
     {
       "program_id": "PBLN_000000000126270",

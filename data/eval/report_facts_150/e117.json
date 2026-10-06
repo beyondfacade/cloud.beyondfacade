@@ -1002,58 +1002,7 @@
     ],
     "recent_news": []
   },
-  "news": [
-    {
-      "chunk_id": "news:0cc3ffd9ead1cd3c055b",
-      "source_type": "news",
-      "source_id": "0cc3ffd9ead1cd3c055b",
-      "content": "신당역 골목에 야장 펼친다…중구, 18일부터 3곳 운영\n남대문·충무로·약수·장충남소영길로 순차 확대 서울 중구(구청장 김길성)는 오는 18일부터 신당역 일대 전통시장과 골목상권 3곳에서 '중구형 상생야장'을 운영한다고 10일 밝혔다. 중구형 상생야장은 상인들이 시장별...",
-      "score": 0.476124099340557,
-      "url": "https://news.tf.co.kr/read/life/2364318.htm",
-      "org": null,
-      "published_at": "2026-09-10T12:31:00"
-    },
-    {
-      "chunk_id": "news:38ab61802a4380f4b615",
-      "source_type": "news",
-      "source_id": "38ab61802a4380f4b615",
-      "content": "서울 중구, 신당역 인근에 '상생야장' 연다\n사진=서울 중구  서울 중구가 신당역 일대 '중구형 상생야장'을 선보인다고 10일 밝혔다. 중구는 오는 18일... 구 관계자는 \"상생야장이 전통시장과 골목상권의 새로운 경쟁력이 될 수 있도록 지원하겠다\"고 말했다.",
-      "score": 0.472243504379091,
-      "url": "https://weekly.hankooki.com/news/articleView.html?idxno=7183529",
-      "org": null,
-      "published_at": "2026-09-10T15:42:00"
-    },
-    {
-      "chunk_id": "news:2f56f9b3342ecd9175e0",
-      "source_type": "news",
-      "source_id": "2f56f9b3342ecd9175e0",
-      "content": "[대전중구소식] 추석 명절 함께하는 청렴실천 캠페인 실시 외\n14일 대전 중구가 아침 출근길에 음주운전 근절 및 청렴 문화 확산을 위한 청렴 캠페인을 전개하고... 특히 행사장을 찾은 방문객들은 다양한 먹거리와 함께 지역 상권을 둘러보고 야간의 정취를 즐기며 대흥동만의 매력을...",
-      "score": 0.46145029484320044,
-      "url": "https://daily.hankooki.com/news/articleView.html?idxno=1405779",
-      "org": null,
-      "published_at": "2026-09-14T14:18:00"
-    },
-    {
-      "chunk_id": "news:f226af6ff3f277fd6407",
-      "source_type": "news",
-      "source_id": "f226af6ff3f277fd6407",
-      "content": "교육청도 추석맞이 온정 행보…복지시설 찾고 전통시장 장보고\n30분 중구 태화종합시장을 찾았다. 직원들은 명절 제사용품과 추석 선물 등을 구매하며 전통시장 이용에 동참했다. 이어 시장 내 식당에서 점심 식사를 함께하며 지역 상권 활성화에도 힘을 보탰다. 같은 날 오후에는 조...",
-      "score": 0.45917128299829324,
-      "url": "https://weekly.hankooki.com/news/articleView.html?idxno=7185617",
-      "org": null,
-      "published_at": "2026-09-22T15:44:00"
-    },
-    {
-      "chunk_id": "news:dfc444d22c675de4e371",
-      "source_type": "news",
-      "source_id": "dfc444d22c675de4e371",
-      "content": "[지금 구청은] 중구, 신당역 일대 시장·상점가에 ‘상생야장’ 3곳 조성\n적립해 시장 환경 개선과 편의·안전시설 확충, 주민 복지 등에 사용하게 된다. 중구는 신당역 일대 3곳을 시작으로 상생야장을 확대해 전통시장과 골목상권에 활력을 더하는 중구의 대표 야간 콘텐츠로 키워갈 방침이다.",
-      "score": 0.4573666333218628,
-      "url": "https://biz.heraldcorp.com/article/10869025?ref=naver",
-      "org": null,
-      "published_at": "2026-09-10T11:30:00"
-    }
-  ],
+  "news": [],
   "funding_candidates": [
     {
       "program_id": "PBLN_000000000126270",

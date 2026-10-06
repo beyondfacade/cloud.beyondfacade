@@ -1066,58 +1066,7 @@
     ],
     "recent_news": []
   },
-  "news": [
-    {
-      "chunk_id": "news:3010256a3bf454a521ac",
-      "source_type": "news",
-      "source_id": "3010256a3bf454a521ac",
-      "content": "프랜차이즈 만화카페가 아닌, 오래된 독립 만화방의 매력에 대하여\n강북구 미아동 왕눈이만화를 찾은 날에는 한 손님이 대뜸 “볶짜(볶음밥과 짜장면을 반씩 섞은 메뉴) 하나”... 소상공인 상권이 살아 있는 여타 만화방과 달리, 무림만화카페는 종각 젊음의 거리 한복판에 있다. 찾아가는...",
-      "score": 0.5099532756195505,
-      "url": "https://www.esquirekorea.co.kr/article/1908461",
-      "org": null,
-      "published_at": "2026-09-03T08:00:00"
-    },
-    {
-      "chunk_id": "news:6501cf24db7396fd7b44",
-      "source_type": "news",
-      "source_id": "6501cf24db7396fd7b44",
-      "content": "‘스초생’ 들고 미국 간 투썸…메인스트림서 K카페 도전\n24년간 매장 1750개 늘었지만..출점 둔화에 해외로 눈길 투썸플레이스는 3일 서울 영등포구 콘래드 서울에서... 카페 시장의 경쟁이 치열한 데다 기존 가맹점 상권까지 고려하면 신규 점포를 공격적으로 늘리기 어렵기...",
-      "score": 0.4916863275112002,
-      "url": "https://www.inthenews.co.kr/news/article.html?no=91401",
-      "org": null,
-      "published_at": "2026-09-04T06:32:00"
-    },
-    {
-      "chunk_id": "news:af5014e4862035903314",
-      "source_type": "news",
-      "source_id": "af5014e4862035903314",
-      "content": "청기와타운, 부산 남포동에 신규 매장 오픈\nK-BBQ 브랜드 청기와타운이 부산광역시 중구 남포동에 신규 매장 '부산남포점'을 열고 운영에 들어갔다. 부산남포점은 국제시장과 자갈치시장, BIFF거리, 용두산공원 등 관광·문화시설이 밀집한 남포동 상권에 자리...",
-      "score": 0.4682738305575118,
-      "url": "http://www.beyondpost.co.kr/view.php?ud=20260918141724841746a9e4dd7f_30",
-      "org": null,
-      "published_at": "2026-09-18T14:20:00"
-    },
-    {
-      "chunk_id": "news:165676fe4e67f78f605d",
-      "source_type": "news",
-      "source_id": "165676fe4e67f78f605d",
-      "content": "“치킨시장은 좁다”…프랜차이즈, 사업 포트폴리오 다각화\n최근 서초구 방배동에 위치한 래미안 원페를라 그린라운지 카페에서 입주민 대상 브런치 체험행사를... 아웃백은 백화점과 복합쇼핑몰 등 핵심 상권을 중심으로 매장을 확대하며 외식 포트폴리오를 구축하고 있다....",
-      "score": 0.46307830622559876,
-      "url": "https://www.asiatime.co.kr/article/20260915500335",
-      "org": null,
-      "published_at": "2026-09-15T15:06:00"
-    },
-    {
-      "chunk_id": "news:e6085915f55c3b1b4e4d",
-      "source_type": "news",
-      "source_id": "e6085915f55c3b1b4e4d",
-      "content": "대만 프리미엄 밀크티 ‘다밍(大茗)’ 한국 상륙\n핵심 상권에 매장을 낸 데 이어 대만 프리미엄밀크티 브랜드 ‘다밍’도 한국 1호점 개점을 하는 것으로 알려졌다. 다밍은 이르면 이달 중 서울 성동구 성수동에 한국 1호 매장을 열 예정이다. 1994년 대만에서 시작한...",
-      "score": 0.4592833801473617,
-      "url": "https://www.dnews.co.kr/uhtml/view.jsp?idxno=202608201744342400774",
-      "org": null,
-      "published_at": "2026-08-20T18:02:00"
-    }
-  ],
+  "news": [],
   "funding_candidates": [
     {
       "program_id": "PBLN_000000000126270",

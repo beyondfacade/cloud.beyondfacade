@@ -69,7 +69,6 @@ def _input(**overrides) -> SignalInput:
         region_code="r1", industry_id="real_estate", industry_name="부동산중개업",
         start_store_count=100, opened_12m=0, closed_12m=5, cohort_size=0, cohort_survived=0,
         closed_3y_count=0, closed_3y_median_months=None, latest_store_count=80, resident_total=10_000,
-        change_code="HH", change_name="정체", change_quarter="20262", closed_months=25.0, seoul_closed_months=27.0,
         trade_12m=240.0,
     )
     base.update(overrides)

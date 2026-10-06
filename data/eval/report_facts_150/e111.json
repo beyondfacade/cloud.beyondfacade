@@ -961,58 +961,7 @@
     ],
     "recent_news": []
   },
-  "news": [
-    {
-      "chunk_id": "news:f1d4ff205242022cc55f",
-      "source_type": "news",
-      "source_id": "f1d4ff205242022cc55f",
-      "content": "서울 중구 '상생야장' 18일 첫선…신당역 일대 밤거리 달군다\n서울 중구가 전통시장과 골목상권의 밤을 새로운 지역 콘텐츠로 탈바꿈시키는 '중구형 상생야장'을 본격 가동한다. 중구는 오는 18일 신당역 일대 신중앙시장과 백학시장, 신당오길골목형상점가 등 3곳에서 상생야장을...",
-      "score": 0.545518040657059,
-      "url": "https://www.job-post.co.kr/news/articleView.html?idxno=226954",
-      "org": null,
-      "published_at": "2026-09-10T13:30:00"
-    },
-    {
-      "chunk_id": "news:0cc3ffd9ead1cd3c055b",
-      "source_type": "news",
-      "source_id": "0cc3ffd9ead1cd3c055b",
-      "content": "신당역 골목에 야장 펼친다…중구, 18일부터 3곳 운영\n남대문·충무로·약수·장충남소영길로 순차 확대 서울 중구(구청장 김길성)는 오는 18일부터 신당역 일대 전통시장과 골목상권 3곳에서 '중구형 상생야장'을 운영한다고 10일 밝혔다. 중구형 상생야장은 상인들이 시장별...",
-      "score": 0.5423995367527482,
-      "url": "https://news.tf.co.kr/read/life/2364318.htm",
-      "org": null,
-      "published_at": "2026-09-10T12:31:00"
-    },
-    {
-      "chunk_id": "news:77085e1fd1376875d4ef",
-      "source_type": "news",
-      "source_id": "77085e1fd1376875d4ef",
-      "content": "‘상생야장’으로, 힙당동 더 힙해진다\n서울 중구가 신당역 일대에 ‘중구형 상생야장’의 문을 연다. 구는 18일 신중앙시장·백학시장... 김 구청장은 “상생야장이 전통시장과 골목상권의 새로운 경쟁력이 될 수 있도록 든든히 뒷받침하겠다”고 말했다.",
-      "score": 0.537648192012741,
-      "url": "https://www.seoul.co.kr/news/publicnews/seoul_local/news_seoul/2026/09/15/20260915019001?wlog_tag3=naver",
-      "org": null,
-      "published_at": "2026-09-15T05:04:00"
-    },
-    {
-      "chunk_id": "news:371889bd15af9365bed6",
-      "source_type": "news",
-      "source_id": "371889bd15af9365bed6",
-      "content": "서울 중구 \"80년 전통시장 '신중앙시장' 변화 중\"\n(사진=중구청 제공)  서울 중구(구청장 김길성)는 1946년 문을 연 신당역 인근의 전통시장인 신중앙시장이... 그간 신당역 공영주차장은 26면 규모로, 인근 주택가와 상점가, '힙당동'(힙한 신상동)과 신중앙시장 상권의...",
-      "score": 0.5367834291925329,
-      "url": "https://www.siminilbo.co.kr/news/newsview.php?ncode=1160290644135086",
-      "org": null,
-      "published_at": "2026-09-21T18:00:00"
-    },
-    {
-      "chunk_id": "news:85d8fe9f2cf7e8c069fc",
-      "source_type": "news",
-      "source_id": "85d8fe9f2cf7e8c069fc",
-      "content": "중구, 신당역 일대에서 '중구형 상생야장' 첫 문 연다... 민선9기 공약으...\n중구는 신당역 일대 3곳을 시작으로 순차적으로 상생야장을 확대해, 전통시장과 골목상권에 활력을 더하는 중구의 대표 야간 콘텐츠로 키워갈 방침이다. 한편, 골목형상점가는 '전통시장 및 상점가 육성을 위한 특별법'에...",
-      "score": 0.5337184349466388,
-      "url": "https://www.cnbizm.com/news/articleView.html?idxno=314707",
-      "org": null,
-      "published_at": "2026-09-10T15:34:00"
-    }
-  ],
+  "news": [],
   "funding_candidates": [
     {
       "program_id": "PBLN_000000000126270",

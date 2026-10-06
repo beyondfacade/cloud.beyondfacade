@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from apps.news.app.dtos.news_article_dto import NewsArticleDto
 from apps.news.app.ports.input.news_article_use_case import NewsArticleUseCase
@@ -6,6 +6,9 @@ from apps.news.app.ports.output.news_article_port import (
     NewsArticleRepositoryPort,
     NewsSearchGatewayPort,
 )
+
+# 네이버 검색 API 특약 2.4 — 검색 결과는 서버 이력 조회 목적으로 최대 21일만 보관한다.
+RETENTION_DAYS = 21
 
 
 class NewsArticleInteractor(NewsArticleUseCase):
@@ -32,3 +35,6 @@ class NewsArticleInteractor(NewsArticleUseCase):
         for keyword in keywords:
             inserted += self._repository.save_new(self._gateway.search(keyword))
         return inserted
+
+    def purge(self, now: datetime) -> int:
+        return self._repository.delete_published_before(now - timedelta(days=RETENTION_DAYS))

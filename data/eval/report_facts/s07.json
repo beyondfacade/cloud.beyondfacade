@@ -1001,58 +1001,7 @@
     ],
     "recent_news": []
   },
-  "news": [
-    {
-      "chunk_id": "news:0cc3ffd9ead1cd3c055b",
-      "source_type": "news",
-      "source_id": "0cc3ffd9ead1cd3c055b",
-      "content": "신당역 골목에 야장 펼친다…중구, 18일부터 3곳 운영\n남대문·충무로·약수·장충남소영길로 순차 확대 서울 중구(구청장 김길성)는 오는 18일부터 신당역 일대 전통시장과 골목상권 3곳에서 '중구형 상생야장'을 운영한다고 10일 밝혔다. 중구형 상생야장은 상인들이 시장별...",
-      "score": 0.4806417141241537,
-      "url": "https://news.tf.co.kr/read/life/2364318.htm",
-      "org": null,
-      "published_at": "2026-09-10T12:31:00"
-    },
-    {
-      "chunk_id": "news:f1d4ff205242022cc55f",
-      "source_type": "news",
-      "source_id": "f1d4ff205242022cc55f",
-      "content": "서울 중구 '상생야장' 18일 첫선…신당역 일대 밤거리 달군다\n서울 중구가 전통시장과 골목상권의 밤을 새로운 지역 콘텐츠로 탈바꿈시키는 '중구형 상생야장'을 본격 가동한다. 중구는 오는 18일 신당역 일대 신중앙시장과 백학시장, 신당오길골목형상점가 등 3곳에서 상생야장을...",
-      "score": 0.4701492857577654,
-      "url": "https://www.job-post.co.kr/news/articleView.html?idxno=226954",
-      "org": null,
-      "published_at": "2026-09-10T13:30:00"
-    },
-    {
-      "chunk_id": "news:dfc444d22c675de4e371",
-      "source_type": "news",
-      "source_id": "dfc444d22c675de4e371",
-      "content": "[지금 구청은] 중구, 신당역 일대 시장·상점가에 ‘상생야장’ 3곳 조성\n적립해 시장 환경 개선과 편의·안전시설 확충, 주민 복지 등에 사용하게 된다. 중구는 신당역 일대 3곳을 시작으로 상생야장을 확대해 전통시장과 골목상권에 활력을 더하는 중구의 대표 야간 콘텐츠로 키워갈 방침이다.",
-      "score": 0.4653795824625231,
-      "url": "https://biz.heraldcorp.com/article/10869025?ref=naver",
-      "org": null,
-      "published_at": "2026-09-10T11:30:00"
-    },
-    {
-      "chunk_id": "news:85d8fe9f2cf7e8c069fc",
-      "source_type": "news",
-      "source_id": "85d8fe9f2cf7e8c069fc",
-      "content": "중구, 신당역 일대에서 '중구형 상생야장' 첫 문 연다... 민선9기 공약으...\n중구는 신당역 일대 3곳을 시작으로 순차적으로 상생야장을 확대해, 전통시장과 골목상권에 활력을 더하는 중구의 대표 야간 콘텐츠로 키워갈 방침이다. 한편, 골목형상점가는 '전통시장 및 상점가 육성을 위한 특별법'에...",
-      "score": 0.45420695715939274,
-      "url": "https://www.cnbizm.com/news/articleView.html?idxno=314707",
-      "org": null,
-      "published_at": "2026-09-10T15:34:00"
-    },
-    {
-      "chunk_id": "news:3aa3a3722bba28169e48",
-      "source_type": "news",
-      "source_id": "3aa3a3722bba28169e48",
-      "content": "청약통장·가점 없이 도전...'신월동 한양립스', 오는 11일 임의공급 청...\n신월IC를 비롯한 주요 도로망을 통해 서울 도심과 수도권 지역으로 이동할 수 있으며 양천구의 교육시설과 기존 상권, 생활편의시설도 이용할 수 있다. 분양 관계자는 \"이번 공급은 청약통장 가입 여부나 청약 가점과...",
-      "score": 0.45013585678586276,
-      "url": "https://www.joongangenews.com/news/articleView.html?idxno=547129",
-      "org": null,
-      "published_at": "2026-09-10T13:10:00"
-    }
-  ],
+  "news": [],
   "funding_candidates": [
     {
       "program_id": "PBLN_000000000126270",

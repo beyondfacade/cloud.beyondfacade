@@ -7,9 +7,6 @@ from collections.abc import Sequence
 from dataclasses import dataclass, replace
 
 from apps.verdict.domain.entities.region_industry_verdict_entity import (
-    LEVEL_OFF,
-    LEVEL_ON,
-    LEVEL_STRONG,
     LEVEL_UNAVAILABLE,
     SignalResult,
 )
@@ -17,7 +14,6 @@ from apps.verdict.domain.services.risk_band import band_of
 from apps.verdict.domain.services.thresholds import VerdictThresholds, level_of, percentile_rank
 from apps.verdict.domain.services.tobacco_gap import TOBACCO_GAP_RADIUS_M
 
-_SHRINKING_CODE = "HL"  # 서울시 상권변화지표 '상권축소'
 
 
 @dataclass(frozen=True)
@@ -38,11 +34,6 @@ class SignalInput:
     # 동 맥락 (RegionContextPort)
     latest_store_count: int | None  # region_industry_metric 최신 연도
     resident_total: int | None  # region_profile_quarter 최신 분기
-    change_code: str | None  # HH | HL | LH | LL
-    change_name: str | None
-    change_quarter: str | None  # '20262'
-    closed_months: float | None
-    seoul_closed_months: float | None
     # 담배권 빈자리 (편의점 원천) — 기본값 0이면 TobaccoGapSignal 가드가 unavailable로 만든다
     gap_candidates: int = 0
     gap_blocked: int = 0
@@ -52,10 +43,6 @@ class SignalInput:
 def _top(percentile: float) -> int:
     """'나쁜 쪽에서 N번째쯤' 표기 — 백분위 65 → 35번째쯤. 0번째는 말이 안 되니 최소 1."""
     return max(1, round(100 - percentile))
-
-
-def _quarter_label(year_quarter: str | None) -> str:
-    return f"{year_quarter[:4]}년 {year_quarter[4]}분기" if year_quarter else "분기 미상"
 
 
 _BAND_WORDS = {
@@ -206,40 +193,6 @@ class SaturationSignal(Signal):
         return f"상주인구 {i.resident_total or 0:,}명 ({t.min_population:,}명 미만이거나 프로필 없음)"
 
 
-class ShrinkingSignal(Signal):
-    """동 단위 이진 신호 — 백분위를 쓰지 않으므로 evaluate를 통째로 재정의한다."""
-
-    key = "shrinking"
-    source = "neighborhood"
-
-    def raw_value(self, i, t):
-        if i.change_code is None:
-            return None
-        return 1.0 if i.change_code == _SHRINKING_CODE else 0.0
-
-    def worse(self, value):
-        return value
-
-    def evidence(self, i, value):
-        return f"서울시 상권변화지표 '{i.change_name}' ({_quarter_label(i.change_quarter)}, 동 전체 기준)"
-
-    def unavailable_reason(self, i, t):
-        return "상권변화지표 없음 (해당 동·분기 행 없음)"
-
-    def evaluate(self, i, t, distribution):
-        value = self.raw_value(i, t)
-        if value is None:
-            return SignalResult(self.key, LEVEL_UNAVAILABLE, None, None, self.unavailable_reason(i, t), self.source)
-        level = LEVEL_OFF
-        if value == 1.0:
-            faster_than_seoul = (
-                i.closed_months is not None and i.seoul_closed_months is not None
-                and i.closed_months < i.seoul_closed_months
-            )
-            level = LEVEL_STRONG if faster_than_seoul else LEVEL_ON
-        return SignalResult(self.key, level, value, None, self.evidence(i, value), self.source)
-
-
 class ClosureRateSignal(Signal):
     """집계 원천 폐업률 — 개업 수가 끊긴 원천(부동산 아카이브 2024Q1~)에서 순유출 대신 쓴다 (업종 특화 신호 설계서 §7-1)."""
 
@@ -371,5 +324,4 @@ SIGNALS: tuple[Signal, ...] = (
     SurvivalCliffSignal(),
     EarlyClosureSignal(),
     SaturationSignal(),
-    ShrinkingSignal(),
 )

@@ -1096,58 +1096,7 @@
     ],
     "recent_news": []
   },
-  "news": [
-    {
-      "chunk_id": "news:e916c4d6d55733b5fd15",
-      "source_type": "news",
-      "source_id": "e916c4d6d55733b5fd15",
-      "content": "[현장] GTX-B 재정구간 ‘상봉역’ 조기 착공 ‘본격 스타트’\n시내 현장 주 출입구 벽면에는 ‘(중랑구) 상봉동의 가치 상승, GTX-B 공사 적극 찬성, 주변 상권 좋아지는 GTX-B 공사 빨리 하자, 주변상가 입주자 일동’이라고 포스터가 걸려 있었다. 재정이 투자된 상봉역에는 향후...",
-      "score": 0.5216827418426301,
-      "url": "http://mcnews.co.kr/86518",
-      "org": null,
-      "published_at": "2026-08-20T20:28:00"
-    },
-    {
-      "chunk_id": "news:6d0a75056c83e5319bb6",
-      "source_type": "news",
-      "source_id": "6d0a75056c83e5319bb6",
-      "content": "'경쟁률 23대 1' 서울시판 '나는 솔로', 가을 야장편 참가자 모집\n상봉먹자골목은 다양한 맛집과 주점이 밀집해 저녁 시간에도 활기가 이어지는 중랑구의 대표 먹거리 상권이다. 취향 맞춤 맛집 체험, 2:2 야장 데이트, 골목 산책 데이트 등 도심 야장 특유의 편안한 분위기 속에서...",
-      "score": 0.5150479213850626,
-      "url": "https://www.mt.co.kr/policy/2026/09/29/2026092910330235800",
-      "org": null,
-      "published_at": "2026-09-29T11:15:00"
-    },
-    {
-      "chunk_id": "news:630ddc6612d661c588a5",
-      "source_type": "news",
-      "source_id": "630ddc6612d661c588a5",
-      "content": "중랑구, 제2호 상봉먹자 골목형상점가에서  '별이 빛나는 상봉의 밤' 행...\n이를 통해 상권만의 개성 있는 브랜드 이미지를 알리고 지역을 대표하는 야간 명소로서의 매력을 한층 높이는 계기가 됐다. 류경기 중랑구청장은 \"이번 행사가 상봉먹자 골목형상점가를 찾은 주민과 방문객들에게 즐거운...",
-      "score": 0.5081754053162487,
-      "url": "https://www.cnbizm.com/news/articleView.html?idxno=308334",
-      "org": null,
-      "published_at": "2026-07-10T20:40:00"
-    },
-    {
-      "chunk_id": "news:a96c0fa3df8318d5d302",
-      "source_type": "news",
-      "source_id": "a96c0fa3df8318d5d302",
-      "content": "상봉먹자골목서 야장 데이트 ‘설렘 인 서울’\n0’의 두 번째 행사인 ‘설렘 인 서울, 야장편’을 다음달 23일 중랑구 상봉먹자골목에서 개최한다고 29일 밝혔다. 시의 ‘야간경제 활성화’와 연계해 동북권 대표 야장 상권이자 지난 14일 ‘서울 달빛야장’...",
-      "score": 0.5069468323556906,
-      "url": "https://www.seoul.co.kr/news/society/2026/09/30/20260930023006?wlog_tag3=naver",
-      "org": null,
-      "published_at": "2026-09-30T05:04:00"
-    },
-    {
-      "chunk_id": "news:62add889db961d29ba43",
-      "source_type": "news",
-      "source_id": "62add889db961d29ba43",
-      "content": "중랑구 상봉먹자골목, 서울 달빛야장 공모 선정…최대 20억 지원\n[사진제공=중랑구] 류경기 중랑구청장은 \"상봉먹자골목만의 특성을 살린 야간상권을 만들어 주민과 방문객 모두가 편리하게 이용할 수 있도록 하겠다\"며 \"야간경관과 콘텐츠, 안전·편의시설 개선 등 사업 전반에 걸쳐...",
-      "score": 0.504320291862374,
-      "url": "https://www.gukjenews.com/news/articleView.html?idxno=3698029",
-      "org": null,
-      "published_at": "2026-09-17T09:08:00"
-    }
-  ],
+  "news": [],
   "funding_candidates": [
     {
       "program_id": "PBLN_000000000126270",

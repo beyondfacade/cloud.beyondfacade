@@ -1009,58 +1009,7 @@
     ],
     "recent_news": []
   },
-  "news": [
-    {
-      "chunk_id": "news:d83a777428dfd10c94ae",
-      "source_type": "news",
-      "source_id": "d83a777428dfd10c94ae",
-      "content": "25년 한식 연구 담았다...윤스푸드랩, 쿠킹클래스·전통 디저트로 한식...\n중구청과 중구 상권발전소가 추진하는 행사에도 참여해 한식과 한식 디저트를 알리는 활동을 펼치고 있다. 한식 도시락과 단체 주문도 향후 확대할 분야다. 도시락은 반찬 가짓수보다 영양 균형과 신선한 식재료에 초점을...",
-      "score": 0.48987245559695514,
-      "url": "https://www.womentimes.co.kr/news/articleView.html?idxno=106472",
-      "org": null,
-      "published_at": "2026-09-23T14:46:00"
-    },
-    {
-      "chunk_id": "news:4083f1321227d1f9c023",
-      "source_type": "news",
-      "source_id": "4083f1321227d1f9c023",
-      "content": "한식의 가치를 잇는 마곡 '윤스푸드랩'...﻿K-식문화를 전하다\n최근에는 중구청과 중구 상권발전소가 추진하는 행사에 참여해 한식과 한식 디저트를 알리는 프로그램에도 함께하고 있다. 지역의 역사적 자원과 한식 문화를 연결하는 행사에서 한식 디저트 분야를 담당하며 새로운...",
-      "score": 0.4784366100464037,
-      "url": "https://www.getnews.co.kr/news/articleView.html?idxno=882134",
-      "org": null,
-      "published_at": "2026-09-29T20:36:00"
-    },
-    {
-      "chunk_id": "news:ce0b427fabe23d73180b",
-      "source_type": "news",
-      "source_id": "ce0b427fabe23d73180b",
-      "content": "서금원·우리은행·선한영향력가게, 영세자영업자 성장 돕는 '인정가게...\n서울 마포구 소재 중식당 '연화식탁'에서 '인정가게' 현판식을 개최했다\"고 8일 밝혔다. '인정가게'는... 연화식탁은 홍익대학교 상권 인근에서 청년 자영업자가 운영하는 중식당으로 올해 5월 문을 열었다. 10개 남짓한...",
-      "score": 0.4613942296831721,
-      "url": "http://www.enewstoday.co.kr/news/articleView.html?idxno=2467958",
-      "org": null,
-      "published_at": "2026-09-08T10:55:00"
-    },
-    {
-      "chunk_id": "news:7283df65766866b12854",
-      "source_type": "news",
-      "source_id": "7283df65766866b12854",
-      "content": "부산 명지 '오션스퀘어' 임차인 모집…F&B·문화시설 기반 복합상권 형...\n부산 명지국제신도시에서 인지도 높은 요식업체와 문화시설을 함께 갖춘 복합상권이 형성되면서 해당... 이재모피자는 강서구 최초 매장으로, 특정 매장을 찾은 고객이 식사 전후 인근 카페나 쇼핑시설 등을 추가로...",
-      "score": 0.45878447576136083,
-      "url": "https://edu.donga.com/news/articleView.html?idxno=111568",
-      "org": null,
-      "published_at": "2026-09-04T08:00:00"
-    },
-    {
-      "chunk_id": "news:8b7eb42f767364621a5a",
-      "source_type": "news",
-      "source_id": "8b7eb42f767364621a5a",
-      "content": "오버플레이스(주) 한식 브랜드 '신일곰탕', 주요상권 중심 출점 확대…...\n오버플레이스(주)는 유통시설과 지역 상권을 함께 공략하며 신일곰탕의 매장 유형과 고객 접점을 다양화하고 있다. 오는 2026년 9월에는 서울 종로구 인사동의 복합문화공간 '안녕인사동'에 신일곰탕 본점을 오픈할...",
-      "score": 0.45246781482333465,
-      "url": "https://www.gukjenews.com/news/articleView.html?idxno=3676662",
-      "org": null,
-      "published_at": "2026-08-27T14:26:00"
-    }
-  ],
+  "news": [],
   "funding_candidates": [
     {
       "program_id": "PBLN_000000000126270",

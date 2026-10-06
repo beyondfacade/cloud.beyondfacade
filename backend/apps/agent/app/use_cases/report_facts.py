@@ -4,7 +4,9 @@
 LLM 첫 메시지의 `[FACTS]`로 동시에 나간다.
 
 14항목을 **동시에** 조회한다 — 항목마다 제 세션(`session_scope`)을 여는 독립 조회라 서로 기다릴
-이유가 없다. 직렬로 돌면 가장 느린 항목(뉴스 RAG 임베딩)이 전체 수집 시간을 결정한다.
+이유가 없다. 직렬로 돌면 가장 느린 항목이 전체 수집 시간을 결정한다.
+
+뉴스(`news`)는 원문 링크 목록이다 — 네이버 검색 결과라 본문 절·LLM 입력에 넣지 않고 화면 링크로만 쓴다.
 
 항목마다 예외를 격리한다 — 하나가 실패해도 나머지 그림은 뜬다. 실패한 자리는
 `{"available": false, "reason": ...}`이라 프론트가 "자료 없음" 한 줄로 대신 그린다.
@@ -13,19 +15,19 @@ LLM 첫 메시지의 `[FACTS]`로 동시에 나간다.
 """
 
 import logging
+import re
 from concurrent.futures import Future, ThreadPoolExecutor
 
 from apps.agent.app.ports.output.agent_port import (
     EventAnalogFactsPort,
     FinanceFactsPort,
     FundingFactsPort,
+    NewsLinksPort,
     QuestionBudgetPort,
     RegionFactsPort,
     VerdictFactsPort,
 )
-from apps.agent.app.use_cases.agent_tools import hit_to_dict
 from apps.agent.domain.services.analog_sentences import with_sentences
-from apps.rag.app.ports.input.rag_use_case import RagSearchUseCase
 
 LOGGER = logging.getLogger("beyondfacade.agent.facts")
 
@@ -48,10 +50,11 @@ FACTS_KEYS = (
 )
 
 _SHOCK_LIMIT = 5
-_NEWS_TOP_K = 5
+_NEWS_LIMIT = 3
+# 동 이름 꼬리(번호·"제"·"가"·"동") — 남은 어간이 기사에 나오면 이 동 기사로 본다(상도제1동→상도, 종로1.2.3.4가동→종로)
+_DONG_SUFFIX = re.compile(r"(?:제?\d+(?:\.\d+)*가?동|동)$")
 
-# SQLAlchemy 기본 풀은 5+10이다 — 12칸으로 열면 12개 세션이 동시에 풀을 긁는다. 긴 항목은
-# 뉴스 RAG 하나뿐이라 6칸으로도 수집 시간이 그 하나에 묶인다.
+# SQLAlchemy 기본 풀은 5+10이다 — 12칸으로 열면 12개 세션이 동시에 풀을 긁는다.
 _MAX_WORKERS = 6
 
 
@@ -69,7 +72,7 @@ class ReportFactsCollector:
         region_facts: RegionFactsPort,
         verdict_facts: VerdictFactsPort,
         funding_facts: FundingFactsPort,
-        news_search: RagSearchUseCase,
+        news_links: NewsLinksPort,
         analog_facts: EventAnalogFactsPort | None = None,
         finance_facts: FinanceFactsPort | None = None,
         question_budget: QuestionBudgetPort | None = None,
@@ -77,7 +80,7 @@ class ReportFactsCollector:
         self._region_facts = region_facts
         self._verdict_facts = verdict_facts
         self._funding_facts = funding_facts
-        self._news_search = news_search
+        self._news_links = news_links
         self._analog_facts = analog_facts
         self._finance_facts = finance_facts
         self._question_budget = question_budget
@@ -106,7 +109,7 @@ class ReportFactsCollector:
                 "analogs": pool.submit(self._analogs, industry, question),
                 "funding_candidates": pool.submit(self._funding, industry, region),
                 "finance": pool.submit(self._finance, region, industry),
-                # 뉴스 질의는 동 이름·업종명을 쓴다 — 워커가 region future를 기다리므로 **맨 뒤**에
+                # 뉴스 질의는 동 이름을 쓴다 — 워커가 region future를 기다리므로 **맨 뒤**에
                 # 넣는다. 앞선 항목이 워커를 다 채워도 region은 이미 실행 중이라 굶지 않는다.
                 "news": pool.submit(self._news, region_future),
             }
@@ -168,11 +171,9 @@ class ReportFactsCollector:
         return self._question_budget.parse(question)
 
     def _news(self, region_future: Future) -> list[dict]:
-        """동 이름 + 업종명으로 뉴스를 찾는다."""
+        """동 이름이 나온 최근 기사의 원문 링크. 이름을 못 얻었으면(코드로 메운 자리) 찾지 않는다."""
         region_info = region_future.result()
-        hits = self._news_search.search(
-            f"{region_info['name']} {region_info['industry_name']}",
-            top_k=_NEWS_TOP_K,
-            source_type="news",
-        )
-        return [hit_to_dict(hit) for hit in hits]
+        base = _DONG_SUFFIX.sub("", region_info["name"])
+        if region_info["name"] == region_info["code"] or len(base) < 2:
+            return []
+        return self._news_links.mentioning(base, _NEWS_LIMIT)

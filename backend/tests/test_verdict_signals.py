@@ -4,7 +4,6 @@ import pytest
 
 from apps.verdict.domain.entities.region_industry_verdict_entity import (
     LEVEL_OFF,
-    LEVEL_ON,
     LEVEL_STRONG,
     LEVEL_UNAVAILABLE,
     SIGNAL_KEYS,
@@ -14,7 +13,6 @@ from apps.verdict.domain.services.signals import (
     EarlyClosureSignal,
     NetOutflowSignal,
     SaturationSignal,
-    ShrinkingSignal,
     SignalInput,
     SurvivalCliffSignal,
 )
@@ -28,8 +26,6 @@ def _input(**overrides) -> SignalInput:
         cohort_size=37, cohort_survived=14,
         closed_3y_count=60, closed_3y_median_months=19.0,
         latest_store_count=94, resident_total=10_000,
-        change_code="HL", change_name="상권축소", change_quarter="20262",
-        closed_months=20.0, seoul_closed_months=27.0,
     )
     base.update(overrides)
     return SignalInput(**base)
@@ -88,18 +84,6 @@ def test_백분위로_레벨이_정해지고_근거_문장에_숫자와_비교_�
     assert (result.band, result.band_label) == ("normal", "순유출 보통")
     strong = NetOutflowSignal().evaluate(_input(closed_12m=60), T, distribution)  # 0.32 → 100
     assert strong.level == LEVEL_STRONG
-
-
-def test_상권축소는_이진이고_서울보다_빨리_닫히면_strong():
-    signal = ShrinkingSignal()
-    assert signal.evaluate(_input(), T, []).level == LEVEL_STRONG  # HL + 20 < 27
-    assert signal.evaluate(_input(closed_months=30.0), T, []).level == LEVEL_ON
-    assert signal.evaluate(_input(change_code="HH", change_name="정체"), T, []).level == LEVEL_OFF
-    missing = signal.evaluate(_input(change_code=None, change_name=None, change_quarter=None), T, [])
-    assert missing.level == LEVEL_UNAVAILABLE
-    on = signal.evaluate(_input(closed_months=None), T, [])
-    assert on.level == LEVEL_ON and on.percentile is None
-    assert "2026년 2분기" in on.evidence and "동 전체 기준" in on.evidence
 
 
 def test_포화_근거는_등급_낱말과_높은_쪽_순번을_쓴다():

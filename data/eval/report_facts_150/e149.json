@@ -851,58 +851,7 @@
     ],
     "recent_news": []
   },
-  "news": [
-    {
-      "chunk_id": "news:8ad222e5efed9a985fe1",
-      "source_type": "news",
-      "source_id": "8ad222e5efed9a985fe1",
-      "content": "39억 아파트 이어 또 샀다... 트와이스 나연, 청담동 95억 꼬마빌딩 건물...\n그룹 트와이스의 멤버 나연이 서울 강남구 청담동 일대 상업용 부동산을 95억원에 매입하며 투자자 대열에... 청담동 고유의 프리미엄 상권과 문화·엔터테인먼트 시설이 집중된 핵심 지역이라는 평가다. 부동산...",
-      "score": 0.45707016498429587,
-      "url": "https://www.insight.co.kr/news/570736",
-      "org": null,
-      "published_at": "2026-08-28T15:54:00"
-    },
-    {
-      "chunk_id": "news:ea245eb45db5fffcf6f8",
-      "source_type": "news",
-      "source_id": "ea245eb45db5fffcf6f8",
-      "content": "청담역 5분 거리에 방 4개 '34평 풀옵션'…가족·기업용 단기임대 눈길\n서울 강남구 청담동에 침실 4개와 욕실 2개를 갖춘 34평형 아파트가 단기임대 매물로 나왔다. 원룸이나 투룸... 청담동과 압구정로데오 일대의 카페와 식당 등 상권도 이용할 수 있다. 임대료는 1주 150만원이며 관리비...",
-      "score": 0.4493363901379459,
-      "url": "https://realty.chosun.com/site/data/html_dir/2026/08/24/2026082401305.html",
-      "org": null,
-      "published_at": "2026-08-24T11:22:00"
-    },
-    {
-      "chunk_id": "news:7e6a9dd6d0b3c8ae99ce",
-      "source_type": "news",
-      "source_id": "7e6a9dd6d0b3c8ae99ce",
-      "content": "강북 미아동 ‘더 리치먼드 미아’, 8월 무순위 청약 진행\n더 리치먼드 미아는 서울 강북구 미아동에 지하 5층~지상 24층, 1개 동 규모로 조성될 예정이다. 공공임대... 단지 주변에는 북한산과 북서울꿈의숲이 있으며, 양로 일대에서는 보행 환경 개선과 상권 활성화 사업이...",
-      "score": 0.4359754041382071,
-      "url": "https://www.dnews.co.kr/uhtml/view.jsp?idxno=202608041049538900693",
-      "org": null,
-      "published_at": "2026-08-04T11:02:00"
-    },
-    {
-      "chunk_id": "news:9ce39e740e5b8be114cc",
-      "source_type": "news",
-      "source_id": "9ce39e740e5b8be114cc",
-      "content": "서울 강동구, 전통시장서 추석맞이 농축수산물 환급 행사 진행\n이수희 강동구청장은 \"농축수산물 환급과 할인 행사, 주차 편의 제공을 통해 주민들의 명절 장보기 부담을 덜고 전통시장과 지역 상권에도 활력을 더할 수 있기를 기대한다\"고 밝혔다.",
-      "score": 0.4137770944566421,
-      "url": "https://www.dailian.co.kr/news/view/1690480/?sc=Naver",
-      "org": null,
-      "published_at": "2026-09-15T10:31:00"
-    },
-    {
-      "chunk_id": "news:eaaba901563d023000e8",
-      "source_type": "news",
-      "source_id": "eaaba901563d023000e8",
-      "content": "서울 오피스텔 15개월 연속 상승 속 ‘강동역 SK 리더스뷰’ 14일부터 입...\n천동초와 동신중을 걸어서 통학할 수 있고 강동구립도서관, 명일동 학원가도 가깝다. 단지 앞 강동성심병원을 비롯해 현대백화점, 이마트, 롯데시네마. 천호동 로데오상권, 광나루한강공원, 올림픽공원, 길동생태공원...",
-      "score": 0.4125676315499677,
-      "url": "https://www.mk.co.kr/article/12120661",
-      "org": null,
-      "published_at": "2026-08-07T09:52:00"
-    }
-  ],
+  "news": [],
   "funding_candidates": [
     {
       "program_id": "PBLN_000000000126270",

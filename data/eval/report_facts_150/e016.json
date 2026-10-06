@@ -1009,58 +1009,7 @@
     ],
     "recent_news": []
   },
-  "news": [
-    {
-      "chunk_id": "news:33dec808b2dae76edc02",
-      "source_type": "news",
-      "source_id": "33dec808b2dae76edc02",
-      "content": "배민, 서울시 한강 드론라이트쇼에서 무료 시식 행사\n지역 상권 연계 행사도 진행한다. 서울 광진구와 성동구 일대 가게에서 배민 주문 시 사용할 수 있는 할인쿠폰을 배포할 예정이다. 한강 드론라이트쇼는 서울시가 매년 상·하반기에 개최하는 행사로, 한강 일대에서...",
-      "score": 0.5245829693601051,
-      "url": "https://www.thelec.kr/news/articleView.html?idxno=62116",
-      "org": null,
-      "published_at": "2026-09-10T16:48:00"
-    },
-    {
-      "chunk_id": "news:20431bcef7907043c1e5",
-      "source_type": "news",
-      "source_id": "20431bcef7907043c1e5",
-      "content": "배민, '한강 드론라이트쇼'에서 떡볶이·호떡 2000인분 쏜다\n뚝섬한강공원과 인접한 서울 광진구 자양동 일대에서 민트스타에 선정된 음식점 20곳을 소개해 관람객의 지역 상권 방문을 유도한다. 무료 먹거리도 제공한다. 뚝섬한강공원 메인 구역에서 푸드트럭 2대를 운영하고...",
-      "score": 0.51526546114316,
-      "url": "https://www.ngetnews.com/news/articleView.html?idxno=553234",
-      "org": null,
-      "published_at": "2026-09-10T12:22:00"
-    },
-    {
-      "chunk_id": "news:24fca6dd8519d5a42bdd",
-      "source_type": "news",
-      "source_id": "24fca6dd8519d5a42bdd",
-      "content": "배민, 한강 드론라이트쇼서 시민과 만난다…지역 맛집 간식 나눔\n배민은 행사장에 민트스타 콘텐츠 부스를 마련해 뚝섬한강공원 인근 광진구 자양동에서 사랑받는 로컬 음식점 20곳을 소개한다. 관람객들은 지역 인기 맛집 정보를 한눈에 확인하고, 드론쇼 관람과 함께 주변 상권을...",
-      "score": 0.5105633862631593,
-      "url": "https://www.e-science.co.kr/news/articleView.html?idxno=135185",
-      "org": null,
-      "published_at": "2026-09-10T11:04:00"
-    },
-    {
-      "chunk_id": "news:72eebb16a3868b3ccec3",
-      "source_type": "news",
-      "source_id": "72eebb16a3868b3ccec3",
-      "content": "우아한형제들, 한강 드론라이트쇼서 지역 음식점·시장 연계 프로그램 ...\n우아한형제들은 지역 기반 미식 가이드 ‘민트스타’를 통해 광진구 자양동 일대 음식점 20곳을 소개하는... “지역 상권과 연계한 현장 프로그램을 통해 배달 서비스와 지역 음식점의 접점을 넓히고 있다”고 말했다.",
-      "score": 0.509137496079928,
-      "url": "http://www.lawissue.co.kr/view.php?ud=20260910193347127204ead0791_12",
-      "org": null,
-      "published_at": "2026-09-10T19:36:00"
-    },
-    {
-      "chunk_id": "news:80b7dd715b44389e7e73",
-      "source_type": "news",
-      "source_id": "80b7dd715b44389e7e73",
-      "content": "배민, 한강 드론라이트쇼 뜬다…지역 맛집 알리고 2000인분 무료 제공\n뚝섬한강공원과 인접한 서울 광진구 자양동 일대의 민트스타 선정 음식점 20곳을 소개해 관람객의 지역 상권 방문을 유도한다. 무료 먹거리 행사도 진행한다. 배민은 행사장 메인 구역에서 푸드트럭 2대를 운영하고...",
-      "score": 0.5083267395691852,
-      "url": "https://www.cbci.co.kr/news/articleView.html?idxno=605666",
-      "org": null,
-      "published_at": "2026-09-10T16:46:00"
-    }
-  ],
+  "news": [],
   "funding_candidates": [
     {
       "program_id": "PBLN_000000000126270",

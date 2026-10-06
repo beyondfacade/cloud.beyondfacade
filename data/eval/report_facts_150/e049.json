@@ -1110,58 +1110,7 @@
     ],
     "recent_news": []
   },
-  "news": [
-    {
-      "chunk_id": "news:ba36df708da32e09bcc5",
-      "source_type": "news",
-      "source_id": "ba36df708da32e09bcc5",
-      "content": "서초구, 염곡사거리 상권 '양재잇길' 제10호 골목형상점가 지정\n서울 서초구(구청장 전성수)는 지난달 31일 양재2동 염곡사거리 일대 상권을 '양재잇길'로 명명하고 제10호 골목형상점가로 지정했다고 1일 밝혔다. 골목형상점가 지정에 따라 이 상권은 온누리상품권 가맹점 등록, 홍보...",
-      "score": 0.48700065252218994,
-      "url": "https://www.yna.co.kr/view/AKR20260901017500004?input=1195m",
-      "org": null,
-      "published_at": "2026-09-01T07:18:00"
-    },
-    {
-      "chunk_id": "news:f184a9d28b5bc72116c1",
-      "source_type": "news",
-      "source_id": "f184a9d28b5bc72116c1",
-      "content": "더위 피해 밤에 달린다…양재천서 '달빛야행런'\n완주자 전원에게는 서초구 상권 활성화 사업과 연계된 양재천길 상권사랑 쿠폰이 주어지며, 현장 사진 공모 이벤트를 통해 추가 쿠폰도 지급된다. 이번 행사는 생활 체육 참여 기회를 넓히는 동시에 지역 상권에도 활력을...",
-      "score": 0.48032318842048316,
-      "url": "https://www.nc.press/news/articleView.html?idxno=623334",
-      "org": null,
-      "published_at": "2026-08-11T11:16:00"
-    },
-    {
-      "chunk_id": "news:229fa6a6181b9a02da73",
-      "source_type": "news",
-      "source_id": "229fa6a6181b9a02da73",
-      "content": "서초구 '살롱in양재천' 골목형상점가 지정\n서초구가 양재천 일대 중심 상권인 '살롱in양재천'을 관내 제8호 골목형상점가로 최종 지정하며 지역 상권 체질 개선에 드라이브를 건다. 6일 구에 따르면 이번 지정으로 총 2만5천503.5㎡ 규모, 227개 점포가 모여 있는...",
-      "score": 0.47497449442364714,
-      "url": "https://www.jeonmae.co.kr/news/articleView.html?idxno=1281523",
-      "org": null,
-      "published_at": "2026-08-06T10:46:00"
-    },
-    {
-      "chunk_id": "news:d53a58ac104a406ee07a",
-      "source_type": "news",
-      "source_id": "d53a58ac104a406ee07a",
-      "content": "야경과 동네 상권 함께 즐거요…양재천서 '야간 러닝' 첫선\n참가자들은 러닝 전후 양재천 수변문화쉼터와 카페거리 등을 이용할 수 있으며, 완주자에게는 서초구 상권 활성화 사업과 연계한 '양재천길 상권사랑 쿠폰'이 지급된다. 행사 당일 촬영한 사진에 제목을 붙여 제출하는...",
-      "score": 0.47366196543817596,
-      "url": "https://news.tf.co.kr/read/life/2352171.htm",
-      "org": null,
-      "published_at": "2026-08-10T11:16:00"
-    },
-    {
-      "chunk_id": "news:978b53c4f22087e3551e",
-      "source_type": "news",
-      "source_id": "978b53c4f22087e3551e",
-      "content": "서초구 '양재아트살롱 가을마켓' 개최\n서울 서초구(구청장 전성수)는 오는 10월 2∼3일, 10월 10∼25일 기간의 매주 토·일요일에 양재천길... 골목상권 활성화를 위한 참여형 프로모션 '양재로 가든(GARDEN)'을 마련해 양재천길 상권과 염곡사거리 일대 상권인...",
-      "score": 0.4703105302997921,
-      "url": "https://www.yna.co.kr/view/AKR20260930017700004?input=1195m",
-      "org": null,
-      "published_at": "2026-09-30T07:31:00"
-    }
-  ],
+  "news": [],
   "funding_candidates": [
     {
       "program_id": "PBLN_000000000126270",

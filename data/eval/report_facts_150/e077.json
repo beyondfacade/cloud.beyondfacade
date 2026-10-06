@@ -1054,58 +1054,7 @@
     ],
     "recent_news": []
   },
-  "news": [
-    {
-      "chunk_id": "news:2c00514e4a26e2cedf58",
-      "source_type": "news",
-      "source_id": "2c00514e4a26e2cedf58",
-      "content": "신풍제약, 건기식 브랜드 애드마일스 뷰티 아울렛 입점\n애드마일스 제품이 입점한 매장은 ▲성수 메가팩토리점(성동구 성수동) ▲명동스퀘어점(중구 명동)... 주요 상권의 오프라인 매장에서 소비자들이 애드마일스 제품을 보다 쉽고 편리하게 만나볼 수 있기를 기대한다\"고...",
-      "score": 0.520444512367341,
-      "url": "http://www.medisobizanews.com/news/articleView.html?idxno=141658",
-      "org": null,
-      "published_at": "2026-08-31T08:50:00"
-    },
-    {
-      "chunk_id": "news:9c586f74491455f635a4",
-      "source_type": "news",
-      "source_id": "9c586f74491455f635a4",
-      "content": "CJ올리브영 바로 옆에 약국들이 출현한다 : 명동에서, 성수에서 외국인...\n그런데 최근 서울 중구 명동과 성동구 성수동 등 외국인 관광객이 자주 찾는 상권 중심으로 뷰티 특화 약국들이 속속 들어서고 있다. 이런 약국들은 처방이 필요한 전문의약품 비중을 줄이고 미용 목적의 일반의약품...",
-      "score": 0.5046316067921452,
-      "url": "https://www.huffingtonpost.kr/article/259348",
-      "org": null,
-      "published_at": "2026-08-07T11:36:00"
-    },
-    {
-      "chunk_id": "news:5c8825298877e1477e4b",
-      "source_type": "news",
-      "source_id": "5c8825298877e1477e4b",
-      "content": "[릴레이 인터뷰] 잠실서 11년, 손님 시간 아끼고 원장 건강 지킨 '똑똑한...\n서울 송파구 잠실역에 내리자 대로변에 고층 빌딩과 상가가 빼곡하다. 건물 한 채가 내걸고 있는 피부과와 에스테틱 숍 간판만 수십 개다. 이토록 치열한 뷰티 상권 한복판에서 11년간 자리를 지킨 이가 있다. 27년째 피부...",
-      "score": 0.5024539972193028,
-      "url": "http://www.mkhealth.co.kr/news/articleView.html?idxno=79992",
-      "org": null,
-      "published_at": "2026-09-09T17:30:00"
-    },
-    {
-      "chunk_id": "news:d8dd667d2678ee712e6a",
-      "source_type": "news",
-      "source_id": "d8dd667d2678ee712e6a",
-      "content": "[뷰티 트렌드] 더후, '비첩 NAD 파워 앰플' 앞세워 글로벌 럭셔리 K-뷰티...\n명동, 홍대, 인천공항 등 내·외국인 유입이 많은 주요 상권의 약국을 중심으로 입점을 확대했다.... 플레이엑스스튜디오는 코스닥 상장사 세화피앤씨의 자회사로, 서울 성동구 연무장길에 약 500평 규모의 복합...",
-      "score": 0.5001818835193488,
-      "url": "https://www.ibabynews.com/news/articleView.html?idxno=154179",
-      "org": null,
-      "published_at": "2026-09-02T18:28:00"
-    },
-    {
-      "chunk_id": "news:786fe9535f6a6e7330a2",
-      "source_type": "news",
-      "source_id": "786fe9535f6a6e7330a2",
-      "content": "경기 둔화에도…피부관리실·반찬가게 잘나간다\n서울 관악구에 사는 30대 여성 Y씨는 올초부터 월 20만원 안팎을 피부관리에 쓴다. Y씨는 “어릴 때는... 21일 서울시 상권분석서비스에 따르면 서울 전체 외식업 점포는 2024년 2분기 16만1242곳에서 올해 2분기...",
-      "score": 0.49783870655107487,
-      "url": "https://www.hankyung.com/article/2026082154621",
-      "org": null,
-      "published_at": "2026-08-21T17:47:00"
-    }
-  ],
+  "news": [],
   "funding_candidates": [
     {
       "program_id": "PBLN_000000000126270",

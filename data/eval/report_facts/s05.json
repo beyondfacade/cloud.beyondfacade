@@ -1062,58 +1062,7 @@
     ],
     "recent_news": []
   },
-  "news": [
-    {
-      "chunk_id": "news:ba93c1776232fa358e59",
-      "source_type": "news",
-      "source_id": "ba93c1776232fa358e59",
-      "content": "스타벅스 성공 신화 이을까…카페 시장에 해외 브랜드 ‘속속’\n해외 브랜드 한국행 14일 업계에 따르면 차지는 최근 서울 종로구 종각역 인근에 국내 8호점인 종로점을 열었다. 종로점은 국내 첫 2층형 매장으로 대형 오피스와 관광 수요가 공존하는 상권 특성을 겨냥했다. 차지는 강남...",
-      "score": 0.4827611220283603,
-      "url": "https://www.news2day.co.kr/article/20260813500250",
-      "org": null,
-      "published_at": "2026-08-14T07:02:00"
-    },
-    {
-      "chunk_id": "news:2c4a89b7306b62147928",
-      "source_type": "news",
-      "source_id": "2c4a89b7306b62147928",
-      "content": "류삼영 \"주민 소통 강화, 민선9기 비전 공유에 최선\"\n2부에서는 정비구역, 공사현장, 전통시장, 상권, 문화·복지·체육시설 등 동별 주요 현장을 방문해 사업 추진 상황을 점검하고, 주민 불편사항과 건의사항을 직접 청취해 해결 방안을 모색한다. 동작구민 누구나...",
-      "score": 0.47914991901224,
-      "url": "https://www.gukjenews.com/news/articleView.html?idxno=3630189",
-      "org": null,
-      "published_at": "2026-07-08T17:34:00"
-    },
-    {
-      "chunk_id": "news:107cc17619d6ec3f4725",
-      "source_type": "news",
-      "source_id": "107cc17619d6ec3f4725",
-      "content": "\"성심당 빵 OK\"…대전지역 카페의 변신 '빵코노미'[출동!인턴]\n마음껏 드세요.\" 지난 11일 대전 중구의 카페 '오픈톨드'. 매장 안에서는 음료와 함께 외부에서 가져온 빵을... 성심당을 찾은 관광객의 소비가 빵 구매에 그치지 않고 주변 카페 이용으로까지 이어지면서, 대전 지역 상권에...",
-      "score": 0.4694822892343713,
-      "url": "https://www.newsis.com/view/NISX20260911_0003786236",
-      "org": null,
-      "published_at": "2026-09-13T15:01:00"
-    },
-    {
-      "chunk_id": "news:ce9c6817acfdc6472e51",
-      "source_type": "news",
-      "source_id": "ce9c6817acfdc6472e51",
-      "content": "[강동완의 탐방] 종로계림닭도리탕원조 가산디지털단지점, 오피스 상권...\n서울 금천구 가산디지털단지 일대에 위치한 종로계림닭도리탕원조 가산디지털단지점이 직장인 중심 상권에 맞춘 메뉴 구성과 운영 방식으로 영업을 이어가고 있다. 가산더스카이밸리 1차 2층에 자리한 해당 매장은...",
-      "score": 0.4679803049623066,
-      "url": "https://www.shinailbo.co.kr/news/articleView.html?idxno=5026604",
-      "org": null,
-      "published_at": "2026-06-03T16:10:00"
-    },
-    {
-      "chunk_id": "news:2740bedc0b46b1f46f3c",
-      "source_type": "news",
-      "source_id": "2740bedc0b46b1f46f3c",
-      "content": "올티칭스터디카페 금호자이센터 오픈… 지역 맞춤형 학습공간 확대\n해당 센터는 성동구 금호동 금호센트럴자이 아파트 단지 상가에 위치해 있다. 올티칭스터디카페는 오랜... 올티칭스터디카페는 신규 출점 시 상권 분석부터 공간 기획, 오픈 준비, 마케팅, 운영 지원까지 단계별 시스템을...",
-      "score": 0.4647514085545965,
-      "url": "https://www.ppss.kr/news/articleView.html?idxno=310197",
-      "org": null,
-      "published_at": "2026-09-11T15:13:00"
-    }
-  ],
+  "news": [],
   "funding_candidates": [
     {
       "program_id": "PBLN_000000000126270",

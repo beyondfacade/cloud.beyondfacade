@@ -1113,58 +1113,7 @@
     ],
     "recent_news": []
   },
-  "news": [
-    {
-      "chunk_id": "news:db8ed31180bc0d8c90b2",
-      "source_type": "news",
-      "source_id": "db8ed31180bc0d8c90b2",
-      "content": "[유통가 NOW] 농심 신라면 2차 글로벌 캠페인·식봄 비수도권 50% 증가…...\n매장은 출퇴근과 점심시간 커피 수요를 함께 잡을 수 있는 오피스 상권에 냈다. 신바시 1호점은 오픈 당일... 20일 서울 송파구 석촌동에 'GS더프레시 송파석촌역점'을 열면서다. 전체 운영 점포는 603점으로 늘었다....",
-      "score": 0.5588711044481139,
-      "url": "https://www.ekn.kr/web/view.php?key=20260820023184806",
-      "org": null,
-      "published_at": "2026-08-20T19:12:00"
-    },
-    {
-      "chunk_id": "news:3910b853525c7cf94382",
-      "source_type": "news",
-      "source_id": "3910b853525c7cf94382",
-      "content": "현대백화점 신촌점, 매주 금요일 ‘신촌 K팝 쇼’…신인 아이돌 무대 지...\n지난 7월 28일 오후, 서울시 서대문구에 위치한 현대백화점 신촌점 유플렉스 앞 스타광장에서 고객들이... 현대백화점 신촌점은 대학가의 젊은 유동인구와 K팝 콘텐츠를 결합해 신촌 상권 활성화에 나선다는 계획이다....",
-      "score": 0.5497788368864678,
-      "url": "http://www.metroseoul.co.kr/article/20260922500037",
-      "org": null,
-      "published_at": "2026-09-22T09:22:00"
-    },
-    {
-      "chunk_id": "news:5d82c3db1c55d7322e5a",
-      "source_type": "news",
-      "source_id": "5d82c3db1c55d7322e5a",
-      "content": "코카-콜라, 해방촌 신흥시장 상인 조명…지역 상권 협업 확대\n서울 용산구 해방촌 신흥시장과의 협업을 이어간다. 지난해 시장 공간을 중심으로 프로젝트를 진행한 데 이어 올해는 상인들의 삶과 이야기를 담은 전시를 열고 지역 상권과의 협업 범위를 넓힌다. 코카-콜라는 1일부터...",
-      "score": 0.536652246616532,
-      "url": "http://www.metroseoul.co.kr/article/20260902500168",
-      "org": null,
-      "published_at": "2026-09-02T11:34:00"
-    },
-    {
-      "chunk_id": "news:82c8dffe88d64a42fed7",
-      "source_type": "news",
-      "source_id": "82c8dffe88d64a42fed7",
-      "content": "낡은 붉은 벽돌집의 변신…해방촌 카페 ‘트랍’ 문 연다\n서울 용산구 신흥로 101-4에 자리 잡은 카페 ‘트랍’(TRAP)은 지난 1일 임시 영업을 시작했다. 오는 11일 정식... 과거 동네 주민들이 찾던 전통시장에서 개성 있는 음식점과 카페, 술집 등이 모인 식음료 상권으로 빠르게...",
-      "score": 0.5333042025540343,
-      "url": "https://www.naeil.com/news/read/598228?ref=naver",
-      "org": null,
-      "published_at": "2026-08-09T19:40:00"
-    },
-    {
-      "chunk_id": "news:6bbd69093bbb193112ae",
-      "source_type": "news",
-      "source_id": "6bbd69093bbb193112ae",
-      "content": "해방촌 신흥시장 상인회, 코카-콜라 협업 사진전 '헤이 코카-콜라' 개최\n서울 용산구 해방촌 신흥시장 상인회가 코카-콜라와의 상권 활성화 프로젝트에 참여한 현장 실무진을 촬영한 사진전을 열었다. 신흥시장 상인회는 오는 10월 31일까지 신흥시장 사무실에서 감사 사진전 '헤이 코카-콜라(HEY...",
-      "score": 0.5305554745098168,
-      "url": "https://www.gokorea.kr/news/articleView.html?idxno=878844",
-      "org": null,
-      "published_at": "2026-09-18T09:10:00"
-    }
-  ],
+  "news": [],
   "funding_candidates": [
     {
       "program_id": "PBLN_000000000126270",

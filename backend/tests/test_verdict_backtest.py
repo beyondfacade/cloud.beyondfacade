@@ -135,7 +135,7 @@ class FakeContext(RegionContextPort):
 
     def latest_contexts(self, quarter_max=None):
         self.calls.append(("contexts", quarter_max))
-        return [RegionContext(f"r{i:02d}", 10_000, "HH", "정체", quarter_max, 25.0, 27.0) for i in range(20)]
+        return [RegionContext(f"r{i:02d}", 10_000) for i in range(20)]
 
     def latest_store_counts(self, year_max=None):
         self.calls.append(("counts", year_max))

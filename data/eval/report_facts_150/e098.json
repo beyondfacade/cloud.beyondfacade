@@ -1067,58 +1067,7 @@
     ],
     "recent_news": []
   },
-  "news": [
-    {
-      "chunk_id": "news:48a697a16249c2760146",
-      "source_type": "news",
-      "source_id": "48a697a16249c2760146",
-      "content": "\"약사 전문성, 성수 핫플과 만났다\"…편한가 팝업스토어 오픈\n약사 전문 플랫폼 '편한가'는 K-뷰티 편집숍 '오프뷰티(OFF BEAUTY)'와 협업해 서울 성동구 성수동... 성수동 상권과 결합해 입점 브랜드의 소비자 접점을 확장하기 위해 기획됐다. 현장에서는 '약사가 만든 PDRN 크림' 등...",
-      "score": 0.5109665063123395,
-      "url": "https://www.dailypharm.com/user/news/342348?REFERER=NP",
-      "org": null,
-      "published_at": "2026-09-11T06:02:00"
-    },
-    {
-      "chunk_id": "news:3f580c6f5f5ccf31a1a8",
-      "source_type": "news",
-      "source_id": "3f580c6f5f5ccf31a1a8",
-      "content": "[강동완의 탐방] 문정동 에이에스커피 가보니…직장인 상권에 맞춘 메뉴...\n서울 송파구 문정동 법원로 일대는 업무시설과 상업시설이 함께 들어선 오피스 상권이다. 출근 시간부터 점심, 퇴근 시간까지 시간대별 소비층이 달라 카페 역시 이용 목적에 따른 대응이 필요한 지역이다. 이곳에서 만난...",
-      "score": 0.4917450254115665,
-      "url": "https://www.shinailbo.co.kr/news/articleView.html?idxno=5061720",
-      "org": null,
-      "published_at": "2026-09-14T14:10:00"
-    },
-    {
-      "chunk_id": "news:cc8828b7d3283b1e822d",
-      "source_type": "news",
-      "source_id": "cc8828b7d3283b1e822d",
-      "content": "시몬스, 현대백화점 목동점에 '뷰티레스트 블랙' 팝업 연다\n현대백화점 목동점은 서울 강서구와 양천구는 물론 경기 광명, 인천 중동 등 인근 지역의 쇼핑 수요를 아우르는 상권으로, 최근 리빙관을 새롭게 단장했다. 해당 팝업스토어는 현대백화점 목동점 지하 1층 팝업...",
-      "score": 0.48684762457469866,
-      "url": "https://sports.hankooki.com/news/articleView.html?idxno=6937816",
-      "org": null,
-      "published_at": "2026-08-11T13:42:00"
-    },
-    {
-      "chunk_id": "news:50ed5cf94254c5af9569",
-      "source_type": "news",
-      "source_id": "50ed5cf94254c5af9569",
-      "content": "“한국서 잘 팔리네”…핵심 상권 파고드는 이 브랜드들\n서울 서초구 강남역에 신규 매장을 연다. 기존 강남점을 이전해 새롭게 문을 여는 것으로, 국내 2호점인 자카페(Zacaffè)도 함께 선보일 예정이다. 주요 상권에서 매장 경쟁력을 높이는 동시에 브랜드 경험을 강화하려는...",
-      "score": 0.48498077914406235,
-      "url": "https://www.mk.co.kr/article/12135890",
-      "org": null,
-      "published_at": "2026-08-25T16:29:00"
-    },
-    {
-      "chunk_id": "news:d289d21f11288d4c71bb",
-      "source_type": "news",
-      "source_id": "d289d21f11288d4c71bb",
-      "content": "중기중앙회, 노란우산 첫 팝업 개최…2030 예비창업자 공략\n중기중앙회는 오는 4일부터 6일까지 서울 성동구 성수포탈 1층에서 '노란우산 생일카페 팝업스토어'를... 이창호 중기중앙회 공제사업단장은 \"성수동은 옛 제조업 역사와 현대적인 상권 트렌드가 공존하는 상징적인 공간...",
-      "score": 0.48175727102798216,
-      "url": "https://www.m-i.kr/news/articleView.html?idxno=1409510",
-      "org": null,
-      "published_at": "2026-09-03T12:00:00"
-    }
-  ],
+  "news": [],
   "funding_candidates": [
     {
       "program_id": "PBLN_000000000126270",

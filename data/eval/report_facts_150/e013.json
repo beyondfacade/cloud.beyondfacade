@@ -1114,58 +1114,7 @@
     ],
     "recent_news": []
   },
-  "news": [
-    {
-      "chunk_id": "news:66086e5ee9246af544a9",
-      "source_type": "news",
-      "source_id": "66086e5ee9246af544a9",
-      "content": "명동 광장·지하보도 새단장…신세계 미디어파사드 ‘포토존’ 됐다\n도봉구는 창동역 서측 고가 하부를 작은 광장으로 바꾸고, 강동구는 천호자전거거리와 한강공원을 연결하는 휴식공간 ‘한강그린웨이 워밍업 스테이션’을 만든다. 최인규 서울시 디자인정책관은 “문화·관광·상권을...",
-      "score": 0.5184996878805941,
-      "url": "https://biz.heraldcorp.com/article/10829564?ref=naver",
-      "org": null,
-      "published_at": "2026-08-03T18:00:00"
-    },
-    {
-      "chunk_id": "news:a9efeb16efc4161a9a93",
-      "source_type": "news",
-      "source_id": "a9efeb16efc4161a9a93",
-      "content": "서울 명동 광장·지하보도 등 문화공간 ‘탈바꿈’\n방문객의 체류 시간을 늘리고 거리와 상권에 활력을 불어넣을 수 있도록 하는 게 목표다. 명동 중앙우체국 앞... 강동구에는 천호자전거거리와 한강공원을 연결하는 ‘한강 그린웨이 워밍업 스테이션’이 조성된다.",
-      "score": 0.5155053660845805,
-      "url": "https://www.kmib.co.kr/article/view.asp?arcid=1785742833&code=11131400&cp=nv",
-      "org": null,
-      "published_at": "2026-08-04T00:55:00"
-    },
-    {
-      "chunk_id": "news:8c10f6a4e495cb8ded92",
-      "source_type": "news",
-      "source_id": "8c10f6a4e495cb8ded92",
-      "content": "서울 강동구, '강동 한강그린웨이' 추진...\"한강변을 녹색 여가 공간으...\n지역 음식점과 연계한 '강동한강 먹거리길'을 조성해 한강 방문객의 유입을 지역 상권으로 연결한다는 구상이다. 이수희 강동구청장은 \"강동 한강그린웨이는 바라보는 한강을 넘어 주민들이 직접 걷고, 자연을 체험하며...",
-      "score": 0.5117788465407036,
-      "url": "https://www.newspim.com/news/view/20260916000009",
-      "org": null,
-      "published_at": "2026-09-16T11:15:00"
-    },
-    {
-      "chunk_id": "news:c76fc0be953b021bd5aa",
-      "source_type": "news",
-      "source_id": "c76fc0be953b021bd5aa",
-      "content": "'아름다운 밤' 달라진 명동…도봉구는 k팝 거리로\n사업을, 강동구는 천호자전거거리와 한강공원을 연결하는 '한강그린웨이 워밍업 스테이션' 조성에 나선다. 서울시는 앞으로도 역 하부와 수변, 고가하부 등 활용도가 낮은 공간을 문화와 관광, 상권이 결합된 지역...",
-      "score": 0.504247187555797,
-      "url": "https://news.tf.co.kr/read/life/2349786.htm",
-      "org": null,
-      "published_at": "2026-08-03T11:16:00"
-    },
-    {
-      "chunk_id": "news:7783ce3cebe28f0a8513",
-      "source_type": "news",
-      "source_id": "7783ce3cebe28f0a8513",
-      "content": "한강 드론쇼에 '떡볶이·호떡' 2000인분…배민, 무료 푸드트럭 운영\n행사장 인근 지역 맛집 20곳을 소개하고 광진구·성동구 상권에서 사용할 수 있는 할인쿠폰도 배포해 축제 관람객을 지역 상권으로 연결한다. 배민 운영사 우아한형제들은 서울특별시가 주최하는 하반기 '한강...",
-      "score": 0.5040007209774824,
-      "url": "https://www.m-i.kr/news/articleView.html?idxno=1412178",
-      "org": null,
-      "published_at": "2026-09-10T08:54:00"
-    }
-  ],
+  "news": [],
   "funding_candidates": [
     {
       "program_id": "PBLN_000000000126270",

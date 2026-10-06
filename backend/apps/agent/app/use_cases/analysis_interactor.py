@@ -55,7 +55,6 @@ _COMMON_RULES = _PERSONA + """
   동 이름 속 숫자를 한글로 풀어 쓰지 않는다.
 - 판정 등급을 바꾸거나 새로 매기지 않는다. 본문에 없는 사실을 보태지 않는다.
 - 본문이 "자료 부족"이라고 한 곳은 추정으로 메우지 않고 "자료가 부족해 판단할 수 없다"고 말한다.
-- 뉴스는 [참고 신호]라고 밝히고만 쓴다. 뉴스로 판정이나 결론을 바꾸지 않는다.
 
 [응답 규칙]
 ① 외국인 관련 내용은 업종 타깃 정합성 문맥으로만 쓴다. 비하·차별 표현은 금지한다.
@@ -117,16 +116,14 @@ def region_names(facts: dict) -> list[str]:
 
 
 def _news_citations(news: object) -> list[dict]:
-    """facts.news → 참고 신호 인용 {title, url, grade}. 제목은 기사 첫 줄, 링크 없는 기사는 뺀다(같은 링크는 한 번).
+    """facts.news(원문 링크) → 인용 {title, url, published_at, press, grade}. 같은 링크는 한 번.
 
     수집이 실패한 자리는 `{"available": False, ...}` dict라 목록일 때만 읽는다.
     """
     citations: dict[str, dict] = {}
-    for hit in news if isinstance(news, list) else []:
-        url = hit.get("url")
-        if url:
-            title = (hit.get("content") or "").split("\n")[0] or url
-            citations.setdefault(url, {"title": title, "url": url, "grade": "signal"})
+    for link in news if isinstance(news, list) else []:
+        if link.get("url"):
+            citations.setdefault(link["url"], {**link, "grade": "signal"})
     return list(citations.values())
 
 

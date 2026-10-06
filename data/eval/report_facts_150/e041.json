@@ -1056,58 +1056,7 @@
     ],
     "recent_news": []
   },
-  "news": [
-    {
-      "chunk_id": "news:ed3a962629fc5fcbe3d5",
-      "source_type": "news",
-      "source_id": "ed3a962629fc5fcbe3d5",
-      "content": "성수동 찾은 더마 코스메틱 브랜드 'ADESII', 소비자 접점 넓혀\n서울시 성동구 무신사 메가스토어와 연무장길 일대에서 두 번째 오프라인 캠페인을 진행했다고 3일 밝혔다. 이번 캠페인은 뷰티와 라이프스타일 트렌드에 관심이 높은 MZ세대 소비자들이 밀집된 성수 상권에서...",
-      "score": 0.5746519928278424,
-      "url": "https://www.betanews.net/article/view/beta202609030054",
-      "org": null,
-      "published_at": "2026-09-03T15:26:00"
-    },
-    {
-      "chunk_id": "news:7e17694a9bed2dacf323",
-      "source_type": "news",
-      "source_id": "7e17694a9bed2dacf323",
-      "content": "한미사이언스, 'ADESII' 성수동서 두 번째 오프라인 캠페인 진행\n서울 성동구 성수동에서 두 번째 오프라인 캠페인을 마쳤다고 3일 밝혔다. 캠페인은 지난 21일부터 사흘간... 뷰티·라이프스타일 트렌드에 민감한 성수 상권 소비자들 앞에 브랜드를 직접 내세우는 방식을 택했다....",
-      "score": 0.5595777464039106,
-      "url": "https://www.cstimes.com/news/articleView.html?idxno=719254",
-      "org": null,
-      "published_at": "2026-09-03T11:12:00"
-    },
-    {
-      "chunk_id": "news:1d8f94f47e35dd0b4f2a",
-      "source_type": "news",
-      "source_id": "1d8f94f47e35dd0b4f2a",
-      "content": "폰드그룹 ‘픽넘버쓰리’ 성수에 새 매장… 젊어진 K-뷰티 큐레이션 선...\n이번 픽넘버쓰리 성수점은 성수에서도 국내외 관광객과 젊은 소비자들의 발길이 집중되는 핵심 상권인 연무장길에 자리한다. 서울 성동구 연무장길 73 플레이엑스 스튜디오 2층에 들어서며, 플레이엑스 스튜디오와의...",
-      "score": 0.5593121789247025,
-      "url": "https://www.fashionbiz.co.kr/article/229054",
-      "org": null,
-      "published_at": "2026-08-31T16:30:00"
-    },
-    {
-      "chunk_id": "news:e02d87de3cdb173794ab",
-      "source_type": "news",
-      "source_id": "e02d87de3cdb173794ab",
-      "content": "“친구가 꼭 가보랬어요”…올리브영 뷰티맨션에 몰려든 외국인들\n“한국에서 워킹홀리데이 하는 친구가 추천해줘서 서비스 체험하러 왔어요.” 12일 서울 성동구 올리브영... 성수동이 쇼핑보다 체험에 초점이 맞춰진 상권이라는 점이 고려됐다. 개점 2년 된 올리브영N성수가 체험을...",
-      "score": 0.5574519761049829,
-      "url": "https://www.edaily.co.kr/news/newspath.asp?newsid=05336566645546664",
-      "org": null,
-      "published_at": "2026-08-12T16:13:00"
-    },
-    {
-      "chunk_id": "news:9c586f74491455f635a4",
-      "source_type": "news",
-      "source_id": "9c586f74491455f635a4",
-      "content": "CJ올리브영 바로 옆에 약국들이 출현한다 : 명동에서, 성수에서 외국인...\n그런데 최근 서울 중구 명동과 성동구 성수동 등 외국인 관광객이 자주 찾는 상권 중심으로 뷰티 특화 약국들이 속속 들어서고 있다. 이런 약국들은 처방이 필요한 전문의약품 비중을 줄이고 미용 목적의 일반의약품...",
-      "score": 0.5553065075556921,
-      "url": "https://www.huffingtonpost.kr/article/259348",
-      "org": null,
-      "published_at": "2026-08-07T11:36:00"
-    }
-  ],
+  "news": [],
   "funding_candidates": [
     {
       "program_id": "PBLN_000000000126270",

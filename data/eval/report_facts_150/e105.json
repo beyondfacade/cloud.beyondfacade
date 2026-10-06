@@ -1092,58 +1092,7 @@
     ],
     "recent_news": []
   },
-  "news": [
-    {
-      "chunk_id": "news:609b508b720738525bea",
-      "source_type": "news",
-      "source_id": "609b508b720738525bea",
-      "content": "레드포스PC방 신논현점, SBS ‘모닝와이드’ 소개…복합형 PC방 운영 확...\n서울 강남구 신논현역 인근에 위치한 신논현점은 약 200평 규모로 조성됐으며, e스포츠 경기석과 관중석을... 앞서 일부 매장에서는 셰프와 협업한 메뉴를 선보이고 대학가 등 상권별 이용자 특성을 반영한 공간 설계를...",
-      "score": 0.5090258457173198,
-      "url": "https://www.gosiweek.com/article/1065599079170783",
-      "org": null,
-      "published_at": "2026-09-18T16:48:00"
-    },
-    {
-      "chunk_id": "news:2c4a89b7306b62147928",
-      "source_type": "news",
-      "source_id": "2c4a89b7306b62147928",
-      "content": "류삼영 \"주민 소통 강화, 민선9기 비전 공유에 최선\"\n2부에서는 정비구역, 공사현장, 전통시장, 상권, 문화·복지·체육시설 등 동별 주요 현장을 방문해 사업 추진 상황을 점검하고, 주민 불편사항과 건의사항을 직접 청취해 해결 방안을 모색한다. 동작구민 누구나...",
-      "score": 0.48770550406347724,
-      "url": "https://www.gukjenews.com/news/articleView.html?idxno=3630189",
-      "org": null,
-      "published_at": "2026-07-08T17:34:00"
-    },
-    {
-      "chunk_id": "news:956ebab97343c785dada",
-      "source_type": "news",
-      "source_id": "956ebab97343c785dada",
-      "content": "제우스 PC방 망원점, ZOWIE x C5 PUBG 클랜파티 개최\n망원역과 마포구청역을 잇는 도로에 위치해 대중교통 접근성이 좋다. 망원시장과 망원동 월드컵시장, 망리단길과도 가까워 게임 대회 참가와 지역 상권 방문을 함께 할 수 있다. 매장은 전 좌석에 인텔 15세대...",
-      "score": 0.45291479580072913,
-      "url": "http://www.thebigdata.co.kr/view.php?ud=20260909151510308937600e7ec7_23",
-      "org": null,
-      "published_at": "2026-09-09T15:22:00"
-    },
-    {
-      "chunk_id": "news:639afcbb448c69b52dde",
-      "source_type": "news",
-      "source_id": "639afcbb448c69b52dde",
-      "content": "동작구, 15개 동 순회 '민선9기 비전 공유·주민 소통의 날' 개최\n2부에서는 정비구역과 공사현장, 전통시장 및 상권, 문화·복지·체육시설 등 동별 주요 현장을 방문해 사업 추진 상황을 점검하고, 주민 불편사항과 건의사항을 직접 청취하며 해결 방안을 모색한다. 간담회는 동작구...",
-      "score": 0.44857535685741556,
-      "url": "https://www.hg-times.com/news/articleView.html?idxno=303425",
-      "org": null,
-      "published_at": "2026-07-08T11:56:00"
-    },
-    {
-      "chunk_id": "news:fee092d90d77f3730b75",
-      "source_type": "news",
-      "source_id": "fee092d90d77f3730b75",
-      "content": "LG전자 베스트샵 목동점, 소상공인 상생 프로젝트 2기 출범…지역 네트...\n목동점이 양천구 지역 소상공인의 홍보를 지원하는 ‘우리동네 상권살리기 프로젝트’ 2기를 출범하고 지역 상생 네트워크 확대에 나선다. LG전자 베스트샵 목동점은 최근 지역 소상공인 관계자들과 ‘우리동네...",
-      "score": 0.4436470140078693,
-      "url": "https://isplus.com/article/view/isp202608140105",
-      "org": null,
-      "published_at": "2026-08-18T09:00:00"
-    }
-  ],
+  "news": [],
   "funding_candidates": [
     {
       "program_id": "PBLN_000000000126270",

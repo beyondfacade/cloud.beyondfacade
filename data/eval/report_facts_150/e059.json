@@ -1006,58 +1006,7 @@
     ],
     "recent_news": []
   },
-  "news": [
-    {
-      "chunk_id": "news:22036961ab8b00497587",
-      "source_type": "news",
-      "source_id": "22036961ab8b00497587",
-      "content": "광진구 자양로13길 상점가 첫 축제…'멋따라 맛따라 자양로 따라' 성황\n서울 광진구 자양1동 골목상권의 새로운 출발을 알리는 주민·상인 축제가 열렸다. 광진구는 11일 오후 5시부터 자양1동 자마장공원과 자양로13길 일대에서 '멋따라 맛따라 자양로 따라' 축제를 개최했다. 이번 행사는...",
-      "score": 0.46177980303764343,
-      "url": "https://www.upkoreanews.kr/news/articleView.html?idxno=100229",
-      "org": null,
-      "published_at": "2026-09-13T15:22:00"
-    },
-    {
-      "chunk_id": "news:131a1d13ea4086aefae2",
-      "source_type": "news",
-      "source_id": "131a1d13ea4086aefae2",
-      "content": "광진구 골목상권에 가을밤 활기…자양동서 이틀 연속 골목축제\n서울 광진구 자양동 골목상권이 먹거리와 공연을 결합한 축제의 장으로 변신한다. 지역 상점의 특색을 주민들에게 알리고 소비를 촉진해 골목상권에 새로운 활력을 불어넣기 위한 행사다. 광진구는 오는 9월 18일과 19일...",
-      "score": 0.4568691662134994,
-      "url": "https://www.job-post.co.kr/news/articleView.html?idxno=227879",
-      "org": null,
-      "published_at": "2026-09-16T15:34:00"
-    },
-    {
-      "chunk_id": "news:cb8c00f7a6a1f24e082d",
-      "source_type": "news",
-      "source_id": "cb8c00f7a6a1f24e082d",
-      "content": "광진구 자양동 골목서 이틀 연속 ‘야장축제’…먹거리·공연 풍성\n서울 광진구가 자양동 골목상권 활성화를 위해 이틀 연속 먹거리와 공연을 즐길 수 있는 골목축제를 연다. 광진구는 오는 18일과 19일 자양15번가와 자양번영로 골목형상점가에서 각각 골목축제를 개최한다고 17일 밝혔다....",
-      "score": 0.4567469281101768,
-      "url": "https://www.munhwa.com/article/11617607?ref=naver",
-      "org": null,
-      "published_at": "2026-09-17T06:42:00"
-    },
-    {
-      "chunk_id": "news:315150c2d97d241ca024",
-      "source_type": "news",
-      "source_id": "315150c2d97d241ca024",
-      "content": "[e커머스 라운지] 쿠팡·배민·컬리·GS샵·SSG닷컴...\"빠른 배송·현장 ...\n민트스타 부스에서는 서울 광진구 자양동 일대의 선정 음식점 20곳을 소개해 관람객이 지역 상권을 친숙하게 접하도록 돕는다. 행사장 메인 구역에는 신전떡볶이와 자양전통시장 호떡 등 총 2000인분의 간식을 무료로...",
-      "score": 0.4567201163339554,
-      "url": "http://www.kdfnews.com/news/articleView.html?idxno=187818",
-      "org": null,
-      "published_at": "2026-09-10T17:12:00"
-    },
-    {
-      "chunk_id": "news:72eebb16a3868b3ccec3",
-      "source_type": "news",
-      "source_id": "72eebb16a3868b3ccec3",
-      "content": "우아한형제들, 한강 드론라이트쇼서 지역 음식점·시장 연계 프로그램 ...\n우아한형제들은 지역 기반 미식 가이드 ‘민트스타’를 통해 광진구 자양동 일대 음식점 20곳을 소개하는... “지역 상권과 연계한 현장 프로그램을 통해 배달 서비스와 지역 음식점의 접점을 넓히고 있다”고 말했다.",
-      "score": 0.45535034499921645,
-      "url": "http://www.lawissue.co.kr/view.php?ud=20260910193347127204ead0791_12",
-      "org": null,
-      "published_at": "2026-09-10T19:36:00"
-    }
-  ],
+  "news": [],
   "funding_candidates": [
     {
       "program_id": "PBLN_000000000126270",

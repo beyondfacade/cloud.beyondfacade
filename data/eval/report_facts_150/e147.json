@@ -957,58 +957,7 @@
     ],
     "recent_news": []
   },
-  "news": [
-    {
-      "chunk_id": "news:b5ba5cd28fe26856635e",
-      "source_type": "news",
-      "source_id": "b5ba5cd28fe26856635e",
-      "content": "[전매포토] 마포구의회 최은하 의장, 제23회 마포음식문화축제 찾아 상...\n마포구의회 최은하 의장이 최근 사흘간 용강동 상점가 일대에서 열린 제23회 마포음식문화축제에서 인사말을... 용강동상점가상인회가 주최한 이번 행사는 지역 음식문화를 알리고 상권에 활력을 더하기 위해 마련됐다....",
-      "score": 0.5315004995462339,
-      "url": "https://www.jeonmae.co.kr/news/articleView.html?idxno=1293872",
-      "org": null,
-      "published_at": "2026-09-16T10:44:00"
-    },
-    {
-      "chunk_id": "news:d1328e7429e39c4a74b8",
-      "source_type": "news",
-      "source_id": "d1328e7429e39c4a74b8",
-      "content": "나오기 무섭게 품절대란... 빵으로 구워낸 '지적 취향'\n\"아침에 물류 차량이 들어오는 시간에 맞춰 사 가지 않으면 구경조차 할 수 없어요.\" 서울 강서구 마곡동에... 서울 성수동 상권이 대표적인 예다. 과거 공장 지대였던 성수동이 대한민국 대표 핫플레이스로 부상한...",
-      "score": 0.5247419134244115,
-      "url": "http://www.kbiznews.co.kr/news/articleView.html?idxno=114786",
-      "org": null,
-      "published_at": "2026-09-07T10:02:00"
-    },
-    {
-      "chunk_id": "news:ea4b9d2f98d429bb812b",
-      "source_type": "news",
-      "source_id": "ea4b9d2f98d429bb812b",
-      "content": "\"팀장님, 2차는 술집 대신 가챠숍 가요\"\n홍대 상권이 있는 마포구에서는 장난감 가게가 지난해 49곳에서 올해 70곳으로 42.9% 급증했다. 같은 기간 마포구 호프주점과 간이주점은 252곳과 212곳으로 각각 7%, 11.8% 감소했다. 가챠숍 인기는 얼어붙은 청년 고용...",
-      "score": 0.5146214909715126,
-      "url": "https://www.hankyung.com/article/2026081641881",
-      "org": null,
-      "published_at": "2026-08-16T18:13:00"
-    },
-    {
-      "chunk_id": "news:7886199cebb9a49ab6e8",
-      "source_type": "news",
-      "source_id": "7886199cebb9a49ab6e8",
-      "content": "손님 싹쓸이에 사장 기겁했다…‘오만과 편견 빵’ 뭐길래\n서울 마포구의 한 편의점 점주 A씨는 “오전 8시에 4개가 들어왔는데, 1시간 전부터 줄 서서 기다리던 손님... 텍스트 힙 열풍이 번지면서 골목 상권 지도도 바뀌는 모습이다. 젊은 층이 주로 찾던 술집이나 PC방 대신...",
-      "score": 0.5023195732500204,
-      "url": "https://www.joongang.co.kr/article/25457241",
-      "org": null,
-      "published_at": "2026-08-29T06:00:00"
-    },
-    {
-      "chunk_id": "news:c514ba235af95550f21f",
-      "source_type": "news",
-      "source_id": "c514ba235af95550f21f",
-      "content": "편의점, 점포 수 다시 늘린다…'양적 확대' 대신 우량·특화점포로\n뉴스토마토 = 이혜지 기자 | 서울 마포구 라면 특화 편의점 CU 홍대상상점. (사진=연합뉴스) 편의점업계가... 다만 과거처럼 점포 수를 늘리는 데 집중하기보다 우량 상권의 대형점과 특정 상품군을 강화한 특화점포를...",
-      "score": 0.49505500598596197,
-      "url": "http://www.newstomato.com/ReadNews.aspx?no=1313745&inflow=N",
-      "org": null,
-      "published_at": "2026-09-15T16:00:00"
-    }
-  ],
+  "news": [],
   "funding_candidates": [
     {
       "program_id": "PBLN_000000000126270",

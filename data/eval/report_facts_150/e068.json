@@ -1009,58 +1009,7 @@
     ],
     "recent_news": []
   },
-  "news": [
-    {
-      "chunk_id": "news:d83a777428dfd10c94ae",
-      "source_type": "news",
-      "source_id": "d83a777428dfd10c94ae",
-      "content": "25년 한식 연구 담았다...윤스푸드랩, 쿠킹클래스·전통 디저트로 한식...\n중구청과 중구 상권발전소가 추진하는 행사에도 참여해 한식과 한식 디저트를 알리는 활동을 펼치고 있다. 한식 도시락과 단체 주문도 향후 확대할 분야다. 도시락은 반찬 가짓수보다 영양 균형과 신선한 식재료에 초점을...",
-      "score": 0.4616224261556303,
-      "url": "https://www.womentimes.co.kr/news/articleView.html?idxno=106472",
-      "org": null,
-      "published_at": "2026-09-23T14:46:00"
-    },
-    {
-      "chunk_id": "news:1f7e3e058b549b5d705d",
-      "source_type": "news",
-      "source_id": "1f7e3e058b549b5d705d",
-      "content": "탕화쿵푸마라탕, 홍제역점 신규 오픈\n국내 마라탕 프랜차이즈 탕화쿵푸마라탕이 서울 서대문구 홍제동 일대에 홍제역점을 새롭게 오픈했다.... 해당 입지는 대단지 아파트 및 빌라 밀집 주거 타운과 다수의 학군이 맞물려 있는 복합 상권으로 분류된다. 매장...",
-      "score": 0.4517896252557656,
-      "url": "https://www.gukjenews.com/news/articleView.html?idxno=3677009",
-      "org": null,
-      "published_at": "2026-08-27T17:40:00"
-    },
-    {
-      "chunk_id": "news:4083f1321227d1f9c023",
-      "source_type": "news",
-      "source_id": "4083f1321227d1f9c023",
-      "content": "한식의 가치를 잇는 마곡 '윤스푸드랩'...﻿K-식문화를 전하다\n최근에는 중구청과 중구 상권발전소가 추진하는 행사에 참여해 한식과 한식 디저트를 알리는 프로그램에도 함께하고 있다. 지역의 역사적 자원과 한식 문화를 연결하는 행사에서 한식 디저트 분야를 담당하며 새로운...",
-      "score": 0.43742419216214745,
-      "url": "https://www.getnews.co.kr/news/articleView.html?idxno=882134",
-      "org": null,
-      "published_at": "2026-09-29T20:36:00"
-    },
-    {
-      "chunk_id": "news:0a13448a65f8dc0e3ebc",
-      "source_type": "news",
-      "source_id": "0a13448a65f8dc0e3ebc",
-      "content": "\"강남 외식 수요 잡는다\"⋯현대그린푸드, 다이닝 특화 '이탈리' 출격\n현대그린푸드는 오는 28일 서울 강남구 현대백화점 무역센터점 10층에 다이닝 기능을 강화한 이탈리 매장을 오픈한다고 27일 밝혔다. 강남 상권 특성을 고려해 숯불 요리와 코스 메뉴를 도입하고 프라이빗 공간을...",
-      "score": 0.426470432649672,
-      "url": "http://www.inews24.com/view/1999023",
-      "org": null,
-      "published_at": "2026-08-27T16:12:00"
-    },
-    {
-      "chunk_id": "news:2568f50684b6bbdda667",
-      "source_type": "news",
-      "source_id": "2568f50684b6bbdda667",
-      "content": "[유통소식] 대상펫라이프, 고양이 영양 관리 신제품 3종 출시\n2026년 9월 8일 오전, 서울 강남구에 위치한 현대백화점 무역센터점 10층 이탈리 매장에서 직원들이 숯불... 던스트는 앞으로 국내 주요 상권을 중심으로 오프라인 접점을 늘리고 국내외 팝업스토어와 글로벌 세일즈 등...",
-      "score": 0.4225238729446197,
-      "url": "http://www.4th.kr/news/articleView.html?idxno=2117635",
-      "org": null,
-      "published_at": "2026-09-08T11:16:00"
-    }
-  ],
+  "news": [],
   "funding_candidates": [
     {
       "program_id": "PBLN_000000000126270",

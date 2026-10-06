@@ -15,7 +15,6 @@ from apps.verdict.domain.services.signals import (
     EarlyClosureSignal,
     NetOutflowSignal,
     SaturationSignal,
-    ShrinkingSignal,
     Signal,
     SourcedSignal,
     SurvivalCliffSignal,
@@ -60,7 +59,6 @@ class TobaccoProxyProfile(SignalProfile):
             SourcedSignal(SurvivalCliffSignal(), _TOBACCO),
             SourcedSignal(EarlyClosureSignal(), _TOBACCO),
             SourcedSignal(SaturationSignal(), _TOBACCO),
-            ShrinkingSignal(),
             TobaccoGapSignal(),
         )
 
@@ -76,6 +74,5 @@ class AggregateProfile(SignalProfile):
             UnsupportedSignal(SurvivalCliffSignal.key, _COMMERCE, _NO_STORE_HISTORY),
             UnsupportedSignal(EarlyClosureSignal.key, _COMMERCE, _NO_STORE_HISTORY),
             SourcedSignal(SaturationSignal(), _COMMERCE),
-            ShrinkingSignal(),
             TradePerOfficeSignal(),
         )

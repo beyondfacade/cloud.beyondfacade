@@ -100,12 +100,8 @@ def _stat(region: str, closed_12m: int) -> StoreSignalStat:
     )
 
 
-def _context(region: str, change_code: str | None = "HH") -> RegionContext:
-    return RegionContext(
-        region_code=region, resident_total=10_000, change_code=change_code,
-        change_name=None if change_code is None else "정체", change_quarter="20262",
-        closed_months=25.0, seoul_closed_months=27.0,
-    )
+def _context(region: str) -> RegionContext:
+    return RegionContext(region_code=region, resident_total=10_000)
 
 
 def _interactor(stats, contexts, counts):
@@ -130,14 +126,14 @@ def test_동_20개를_업종_안에서_상대평가해_상위_동만_켠다():
     assert [s.key for s in worst.signals] == list(SIGNAL_KEYS)
     assert worst.signals[0].level == "strong"  # 19개보다 크다 → 95
     assert best.signals[0].level == "off"
-    # 포화는 전 동 동일값 → 백분위 0 → off, 상권축소는 HH → off
-    assert worst.signals[3].level == "off" and worst.signals[4].level == "off"
+    # 포화는 전 동 동일값 → 백분위 0 → off
+    assert worst.signals[3].level == "off"
     assert worst.verdict_code == "orange"  # strong 1개
 
 
 def test_집계가_없는_동은_표본_부족으로_보류된다():
     regions = ["1168000001", "1168000002", "1168000003"]
-    repo, interactor = _interactor([], [_context(r, change_code=None) for r in regions], [])
+    repo, interactor = _interactor([], [_context(r) for r in regions], [])
     interactor.build(date(2026, 9, 28))
     v = repo.find(regions[0], "korean_food")
     assert v.verdict_code == VERDICT_INSUFFICIENT
@@ -170,4 +166,4 @@ def test_배치는_판정_대상에서_빠진_업종의_옛_행을_지운다():
 def test_myself는_하드코딩_행을_돌려준다():
     _, interactor = _interactor([], [], [])
     me = interactor.myself()
-    assert me.region_code == "myself" and len(me.signals) == 5
+    assert me.region_code == "myself" and len(me.signals) == 4

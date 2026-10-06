@@ -961,58 +961,7 @@
     ],
     "recent_news": []
   },
-  "news": [
-    {
-      "chunk_id": "news:2414957f0ef1af9476e1",
-      "source_type": "news",
-      "source_id": "2414957f0ef1af9476e1",
-      "content": "서울 야장 드라이브…핵심은 '소상공인' 살리기\n골목상권에 활력 서울팅, 9월 한강버스 이어 10월엔 ‘달빛야장’ 상봉먹자골목…‘설렘 in 서울, 야장편’... 강북구 수유전통시장은 10월 3일 ‘제1회 수유미식회’에서 ‘수유 미식 투어’를 진행한다. 카테고리별로...",
-      "score": 0.4660918073578084,
-      "url": "https://www.dnews.co.kr/uhtml/view.jsp?idxno=202609291050138040699",
-      "org": null,
-      "published_at": "2026-09-29T14:22:00"
-    },
-    {
-      "chunk_id": "news:5bab653eb01bba06b872",
-      "source_type": "news",
-      "source_id": "5bab653eb01bba06b872",
-      "content": "서울 전통시장 23곳서 가을축제…야시장·먹거리·페이백 풍성\n강북구 수유전통시장에서는 '수유 미식 투어'를 진행한다. 3개 이상 점포를 이용하고 스탬프투어를... 시민들의 발길이 상인들의 매출과 주변 골목상권의 활력으로 이어지도록 하겠다\"고 말했다. (더쎈뉴스 / The CEN News)",
-      "score": 0.4519503944890717,
-      "url": "https://www.mhns.co.kr/news/articleView.html?idxno=762073",
-      "org": null,
-      "published_at": "2026-09-29T16:56:00"
-    },
-    {
-      "chunk_id": "news:6d0a75056c83e5319bb6",
-      "source_type": "news",
-      "source_id": "6d0a75056c83e5319bb6",
-      "content": "'경쟁률 23대 1' 서울시판 '나는 솔로', 가을 야장편 참가자 모집\n상봉먹자골목은 다양한 맛집과 주점이 밀집해 저녁 시간에도 활기가 이어지는 중랑구의 대표 먹거리 상권이다. 취향 맞춤 맛집 체험, 2:2 야장 데이트, 골목 산책 데이트 등 도심 야장 특유의 편안한 분위기 속에서...",
-      "score": 0.4404567231653651,
-      "url": "https://www.mt.co.kr/policy/2026/09/29/2026092910330235800",
-      "org": null,
-      "published_at": "2026-09-29T11:15:00"
-    },
-    {
-      "chunk_id": "news:00c22992330dc769c9a2",
-      "source_type": "news",
-      "source_id": "00c22992330dc769c9a2",
-      "content": "달빛 아래 펼쳐지는 맛과 멋, 서울 전통시장 가을밤 깨운다\n강북구 수유전통시장은 3곳 이상의 점포를 이용하고 스탬프를 모으면 기념품을 증정하는 '수유 미식 투어'를... 골목상권 회복으로 이어지도록 적극 지원하겠다\"고 말했다. 시장별 세부 일정과 프로그램 정보는 서울시...",
-      "score": 0.43955544226706333,
-      "url": "https://www.newscj.com/news/articleView.html?idxno=3436350",
-      "org": null,
-      "published_at": "2026-09-29T11:26:00"
-    },
-    {
-      "chunk_id": "news:c81f971987f06510a56e",
-      "source_type": "news",
-      "source_id": "c81f971987f06510a56e",
-      "content": "서울 전통시장, 가을밤 ‘미식·문화 축제장’ 변신…12개 자치구 23곳 ...\n강북구 수유전통시장은 10월3일 ‘제1회 수유미식회’에서 ‘수유 미식 투어’를 진행한다. 카테고리별로... 골목상권의 활력으로 이어지도록 하겠다”라고 말했다. 한편 서울시는 서울사랑상품권 결제와 공공배달앱...",
-      "score": 0.43908783725488,
-      "url": "https://swtvnews.com/news/newsview.php?ncode=1065591578567855",
-      "org": null,
-      "published_at": "2026-09-29T14:56:00"
-    }
-  ],
+  "news": [],
   "funding_candidates": [
     {
       "program_id": "PBLN_000000000126270",

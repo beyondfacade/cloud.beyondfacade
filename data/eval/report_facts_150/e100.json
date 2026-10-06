@@ -1090,58 +1090,7 @@
     ],
     "recent_news": []
   },
-  "news": [
-    {
-      "chunk_id": "news:5026019da555a0c86208",
-      "source_type": "news",
-      "source_id": "5026019da555a0c86208",
-      "content": "[生기업TALK] 한국투자부동산신탁, 올 가을 접수했다...서울 중곡·마포...\n향후 개발이 본격화되면 대규모 주택 공급과 함께 주거환경 정비, 상권 활성화 등 원도심 전반에 새로운... 서울 광진구 중곡동 210-7번지 일원에서 추진되는 이번 사업은 약 1,607세대 규모의 공동주택과 생활편의시설을...",
-      "score": 0.5062966935280963,
-      "url": "http://www.sisacast.kr/news/articleView.html?idxno=99929",
-      "org": null,
-      "published_at": "2026-09-17T13:56:00"
-    },
-    {
-      "chunk_id": "news:940f76b8fc02ec751a53",
-      "source_type": "news",
-      "source_id": "940f76b8fc02ec751a53",
-      "content": "중곡1동 노후 주택가→2200가구 아파트로 탈바꿈한다\n서울 지하철 7호선 중곡·군자역 인근 광진구 중곡1동 254-15 일대 노후주택가가 최고 35층, 2200가구의... 구역 내 상권이 활성화된 상업지역은 관광숙박 특화구역으로 지정, 오는 2029년 1월4일까지 건축허가 신청할 경우...",
-      "score": 0.5059001130163342,
-      "url": "https://view.asiae.co.kr/article/2026092907560369674",
-      "org": null,
-      "published_at": "2026-09-29T10:00:00"
-    },
-    {
-      "chunk_id": "news:4102952c66b6105bf4cb",
-      "source_type": "news",
-      "source_id": "4102952c66b6105bf4cb",
-      "content": "광진구, 건강한 한끼 '광진곡곡' 참여 인증마크 부착\n광진구가 구민들의 건강한 식습관 형성을 위해 추진 중인 '광진곡곡'사업 참여업소에 공식 인증마크를... 지역 상권과 적극 협력해 외식 환경에서도 자연스럽게 건강한 한 끼를 선택할 수 있는 건강 식문화를 지속적으로...",
-      "score": 0.5052713149462599,
-      "url": "https://www.jeonmae.co.kr/news/articleView.html?idxno=1283743",
-      "org": null,
-      "published_at": "2026-08-13T11:36:00"
-    },
-    {
-      "chunk_id": "news:7133ef4fcdc8b3052c83",
-      "source_type": "news",
-      "source_id": "7133ef4fcdc8b3052c83",
-      "content": "“도봉구민 삶 윤택해지도록 밤낮 안 가리고 뛸 것” [의장에게 듣는다...\n이어 “민생경제 회복과 지역상권 활성화, 저출생·고령화에 따른 복지 대응, 안전한 도시환경 조성 등 도봉구가 직면한 과제들이 많다”며 “문제 해결을 위해 현장 의견을 적극 반영하고, 실효성 있는 정책 대안을...",
-      "score": 0.5038656892696658,
-      "url": "https://www.seoul.co.kr/news/publicnews/seoul_local/news_seoul/2026/08/26/20260826019002?wlog_tag3=naver",
-      "org": null,
-      "published_at": "2026-08-26T05:04:00"
-    },
-    {
-      "chunk_id": "news:884b5807c08ddfbc898d",
-      "source_type": "news",
-      "source_id": "884b5807c08ddfbc898d",
-      "content": "'광진곡곡' 참여 음식점에 인증마크…구민 건강식 선택 지원\n김경호 광진구청장은 서울시 '통쾌한 한끼' 사업과 연계해 탄생한 '광진곡곡' 인증마크가 구민 건강을 최우선으로 하는 민선9기의 비전을 담고 있다고 밝혔다. 덧붙여 앞으로도 지역 상권과 협력해 외식 환경에서도 건강한...",
-      "score": 0.4969534883041724,
-      "url": "https://www.gukjenews.com/news/articleView.html?idxno=3663695",
-      "org": null,
-      "published_at": "2026-08-13T11:40:00"
-    }
-  ],
+  "news": [],
   "funding_candidates": [
     {
       "program_id": "PBLN_000000000126270",

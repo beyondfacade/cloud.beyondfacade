@@ -1005,58 +1005,7 @@
     ],
     "recent_news": []
   },
-  "news": [
-    {
-      "chunk_id": "news:a65e32165f59c9b6b573",
-      "source_type": "news",
-      "source_id": "a65e32165f59c9b6b573",
-      "content": "동작구, 사당1동먹자골목 '달빛야장' 시범사업 선정…최대 20억 확보\n사당1동먹자골목은 지하철 2·4호선 환승역인 사당역과 인접해 접근성이 뛰어나고, 동작구 15개 행정동 중 점포수와 유동인구가 가장 많은 핵심 상권으로 꼽힌다. 특히 오후 5시부터 저녁 9시까지 매출이 집중되며...",
-      "score": 0.42303419344194315,
-      "url": "https://www.hg-times.com/news/articleView.html?idxno=305348",
-      "org": null,
-      "published_at": "2026-09-16T12:32:00"
-    },
-    {
-      "chunk_id": "news:c2598e97d62e24c01719",
-      "source_type": "news",
-      "source_id": "c2598e97d62e24c01719",
-      "content": "보드람치킨, 개봉1동점…후라이드 중심 메뉴 '가족과 함께'\n서울 구로구 개봉1동에 위치한 보드람치킨 개봉1동점은 개봉푸르지오와 호반써밋 개봉동 일대에서 접근할 수... 예상 매출과 비용 구조, 상권 특성 등을 함께 비교하는 것이 중요하다\"고 말했다. [신아일보] 강동완 선임기자",
-      "score": 0.4206487380299153,
-      "url": "https://www.shinailbo.co.kr/news/articleView.html?idxno=5052275",
-      "org": null,
-      "published_at": "2026-08-19T09:10:00"
-    },
-    {
-      "chunk_id": "news:4102952c66b6105bf4cb",
-      "source_type": "news",
-      "source_id": "4102952c66b6105bf4cb",
-      "content": "광진구, 건강한 한끼 '광진곡곡' 참여 인증마크 부착\n광진구가 구민들의 건강한 식습관 형성을 위해 추진 중인 '광진곡곡'사업 참여업소에 공식 인증마크를... 지역 상권과 적극 협력해 외식 환경에서도 자연스럽게 건강한 한 끼를 선택할 수 있는 건강 식문화를 지속적으로...",
-      "score": 0.41036970182732857,
-      "url": "https://www.jeonmae.co.kr/news/articleView.html?idxno=1283743",
-      "org": null,
-      "published_at": "2026-08-13T11:36:00"
-    },
-    {
-      "chunk_id": "news:884b5807c08ddfbc898d",
-      "source_type": "news",
-      "source_id": "884b5807c08ddfbc898d",
-      "content": "'광진곡곡' 참여 음식점에 인증마크…구민 건강식 선택 지원\n김경호 광진구청장은 서울시 '통쾌한 한끼' 사업과 연계해 탄생한 '광진곡곡' 인증마크가 구민 건강을 최우선으로 하는 민선9기의 비전을 담고 있다고 밝혔다. 덧붙여 앞으로도 지역 상권과 협력해 외식 환경에서도 건강한...",
-      "score": 0.4055407908315829,
-      "url": "https://www.gukjenews.com/news/articleView.html?idxno=3663695",
-      "org": null,
-      "published_at": "2026-08-13T11:40:00"
-    },
-    {
-      "chunk_id": "news:ff2b371b5a6237766b11",
-      "source_type": "news",
-      "source_id": "ff2b371b5a6237766b11",
-      "content": "서금원, '인정가게'로 영세 자영업자 지원… 상담·금융도 촘촘히\n서금원은 우리은행, 선한영향력가게와 서울 마포구 연화식탁에서 영세 자영업자 지원사업인 '인정가게... 첫 현판식이 열린 연화식탁은 지난 5월 홍익대학교 상권 인근에 문을 연 소규모 중식당이다. 김은경 서금원장과...",
-      "score": 0.3981220313921079,
-      "url": "https://www.s-journal.co.kr/news/articleView.html?idxno=43590",
-      "org": null,
-      "published_at": "2026-09-08T13:58:00"
-    }
-  ],
+  "news": [],
   "funding_candidates": [
     {
       "program_id": "PBLN_000000000126270",

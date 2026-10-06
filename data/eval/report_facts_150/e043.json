@@ -1007,58 +1007,7 @@
     ],
     "recent_news": []
   },
-  "news": [
-    {
-      "chunk_id": "news:d5705cc18f4e31d2148b",
-      "source_type": "news",
-      "source_id": "d5705cc18f4e31d2148b",
-      "content": "“빈 즉석밥 용기 20개, 종량제봉투 1장으로”…서울 중구, CJ제일제당과...\n(20개), 폐건전지(20개), 우유팩(20개), 폐비닐(1㎏)을 10ℓ 종량제봉투 1장으로 바꿔준다. 한편 중구는 다음 달 1일 충무로와 3일 명동 일대에서 상권 맞춤형 테마로 단장한 골목형상점가 축제를 잇달아 개최할 예정이다.",
-      "score": 0.42777064045525537,
-      "url": "https://www.munhwa.com/article/11619690?ref=naver",
-      "org": null,
-      "published_at": "2026-09-28T06:49:00"
-    },
-    {
-      "chunk_id": "news:7b308625823cce5e264a",
-      "source_type": "news",
-      "source_id": "7b308625823cce5e264a",
-      "content": "도봉구 창4동, 추석 앞두고 어르신과 전통시장 장보기…지역상권에 온기...\n서울 도봉구 창4동이 추석을 앞두고 취약계층 어르신들의 명절 준비를 돕는 동시에 지역 전통시장에 활력을... 지역 상권 활성화에도 힘을 보태자는 취지다. 지원 대상 가운데 어르신 20명은 지역사회보장협의체 위원들과...",
-      "score": 0.41883629076700823,
-      "url": "https://www.job-post.co.kr/news/articleView.html?idxno=227333",
-      "org": null,
-      "published_at": "2026-09-14T11:42:00"
-    },
-    {
-      "chunk_id": "news:4347fd5edf848d0096e6",
-      "source_type": "news",
-      "source_id": "4347fd5edf848d0096e6",
-      "content": "“여기 잡곡밥 있어요”…광진 ‘건강 맛집’ 127곳에 인증마크\n서울 광진구가 주민들이 외식할 때도 손쉽게 잡곡밥을 선택할 수 있도록 ‘광진곡곡’ 참여 음식점 127곳에... 지역 상권과 적극 협력해 외식 환경에서도 자연스럽게 건강한 한 끼를 선택할 수 있는 건강 식문화를...",
-      "score": 0.41446240364542475,
-      "url": "https://www.seoul.co.kr/news/publicnews/2026/08/14/20260814500035?wlog_tag3=naver",
-      "org": null,
-      "published_at": "2026-08-14T09:43:00"
-    },
-    {
-      "chunk_id": "news:4102952c66b6105bf4cb",
-      "source_type": "news",
-      "source_id": "4102952c66b6105bf4cb",
-      "content": "광진구, 건강한 한끼 '광진곡곡' 참여 인증마크 부착\n광진구가 구민들의 건강한 식습관 형성을 위해 추진 중인 '광진곡곡'사업 참여업소에 공식 인증마크를... 지역 상권과 적극 협력해 외식 환경에서도 자연스럽게 건강한 한 끼를 선택할 수 있는 건강 식문화를 지속적으로...",
-      "score": 0.4127314544800369,
-      "url": "https://www.jeonmae.co.kr/news/articleView.html?idxno=1283743",
-      "org": null,
-      "published_at": "2026-08-13T11:36:00"
-    },
-    {
-      "chunk_id": "news:ba0f3c5cf5e5c04a8874",
-      "source_type": "news",
-      "source_id": "ba0f3c5cf5e5c04a8874",
-      "content": "서울 오피스텔 시장 상승세에 '힐스테이트 송파더그리드' 주목\n이 같은 F&B 중심의 상업시설 조성 전략은 배후 상권 활성화에도 힘을 보탤 것으로 기대된다.... 16층, 10개 동, 전용면적 34~119㎡, 총 1,393실 규모다. 견본주택은 서울시 강남구 자곡로 (벤츠 자곡전시장 건너편)에 위치한다.",
-      "score": 0.4095046086005142,
-      "url": "https://magazine.hankyung.com/money/article/202610020862c",
-      "org": null,
-      "published_at": "2026-10-04T09:02:00"
-    }
-  ],
+  "news": [],
   "funding_candidates": [
     {
       "program_id": "PBLN_000000000126270",

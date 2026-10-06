@@ -1084,58 +1084,7 @@
     ],
     "recent_news": []
   },
-  "news": [
-    {
-      "chunk_id": "news:c9fc6fc4505cb107a96e",
-      "source_type": "news",
-      "source_id": "c9fc6fc4505cb107a96e",
-      "content": "“낡은 붉은 벽돌집의 변신”… 해방촌 카페 '트랍' 정식 개장\n서울 용산구 신흥로에 자리 잡은 카페 '트랍'(TRAP)은 지난 1일 임시 영업을 시작했다. 오는 11일 정식... 전통시장에서 개성 있는 음식점과 카페, 술집 등이 모인 식음료 상권으로 빠르게 변하고 있다. 트랍은 오래된 건물을...",
-      "score": 0.49712348052898714,
-      "url": "http://www.beyondpost.co.kr/view.php?ud=20260810145812455818ef25b590_30",
-      "org": null,
-      "published_at": "2026-08-10T15:00:00"
-    },
-    {
-      "chunk_id": "news:01c0dc38be77e5fd266a",
-      "source_type": "news",
-      "source_id": "01c0dc38be77e5fd266a",
-      "content": "홈앤쇼핑, 둔촌역전통시장서 디지털 전환 지원…전통시장 경쟁력 강화 ...\n홈앤쇼핑은 25일 서울 강동구 둔촌역전통시장에서 전통시장 활성화 지원 프로젝트 ‘시장가자-GO’ 네 번째... 있는 상권의 특징과 고객 유입 전략을 제시했다. 단순한 이론 중심 교육에서 벗어나 소비 데이터를 기반으로...",
-      "score": 0.49115778479459915,
-      "url": "https://www.megaeconomy.co.kr/news/newsview.php?ncode=1065594094297025",
-      "org": null,
-      "published_at": "2026-08-25T15:24:00"
-    },
-    {
-      "chunk_id": "news:107cc17619d6ec3f4725",
-      "source_type": "news",
-      "source_id": "107cc17619d6ec3f4725",
-      "content": "\"성심당 빵 OK\"…대전지역 카페의 변신 '빵코노미'[출동!인턴]\n마음껏 드세요.\" 지난 11일 대전 중구의 카페 '오픈톨드'. 매장 안에서는 음료와 함께 외부에서 가져온 빵을... 성심당을 찾은 관광객의 소비가 빵 구매에 그치지 않고 주변 카페 이용으로까지 이어지면서, 대전 지역 상권에...",
-      "score": 0.4902229671208487,
-      "url": "https://www.newsis.com/view/NISX20260911_0003786236",
-      "org": null,
-      "published_at": "2026-09-13T15:01:00"
-    },
-    {
-      "chunk_id": "news:db8ed31180bc0d8c90b2",
-      "source_type": "news",
-      "source_id": "db8ed31180bc0d8c90b2",
-      "content": "[유통가 NOW] 농심 신라면 2차 글로벌 캠페인·식봄 비수도권 50% 증가…...\n매장은 출퇴근과 점심시간 커피 수요를 함께 잡을 수 있는 오피스 상권에 냈다. 신바시 1호점은 오픈 당일... 20일 서울 송파구 석촌동에 'GS더프레시 송파석촌역점'을 열면서다. 전체 운영 점포는 603점으로 늘었다....",
-      "score": 0.48493020640698126,
-      "url": "https://www.ekn.kr/web/view.php?key=20260820023184806",
-      "org": null,
-      "published_at": "2026-08-20T19:12:00"
-    },
-    {
-      "chunk_id": "news:81546af209b8be935159",
-      "source_type": "news",
-      "source_id": "81546af209b8be935159",
-      "content": "[AT 현장] 포스코이앤씨, 노후주택 다음을 짓다…리모델링 '승부수'\n교통·학교·상권이 형성된 생활권에 주차시설과 커뮤니티 등을 갖춘 주택을 공급하는 것이다. 인접... 둔촌에서 확인한 완성 모습…수주 넘어 준공 경험 축적 서울 강동구에 위치한 '더샵 둔촌포레'에 취재진이 들어가고...",
-      "score": 0.48370066576592374,
-      "url": "https://www.asiatime.co.kr/article/20260909500407",
-      "org": null,
-      "published_at": "2026-09-10T09:00:00"
-    }
-  ],
+  "news": [],
   "funding_candidates": [
     {
       "program_id": "PBLN_000000000126270",

@@ -987,58 +987,7 @@
     ],
     "recent_news": []
   },
-  "news": [
-    {
-      "chunk_id": "news:c269386d71282e09d677",
-      "source_type": "news",
-      "source_id": "c269386d71282e09d677",
-      "content": "용산구, 이태원 1·2동 매장형 중소기업과 소상공인 대상 총 10억원 규모...\n김경대 용산구청장은 \"이번 저금리 융자가 이태원 1·2동에서 사업체를 운영하는 중소기업과 소상공인들에게 실질적인 도움이 되길 바란다\"며 \"앞으로도 지역 상권에 도움이 되는 지원책을 지속적으로 마련하겠다\"고...",
-      "score": 0.45384204387672855,
-      "url": "https://www.cnbizm.com/news/articleView.html?idxno=311663",
-      "org": null,
-      "published_at": "2026-08-14T14:16:00"
-    },
-    {
-      "chunk_id": "news:65698d428535c77fbfcd",
-      "source_type": "news",
-      "source_id": "65698d428535c77fbfcd",
-      "content": "용산구, 이태원 상권 특별융자 10억원 지원\n서울 용산구가 10·29 참사 이후 경영난을 겪고 있는 이태원1동·이태원2동 상권 회복을 위해 총 10억원 규모의 특별융자 지원에 나선다. 용산구는 이태원1동과 이태원2동에서 매장형 업체를 운영하는 중소기업과...",
-      "score": 0.44565412045783637,
-      "url": "https://www.shinailbo.co.kr/news/articleView.html?idxno=5051361",
-      "org": null,
-      "published_at": "2026-08-14T09:50:00"
-    },
-    {
-      "chunk_id": "news:49ab8888df818e20e5c2",
-      "source_type": "news",
-      "source_id": "49ab8888df818e20e5c2",
-      "content": "용산구, 이태원 1·2동 소상공인에 연 1.5% 저금리 융자\n김경대 용산구청장은 \"이번 저금리 융자가 이태원 1·2동 중소기업과 소상공인에게 실질적인 도움이 되길 바란다\"며 \"앞으로도 지역 상권에 도움이 되는 지원책을 지속적으로 마련하겠다\"고 말했다.",
-      "score": 0.4441172415721075,
-      "url": "https://www.pennmike.com/news/articleView.html?idxno=125672",
-      "org": null,
-      "published_at": "2026-08-14T09:58:00"
-    },
-    {
-      "chunk_id": "news:c130ecaa3af8b09e5cab",
-      "source_type": "news",
-      "source_id": "c130ecaa3af8b09e5cab",
-      "content": "이희원 서울시의원 “사당1동 먹자골목 ‘서울 달빛야장’ 사업 선정 쾌...\n서울시의회 교육위원회 이희원 부위원장(동작4, 국민의힘)은 서울시가 지난 14일 발표한 ‘2026년 서울 달빛야장 조성사업’ 시범상권 6곳에 동작구 사당1동 먹자골목이 선정됐다고 밝혔다. 이 의원은 사당1동 먹자골목이...",
-      "score": 0.43943291088359016,
-      "url": "https://www.seoul.co.kr/news/publicnews/local_govern/smc_movement/2026/09/15/20260915500046?wlog_tag3=naver",
-      "org": null,
-      "published_at": "2026-09-15T10:11:00"
-    },
-    {
-      "chunk_id": "news:2dd5013de5c4b71bdce3",
-      "source_type": "news",
-      "source_id": "2dd5013de5c4b71bdce3",
-      "content": "서초구, 양재2동 염곡사거리 일대 '양재잇길' 제10호 골목형상점가 지정\n사진=상권지도/서초구청 그동안 상권명이 없어 정체성 확립과 홍보에 어려움이 있었으나, 서초구는 골목형상점가 지정 추진 과정에서 상인과 소비자 의견을 반영해 상권 브랜드를 개발했다. 이에 양재AI특구의 첨단...",
-      "score": 0.41240974368819394,
-      "url": "https://www.gukjenews.com/news/articleView.html?idxno=3680675",
-      "org": null,
-      "published_at": "2026-09-01T09:02:00"
-    }
-  ],
+  "news": [],
   "funding_candidates": [
     {
       "program_id": "PBLN_000000000126270",

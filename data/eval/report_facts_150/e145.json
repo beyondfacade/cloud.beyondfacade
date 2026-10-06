@@ -1531,58 +1531,7 @@
       }
     ]
   },
-  "news": [
-    {
-      "chunk_id": "news:d83a777428dfd10c94ae",
-      "source_type": "news",
-      "source_id": "d83a777428dfd10c94ae",
-      "content": "25년 한식 연구 담았다...윤스푸드랩, 쿠킹클래스·전통 디저트로 한식...\n중구청과 중구 상권발전소가 추진하는 행사에도 참여해 한식과 한식 디저트를 알리는 활동을 펼치고 있다. 한식 도시락과 단체 주문도 향후 확대할 분야다. 도시락은 반찬 가짓수보다 영양 균형과 신선한 식재료에 초점을...",
-      "score": 0.5207899212837552,
-      "url": "https://www.womentimes.co.kr/news/articleView.html?idxno=106472",
-      "org": null,
-      "published_at": "2026-09-23T14:46:00"
-    },
-    {
-      "chunk_id": "news:4083f1321227d1f9c023",
-      "source_type": "news",
-      "source_id": "4083f1321227d1f9c023",
-      "content": "한식의 가치를 잇는 마곡 '윤스푸드랩'...﻿K-식문화를 전하다\n최근에는 중구청과 중구 상권발전소가 추진하는 행사에 참여해 한식과 한식 디저트를 알리는 프로그램에도 함께하고 있다. 지역의 역사적 자원과 한식 문화를 연결하는 행사에서 한식 디저트 분야를 담당하며 새로운...",
-      "score": 0.5072086781537987,
-      "url": "https://www.getnews.co.kr/news/articleView.html?idxno=882134",
-      "org": null,
-      "published_at": "2026-09-29T20:36:00"
-    },
-    {
-      "chunk_id": "news:0a13448a65f8dc0e3ebc",
-      "source_type": "news",
-      "source_id": "0a13448a65f8dc0e3ebc",
-      "content": "\"강남 외식 수요 잡는다\"⋯현대그린푸드, 다이닝 특화 '이탈리' 출격\n현대그린푸드는 오는 28일 서울 강남구 현대백화점 무역센터점 10층에 다이닝 기능을 강화한 이탈리 매장을 오픈한다고 27일 밝혔다. 강남 상권 특성을 고려해 숯불 요리와 코스 메뉴를 도입하고 프라이빗 공간을...",
-      "score": 0.48889052867892535,
-      "url": "http://www.inews24.com/view/1999023",
-      "org": null,
-      "published_at": "2026-08-27T16:12:00"
-    },
-    {
-      "chunk_id": "news:981ff0d9713e6d650f8e",
-      "source_type": "news",
-      "source_id": "981ff0d9713e6d650f8e",
-      "content": "동대문구 '휘나리'·'장안마실 밤마실' 골목상권 축제 성황리 마무리\n사진=장안마실 행사 사진 /동대문구청 동대문구(구청장 최동민)는 4일과 5일 이틀간 휘경동과 장안마실 골목상권 일대에서 지역 상권 활성화 행사를 개최했다고 밝혔다. 4일에는 휘경동 골목상권에서 '휘나리' 행사가...",
-      "score": 0.4844291861907817,
-      "url": "https://www.gukjenews.com/news/articleView.html?idxno=3686322",
-      "org": null,
-      "published_at": "2026-09-06T20:06:00"
-    },
-    {
-      "chunk_id": "news:d4105c9318e350e0d746",
-      "source_type": "news",
-      "source_id": "d4105c9318e350e0d746",
-      "content": "축제 무르익은 동대문의 가을밤… 골목마다 웃음·활력 넘쳤다\n최동민 동대문구청장은 지난 4일 휘경동에서 열린 ‘휘나리’(휘경 나이트 리듬 앤 테라스) 행사에서 “널리 알려지지 않은 작은 골목상권이지만 앞으로 주민들이 더 자주 찾아주고 상권을 함께 키워가기를 바라는...",
-      "score": 0.484077057641366,
-      "url": "https://www.seoul.co.kr/news/publicnews/seoul_local/enjoy_seoul/2026/09/11/20260911021003?wlog_tag3=naver",
-      "org": null,
-      "published_at": "2026-09-11T05:04:00"
-    }
-  ],
+  "news": [],
   "funding_candidates": [
     {
       "program_id": "PBLN_000000000126270",

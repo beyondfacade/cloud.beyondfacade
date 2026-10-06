@@ -10,10 +10,7 @@ qwen3·gemini 어댑터는 1536차원 출력이라 rag_chunk(vector(1024))에 �
 from apps.rag.adapter.outbound.embeddings.ollama_bge_m3_adapter import (
     OllamaBgeM3EmbeddingAdapter,
 )
-from apps.rag.adapter.outbound.gateways.rag_source_gateway import (
-    FundingRagSourceGateway,
-    NewsRagSourceGateway,
-)
+from apps.rag.adapter.outbound.gateways.rag_source_gateway import FundingRagSourceGateway
 from apps.rag.adapter.outbound.repositories.rag_repository import SqlAlchemyRagRepository
 from apps.rag.app.ports.input.rag_use_case import RagIndexUseCase, RagSearchUseCase
 from apps.rag.app.use_cases.rag_interactor import RagIndexInteractor, RagSearchInteractor
@@ -40,5 +37,5 @@ def get_rag_index_use_case(provider: str = "bge-m3") -> RagIndexUseCase:
     return RagIndexInteractor(
         embedder=embedder_cls(),
         repository=SqlAlchemyRagRepository(),
-        sources=[FundingRagSourceGateway(), NewsRagSourceGateway()],
+        sources=[FundingRagSourceGateway()],  # 뉴스는 색인하지 않는다(네이버 검색 API 특약 2.3)
     )

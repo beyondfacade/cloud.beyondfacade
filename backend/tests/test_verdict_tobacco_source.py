@@ -185,7 +185,7 @@ class _FakeStoreStats(StoreSignalStatsPort):
 
 class _FakeContext(RegionContextPort):
     def latest_contexts(self, quarter_max=None):
-        return [RegionContext("r01", 10_000, "HH", "정체", quarter_max, 25.0, 27.0)]
+        return [RegionContext("r01", 10_000)]
 
     def latest_store_counts(self, year_max=None):
         return [LatestStoreCount("r01", "korean_food", 90)]

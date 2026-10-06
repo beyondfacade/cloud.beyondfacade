@@ -1066,58 +1066,7 @@
     ],
     "recent_news": []
   },
-  "news": [
-    {
-      "chunk_id": "news:a3b2fe3e8674496c482c",
-      "source_type": "news",
-      "source_id": "a3b2fe3e8674496c482c",
-      "content": "막걸리 6000병 쏜다…창동 전통시장, 100가지 안주로 가을밤 달군다\n도봉구는 올해 행사를 먹거리 판매에 그치지 않고 체험과 문화공연을 결합한 지역 축제로 확대해 전통시장 방문객을 늘리고 주변 상권에도 활력을 불어넣는다는 계획이다. 김동욱 도봉구청장은 \"이번 행사가 전통시장과...",
-      "score": 0.48422387806518374,
-      "url": "https://www.job-post.co.kr/news/articleView.html?idxno=226754",
-      "org": null,
-      "published_at": "2026-09-09T11:26:00"
-    },
-    {
-      "chunk_id": "news:c06f4d1bb8311819e85c",
-      "source_type": "news",
-      "source_id": "c06f4d1bb8311819e85c",
-      "content": "도봉구 창동경제엔진추진단 출범…서울아레나 개관 대비\n서울 도봉구(구청장 김동욱)는 내년 5월로 예정된 케이팝(K-POP) 공연장 서울아레나 개관을 앞두고 민관 협치... 창동경제엔진추진단은 서울아레나 개관에 따라 인근 골목 상권과 연계해 야간 경제를 활성화하는 등 경제적...",
-      "score": 0.46567507964523813,
-      "url": "https://www.newsis.com/view/NISX20260903_0003775396",
-      "org": null,
-      "published_at": "2026-09-03T16:19:00"
-    },
-    {
-      "chunk_id": "news:c64e58df082d51af76f8",
-      "source_type": "news",
-      "source_id": "c64e58df082d51af76f8",
-      "content": "도봉구, 12일 '창동 막걸리 페스티벌'…막걸리 빚기 체험 행사도\n서울 도봉구(구청장 김동욱)는 오는 12일 창동신창시장과 창동골목시장 일대에서 '제2회 창동 막걸리... 김동욱 구청장은 \"많은 분이 축제를 즐기며 전통시장의 매력을 재발견하고, 이것이 곧 지역 상권 발전과 경제...",
-      "score": 0.46377030317408363,
-      "url": "https://www.yna.co.kr/view/AKR20260909095500004?input=1195m",
-      "org": null,
-      "published_at": "2026-09-09T11:48:00"
-    },
-    {
-      "chunk_id": "news:e76c27526f8b1a66585f",
-      "source_type": "news",
-      "source_id": "e76c27526f8b1a66585f",
-      "content": "도봉구 “서울아레나 ‘창동 경제엔진’ 가동”\n15일 도봉구에 따르면 서울아레나 개관과 함께 창동역 일대 상권도 새로운 변화를 맞는다. 도봉구는 공연 전후 방문객의 발길이 지역 음식점과 카페, 상점으로 이어질 수 있도록 K-푸드와 야간경제를 활용한 상권 활성화를...",
-      "score": 0.46165311336517334,
-      "url": "https://biz.heraldcorp.com/article/10873914?ref=naver",
-      "org": null,
-      "published_at": "2026-09-15T11:24:00"
-    },
-    {
-      "chunk_id": "news:f5f862da0856e026beee",
-      "source_type": "news",
-      "source_id": "f5f862da0856e026beee",
-      "content": "도봉 “막걸리 마니아들 창동시장으로 모이세요”\n서울 도봉구는 12일 창동신창시장과 창동골목시장 일대에서 ‘제2회 창동 막걸리 페스티벌’을 개최한다고... 김동욱 구청장은 “전통시장과 구민, 방문객이 어우러지는 문화와 소통의 장이 되고 지역상권 발전으로도...",
-      "score": 0.4587113384272843,
-      "url": "https://www.seoul.co.kr/news/publicnews/seoul_local/news_seoul/2026/09/10/20260910020004?wlog_tag3=naver",
-      "org": null,
-      "published_at": "2026-09-10T05:04:00"
-    }
-  ],
+  "news": [],
   "funding_candidates": [
     {
       "program_id": "PBLN_000000000126270",

@@ -961,58 +961,7 @@
     ],
     "recent_news": []
   },
-  "news": [
-    {
-      "chunk_id": "news:8590e42d9091e3bbf590",
-      "source_type": "news",
-      "source_id": "8590e42d9091e3bbf590",
-      "content": "홍은동 10-18번지 일대, 이달 20일 시공자 현설\n서울 서대문구 홍은동 10-18번지 일대에서 모아타운 가로주택정비사업 시공자 선정 도전에 나섰다. 홍은동... 주거환경도 쾌적하다고 평가 받는다. 생활편의시설로는 인왕시장과 홍제역 일대 상권 등을 이용할 수 있다.",
-      "score": 0.41354027502288815,
-      "url": "https://www.arunews.com/news/articleView.html?idxno=65942",
-      "org": null,
-      "published_at": "2026-08-13T11:54:00"
-    },
-    {
-      "chunk_id": "news:d5705cc18f4e31d2148b",
-      "source_type": "news",
-      "source_id": "d5705cc18f4e31d2148b",
-      "content": "“빈 즉석밥 용기 20개, 종량제봉투 1장으로”…서울 중구, CJ제일제당과...\n(20개), 폐건전지(20개), 우유팩(20개), 폐비닐(1㎏)을 10ℓ 종량제봉투 1장으로 바꿔준다. 한편 중구는 다음 달 1일 충무로와 3일 명동 일대에서 상권 맞춤형 테마로 단장한 골목형상점가 축제를 잇달아 개최할 예정이다.",
-      "score": 0.4076200104892229,
-      "url": "https://www.munhwa.com/article/11619690?ref=naver",
-      "org": null,
-      "published_at": "2026-09-28T06:49:00"
-    },
-    {
-      "chunk_id": "news:73ff4236cfb5197b0128",
-      "source_type": "news",
-      "source_id": "73ff4236cfb5197b0128",
-      "content": "서초 염곡사거리 상권 ‘양재잇길’ 제10호 골목형상점가 지정\n서울 서초구는 지난달 31일 양재2동 염곡사거리 일대 상권을 ‘양재잇길’로 이름 짓고 제10호 골목형상점가로 지정했다고 1일 밝혔다. 골목형상점가는 업종과 관계없이 2000㎡ 이내에 소상공인이 운영하는 점포가 15개...",
-      "score": 0.4046886988917999,
-      "url": "https://www.seoul.co.kr/news/publicnews/seoul_local/news_seoul/2026/09/01/20260901500277?wlog_tag3=naver",
-      "org": null,
-      "published_at": "2026-09-01T16:58:00"
-    },
-    {
-      "chunk_id": "news:e02e3d70c66dea60c841",
-      "source_type": "news",
-      "source_id": "e02e3d70c66dea60c841",
-      "content": "쌍용건설, 서울 서대문구 '쌍용 더 플래티넘 서대문' 이달 분양\n쌍용 더 플래티넘 서대문 조감도 컨슈머타임스=김동역 기자 | 서울 서대문구 홍은동에 우수한 교육 환경과... 서대문문화체육회관, 명지대 상권 등 홍은동과 남가좌동 일대의 다채로운 생활 인프라도 가깝게 이용할 수...",
-      "score": 0.39773009446500884,
-      "url": "https://www.cstimes.com/news/articleView.html?idxno=715667",
-      "org": null,
-      "published_at": "2026-08-04T13:40:00"
-    },
-    {
-      "chunk_id": "news:d83a777428dfd10c94ae",
-      "source_type": "news",
-      "source_id": "d83a777428dfd10c94ae",
-      "content": "25년 한식 연구 담았다...윤스푸드랩, 쿠킹클래스·전통 디저트로 한식...\n중구청과 중구 상권발전소가 추진하는 행사에도 참여해 한식과 한식 디저트를 알리는 활동을 펼치고 있다. 한식 도시락과 단체 주문도 향후 확대할 분야다. 도시락은 반찬 가짓수보다 영양 균형과 신선한 식재료에 초점을...",
-      "score": 0.39668405154822795,
-      "url": "https://www.womentimes.co.kr/news/articleView.html?idxno=106472",
-      "org": null,
-      "published_at": "2026-09-23T14:46:00"
-    }
-  ],
+  "news": [],
   "funding_candidates": [
     {
       "program_id": "PBLN_000000000126270",

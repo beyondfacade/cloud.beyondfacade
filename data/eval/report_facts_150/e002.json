@@ -1110,58 +1110,7 @@
     ],
     "recent_news": []
   },
-  "news": [
-    {
-      "chunk_id": "news:571a8abe0346d7412986",
-      "source_type": "news",
-      "source_id": "571a8abe0346d7412986",
-      "content": "[현장]물건 놓을 180평 공간이 쉼터로 변신…이마트 월계점 새단장\n27일 찾은 서울 노원구 '스타필드 마켓 월계점'. 매장에 들어서자 상품이 빼곡하게 들어찬 대형마트의 익숙한... 향후 상권 확대 가능성도 높다. 월계점 주변에서는 노후 주거지역 재개발이 이어지고 있으며, 2030년까지...",
-      "score": 0.48140067409907183,
-      "url": "https://www.newsis.com/view/NISX20260827_0003765324",
-      "org": null,
-      "published_at": "2026-08-27T14:39:00"
-    },
-    {
-      "chunk_id": "news:9697e926c0bfdc33ae9a",
-      "source_type": "news",
-      "source_id": "9697e926c0bfdc33ae9a",
-      "content": "전체 매출 1위 찍은 매장의 비결…노브랜드 버거, ‘복합시설+소형화’...\n실제로 최근 서울 노원구에 문을 연 ‘스타필드 마켓 월계점’ 내 노브랜드 버거 매장은 쇼핑객과 외식 고객이 집중되며 전체 매장 중 매출 1위를 기록하는 성과를 거뒀다. 복합시설은 기존 상권의 풍부한 유동인구를...",
-      "score": 0.4790805696071403,
-      "url": "https://www.sportsseoul.com/news/read/1635028?ref=naver",
-      "org": null,
-      "published_at": "2026-09-17T06:01:00"
-    },
-    {
-      "chunk_id": "news:6e29b71596d739a3acb4",
-      "source_type": "news",
-      "source_id": "6e29b71596d739a3acb4",
-      "content": "[르포] 노원구 ‘15억’ 시대 연 ‘월계 중흥S-클래스’\n서울 주요 지역과 연결되는 철도역을 갖췄음에도 주변 주거 환경과 상권은 다른 역세권에 비해 성장... 월계 중흥S-클래스 리비에르는 우이천 하나를 사이에 두고 성북구 장위동과 맞닿아 있다. 석계역을 중심으로...",
-      "score": 0.4766998647778755,
-      "url": "https://www.ekn.kr/web/view.php?key=20260729025397338",
-      "org": null,
-      "published_at": "2026-07-29T13:24:00"
-    },
-    {
-      "chunk_id": "news:30048f311cd8ea0c7a36",
-      "source_type": "news",
-      "source_id": "30048f311cd8ea0c7a36",
-      "content": "[르포] 잘나가는 트레이더스 품은 이마트…월계점서 ‘복합마트’ 실험\n\"27일 서울 노원구 스타필드 마켓 월계점. 매장에 들어서자 가장 먼저 눈에 들어온 것은 상품 진열대가 아닌... 월계점이 자리한 상권도 이 같은 실험에 유리하다는 판단이다. 영업면적 6590평(2만1785㎡) 규모인 월계점은...",
-      "score": 0.4744741699179441,
-      "url": "https://www.asiatoday.co.kr/kn/view.php?key=20260827010009541",
-      "org": null,
-      "published_at": "2026-08-27T17:10:00"
-    },
-    {
-      "chunk_id": "news:351a4d506d9ec0d12128",
-      "source_type": "news",
-      "source_id": "351a4d506d9ec0d12128",
-      "content": "노원구 '월계동 광운대역세권 장기전세주택' 건립 본격화\n'광운대역세권 장기전세주택 사업' 조감도 노원구가 월계동 383-40일대에서 추진 중인 '광운대역세권... 간선도로변에는 기존 상권과 연계한 근린생활시설을 배치해 상권 활성화를 도모한다. 이번 사업은 광운대역세권...",
-      "score": 0.4732719013630712,
-      "url": "https://www.jeonmae.co.kr/news/articleView.html?idxno=1293842",
-      "org": null,
-      "published_at": "2026-09-16T10:02:00"
-    }
-  ],
+  "news": [],
   "funding_candidates": [
     {
       "program_id": "PBLN_000000000126270",

@@ -9,7 +9,6 @@ from apps.agent.domain.services.report_sections import (
     alternatives_pointer,
     build_sections,
     hour_gap_sentence,
-    news_line,
     resident_line,
     scarce_lead,
     scarcity,
@@ -36,7 +35,7 @@ _RED = {
         _signal("net_outflow", "strong", "지난 12개월 폐업 16곳, 개업 8곳 (순유출률 +20%, 서울 한식 상위 1%)"),
         _signal("survival_cliff", "unavailable", "표본 부족 — 3년 전 개업 코호트 1곳 (10곳 미만)"),
         _signal("saturation", "off", "상주인구 1,000명당 한식 3.4곳 (서울 상위 61%)"),
-        _signal("shrinking", "strong", "서울시 상권변화지표 '상권축소' (2026년 2분기, 동 전체 기준)", advisory=True),
+        _signal("tobacco_gap", "strong", "이 동 상가 자리 200곳 중 75%가 영업 중인 담배소매인 50m 안 — 새 담배소매인 지정이 어렵다", advisory=True),
     ],
 }
 
@@ -85,7 +84,7 @@ def test_왜_안_되나는_켜진_신호_참고_신호_표본_부족을_쓰고_�
         "- [확인된 사실] 순유출(송정동 한식): 지난 12개월 폐업 16곳, 개업 8곳 (순유출률 +20%, 서울 한식 상위 1%)\n"
         "- [확인된 사실] 생존 절벽(송정동 한식 — 3년 전 새로 연 점포 중 지금 남은 비율): "
         "표본 부족 — 3년 전 개업 코호트 1곳 (10곳 미만)\n"
-        "- [확인된 사실] 참고 — 상권 축소: 서울시 상권변화지표 '상권축소' (2026년 2분기, 동 전체 기준)\n\n"
+        "- [확인된 사실] 참고 — 담배권 빈자리: 이 동 상가 자리 200곳 중 75%가 영업 중인 담배소매인 50m 안 — 새 담배소매인 지정이 어렵다\n\n"
         "[확인된 사실] 송정동 한식 점포 수·연간 폐업률(해마다): 2019년 점포 41곳·폐업률 2.8% · "
         "2021년 점포 42곳·폐업률 9.8%(재난지원 시기 — 폐업이 늦춰져 왜곡됐을 수 있음) · 2025년 점포 42곳·폐업률 19.1%.\n\n"
         "[확인된 사실] 외부 충격(한식 전용 기록은 없어 전 업종 공통 충격): 최저임금 인상(2019년)."
@@ -120,7 +119,7 @@ def test_연도별_폐업률이_없으면_자료_부족이라고_쓴다():
     assert "[확인된 사실] 외부 충격(한식): 자료 부족 — 기록 없음" in body
 
 
-def test_유사_사례는_질문_속_유형부터_고정_문장을_옮기고_소식이_있을_때만_참고_신호를_붙인다():
+def test_유사_사례는_질문_속_유형부터_고정_문장만_옮기고_뉴스는_넣지_않는다():
     analogs = {
         "categories": [
             {"category": "minimum_wage", "reason": "current"},
@@ -139,8 +138,7 @@ def test_유사_사례는_질문_속_유형부터_고정_문장을_옮기고_소
     }
 
     assert _body("analogs", analogs=analogs) == (
-        "[확인된 사실] 코로나 문장. 겹친 정책 문장. 강세 업종 문장. "
-        "[참고 신호] 최근 30일 영업제한 관련 뉴스는 2건입니다.\n\n"
+        "[확인된 사실] 코로나 문장. 겹친 정책 문장. 강세 업종 문장.\n\n"
         "[확인된 사실] 최저임금 문장."
     )
 
@@ -318,18 +316,8 @@ def test_그래도_한다면에_주민_연령과_아파트_시가를_쓴다():
     assert resident_line(facts) in build_sections(facts)["conditions"]
 
 
-def test_뉴스_줄은_동_이름이_든_기사만_최신순으로_싣는다():
-    news = [
-        {"content": "송파구 쿠킹 클래스\n본문", "url": "u1", "published_at": "2026-09-30T00:00:00"},
-        {"content": "송정동 골목 상점가 지정\n송정동 본문", "url": "u2", "published_at": "2026-09-01T00:00:00"},
-        {"content": "\ufeff송정 시장 새단장\n본문", "url": "u3", "published_at": "2026-09-20T00:00:00"},
-    ]
-    assert news_line({**_BASE, "news": news}) == (
-        "[참고 신호] 송정동 이름이 나온 최근 뉴스: 송정 시장 새단장(2026-09-20) · 송정동 골목 상점가 지정(2026-09-01)"
-    )
-
-
-def test_동_이름이_든_기사가_없으면_뉴스_줄을_뺀다():
-    facts = {**_BASE, "news": [{"content": "송파구 기사", "url": "u1", "published_at": "2026-09-30T00:00:00"}]}
-    assert news_line(facts) is None
-    assert "최근 뉴스" not in build_sections(facts)["conditions"]
+def test_뉴스는_본문에_넣지_않는다():
+    """본문은 해석 LLM 입력이다 — 네이버 검색 결과는 화면 링크로만 쓴다(검색 API 특약 2.3)."""
+    link = {"title": "송정동 골목 상점가 지정", "url": "u1", "published_at": "2026-09-01", "press": None}
+    sections = build_sections({**_BASE, "news": [link]})
+    assert not any("송정동 골목 상점가" in body or "뉴스" in body for body in sections.values())

@@ -1002,58 +1002,7 @@
     ],
     "recent_news": []
   },
-  "news": [
-    {
-      "chunk_id": "news:2776449807d55fdae96a",
-      "source_type": "news",
-      "source_id": "2776449807d55fdae96a",
-      "content": "중구 전통시장·상점가, 17~19일 가을축제 잇따라 개최\n중구는 인현시장과 신중앙시장, 약수시장 골목형상점가에서 각각 상권의 특색을 살린 축제를 열고 주민과 방문객들에게 다양한 먹거리와 볼거리를 선보인다고 8일 밝혔다. 첫 행사는 오는 17일 오후 5시부터 8시까지...",
-      "score": 0.47767859165163506,
-      "url": "https://www.shinailbo.co.kr/news/articleView.html?idxno=5060003",
-      "org": null,
-      "published_at": "2026-09-08T15:46:00"
-    },
-    {
-      "chunk_id": "news:0cc3ffd9ead1cd3c055b",
-      "source_type": "news",
-      "source_id": "0cc3ffd9ead1cd3c055b",
-      "content": "신당역 골목에 야장 펼친다…중구, 18일부터 3곳 운영\n남대문·충무로·약수·장충남소영길로 순차 확대 서울 중구(구청장 김길성)는 오는 18일부터 신당역 일대 전통시장과 골목상권 3곳에서 '중구형 상생야장'을 운영한다고 10일 밝혔다. 중구형 상생야장은 상인들이 시장별...",
-      "score": 0.44934495246306994,
-      "url": "https://news.tf.co.kr/read/life/2364318.htm",
-      "org": null,
-      "published_at": "2026-09-10T12:31:00"
-    },
-    {
-      "chunk_id": "news:5fad2a7e686c6c0ddf8f",
-      "source_type": "news",
-      "source_id": "5fad2a7e686c6c0ddf8f",
-      "content": "‘충정로역자이르네’, 대형 개발 호재·역 직통 연결로 미래가치 '눈길...\n이러한 상황에서 자이S&D가 서울시 중구 중림동 일원에 분양 중인 '충정로역자이르네'는 우수한 교통 및... 지하철역과 직접 연결돼 입주민의 주거 편의성이 높으며, 역 이용객 등 풍부한 유동인구를 바탕으로 상권...",
-      "score": 0.4466831513206597,
-      "url": "https://view.asiae.co.kr/article/2026091714450470965",
-      "org": null,
-      "published_at": "2026-09-17T14:45:00"
-    },
-    {
-      "chunk_id": "news:8c8d020b1579131a70c6",
-      "source_type": "news",
-      "source_id": "8c8d020b1579131a70c6",
-      "content": "﻿\"결국은 입지와 브랜드다\"...눈 높아진 수요자 잡은 알짜 단지 어디?\n이러한 가운데 자이S&D가 서울시 중구 중림동 일원에 분양 중인 '충정로역자이르네'는 사통팔달 교통망과... 빠른 상권 활성화가 이루어질 것으로 예상된다. 충정로역자이르네는 대형 쇼핑시설(롯데마트, 롯데아울렛...",
-      "score": 0.44573016268487864,
-      "url": "https://www.woodkorea.co.kr/news/articleView.html?idxno=91406",
-      "org": null,
-      "published_at": "2026-09-16T15:06:00"
-    },
-    {
-      "chunk_id": "news:b18b9f753e3a0cb7d0f5",
-      "source_type": "news",
-      "source_id": "b18b9f753e3a0cb7d0f5",
-      "content": "지하철 2·5호선 충정로역 직통 연결… 자이S&D, '충정로역자이르네' 이...\n[국토일보 하종숙 기자] 자이S&D가 서울시 중구 중림동 일원에 공급하는 '충정로역자이르네'가 이달 15일... 빠른 상권 활성화가 이뤄질 전망이다. '충정로역자이르네'는 교육환경도 우수하다. 봉래초가 도보권에...",
-      "score": 0.44527991953851687,
-      "url": "http://www.ikld.kr/news/articleView.html?idxno=340554",
-      "org": null,
-      "published_at": "2026-09-14T09:28:00"
-    }
-  ],
+  "news": [],
   "funding_candidates": [
     {
       "program_id": "PBLN_000000000126270",

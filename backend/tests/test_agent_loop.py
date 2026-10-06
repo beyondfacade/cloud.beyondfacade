@@ -69,8 +69,8 @@ class FakeFactsCollector(ReportFactsCollector):
         return self._fixed
 
 
-def _run(llm, question=None, retry_llm=None) -> tuple[AnalysisInteractor, list[AgentEvent]]:
-    interactor = AnalysisInteractor(llm=llm, facts=FakeFactsCollector(), retry_llm=retry_llm)
+def _run(llm, question=None, retry_llm=None, facts=None) -> tuple[AnalysisInteractor, list[AgentEvent]]:
+    interactor = AnalysisInteractor(llm=llm, facts=FakeFactsCollector(facts), retry_llm=retry_llm)
     return interactor, list(interactor.run("1120072000", "korean_food", question))
 
 
@@ -186,15 +186,12 @@ def test_첫_모델이_이미_로컬로_답했으면_로컬을_다시_부르지_
     assert _deltas(events)["answer"].startswith(ANSWER_FALLBACK) and second.calls == []
 
 
-def test_인용은_사실_묶음의_뉴스로_만든다():
-    _, events = _run(FakeLLM([_ANSWER]))
+def test_인용은_사실_묶음의_뉴스_링크로_만든다():
+    """네이버 검색 결과는 원문 링크로만 — 제목·링크·날짜·언론사만 싣는다."""
+    link = {"title": "송정동 골목 상점가 지정", "url": "https://news.example/1", "published_at": "2026-09-01", "press": None}
+    _, events = _run(FakeLLM([_ANSWER]), facts={**_FACTS, "news": [link, link]})
 
-    first_news = _FACTS["news"][0]
-    assert events[-1].payload["citations"][0] == {
-        "title": first_news["content"].split("\n")[0],
-        "url": first_news["url"],
-        "grade": "signal",
-    }
+    assert events[-1].payload["citations"] == [{**link, "grade": "signal"}]
 
 
 def test_시스템_프롬프트가_숫자와_등급_변경과_추정을_금지한다():

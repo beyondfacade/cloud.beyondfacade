@@ -851,58 +851,7 @@
     ],
     "recent_news": []
   },
-  "news": [
-    {
-      "chunk_id": "news:f2b412acca4c95f683e8",
-      "source_type": "news",
-      "source_id": "f2b412acca4c95f683e8",
-      "content": "동작구 '불꽃마냥' 숏폼 챌린지 공모…노량진 만나로 매력 알린다\n동작구는 노량진 만나로(만양로 92 일대) 상권 활성화를 위해 로컬브랜드 '불꽃마냥'을 활용한 숏폼 챌린지를 오는 27일까지 진행한다고 18일 밝혔다. 봄철 벚꽃길로 유명한 노량진 만나로 상권은 4만 4천14㎡ 규모로...",
-      "score": 0.44797107267207426,
-      "url": "https://www.jeonmae.co.kr/news/articleView.html?idxno=1294760",
-      "org": null,
-      "published_at": "2026-09-18T09:58:00"
-    },
-    {
-      "chunk_id": "news:ed4d83ac61b89746ea40",
-      "source_type": "news",
-      "source_id": "ed4d83ac61b89746ea40",
-      "content": "광진구의회, 제295회 제1차 정례회 개회\n광진구의회는 최근 제295회 제1차 정례회를 개회했다. 제10대 광진구의회의 첫 정례회인 이번 정례회는... 마지막으로 최규철 의원은 화양동 상권의 지속가능한 발전을 위해 골목별 맞춤형 상권정책 마련과 상설 관리...",
-      "score": 0.422676146030429,
-      "url": "https://www.jeonmae.co.kr/news/articleView.html?idxno=1288959",
-      "org": null,
-      "published_at": "2026-09-01T11:04:00"
-    },
-    {
-      "chunk_id": "news:0bd52283bfc4403e19e1",
-      "source_type": "news",
-      "source_id": "0bd52283bfc4403e19e1",
-      "content": "동작구, 흑석차고지 옮기고 공영주차장 만든다 [지금 우리 동네는]\n동작구 제공 구는 주민 편의와 지역 상권 활성화를 위해 9월 중 흑석차고지를 노량진환경지원센터 유휴 부지로 이전한다고 27일 밝혔다. 흑석차고지는 흑석동에 대지면적 1680㎡ 규모로 조성돼 있으며 생활폐기물 수집...",
-      "score": 0.4199269545471027,
-      "url": "https://www.segye.com/newsView/20260727508128?OutUrl=naver",
-      "org": null,
-      "published_at": "2026-07-27T12:41:00"
-    },
-    {
-      "chunk_id": "news:1c1a3b67e94bfffdd0b0",
-      "source_type": "news",
-      "source_id": "1c1a3b67e94bfffdd0b0",
-      "content": "[16일 서울 동작구] 사당1동먹자골목 '서울 달빛야장' 선정 등\n이를 통해 구는 사당1동먹자골목을 서울 서남권을 대표하는 야간경제 거점으로 육성하고, 야간 방문객의 체류를 늘려 지역 골목상권 활성화를 이끌 계획이다. 결식 우려 아동에 ‘명절 음식 꾸러미’ 전달 서울 동작구는...",
-      "score": 0.40506521848109056,
-      "url": "https://www.asiatime.co.kr/article/20260916500144",
-      "org": null,
-      "published_at": "2026-09-16T11:06:00"
-    },
-    {
-      "chunk_id": "news:447e81552d957f4ae15f",
-      "source_type": "news",
-      "source_id": "447e81552d957f4ae15f",
-      "content": "서울시자원봉사센터·하나투어 '착한여행 챌린지 시즌3'\n참여자는 여행 준비와 이동, 체류, 복귀 과정에서 환경 부담을 줄이고 지역 상권을 이용한 내용을... ['이웃 화합 프로젝트' 참여 및 문의] • 서울시자원봉사센터 02-2136-8752~7 • 노원구자원봉사센터 02-974-3200...",
-      "score": 0.39731960144858836,
-      "url": "https://www.econovill.com/news/articleView.html?idxno=747361",
-      "org": null,
-      "published_at": "2026-08-11T06:04:00"
-    }
-  ],
+  "news": [],
   "funding_candidates": [
     {
       "program_id": "PBLN_000000000126270",

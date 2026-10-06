@@ -1107,58 +1107,7 @@
     ],
     "recent_news": []
   },
-  "news": [
-    {
-      "chunk_id": "news:c7e1ed1f125a71ec80b0",
-      "source_type": "news",
-      "source_id": "c7e1ed1f125a71ec80b0",
-      "content": "관악구, 신림사거리 '혼합배출 OUT'...쓰레기 혼합 배출 집중 계도-단속\n서울 관악구는 대표 상권인 신림사거리의 깨끗하고 쾌적한 거리 환경을 조성하기 위해 오는 11월까지 쓰레기 혼합 배출 집중 계도와 단속에 나선다고 밝혔습니다. 관악구는 '무단투기보안관'을 투입해 주 2회 신림사거리...",
-      "score": 0.48177707412519266,
-      "url": "https://news.bbsi.co.kr/news/articleView.html?idxno=4100337",
-      "org": null,
-      "published_at": "2026-08-12T10:58:00"
-    },
-    {
-      "chunk_id": "news:0c83bc125e67b18c276b",
-      "source_type": "news",
-      "source_id": "0c83bc125e67b18c276b",
-      "content": "종량제봉투 열어 혼합배출 잡는다…관악구, 신림사거리 집중단속\n신림사거리는 순대타운과 신원시장 등을 중심으로 음식점과 상업시설이 밀집해 주민뿐 아니라 외부 방문객의 유동이 많은 관악구 대표 상권 중 하나다. 그만큼 음식물쓰레기와 일반폐기물, 재활용품 등의 올바른...",
-      "score": 0.46928853829034434,
-      "url": "https://www.job-post.co.kr/news/articleView.html?idxno=223775",
-      "org": null,
-      "published_at": "2026-08-12T11:26:00"
-    },
-    {
-      "chunk_id": "news:b927c89974dcf6590412",
-      "source_type": "news",
-      "source_id": "b927c89974dcf6590412",
-      "content": "관악구 샤로수길에서 스탬프투어 하고 할인받는 ‘청춘오락실 시즌2’\n서울 관악구는 오는 12일 대표 상권인 ‘샤로수길’에서 청년층뿐만 아니라 누구나 즐길 수 있는 축제인 ‘청춘오락실 시즌2’를 개최한다고 8일 밝혔다. 이는 서울대입구역 인근 샤로수길 특유의 젊고 활기찬 분위기를...",
-      "score": 0.4594811893746924,
-      "url": "https://www.seoul.co.kr/news/publicnews/seoul_local/news_seoul/2026/09/08/20260908500180?wlog_tag3=naver",
-      "org": null,
-      "published_at": "2026-09-08T14:26:00"
-    },
-    {
-      "chunk_id": "news:2d082d03f5b6a05f73d7",
-      "source_type": "news",
-      "source_id": "2d082d03f5b6a05f73d7",
-      "content": "관악구, 12일 샤로수길서 '청춘오락실 시즌2'…AR 게임·공연 결합\n서울 관악구는 오는 12일 지역 대표 상권 샤로수길에서 '청춘오락실 시즌2'를 연다고 8일 밝혔다. 청춘오락실 시즌2는 샤로수길의 젊고 활기찬 분위기를 살린 '게임형 거리 축제'다. ▲앱으로 즐기는 '증강현실(AR) 게임...",
-      "score": 0.45635571295423216,
-      "url": "https://www.newspim.com/news/view/20260908000791",
-      "org": null,
-      "published_at": "2026-09-08T13:59:00"
-    },
-    {
-      "chunk_id": "news:f8a498a5c88e6c7f7d51",
-      "source_type": "news",
-      "source_id": "f8a498a5c88e6c7f7d51",
-      "content": "관악구 샤로수길, '청춘오락실 시즌2' 성황리 개최 [동네방네]\n(사진=관악구) 지역 대표 상권인 샤로수길에서 열린 이날 행사에는 청년층을 비롯해 가족과 연인 등 다양한 세대가 참여해 축제를 즐겼다. 이번 행사는 샤로수길 특유의 젊고 활기찬 분위기를 살린 ‘게임형 거리 축제’...",
-      "score": 0.4552408781504309,
-      "url": "https://www.edaily.co.kr/News/Read?newsId=02581366645579464&mediaCodeNo=257&utm_source=naver&utm_medium=referral&utm_campaign=news_syndication&utm_content=original_article",
-      "org": null,
-      "published_at": "2026-09-12T20:44:00"
-    }
-  ],
+  "news": [],
   "funding_candidates": [
     {
       "program_id": "PBLN_000000000126270",

@@ -1090,58 +1090,7 @@
     ],
     "recent_news": []
   },
-  "news": [
-    {
-      "chunk_id": "news:e8c4fa1eaaaa1148d241",
-      "source_type": "news",
-      "source_id": "e8c4fa1eaaaa1148d241",
-      "content": "무신사, W몰 폐점 자리 입점설…가산 패션타운 합류하나\n어반케이가산이 위치한 서울 금천구 가산동은 마리오아울렛, 현대아울렛, 롯데팩토리아울렛 등이 밀집한 국내 대표 패션 아울렛 상권이다. 다양한 브랜드 의류를 합리적인 가격에 구매하려는 소비자들의 발길이...",
-      "score": 0.443039894104007,
-      "url": "http://www.wikileaks-kr.org/news/articleView.html?idxno=190139",
-      "org": null,
-      "published_at": "2026-07-24T15:56:00"
-    },
-    {
-      "chunk_id": "news:77af940955432bea787d",
-      "source_type": "news",
-      "source_id": "77af940955432bea787d",
-      "content": "명동 광장·지하보도 새 단장…미디어파사드 사진촬영 명소로\n도봉구는 창동역 서측 고가 하부를 작은 광장으로 바꾸고, 강동구는 천호자전거거리와 한강공원을 연결하는 휴식공간 '한강그린웨이 워밍업 스테이션'을 만든다. 최인규 서울시 디자인정책관은 \"문화와 관광, 상권을...",
-      "score": 0.4418341254094772,
-      "url": "https://www.yna.co.kr/view/AKR20260803051200004?input=1195m",
-      "org": null,
-      "published_at": "2026-08-03T11:15:00"
-    },
-    {
-      "chunk_id": "news:edc60c6655681a514c58",
-      "source_type": "news",
-      "source_id": "edc60c6655681a514c58",
-      "content": "“점심 나가는데 밍기적대는 동료, 짜증나요”…기본 웨이팅 80분인 이...\n캐치테이블 점심 웨이팅 이용건수 집계 올해 1~8월 이용건수 1년새 45.3% 증가 마포구 망원동 평균 대기시간... 40대 이상 이용자도 전체의 3분의 1을 넘어선 가운데, 직장인이 몰리는 오피스 상권을 중심으로 점심시간...",
-      "score": 0.43736593801798984,
-      "url": "https://www.mk.co.kr/article/12157894",
-      "org": null,
-      "published_at": "2026-09-21T10:13:00"
-    },
-    {
-      "chunk_id": "news:a7a248edee40ca85caf3",
-      "source_type": "news",
-      "source_id": "a7a248edee40ca85caf3",
-      "content": "외국인 관광객, 침체된 소상공인 경기에 '구원투수' 될까\n국내 소비 회복이 더디고 골목상권의 체감경기도 살아나지 않는 가운데 외국인 관광객이 소상공인 경기의 '구원투수'가 될 수 있을지 주목된다. 서울 마포구 망원동의 한 카페는 원래 내국인 사이에서 입소문을 탄...",
-      "score": 0.4366829768797187,
-      "url": "http://www.kbiznews.co.kr/news/articleView.html?idxno=114681",
-      "org": null,
-      "published_at": "2026-08-19T08:30:00"
-    },
-    {
-      "chunk_id": "news:ed277fb1e1306dcad4d7",
-      "source_type": "news",
-      "source_id": "ed277fb1e1306dcad4d7",
-      "content": "아워홈, ‘오픈런 뷔페’ 테이크 3호점 미아사거리에 연다\n미아사거리는 강북구 대표 상권으로, 대단지 아파트가 밀집해 있어 안정적인 배후 수요를 갖췄다. 3호점이 위치한 와이스퀘어는 지하철 4호선 미아리사거리역과 직접 연결돼 유동인구도 풍부하다. 아워홈은 지난 5월...",
-      "score": 0.43225608967971707,
-      "url": "https://biz.heraldcorp.com/article/10862402?ref=naver",
-      "org": null,
-      "published_at": "2026-09-04T08:45:00"
-    }
-  ],
+  "news": [],
   "funding_candidates": [
     {
       "program_id": "PBLN_000000000126270",

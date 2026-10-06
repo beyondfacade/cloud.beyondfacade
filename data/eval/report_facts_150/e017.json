@@ -1111,58 +1111,7 @@
     ],
     "recent_news": []
   },
-  "news": [
-    {
-      "chunk_id": "news:fc5ae1a97fba40c7dd63",
-      "source_type": "news",
-      "source_id": "fc5ae1a97fba40c7dd63",
-      "content": "가리봉2구역, 이달 27일 재개발 시공자 현설\n서울 구로구 가리봉2구역이 이달 27일 재개발사업 시공자 선정을 위한 현장설명회를 개최한다. 조합은... 1·7호선 가산디지털단지역이 인접한 역세권이다. 또 현대아웃렛, 마리오아웃렛 등 중심상권도 가깝다.",
-      "score": 0.48433602509783735,
-      "url": "https://www.arunews.com/news/articleView.html?idxno=66106",
-      "org": null,
-      "published_at": "2026-08-20T12:12:00"
-    },
-    {
-      "chunk_id": "news:eb8d40b68bb7e664a4a1",
-      "source_type": "news",
-      "source_id": "eb8d40b68bb7e664a4a1",
-      "content": "가리봉1구역, 영향평가·설계 용역 동시 발주···통합심의 준비 '속도...\n서울 구로구 가리봉1구역이 조합설립인가를 받은 지 약 3개월만에 교통·환경·재해·지하안전평가와 소방... 가리봉1구역은 과거 구로공단 배후 주거지로 형성됐고 다문화 상권과 노후 저층 주거지가 공존하는 지역인...",
-      "score": 0.47318119450064167,
-      "url": "https://www.sisajournal-e.com/news/articleView.html?idxno=422921",
-      "org": null,
-      "published_at": "2026-08-06T17:36:00"
-    },
-    {
-      "chunk_id": "news:820dd7a4392ff188d31e",
-      "source_type": "news",
-      "source_id": "820dd7a4392ff188d31e",
-      "content": "가리봉 옛 시장 부지 복합개발 재개…SH, 설계 용역 28일 착수\n해당 사업은 구로구가 소유한 3827㎡ 규모의 옛 시장 부지에 △공영주차장 △지역편의시설 △공공주택 등을... 사업이 본격 재개되면서 일대에서는 전통시장 주차 여건 개선과 지역 상권 활성화 등에 대한 기대도 나온다....",
-      "score": 0.46736950265715227,
-      "url": "https://www.news1.kr/realestate/general/6271417",
-      "org": null,
-      "published_at": "2026-08-27T14:08:00"
-    },
-    {
-      "chunk_id": "news:8f5218ab63e5b517b9be",
-      "source_type": "news",
-      "source_id": "8f5218ab63e5b517b9be",
-      "content": "[지금 우리 기업은] 지갑은 나중에 열어도 돼! 롯데타운이 바꾼 백화점...\n핵심 상권이다. 전통적인 쇼핑 중심지라는 명성을 넘어 글로벌 관광객과 MZ세대(1980년대 후반~2000년대 초반... 서울 송파구 석촌호수 수변무대에 세워진 빅뱅의 공식 응원봉 '뱅봉'을 모티브로 한 5m 높이의 뱅봉 크라운...",
-      "score": 0.4579794830145001,
-      "url": "http://www.updownnews.co.kr/news/articleView.html?idxno=318541",
-      "org": null,
-      "published_at": "2026-08-28T10:08:00"
-    },
-    {
-      "chunk_id": "news:899e14df502abf3d18a1",
-      "source_type": "news",
-      "source_id": "899e14df502abf3d18a1",
-      "content": "창동역 골목, '달빛야장' 선정…서울아레나 연계 상권 구축\n김동욱 도봉구청장은 \"서울아레나의 케이(K)-팝과 창동의 케이(K)-푸드가 만나 지역 전체에 활력을 불어넣을 것\"이라며 \"달빛야장을 시작으로 음악과 문화, 관광, 지역상권이 살아 숨 쉬는 음악도시 도봉을 만들겠다\"고...",
-      "score": 0.44761597315598733,
-      "url": "https://www.newsis.com/view/NISX20260918_0003795489",
-      "org": null,
-      "published_at": "2026-09-18T11:48:00"
-    }
-  ],
+  "news": [],
   "funding_candidates": [
     {
       "program_id": "PBLN_000000000126270",

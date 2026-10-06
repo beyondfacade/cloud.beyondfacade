@@ -25,8 +25,8 @@ _VERDICT = RegionIndustryVerdictDto(
             evidence="3년 생존율 41%로 서울 하위 7%입니다.", source="store",
         ),
         SignalResultDto(
-            key="shrinking", level="on", value=None, percentile=None,
-            evidence="서울시 상권변화지표가 '상권축소'입니다.", source="neighborhood",
+            key="tobacco_gap", level="on", value=0.75, percentile=80.0,
+            evidence="담배소매인 후보 자리 200곳 중 75%가 거리 제한에 막혀 있습니다.", source="tobacco",
         ),
     ),
     computed_at=datetime(2026, 9, 29, 3, 0, 0),

@@ -167,3 +167,12 @@ class QuestionBudgetPort(ABC):
     @abstractmethod
     def parse(self, question: str) -> int | None:
         """금액이 없으면 None."""
+
+
+class NewsLinksPort(ABC):
+    """Driven Port — news BC의 최근 기사 원문 링크. 네이버 검색 결과라 링크로만 보여 주고 LLM에 넣지 않는다
+    (검색 API 특약 2.2·2.3). 발췌는 싣지 않는다."""
+
+    @abstractmethod
+    def mentioning(self, name: str, limit: int) -> list[dict]:
+        """제목·발췌에 name이 나온 보관 기간(21일) 안 기사, 최신순 — {title, url, published_at(YYYY-MM-DD), press}."""

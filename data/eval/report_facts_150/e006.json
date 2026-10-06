@@ -1066,58 +1066,7 @@
     ],
     "recent_news": []
   },
-  "news": [
-    {
-      "chunk_id": "news:3e54f9c9d5b9672e444d",
-      "source_type": "news",
-      "source_id": "3e54f9c9d5b9672e444d",
-      "content": "강동구 천호3동, 고분다리전통시장서 주민·상인 합동 축제 성료\n서울 강동구(구청장 이수희) 천호3동에서 주민노래자랑과 먹거리 야시장을 한자리에서 즐기는 ‘천삼 주민... 인근에는 공영주차장이 조성돼 있으며, 상인회는 먹거리 야시장과 주민축제 등을 통해 골목상권 활성화를...",
-      "score": 0.4857420410263604,
-      "url": "https://www.siminilbo.co.kr/news/newsview.php?ncode=1160277811209146",
-      "org": null,
-      "published_at": "2026-10-02T12:28:00"
-    },
-    {
-      "chunk_id": "news:266f4166e37c5254d0a3",
-      "source_type": "news",
-      "source_id": "266f4166e37c5254d0a3",
-      "content": "애경 루나, 성수·명동 누빈다... 'NO.1 컨실러' 무빙 팝업 운영\n팝업은 29일 서울 성동구 성수 AK 밸리를 시작으로 30일 명동역 7번 출구 앞으로 장소를 옮겨 진행된다. 고정된 공간에서 운영하는 일반적인 팝업과 달리 유동인구가 많은 주요 상권을 이동하며 소비자를 직접 만나는...",
-      "score": 0.46203154099177635,
-      "url": "http://www.thefirstmedia.net/news/articleView.html?idxno=206896",
-      "org": null,
-      "published_at": "2026-08-26T16:31:00"
-    },
-    {
-      "chunk_id": "news:9b1aa9be05eb4ac9358a",
-      "source_type": "news",
-      "source_id": "9b1aa9be05eb4ac9358a",
-      "content": "\"하루 3천만원도 오케이\"…플래그십·희소성이 만든 성수동 '팝업 테스...\n\" ◆ 성수동 팝업 1일 대관료 3천만원 육박에도 기업 수요 폭발적 16일 서울 성북구 영창디지털타워에서 열린... 성수동 상권의 폭발적인 수요 배경을 이같이 진단했다. 막대한 비용에도 성수동으로 기업들이 몰리는...",
-      "score": 0.45913049578667997,
-      "url": "https://www.newspim.com/news/view/20260916001041",
-      "org": null,
-      "published_at": "2026-09-16T16:24:00"
-    },
-    {
-      "chunk_id": "news:0ee04b2e605d48e5be10",
-      "source_type": "news",
-      "source_id": "0ee04b2e605d48e5be10",
-      "content": "성수동 팝업, 물건 팔던 공간서 '놀이터'로…K팝·애니·네이버까지\n성동구의 '2026 크리에이티브×성수'는 10월 5일부터 성수동 전역에서 아트·음악·패션·뷰티·영화·웹툰과 F&B... 고승훈 성수동고릴라 대표는 팝업 상권이 여러 지역으로 확산되고 있지만 성수동은 특정 산업에 한정되지...",
-      "score": 0.454159346470814,
-      "url": "https://www.e-science.co.kr/news/articleView.html?idxno=136371",
-      "org": null,
-      "published_at": "2026-09-30T11:48:00"
-    },
-    {
-      "chunk_id": "news:c512ac2c626f04a4717e",
-      "source_type": "news",
-      "source_id": "c512ac2c626f04a4717e",
-      "content": "성수동에 뜬 '노란우산'…생일 맞아 팝업스토어 연다\n팝업스토어는 서울 성동구 연무장7길 16 성수포탈 1층에서 오는 4일부터 6일까지 매일 오전 11시부터 오후 8시까지 운영된다. 이창호 중기중앙회 공제사업단장은 “성수동은 옛 제조업 역사와 현대적인 상권 트렌드가...",
-      "score": 0.45062779754268134,
-      "url": "https://www.dailian.co.kr/news/view/1685961/?sc=Naver",
-      "org": null,
-      "published_at": "2026-09-03T12:01:00"
-    }
-  ],
+  "news": [],
   "funding_candidates": [
     {
       "program_id": "PBLN_000000000126270",

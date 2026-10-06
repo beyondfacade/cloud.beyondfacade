@@ -1132,58 +1132,7 @@
     ],
     "recent_news": []
   },
-  "news": [
-    {
-      "chunk_id": "news:2eb1aa4ba6b5438e33af",
-      "source_type": "news",
-      "source_id": "2eb1aa4ba6b5438e33af",
-      "content": "'몸 만들기' 공식 바뀌었다…달라진 여름 다이어트 풍경\n러닝 열풍에 비만약까지 유행하면서 젊은 친구들이 등록을 안 해요.\"서울 동대문구에서 10년 넘게 헬스장을... 9일 서울시 상권분석서비스에 따르면 서울 지역 체력단련시설 신규 개업은 2024년 1분기 263곳에서 올해 1분기...",
-      "score": 0.4573212589430131,
-      "url": "https://www.asiatoday.co.kr/kn/view.php?key=20260809010002712",
-      "org": null,
-      "published_at": "2026-08-09T15:10:00"
-    },
-    {
-      "chunk_id": "news:c0727e7b929b07d44e31",
-      "source_type": "news",
-      "source_id": "c0727e7b929b07d44e31",
-      "content": "현대차 GBC 설계변경 통과⋯영동대로에 2만4000㎡ '도심 숲·옥상정원'\n노원구 월계동 광운대역세권에는 지하 6층~지상 28층 규모의 공동주택과 근린생활시설이 건립된다. 주택은 공공임대 75가구와 분양주택 188가구 등 총 263가구다. 간선도로변 기존 상권과 연계하도록 근린생활시설을...",
-      "score": 0.4398832321167023,
-      "url": "https://www.etoday.co.kr/news/view/2623415",
-      "org": null,
-      "published_at": "2026-09-09T11:16:00"
-    },
-    {
-      "chunk_id": "news:117c791611c7a2463470",
-      "source_type": "news",
-      "source_id": "117c791611c7a2463470",
-      "content": "강남 한복판 단독주택…강남역·역삼역 도보 8분 풀옵션 단기임대\n부동산 단기임대 플랫폼 단단홈즈에 따르면 이 매물은 서울 강남구 테헤란로22길 65, 단독주택 2층이다.... 2호선·신분당선 환승역인 강남역과 2호선 역삼역 일대 상권과 주요 업무시설을 걸어서 이용할 수 있다....",
-      "score": 0.43758575620311957,
-      "url": "https://realty.chosun.com/site/data/html_dir/2026/09/29/2026092901764.html",
-      "org": null,
-      "published_at": "2026-09-29T10:36:00"
-    },
-    {
-      "chunk_id": "news:261af699acdf56da470f",
-      "source_type": "news",
-      "source_id": "261af699acdf56da470f",
-      "content": "안암동 고대 앞 우신향병원, 28층 복합건물 탈바꿈\n서울 성북구 안암동이 대대적인 변화를 앞두고 있다. 40년 넘게 이 곳을 지켜온 우신향병원이 역세권 활성화... 글로벌 부동산컨설팅 그룹인 쿠시먼앤드웨이크필드 코리아가 안암역 상권의 소셜 데이터를 분석한 결과...",
-      "score": 0.43685669835986074,
-      "url": "https://biz.heraldcorp.com/article/10887466?ref=naver",
-      "org": null,
-      "published_at": "2026-09-29T11:35:00"
-    },
-    {
-      "chunk_id": "news:239dc6c0aee6873bdf45",
-      "source_type": "news",
-      "source_id": "239dc6c0aee6873bdf45",
-      "content": "\"성수·잠실 지하철로 10분컷\" 올수리한 구의동 투룸 빌라\n서울 광진구 구의동에 전용면적 34㎡(약 10.5평) 투룸 단기임대 매물이 나왔다. 지하철 2호선 구의역을... 지하철을 타면 성수역과 잠실역을 10분 이내로 이동할 수 있어 강북권 주요 상권은 물론 잠실 등 강남 동부권으로...",
-      "score": 0.43646221645042504,
-      "url": "https://realty.chosun.com/site/data/html_dir/2026/09/06/2026090601382.html",
-      "org": null,
-      "published_at": "2026-09-06T16:02:00"
-    }
-  ],
+  "news": [],
   "funding_candidates": [
     {
       "program_id": "PBLN_000000000126270",

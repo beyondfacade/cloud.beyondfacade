@@ -1007,58 +1007,7 @@
     ],
     "recent_news": []
   },
-  "news": [
-    {
-      "chunk_id": "news:afa1695bf3dda39f4dd8",
-      "source_type": "news",
-      "source_id": "afa1695bf3dda39f4dd8",
-      "content": "강남·판교기업 잇단 둥지…4대 오피스 지구로 ‘끝모를 성수기’\n서울 성동구 성수동을 찾은 사람들이라면 평일이든 주말이든 긴 줄과 마주하게 된다. 이름난 맛집과 유명... 24일 한국관광공사 데이터랩에 따르면 서울지하철2호선 성수역 3번 출구에서 핵심 상권인 연무장길로...",
-      "score": 0.4722894819387822,
-      "url": "https://n.news.naver.com/mnews/article/011/0004654673?sid=101",
-      "org": null,
-      "published_at": "2026-08-24T18:08:00"
-    },
-    {
-      "chunk_id": "news:503b5f927b0c8f550122",
-      "source_type": "news",
-      "source_id": "503b5f927b0c8f550122",
-      "content": "성수·문정에 448가구 조성…국립중앙의료원은 현대화\n서울 성동구 성수동과 송파구 문정동에 448가구가 조성된다. 국립중앙의료원은 병상을 확대하고... 젠트리피케이션 방지를 위한 장기안심상가 공공기여도 완료해 지역상권과의 상생을 도모했다. 서울숲역과 주변...",
-      "score": 0.46487912745008186,
-      "url": "https://www.dailian.co.kr/news/view/1693928/?sc=Naver",
-      "org": null,
-      "published_at": "2026-09-23T10:01:00"
-    },
-    {
-      "chunk_id": "news:49a890d9aed2fe8642e4",
-      "source_type": "news",
-      "source_id": "49a890d9aed2fe8642e4",
-      "content": "LF 던스트, 성수에 두 번째 플래그십 오픈…글로벌 고객 접점 확대\n22일 LF에 따르면 던스트는 서울 성동구 연무장길에 지상 3층, 총 75평 규모의 ‘던스트 성수 서울 플래그십’... 과거 산업지역이었던 성수가 최근 패션과 디자인, 음악, 식음료(F&B) 브랜드 등이 모이는 상권으로 변화한...",
-      "score": 0.4628635231080829,
-      "url": "https://www.fntimes.com/html/view.php?ud=202609221536191301b5b890e35c_18",
-      "org": null,
-      "published_at": "2026-09-22T15:40:00"
-    },
-    {
-      "chunk_id": "news:b5f315b4c8b1bb6ecd7f",
-      "source_type": "news",
-      "source_id": "b5f315b4c8b1bb6ecd7f",
-      "content": "알스퀘어, 베리시 성수 2호점 출점 자문 수행\n상업용 부동산 종합 서비스 기업 알스퀘어는는 최근 서울 성동구 성수동에 문을 연 ‘베리시 성수 이스트’... 알스퀘어는 입지 발굴과 상권 분석, 매물 제안, 임대차 조건 협의, 계약 체결을 맡았다. 이번 프로젝트의...",
-      "score": 0.4576820084670413,
-      "url": "https://byline.network/?p=9004111222622057",
-      "org": null,
-      "published_at": "2026-10-02T08:46:00"
-    },
-    {
-      "chunk_id": "news:406feb479e93abf68748",
-      "source_type": "news",
-      "source_id": "406feb479e93abf68748",
-      "content": "잘 나가던 성수에 퍼진 경고…\"짐 싸야할 판\" 사장님들 비명 [벼랑 끝 사...\n서울 성동구 성수동에서 우려됐던 젠트리피케이션이 새로운 형태로 나타나고 있다. 과거에는 대기업이나... ◇ 늘어나는 소매점, 줄어드는 식당 통계에서도 성수 상권의 주인공이 바뀌고 있다는 점이 나타난다....",
-      "score": 0.45488611670386725,
-      "url": "https://www.hankyung.com/article/202609016018H",
-      "org": null,
-      "published_at": "2026-09-03T19:31:00"
-    }
-  ],
+  "news": [],
   "funding_candidates": [
     {
       "program_id": "PBLN_000000000126270",

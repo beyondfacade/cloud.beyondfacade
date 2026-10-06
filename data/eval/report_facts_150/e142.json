@@ -1092,58 +1092,7 @@
     ],
     "recent_news": []
   },
-  "news": [
-    {
-      "chunk_id": "news:d8518a6a77a90cbee0cd",
-      "source_type": "news",
-      "source_id": "d8518a6a77a90cbee0cd",
-      "content": "강동구의회, 2026년도 천호 즈믄마을축제 참석...주민들과 소통\n문화경제 | CNB저널 | 씨앤비저널 서울특별시 강동구의회(의장 심우열)는 지난 12일 천호공원 광장에서 열린... 특히 문구·완구 거리, 공구 거리, 자전거 거리, 로데오거리, 냉면 거리 등 천호동의 특색 있는 5개 상권을...",
-      "score": 0.499310627353713,
-      "url": "https://www.cnbizm.com/news/articleView.html?idxno=315291",
-      "org": null,
-      "published_at": "2026-09-16T09:14:00"
-    },
-    {
-      "chunk_id": "news:addb12c03a2a217bc5af",
-      "source_type": "news",
-      "source_id": "addb12c03a2a217bc5af",
-      "content": "[아파트의 미학(美學)] e편한세상 강동프레스티지원 \"빽빽한 숲 사이 반...\n서울 강동구 천호동 'e편한세상 강동프레스티지원' 주출입구./성채리 기자 서울 강동구는 강남·잠실과... 지하철 5·8호선 천호역에서 나와 북적이는 로데오거리 상권을 따라 걸으면 지난 1월 입주를 시작한 'e편한세상...",
-      "score": 0.4930528671366097,
-      "url": "http://www.metroseoul.co.kr/article/20261001500039",
-      "org": null,
-      "published_at": "2026-10-01T09:12:00"
-    },
-    {
-      "chunk_id": "news:1042ddf43a23efac769e",
-      "source_type": "news",
-      "source_id": "1042ddf43a23efac769e",
-      "content": "강동구 천호 로데오거리 일대에서 '거리에서 피는 청춘, 강동 청년 버스...\n문화경제 CNB저널 | CNB저널 | 씨앤비저널 서울 강동구(구청장 이수희)는 오는 10월 2일부터 3일까지 이틀간... 이번 행사는 지역 청년 예술인에게 공연 무대를 제공하고, 천호 로데오거리를 활성화해 지역 상권과 주민이...",
-      "score": 0.4822329229810818,
-      "url": "https://www.cnbizm.com/news/articleView.html?idxno=317022",
-      "org": null,
-      "published_at": "2026-10-02T17:14:00"
-    },
-    {
-      "chunk_id": "news:609b508b720738525bea",
-      "source_type": "news",
-      "source_id": "609b508b720738525bea",
-      "content": "레드포스PC방 신논현점, SBS ‘모닝와이드’ 소개…복합형 PC방 운영 확...\n서울 강남구 신논현역 인근에 위치한 신논현점은 약 200평 규모로 조성됐으며, e스포츠 경기석과 관중석을... 앞서 일부 매장에서는 셰프와 협업한 메뉴를 선보이고 대학가 등 상권별 이용자 특성을 반영한 공간 설계를...",
-      "score": 0.4798635386363346,
-      "url": "https://www.gosiweek.com/article/1065599079170783",
-      "org": null,
-      "published_at": "2026-09-18T16:48:00"
-    },
-    {
-      "chunk_id": "news:dbd39eff360859f1c121",
-      "source_type": "news",
-      "source_id": "dbd39eff360859f1c121",
-      "content": "명동 한복판 ‘애플 스토어 빌딩’ 페블스톤이 품는다\n하이드파크 명동은 서울 중구 남대문로 84에 있는 지하 3층~지상 19층, 연면적 약 2만6700㎡ 규모의 복합시설이다. 서울 지하철 2호선 을지로입구역과 명동 핵심 상권을 동시에 끼고 있는 자산이다. 저층부에는 애플의...",
-      "score": 0.4766070176980164,
-      "url": "https://www.hankyung.com/article/202609184423r",
-      "org": null,
-      "published_at": "2026-09-18T18:01:00"
-    }
-  ],
+  "news": [],
   "funding_candidates": [
     {
       "program_id": "PBLN_000000000126270",

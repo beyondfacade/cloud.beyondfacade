@@ -996,58 +996,7 @@
     ],
     "recent_news": []
   },
-  "news": [
-    {
-      "chunk_id": "news:d83a777428dfd10c94ae",
-      "source_type": "news",
-      "source_id": "d83a777428dfd10c94ae",
-      "content": "25년 한식 연구 담았다...윤스푸드랩, 쿠킹클래스·전통 디저트로 한식...\n중구청과 중구 상권발전소가 추진하는 행사에도 참여해 한식과 한식 디저트를 알리는 활동을 펼치고 있다. 한식 도시락과 단체 주문도 향후 확대할 분야다. 도시락은 반찬 가짓수보다 영양 균형과 신선한 식재료에 초점을...",
-      "score": 0.5045003278850336,
-      "url": "https://www.womentimes.co.kr/news/articleView.html?idxno=106472",
-      "org": null,
-      "published_at": "2026-09-23T14:46:00"
-    },
-    {
-      "chunk_id": "news:4083f1321227d1f9c023",
-      "source_type": "news",
-      "source_id": "4083f1321227d1f9c023",
-      "content": "한식의 가치를 잇는 마곡 '윤스푸드랩'...﻿K-식문화를 전하다\n최근에는 중구청과 중구 상권발전소가 추진하는 행사에 참여해 한식과 한식 디저트를 알리는 프로그램에도 함께하고 있다. 지역의 역사적 자원과 한식 문화를 연결하는 행사에서 한식 디저트 분야를 담당하며 새로운...",
-      "score": 0.4961915907974431,
-      "url": "https://www.getnews.co.kr/news/articleView.html?idxno=882134",
-      "org": null,
-      "published_at": "2026-09-29T20:36:00"
-    },
-    {
-      "chunk_id": "news:14eb64f2f9d14e828456",
-      "source_type": "news",
-      "source_id": "14eb64f2f9d14e828456",
-      "content": "소진공·하나금융·소공연, ‘2판 9990원짜리 계란’ 동네슈퍼 공급\n소상공인시장진흥공단은 지난 4일 서울 중구 하나금융그룹 명동사옥에서 인태연 소진공 이사장, 함영주... 협약을 통해 골목상권의 소상공인과 소비자 모두가 만족하는 풍성한 한가위가 되기를 기대한다”고 밝혔다.",
-      "score": 0.4754444302188836,
-      "url": "https://www.khan.co.kr/article/202609061057001",
-      "org": null,
-      "published_at": "2026-09-06T10:57:00"
-    },
-    {
-      "chunk_id": "news:519ee006f8146c8bfef3",
-      "source_type": "news",
-      "source_id": "519ee006f8146c8bfef3",
-      "content": "계란 2판에 9990원…소진공, 추석 장바구니 물가 잡는다\n소상공인시장진흥공단은 최근 서울 중구 하나금융그룹 명동사옥에서 하나금융그룹, 소상공인연합회와... 골목상권 매출 확대를 위한 사업을 이어가고 있다. 인태연 소진공 이사장은 \"the착한계란은 소진공의 기획력을...",
-      "score": 0.42445979144106616,
-      "url": "https://www.daejonilbo.com/news/articleView.html?idxno=2298901",
-      "org": null,
-      "published_at": "2026-09-06T11:47:00"
-    },
-    {
-      "chunk_id": "news:20431bcef7907043c1e5",
-      "source_type": "news",
-      "source_id": "20431bcef7907043c1e5",
-      "content": "배민, '한강 드론라이트쇼'에서 떡볶이·호떡 2000인분 쏜다\n뚝섬한강공원과 인접한 서울 광진구 자양동 일대에서 민트스타에 선정된 음식점 20곳을 소개해 관람객의 지역 상권 방문을 유도한다. 무료 먹거리도 제공한다. 뚝섬한강공원 메인 구역에서 푸드트럭 2대를 운영하고...",
-      "score": 0.41908206002437665,
-      "url": "https://www.ngetnews.com/news/articleView.html?idxno=553234",
-      "org": null,
-      "published_at": "2026-09-10T12:22:00"
-    }
-  ],
+  "news": [],
   "funding_candidates": [
     {
       "program_id": "PBLN_000000000126270",

@@ -1134,58 +1134,7 @@
     ],
     "recent_news": []
   },
-  "news": [
-    {
-      "chunk_id": "news:8119f864ef35f25f6d73",
-      "source_type": "news",
-      "source_id": "8119f864ef35f25f6d73",
-      "content": "PVCS, 한남서 '도산'으로 쇼룸 이전… 쇼핑·휴식 함께 즐긴다\n피브이씨에스(대표 백종민)의 패션 브랜드 'PVCS'가 기존 한남 쇼룸을 서울 강남구 도산공원 인근으로... 패션 상권 중 하나다. PVCS는 이번 도산 스토어 통해 브랜드의 제품과 공간, 카페를 하나의 흐름 안에서 경험할 수...",
-      "score": 0.4436925552991118,
-      "url": "https://www.fashionbiz.co.kr/article/229217",
-      "org": null,
-      "published_at": "2026-09-04T10:16:00"
-    },
-    {
-      "chunk_id": "news:d8d6550f58a8b9a2652b",
-      "source_type": "news",
-      "source_id": "d8d6550f58a8b9a2652b",
-      "content": "금천구, 독산동우시장 상생센터 '그린푸줏간' 내달 1일 시범운영\n서울 금천구가 독산동우시장 일대 환경 개선과 상권 활성화를 위해 조성한 ‘그린푸줏간’의 시범운영을 시작한다. 구는 6월 1일부터 독산동 범안로19길 11에 위치한 독산동우시장 상생센터 ‘그린푸줏간’ 운영에...",
-      "score": 0.43112361894900375,
-      "url": "https://view.asiae.co.kr/article/2026053109235416660",
-      "org": null,
-      "published_at": "2026-05-31T09:23:00"
-    },
-    {
-      "chunk_id": "news:398ff5754165b4a73971",
-      "source_type": "news",
-      "source_id": "398ff5754165b4a73971",
-      "content": "[뉴스락 특별기획] 대형 건설사 새 먹거리 된 데이터센터, 그 이면의 갈...\n지난 4월 서울 금천구 독산동에서는 4.98MW급 소형 엣지데이터센터가 건축허가를 받았으나, 전자파·소음... 경기 고양시 일산동구 문봉·식사동에서도 전자파와 소음, 지역 상권 영향을 우려한 주민 400여명이 반대...",
-      "score": 0.426959659275989,
-      "url": "http://www.newslock.co.kr/news/articleView.html?idxno=136078",
-      "org": null,
-      "published_at": "2026-09-12T08:02:00"
-    },
-    {
-      "chunk_id": "news:ef231cdacca49b2d07c3",
-      "source_type": "news",
-      "source_id": "ef231cdacca49b2d07c3",
-      "content": "금천구, 추석연휴 학교 주차장과 민간시설, 공영주차장(노상) 등 무료 개...\n금천구시설관리공단은 독산동 우시장 상생센터 그린푸줏간을 지역주민의 생활편의화 복지증진, 독산동 우시장 및 인근 상권 활성화에 기여하는 지역 상생공간으로 운여하고 있다. 그린푸줏간에는 총 83면의...",
-      "score": 0.4177004642187351,
-      "url": "https://www.cnbizm.com/news/articleView.html?idxno=316183",
-      "org": null,
-      "published_at": "2026-09-23T12:04:00"
-    },
-    {
-      "chunk_id": "news:85623ad971e142fe1557",
-      "source_type": "news",
-      "source_id": "85623ad971e142fe1557",
-      "content": "울산 도시재생 71곳 새판 짠다…다운·방어동 정비 본격화\n중구 다운동 지역특화재생사업은 중구 태화동 727-19번지 일원 14만 7,787㎡를 대상으로 추진된다.... 및 상권 활성화를 위한 근거지와 마음치유센터 조성, 지역 거리 및 마을 만들기, 위스테이 조성 및 운영지원사업...",
-      "score": 0.41324708899890616,
-      "url": "https://www.iusm.co.kr/news/articleView.html?idxno=1067570",
-      "org": null,
-      "published_at": "2026-09-07T19:30:00"
-    }
-  ],
+  "news": [],
   "funding_candidates": [
     {
       "program_id": "PBLN_000000000126270",

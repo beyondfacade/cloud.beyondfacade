@@ -995,58 +995,7 @@
     ],
     "recent_news": []
   },
-  "news": [
-    {
-      "chunk_id": "news:a3046230515c3ea77ba1",
-      "source_type": "news",
-      "source_id": "a3046230515c3ea77ba1",
-      "content": "24시간 복합 상권 ‘힙지로’…도시 상권의 대표주자\n[상권 분석] 을지로3가역 인근은 낮에는 업무 공간이지만, 밤만 되면 야간 방문 수요가 몰리는 복합 상권으로 변모한다. 어느새 점심 직장인까지 섭렵하고 있다. 힙지로를 지하철 2·3호선 을지로3가역을 중심으로...",
-      "score": 0.4832997918129276,
-      "url": "https://magazine.hankyung.com/money/article/202608127739c",
-      "org": null,
-      "published_at": "2026-09-21T06:02:00"
-    },
-    {
-      "chunk_id": "news:906bcdbd4638637fd197",
-      "source_type": "news",
-      "source_id": "906bcdbd4638637fd197",
-      "content": "을지로·명동 출퇴근 5분 …풀옵션 투룸 최소 4주부터 단기 계약\n서울 중구 을지로 일대에 방과 거실이 분리된 전용 33㎡(약 10평) 규모의 아파트형 단기임대 매물이 나왔다.... 을지로와 충무로 상권이 가깝고 명동, 청계천, 동대문역사문화공원 등으로도 이동하기 편리하다. 건물...",
-      "score": 0.48153513339790877,
-      "url": "https://realty.chosun.com/site/data/html_dir/2026/08/26/2026082602719.html",
-      "org": null,
-      "published_at": "2026-08-26T17:44:00"
-    },
-    {
-      "chunk_id": "news:1ee470a3422a39787b24",
-      "source_type": "news",
-      "source_id": "1ee470a3422a39787b24",
-      "content": "제이지루나, 한식주점 ‘삐딱’ 을지로 직영점 개점…전국 7호점 달성\n신규 입점한 을지로 직영점은 유동 인구와 상업 시설이 밀집한 서울 중구 핵심 상권에 자리 잡았다. 회사 측은 인근 직장인 회식과 청년층 모임 수요를 흡수해 매장 인지도를 높일 계획이다. ㈜제이지루나는 을지로점...",
-      "score": 0.4777929782867737,
-      "url": "http://www.segyebiz.com/newsView/20260917511713?OutUrl=naver",
-      "org": null,
-      "published_at": "2026-09-17T14:14:00"
-    },
-    {
-      "chunk_id": "news:8d917de5ae628a731f30",
-      "source_type": "news",
-      "source_id": "8d917de5ae628a731f30",
-      "content": "“바리스타 로봇으로 인력 부담 절감” 라운지엑스, 24시간 상업 공간 ...\n유동인구가 밀집한 역세권에는 스탠다드형을, 대형 오피스 빌딩 및 핵심 상권에는 베이커리형을 각각 배치하는 전략을 채택했다. 서울 중구 을지로 소재 신한엘타워 1층에 있는 '라운지엑스 을지돌담길점'이 대표적이다....",
-      "score": 0.4545737667694584,
-      "url": "https://www.hellot.net/news/article.html?no=114902",
-      "org": null,
-      "published_at": "2026-09-11T13:18:00"
-    },
-    {
-      "chunk_id": "news:12243ce68afa7185b5d1",
-      "source_type": "news",
-      "source_id": "12243ce68afa7185b5d1",
-      "content": "이도에스테이트, 英 라이트룸과 MOU 체결…을지로 엑스원 기대감 ↑\n특히 문화시설이 건물과 주변 상권의 접점을 넓혀, 향후 을지로의 랜드마크가 될 원엑스의 집객력과 공간... 라이트룸 도입을 추진 중인 원엑스는 서울 중구 입정동 237번지 일대에 지하 7층~지상 33층, 연면적 약 17만2100...",
-      "score": 0.4447515210065056,
-      "url": "https://www.1conomynews.co.kr/news/articleView.html?idxno=50391",
-      "org": null,
-      "published_at": "2026-09-14T13:58:00"
-    }
-  ],
+  "news": [],
   "funding_candidates": [
     {
       "program_id": "PBLN_000000000126270",

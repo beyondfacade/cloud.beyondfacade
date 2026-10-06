@@ -1003,58 +1003,7 @@
     ],
     "recent_news": []
   },
-  "news": [
-    {
-      "chunk_id": "news:2c8e1fbf5b2e96515069",
-      "source_type": "news",
-      "source_id": "2c8e1fbf5b2e96515069",
-      "content": "삼겹살도 감자탕도 ‘전통음식’이 아니었다\n시장 골목이나 기사식당, 노동자들이 몰리는 상권에서 비슷한 재료와 조리도구를 쓰던 여러 식당이 서로... 그는 서울 중구 소파로 23번지에 있는 ‘남산돈가... https://weekly.khan.co.kr/article/202105171507401",
-      "score": 0.42846104076274394,
-      "url": "https://weekly.khan.co.kr/article/202609250600031",
-      "org": null,
-      "published_at": "2026-09-25T06:00:00"
-    },
-    {
-      "chunk_id": "news:1f7e3e058b549b5d705d",
-      "source_type": "news",
-      "source_id": "1f7e3e058b549b5d705d",
-      "content": "탕화쿵푸마라탕, 홍제역점 신규 오픈\n국내 마라탕 프랜차이즈 탕화쿵푸마라탕이 서울 서대문구 홍제동 일대에 홍제역점을 새롭게 오픈했다.... 해당 입지는 대단지 아파트 및 빌라 밀집 주거 타운과 다수의 학군이 맞물려 있는 복합 상권으로 분류된다. 매장...",
-      "score": 0.4247215390205654,
-      "url": "https://www.gukjenews.com/news/articleView.html?idxno=3677009",
-      "org": null,
-      "published_at": "2026-08-27T17:40:00"
-    },
-    {
-      "chunk_id": "news:d83a777428dfd10c94ae",
-      "source_type": "news",
-      "source_id": "d83a777428dfd10c94ae",
-      "content": "25년 한식 연구 담았다...윤스푸드랩, 쿠킹클래스·전통 디저트로 한식...\n중구청과 중구 상권발전소가 추진하는 행사에도 참여해 한식과 한식 디저트를 알리는 활동을 펼치고 있다. 한식 도시락과 단체 주문도 향후 확대할 분야다. 도시락은 반찬 가짓수보다 영양 균형과 신선한 식재료에 초점을...",
-      "score": 0.4192850589752466,
-      "url": "https://www.womentimes.co.kr/news/articleView.html?idxno=106472",
-      "org": null,
-      "published_at": "2026-09-23T14:46:00"
-    },
-    {
-      "chunk_id": "news:a285f343cc768731bb37",
-      "source_type": "news",
-      "source_id": "a285f343cc768731bb37",
-      "content": "\"냉수육 먹고, 한복 런웨이 본다\"…서울 전통시장 23곳 '가을밤 축제'\n강북구 수유전통시장은 다음 달 3일 처음으로 '수유미식회'를 열고 카테고리별로 3곳 이상의 점포를 이용해... 골목상권으로 이어지도록 한다는 계획이다. 시장별 행사 일정과 프로그램은 서울시 홈페이지에서 확인할 수...",
-      "score": 0.4173524379730491,
-      "url": "https://www.news1.kr/local/seoul/6304060",
-      "org": null,
-      "published_at": "2026-09-29T11:15:00"
-    },
-    {
-      "chunk_id": "news:ce9c6817acfdc6472e51",
-      "source_type": "news",
-      "source_id": "ce9c6817acfdc6472e51",
-      "content": "[강동완의 탐방] 종로계림닭도리탕원조 가산디지털단지점, 오피스 상권...\n서울 금천구 가산디지털단지 일대에 위치한 종로계림닭도리탕원조 가산디지털단지점이 직장인 중심 상권에 맞춘 메뉴 구성과 운영 방식으로 영업을 이어가고 있다. 가산더스카이밸리 1차 2층에 자리한 해당 매장은...",
-      "score": 0.4157046029391833,
-      "url": "https://www.shinailbo.co.kr/news/articleView.html?idxno=5026604",
-      "org": null,
-      "published_at": "2026-06-03T16:10:00"
-    }
-  ],
+  "news": [],
   "funding_candidates": [
     {
       "program_id": "PBLN_000000000126270",

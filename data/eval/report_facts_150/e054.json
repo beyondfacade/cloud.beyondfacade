@@ -1005,58 +1005,7 @@
     ],
     "recent_news": []
   },
-  "news": [
-    {
-      "chunk_id": "news:448b8bb0eb350d7f030a",
-      "source_type": "news",
-      "source_id": "448b8bb0eb350d7f030a",
-      "content": "샘표, 이천 아트팩토리 프로젝트→현대그린푸드, 삼성동 이탈리 특화 매...\n식품업계에서 생산 현장에 공공미술을 접목하고 상권 맞춤형 외식 공간을 확장하며 일상과 식문화의... 사진=현대그린푸드 현대그린푸드는 28일 서울 강남구 삼성동 현대백화점 무역센터점 10층에 이탈리의 다이닝...",
-      "score": 0.48089625453756213,
-      "url": "https://www.slist.kr/news/articleView.html?idxno=761740",
-      "org": null,
-      "published_at": "2026-08-27T11:24:00"
-    },
-    {
-      "chunk_id": "news:a0b6c111b24848470cff",
-      "source_type": "news",
-      "source_id": "a0b6c111b24848470cff",
-      "content": "현대그린푸드, 삼성동 직장인·기업 모임 겨냥한 '이탈리' 연다\n프라이빗룸과 숯불 요리, 기업용 선물 상품을 강화해 상권 맞춤형 외식 매장으로 운영한다는 전략이다. 현대그린푸드는 오는 28일 서울 강남구 삼성동 현대백화점 무역센터점 10층에 이탈리 다이닝 특화 매장을 연다고...",
-      "score": 0.47842485869982243,
-      "url": "https://www.newsquest.co.kr/news/articleView.html?idxno=272412",
-      "org": null,
-      "published_at": "2026-08-27T10:08:00"
-    },
-    {
-      "chunk_id": "news:78a362bea89e47b91920",
-      "source_type": "news",
-      "source_id": "78a362bea89e47b91920",
-      "content": "현대그린푸드, 현대百 무역센터점에 '다이닝 특화' 이탈리 매장 연다\n현대그린푸드(453340)는 이달 28일 서울 강남구 삼성동 현대백화점 무역센터점 10층에 이탈리 매장을 연다고... 강남 상권의 다이닝 수요를 겨냥해 기존 매장보다 레스토랑 기능을 강화한 것이 특징이다. 특히 스페인산...",
-      "score": 0.4724790021902343,
-      "url": "https://www.news1.kr/industry/distribution/6270906",
-      "org": null,
-      "published_at": "2026-08-27T09:12:00"
-    },
-    {
-      "chunk_id": "news:ce0b427fabe23d73180b",
-      "source_type": "news",
-      "source_id": "ce0b427fabe23d73180b",
-      "content": "서금원·우리은행·선한영향력가게, 영세자영업자 성장 돕는 '인정가게...\n서울 마포구 소재 중식당 '연화식탁'에서 '인정가게' 현판식을 개최했다\"고 8일 밝혔다. '인정가게'는... 연화식탁은 홍익대학교 상권 인근에서 청년 자영업자가 운영하는 중식당으로 올해 5월 문을 열었다. 10개 남짓한...",
-      "score": 0.45845538377773565,
-      "url": "http://www.enewstoday.co.kr/news/articleView.html?idxno=2467958",
-      "org": null,
-      "published_at": "2026-09-08T10:55:00"
-    },
-    {
-      "chunk_id": "news:cde51dcbb24345be6460",
-      "source_type": "news",
-      "source_id": "cde51dcbb24345be6460",
-      "content": "강남 현대백화점에 최고급 다이닝 '이탈리' 오픈...\"전세계 70번째 매장...\n현대백화점그룹 계열 종합식품기업 현대그린푸드는 서울 강남구 삼성동 현대백화점 무역센터점 10층에... 선보이는 상권 맞춤형 매장\"이라며 \"앞으로도 외식 트렌드를 선도하는 동시에, 상권에 최적화한 특화...",
-      "score": 0.45786643781672676,
-      "url": "https://www.mt.co.kr/living/2026/08/27/2026082709084520482",
-      "org": null,
-      "published_at": "2026-08-27T09:33:00"
-    }
-  ],
+  "news": [],
   "funding_candidates": [
     {
       "program_id": "PBLN_000000000126270",

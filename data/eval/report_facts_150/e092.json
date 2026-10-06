@@ -965,58 +965,7 @@
     ],
     "recent_news": []
   },
-  "news": [
-    {
-      "chunk_id": "news:939b5d8c31324c94d576",
-      "source_type": "news",
-      "source_id": "939b5d8c31324c94d576",
-      "content": "스크랩북 '미식 여권' 새로 제작...영등포구, 미식 경험 기록하며 즐기...\n문화경제 | CNB저널 | 씨앤비저널 서울 영등포구(구청장 조유진)가 영등포의 주요 상권을 중심으로 관광객이 직접 미식 경험을 기록하며 즐기는 '로컬 미식 스탬프 투어'를 운영한다. '로컬 미식 스탬프 투어'는 해외여행 시...",
-      "score": 0.5400714004082332,
-      "url": "https://www.cnbizm.com/news/articleView.html?idxno=314993",
-      "org": null,
-      "published_at": "2026-09-14T13:34:00"
-    },
-    {
-      "chunk_id": "news:3b9c1c8aed6b515742da",
-      "source_type": "news",
-      "source_id": "3b9c1c8aed6b515742da",
-      "content": "“숨은 맛집 찾으세요” 영등포구, 미식 여권 발행\n서을 영등포구(구청장 조유진)가 영등포의 주요 상권을 중심으로 관광객이 직접 미식 경험을 기록하며 즐기는 ‘로컬 미식 스탬프 투어’를 운영한다고 14읿 밝혔다. ‘로컬 미식 스탬프 투어’는 해외여행 시 여권에...",
-      "score": 0.5216893735406933,
-      "url": "https://biz.heraldcorp.com/article/10872771?ref=naver",
-      "org": null,
-      "published_at": "2026-09-14T14:32:00"
-    },
-    {
-      "chunk_id": "news:d17c2a1ae7a7b5277c44",
-      "source_type": "news",
-      "source_id": "d17c2a1ae7a7b5277c44",
-      "content": "[14일 서울 영등포구] 17일 '북페스타:오늘만 북클럽' 개최 등\n'로컬 미식 스탬프 투어' 운영 서울 영등포구가 구의 주요 상권을 중심으로 관광객이 직접 미식 경험을 기록하며 즐기는 ‘로컬 미식 스탬프 투어’를 운영한다. ‘로컬 미식 스탬프 투어’는 해외여행 시 여권에 도장을...",
-      "score": 0.5190199130893157,
-      "url": "https://www.asiatime.co.kr/article/20260914500147",
-      "org": null,
-      "published_at": "2026-09-14T11:06:00"
-    },
-    {
-      "chunk_id": "news:e99c1ab0e12d06dfd353",
-      "source_type": "news",
-      "source_id": "e99c1ab0e12d06dfd353",
-      "content": "영등포구, '제31회 구민의 날' 맞아 축제·할인 혜택 풍성\n서울 영등포구가 '제31회 영등포 구민의 날'을 맞아 주민들이 함께 즐길 수 있는 기념행사와 생활 밀착형... 지역 상권과 연계한 혜택도 제공한다. 14일부터 30일까지 관내 일반음식점 19곳에서 이용료 할인 또는 추가...",
-      "score": 0.5180542425980137,
-      "url": "https://www.job-post.co.kr/news/articleView.html?idxno=227081",
-      "org": null,
-      "published_at": "2026-09-11T11:08:00"
-    },
-    {
-      "chunk_id": "news:d83a777428dfd10c94ae",
-      "source_type": "news",
-      "source_id": "d83a777428dfd10c94ae",
-      "content": "25년 한식 연구 담았다...윤스푸드랩, 쿠킹클래스·전통 디저트로 한식...\n중구청과 중구 상권발전소가 추진하는 행사에도 참여해 한식과 한식 디저트를 알리는 활동을 펼치고 있다. 한식 도시락과 단체 주문도 향후 확대할 분야다. 도시락은 반찬 가짓수보다 영양 균형과 신선한 식재료에 초점을...",
-      "score": 0.5083855673577449,
-      "url": "https://www.womentimes.co.kr/news/articleView.html?idxno=106472",
-      "org": null,
-      "published_at": "2026-09-23T14:46:00"
-    }
-  ],
+  "news": [],
   "funding_candidates": [
     {
       "program_id": "PBLN_000000000126270",

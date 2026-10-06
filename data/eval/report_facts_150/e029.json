@@ -1007,58 +1007,7 @@
     ],
     "recent_news": []
   },
-  "news": [
-    {
-      "chunk_id": "news:7b308625823cce5e264a",
-      "source_type": "news",
-      "source_id": "7b308625823cce5e264a",
-      "content": "도봉구 창4동, 추석 앞두고 어르신과 전통시장 장보기…지역상권에 온기...\n서울 도봉구 창4동이 추석을 앞두고 취약계층 어르신들의 명절 준비를 돕는 동시에 지역 전통시장에 활력을... 지역 상권 활성화에도 힘을 보태자는 취지다. 지원 대상 가운데 어르신 20명은 지역사회보장협의체 위원들과...",
-      "score": 0.45491168733200427,
-      "url": "https://www.job-post.co.kr/news/articleView.html?idxno=227333",
-      "org": null,
-      "published_at": "2026-09-14T11:42:00"
-    },
-    {
-      "chunk_id": "news:7141acd55a80b2e03e24",
-      "source_type": "news",
-      "source_id": "7141acd55a80b2e03e24",
-      "content": "잠원동 신반포4차, 7부 능선 넘어\n서초구 잠원동 신반포4차 아파트 재건축 사업은 이번 통합심의에서 조건부 의결을 받았다. 이 사업은 기존... 쇠퇴한 상권과 노후 주거지를 정비하는 이번 사업은 도심 주거 기능을 회복하고 일대 환경을 정비하는 데...",
-      "score": 0.4516939348079958,
-      "url": "https://www.dnews.co.kr/uhtml/view.jsp?idxno=202608212211145850901",
-      "org": null,
-      "published_at": "2026-08-21T22:20:00"
-    },
-    {
-      "chunk_id": "news:bbdb59aed94fd02aed1e",
-      "source_type": "news",
-      "source_id": "bbdb59aed94fd02aed1e",
-      "content": "칼국수부터 닭강정까지...15일 '생방송 투데이' 양천구 맛집은\n특히 주거 지역과 상권이 자연스럽게 어우러진 동네에서는 꾸준한 입소문을 바탕으로 손님들의 발길을 붙잡는 곳을 어렵지 않게 만날 수 있다. 이날 SBS '생방송 투데이'에서는 서울 양천구 신정동의 다양한 먹거리들이...",
-      "score": 0.4460040242700878,
-      "url": "https://www.wikitree.co.kr/articles/1159719",
-      "org": null,
-      "published_at": "2026-09-15T17:24:00"
-    },
-    {
-      "chunk_id": "news:5f0a1059f95988103f82",
-      "source_type": "news",
-      "source_id": "5f0a1059f95988103f82",
-      "content": "양천구, 신정재정비촉진지구 재정비촉진계획 개편…“용적률 체계 개편...\n서울 양천구(구청장 이기재)가 서울 지하철 2호선 신정네거리역 일대의 개발 여건을 대폭 개선하며 신정권... 개선, 상권 활성화가 함께 이뤄질 수 있도록 뒷받침할 방침이다. 이 구청장은 “신월·신정권의 주요 거점이...",
-      "score": 0.4440846707871746,
-      "url": "https://www.munhwa.com/article/11617614?ref=naver",
-      "org": null,
-      "published_at": "2026-09-17T07:03:00"
-    },
-    {
-      "chunk_id": "news:20567411a1fcfedc5707",
-      "source_type": "news",
-      "source_id": "20567411a1fcfedc5707",
-      "content": "도봉구 창4동, 한국마사회 공모사업 선정…취약계층 맞춤 복지사업 본격...\n서울 도봉구 창4동이 한국마사회 도봉지사의 공모사업 지원을 통해 취약계층을 위한 맞춤형 복지사업을... 지역 상권 활성화를 동시에 추진한다. 창4동은 이번 사업을 계기로 민간기관과의 협력을 더욱 확대하고 지역사회...",
-      "score": 0.44372220801809803,
-      "url": "https://www.job-post.co.kr/news/articleView.html?idxno=223260",
-      "org": null,
-      "published_at": "2026-08-06T10:54:00"
-    }
-  ],
+  "news": [],
   "funding_candidates": [
     {
       "program_id": "PBLN_000000000126270",

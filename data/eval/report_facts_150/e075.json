@@ -991,58 +991,7 @@
     ],
     "recent_news": []
   },
-  "news": [
-    {
-      "chunk_id": "news:f9967bd2efffd63431ef",
-      "source_type": "news",
-      "source_id": "f9967bd2efffd63431ef",
-      "content": "[대구 속 동네이야기] 중구 대봉2동, 주거환경 달라지자 '젊음이 돌아왔...\n대구 중구 대봉2동 일원에 형성된 봉리단길 맛거리 진입로. 김수정기자 지역 상권에도 변화가 시작됐다. 지난달 20일에는 대봉1, 2동과 맞닿은 '봉리단길 맛거리' 일대가 골목형 상점가로 지정됐다. 지정 면적은 3천902㎡로...",
-      "score": 0.49023362295653883,
-      "url": "https://www.idaegu.co.kr/news/articleView.html?idxno=557308",
-      "org": null,
-      "published_at": "2026-08-23T21:04:00"
-    },
-    {
-      "chunk_id": "news:1407104feca5412a9bec",
-      "source_type": "news",
-      "source_id": "1407104feca5412a9bec",
-      "content": "외국인이 바꾼 라면 지도…신라면골드·툼바 서울 중구서 1·2위\n이 같은 결과의 배경에는 중구가 가진 독보적인 상권 특성이 있다. 중구는 명동, 남대문시장, 동대문... 7%)에서는 짜파게티가 1위에 올랐으며, 2030세대 비중이 높은 성북·용산·성동·광진구에서도 모디슈머(조합 소비)...",
-      "score": 0.4866748478091022,
-      "url": "http://www.smedaily.co.kr/news/articleView.html?idxno=361019",
-      "org": null,
-      "published_at": "2026-07-29T15:10:00"
-    },
-    {
-      "chunk_id": "news:c9c74588f6f088b12460",
-      "source_type": "news",
-      "source_id": "c9c74588f6f088b12460",
-      "content": "대전 중구, 야간 행사 '대흥야장' 성료\n지역 상인과 주민들도 행사에 참여해 상권에 활력을 더했다. 중구는 이번 행사를 통해 대흥동이 먹거리 중심 상권을 넘어 음식과 문화, 지역 주민과 방문객이 함께 어우러지는 야간 공간으로 발전할 가능성을 확인했다고...",
-      "score": 0.47287282740863945,
-      "url": "http://www.chungnamilbo.co.kr/news/articleView.html?idxno=909454",
-      "org": null,
-      "published_at": "2026-09-14T13:00:00"
-    },
-    {
-      "chunk_id": "news:4cbc01deb56d889ee7ca",
-      "source_type": "news",
-      "source_id": "4cbc01deb56d889ee7ca",
-      "content": "중구, 충무로 골목형상점가 상인회 주관으로 '제4회 충무로 인쇄문화거...\n문화경제 | CNB저널 | 씨앤비저널 서울 중구는 오는 27일과 28일 이틀간 오후 4시부터 오후 9시까지 충무로2길... 골목형상점가는 외식업·서비스업 등 다양한 업종의 소상공인이 모여 있는 골목상권을 제도적으로 인정하고...",
-      "score": 0.47202174855072787,
-      "url": "https://www.cnbizm.com/news/articleView.html?idxno=312503",
-      "org": null,
-      "published_at": "2026-08-24T16:40:00"
-    },
-    {
-      "chunk_id": "news:d83a777428dfd10c94ae",
-      "source_type": "news",
-      "source_id": "d83a777428dfd10c94ae",
-      "content": "25년 한식 연구 담았다...윤스푸드랩, 쿠킹클래스·전통 디저트로 한식...\n중구청과 중구 상권발전소가 추진하는 행사에도 참여해 한식과 한식 디저트를 알리는 활동을 펼치고 있다. 한식 도시락과 단체 주문도 향후 확대할 분야다. 도시락은 반찬 가짓수보다 영양 균형과 신선한 식재료에 초점을...",
-      "score": 0.46753056482769906,
-      "url": "https://www.womentimes.co.kr/news/articleView.html?idxno=106472",
-      "org": null,
-      "published_at": "2026-09-23T14:46:00"
-    }
-  ],
+  "news": [],
   "funding_candidates": [
     {
       "program_id": "PBLN_000000000126270",

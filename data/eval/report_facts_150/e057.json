@@ -1112,58 +1112,7 @@
     ],
     "recent_news": []
   },
-  "news": [
-    {
-      "chunk_id": "news:f4c09fcdea67033120cd",
-      "source_type": "news",
-      "source_id": "f4c09fcdea67033120cd",
-      "content": "구로구, 구민과 함께 하는 민선 9기 구청장 취임식\n구민 대표가 직접 프로그램 참여 서울 구로구(구청장 장인홍)가 다음 달 1일 오후 5시 구로구민회관... 골목상권에 힘이 되는 구로, 누구도 소외되지 않는 포용의 구로 등 민선 9기 구정에 대한 구민의 기대가 담긴다....",
-      "score": 0.46777011742266494,
-      "url": "https://news.tf.co.kr/read/life/2337360.htm",
-      "org": null,
-      "published_at": "2026-06-29T11:13:00"
-    },
-    {
-      "chunk_id": "news:9f93c0eeea415d1dadcc",
-      "source_type": "news",
-      "source_id": "9f93c0eeea415d1dadcc",
-      "content": "구로구, 민선9기 첫날 민생 현장서 출발…장인홍 구청장 \"구민이 체감하...\n골목상권 활성화 방안을 논의했다. 장인홍 구로구청장이 1일 관내 경로당을 방문해 어르신들과 인사를 나누고 있다. [구로구 제공] 이어 본격적인 민생 현장소통에 나섰다. 장 구청장은 덕의경로당과 구로2동...",
-      "score": 0.4617726412754757,
-      "url": "https://www.jeonmae.co.kr/news/articleView.html?idxno=1270805",
-      "org": null,
-      "published_at": "2026-07-02T10:34:00"
-    },
-    {
-      "chunk_id": "news:a1569afd9c770f3b9472",
-      "source_type": "news",
-      "source_id": "a1569afd9c770f3b9472",
-      "content": "밑반찬과 보양식 지원, 이·미용, 집수리 등...구로구, 지역 내 자원봉사...\n지역 상권의 장마철 안전을 위한 환경정화 활동도 진행 중이다. 구로구소상공인연합회 회원들로 구성된 '구소연 줍킹단'은 지난 3월부터 매월 마지막 주 화요일마다 지역 상권을 순회하며 쓰레기를 수거하고 빗물받이를...",
-      "score": 0.4561267902964563,
-      "url": "https://www.cnbizm.com/news/articleView.html?idxno=309368",
-      "org": null,
-      "published_at": "2026-07-23T09:24:00"
-    },
-    {
-      "chunk_id": "news:28132d66e8d1c3ae986b",
-      "source_type": "news",
-      "source_id": "28132d66e8d1c3ae986b",
-      "content": "구로구, 민선9기 출범··· 구민들과 소통·화합\n1일 장인홍 구청장 취임식 의전 형식 탈피 개방형 행사 ▲ 구로구청 전경. (사진=구로구청 제공)  구로구... 골목상권에 활력을 불어넣는 도시, 누구도 소외되지 않는 포용의 도시 등 민선 9기 구정에 대한 구민들의 기대를...",
-      "score": 0.45471300589627406,
-      "url": "https://www.siminilbo.co.kr/news/newsview.php?ncode=1160287829672104",
-      "org": null,
-      "published_at": "2026-06-29T16:10:00"
-    },
-    {
-      "chunk_id": "news:0fa683cffd6724e636d7",
-      "source_type": "news",
-      "source_id": "0fa683cffd6724e636d7",
-      "content": "\"취임식 주인공은 구청장이 아니라 구민\" 구로구, 민선 제9기 구로구청...\n서울 구로구(구청장 장인홍)가 오는 7월 1일 오후 5시 구로구민회관 대강당에서 민선 제9기 구로구청장... 골목상권에 힘이 되는 구로, 누구도 소외되지 않는 포용의 구로 등 민선 9기 구정에 대한 구민의 기대가 담긴다....",
-      "score": 0.45327097692778406,
-      "url": "https://www.cnbizm.com/news/articleView.html?idxno=306881",
-      "org": null,
-      "published_at": "2026-06-29T09:18:00"
-    }
-  ],
+  "news": [],
   "funding_candidates": [
     {
       "program_id": "PBLN_000000000126270",

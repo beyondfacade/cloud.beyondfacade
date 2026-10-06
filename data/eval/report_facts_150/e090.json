@@ -961,58 +961,7 @@
     ],
     "recent_news": []
   },
-  "news": [
-    {
-      "chunk_id": "news:1ffd571316bee375c565",
-      "source_type": "news",
-      "source_id": "1ffd571316bee375c565",
-      "content": "[잘먹잘살+]CJ제일제당·롯데웰푸드·하이트진로·카스·농심·hy·애슐리...\n(좌측부터)나주현 hy 서강영업소장, 김미경 서울 은평구청장, 이은정 hy 프레시 매니저, 김주경 hy 프레시... 신세계백화점 의정부점은 의정부역과 바로 연결된 복합상권으로, 가족 단위 고객은 물론 최근에는 2030세대...",
-      "score": 0.47486635892790874,
-      "url": "https://www.businessplus.kr/news/articleView.html?idxno=116337",
-      "org": null,
-      "published_at": "2026-09-03T11:32:00"
-    },
-    {
-      "chunk_id": "news:5f0a1059f95988103f82",
-      "source_type": "news",
-      "source_id": "5f0a1059f95988103f82",
-      "content": "양천구, 신정재정비촉진지구 재정비촉진계획 개편…“용적률 체계 개편...\n서울 양천구(구청장 이기재)가 서울 지하철 2호선 신정네거리역 일대의 개발 여건을 대폭 개선하며 신정권... 개선, 상권 활성화가 함께 이뤄질 수 있도록 뒷받침할 방침이다. 이 구청장은 “신월·신정권의 주요 거점이...",
-      "score": 0.45581277941545517,
-      "url": "https://www.munhwa.com/article/11617614?ref=naver",
-      "org": null,
-      "published_at": "2026-09-17T07:03:00"
-    },
-    {
-      "chunk_id": "news:a0b6c111b24848470cff",
-      "source_type": "news",
-      "source_id": "a0b6c111b24848470cff",
-      "content": "현대그린푸드, 삼성동 직장인·기업 모임 겨냥한 '이탈리' 연다\n프라이빗룸과 숯불 요리, 기업용 선물 상품을 강화해 상권 맞춤형 외식 매장으로 운영한다는 전략이다. 현대그린푸드는 오는 28일 서울 강남구 삼성동 현대백화점 무역센터점 10층에 이탈리 다이닝 특화 매장을 연다고...",
-      "score": 0.45070221726315474,
-      "url": "https://www.newsquest.co.kr/news/articleView.html?idxno=272412",
-      "org": null,
-      "published_at": "2026-08-27T10:08:00"
-    },
-    {
-      "chunk_id": "news:c757428f1b8ff0d45051",
-      "source_type": "news",
-      "source_id": "c757428f1b8ff0d45051",
-      "content": "양천구, 신정네거리역 일대 용적률 상향\n(사진=양천구청 제공)  양천구(구청장 이기재)가 신정네거리역 일대의 개발 여건을 개선하기 위해 용적률... 개선, 상권 활성화가 함께 이뤄질 수 있도록 뒷받침할 방침이다. 이기재 구청장은 “신월·신정권의 주요 거점이...",
-      "score": 0.45051178041174644,
-      "url": "https://www.siminilbo.co.kr/news/newsview.php?ncode=1160286600396814",
-      "org": null,
-      "published_at": "2026-09-17T16:06:00"
-    },
-    {
-      "chunk_id": "news:9c579bf4ad7b8e44e8d5",
-      "source_type": "news",
-      "source_id": "9c579bf4ad7b8e44e8d5",
-      "content": "롯데GRS 11번가 스타벅스 外(유통家 이모저모)\n서울시 송파구에 위치한 롯데슈퍼 신천점에서 롯데슈퍼 직원이 배달 기사에게 주문 상품을 전달하고 있는... 70대 식당주가 운영하는 한식당으로 상권 분석, 시설 개보수, 신메뉴 개발 등 맞춤형 컨설팅을 진행해 오는...",
-      "score": 0.4496784568217055,
-      "url": "https://www.newsclaim.co.kr/news/articleView.html?idxno=3074493",
-      "org": null,
-      "published_at": "2026-09-07T11:06:00"
-    }
-  ],
+  "news": [],
   "funding_candidates": [
     {
       "program_id": "PBLN_000000000126270",

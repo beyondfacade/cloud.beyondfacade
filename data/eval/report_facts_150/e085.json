@@ -1066,58 +1066,7 @@
     ],
     "recent_news": []
   },
-  "news": [
-    {
-      "chunk_id": "news:f7449a04e93750ba4d47",
-      "source_type": "news",
-      "source_id": "f7449a04e93750ba4d47",
-      "content": "충정로역과 직통 연결된 상업시설 ‘충정로 GL 스퀘어’ 분양\n서울 중심업무지구(CBD) 및 마포·중구 주택가와 인접해 배후 수요가 탄탄하다. 소상공인365 상권분석 자료 기준 반경 1km 내 직장인 18만 5000여명, 상주 인구 3만 여세대, 평일 유동인구 54만여명을 형성한다. 주중 직장인...",
-      "score": 0.47512890472625025,
-      "url": "https://www.edaily.co.kr/News/Read?newsId=04044246645582416&mediaCodeNo=257&utm_source=naver&utm_medium=referral&utm_campaign=news_syndication&utm_content=original_article",
-      "org": null,
-      "published_at": "2026-09-21T17:42:00"
-    },
-    {
-      "chunk_id": "news:08479374cdff09dafca0",
-      "source_type": "news",
-      "source_id": "08479374cdff09dafca0",
-      "content": "7호선 상도역 초역세권 '엑소디움 대우 상도역' 계약 순항… 장기 민간...\n이러한 가운데 서울 동작구 상도동에 공급되는 '엑소디움 대우 상도역'이 계약을 진행하며 실수요자들의... 생활 편의시설로는 상도역 상권을 비롯해 GS더프레시, 이마트에브리데이, 성대전통시장 등을 이용할 수 있고...",
-      "score": 0.47473393154748234,
-      "url": "https://www.ksilbo.co.kr/news/articleView.html?idxno=1062985",
-      "org": null,
-      "published_at": "2026-07-25T01:22:00"
-    },
-    {
-      "chunk_id": "news:daa7dd41d63ecdd7e7f7",
-      "source_type": "news",
-      "source_id": "daa7dd41d63ecdd7e7f7",
-      "content": "\"서초 1층 상가 2개가 경매 3억대\"…서울 상가 추천 경매\n주요 상권 내 근린상가 중 가격 메리트와 입지 유망성을 갖춘 물건 6건을 최종 추려냈다. 강남권 1층... 29㎡·최저가 1억748만 원) ▲서울 강서구 마곡동 엠밸리더블유4 209호(2025타경11065·전용 43.34㎡·최저가 2억2692만...",
-      "score": 0.4610756498254742,
-      "url": "https://realty.chosun.com/site/data/html_dir/2026/08/28/2026082800395.html",
-      "org": null,
-      "published_at": "2026-08-28T05:42:00"
-    },
-    {
-      "chunk_id": "news:be5afacac19ebdfc5850",
-      "source_type": "news",
-      "source_id": "be5afacac19ebdfc5850",
-      "content": "‘생애최초 특별공급’ 최고 1024 대 1…동문건설, ‘동작 센트럴 동문...\n서울 동작구 상도동 일원에서 공급 중인 ‘동작 센트럴 동문 디 이스트’의 해당지역 1순위 청약을... 또 장승배기역 인근 상권과 여의도 더현대 서울, 영등포 타임스퀘어, 신세계백화점, 롯데백화점 등 대형 쇼핑...",
-      "score": 0.46001662968699186,
-      "url": "https://www.mk.co.kr/article/12098058",
-      "org": null,
-      "published_at": "2026-07-14T12:09:00"
-    },
-    {
-      "chunk_id": "news:edb19795838f78d548ff",
-      "source_type": "news",
-      "source_id": "edb19795838f78d548ff",
-      "content": "상도역 초역세권 '엑소디움 대우 상도역', 장기 민간임대 아파트 계약\n﻿최장 10년 거주 가능한 민간임대 방식 적용 청약통장·주택 보유 무관 만 19세 이상 계약 동작구 상도역... 생활 편의시설로는 상도역 상권을 비롯해 GS더프레시, 이마트에브리데이, 성대전통시장 등이 있으며...",
-      "score": 0.45718300852978455,
-      "url": "https://www.geconomy.co.kr/news/article.html?no=322397",
-      "org": null,
-      "published_at": "2026-07-31T14:24:00"
-    }
-  ],
+  "news": [],
   "funding_candidates": [
     {
       "program_id": "PBLN_000000000126270",

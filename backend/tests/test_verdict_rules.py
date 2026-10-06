@@ -41,7 +41,7 @@ def test_판정_가능_신호_2개_미만이면_강한_신호가_있어도_보�
 
 
 def test_판정_가능_신호가_2개면_판정한다():
-    # shrinking을 참고 신호로 뺀 뒤 판정 신호는 4개 — 그중 2개면 판정한다 (설계서 §7)
+    # 판정 신호는 4개 — 그중 2개면 판정한다 (설계서 §7)
     levels = (LEVEL_STRONG, LEVEL_STRONG, LEVEL_UNAVAILABLE, LEVEL_UNAVAILABLE, LEVEL_UNAVAILABLE)
     assert judge(_results(*levels), T) == VERDICT_RED
 
@@ -59,26 +59,26 @@ def _results_with_keys(**by_key: str) -> tuple[SignalResult, ...]:
     )
 
 
-def test_참고_신호_shrinking은_strong이어도_strong_count에서_빠진다():
+def test_참고_신호_tobacco_gap은_strong이어도_strong_count에서_빠진다():
     r = _results_with_keys(net_outflow=LEVEL_OFF, survival_cliff=LEVEL_OFF, early_closure=LEVEL_OFF,
-                            saturation=LEVEL_OFF, shrinking=LEVEL_STRONG)
+                            saturation=LEVEL_OFF, tobacco_gap=LEVEL_STRONG)
     assert strong_count(r) == 0
 
 
-def test_참고_신호_shrinking은_on이어도_on_count에서_빠진다():
+def test_참고_신호_tobacco_gap은_on이어도_on_count에서_빠진다():
     r = _results_with_keys(net_outflow=LEVEL_OFF, survival_cliff=LEVEL_OFF, early_closure=LEVEL_OFF,
-                            saturation=LEVEL_OFF, shrinking=LEVEL_ON)
+                            saturation=LEVEL_OFF, tobacco_gap=LEVEL_ON)
     assert on_count(r) == 0
 
 
-def test_참고_신호_shrinking은_evaluable_count에서_빠진다():
+def test_참고_신호_tobacco_gap은_evaluable_count에서_빠진다():
     r = _results_with_keys(net_outflow=LEVEL_UNAVAILABLE, survival_cliff=LEVEL_UNAVAILABLE,
-                            early_closure=LEVEL_UNAVAILABLE, saturation=LEVEL_OFF, shrinking=LEVEL_STRONG)
-    assert evaluable_count(r) == 1  # saturation만 — shrinking은 참고라 아예 세지 않는다
+                            early_closure=LEVEL_UNAVAILABLE, saturation=LEVEL_OFF, tobacco_gap=LEVEL_STRONG)
+    assert evaluable_count(r) == 1  # saturation만 — tobacco_gap은 참고라 아예 세지 않는다
 
 
-def test_참고_신호_shrinking_strong은_혼자서는_판정을_뒤집지_않는다():
-    # 판정 신호 4개 전부 판정 가능(min_evaluable=2 충족) + off, shrinking만 strong → clear (red/orange 아님)
+def test_참고_신호_tobacco_gap_strong은_혼자서는_판정을_뒤집지_않는다():
+    # 판정 신호 4개 전부 판정 가능(min_evaluable=2 충족) + off, tobacco_gap만 strong → clear (red/orange 아님)
     r = _results_with_keys(net_outflow=LEVEL_OFF, survival_cliff=LEVEL_OFF, early_closure=LEVEL_OFF,
-                            saturation=LEVEL_OFF, shrinking=LEVEL_STRONG)
+                            saturation=LEVEL_OFF, tobacco_gap=LEVEL_STRONG)
     assert judge(r, T) == VERDICT_CLEAR

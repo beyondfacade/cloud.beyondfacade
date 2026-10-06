@@ -1005,58 +1005,7 @@
     ],
     "recent_news": []
   },
-  "news": [
-    {
-      "chunk_id": "news:6d0a75056c83e5319bb6",
-      "source_type": "news",
-      "source_id": "6d0a75056c83e5319bb6",
-      "content": "'경쟁률 23대 1' 서울시판 '나는 솔로', 가을 야장편 참가자 모집\n상봉먹자골목은 다양한 맛집과 주점이 밀집해 저녁 시간에도 활기가 이어지는 중랑구의 대표 먹거리 상권이다. 취향 맞춤 맛집 체험, 2:2 야장 데이트, 골목 산책 데이트 등 도심 야장 특유의 편안한 분위기 속에서...",
-      "score": 0.4627275604822507,
-      "url": "https://www.mt.co.kr/policy/2026/09/29/2026092910330235800",
-      "org": null,
-      "published_at": "2026-09-29T11:15:00"
-    },
-    {
-      "chunk_id": "news:6df729fe44225ac7a2dc",
-      "source_type": "news",
-      "source_id": "6df729fe44225ac7a2dc",
-      "content": "﻿프랜차이즈 '이장군족발보쌈', 명일점 오픈…족발·보쌈에 주류 할인...\n족발·보쌈 프랜차이즈 '이장군족발보쌈'이 지난 8월 12일 서울 강동구 명일점을 새롭게 오픈했다. 신규... 또 신규 매장 오픈 이후에도 지역 상권 특성에 맞춰 고객 접점을 만들어가는 데 초점을 두고 있다. 단순히 매장을...",
-      "score": 0.4615376637533144,
-      "url": "https://www.epnc.co.kr/news/articleView.html?idxno=406005",
-      "org": null,
-      "published_at": "2026-08-25T11:06:00"
-    },
-    {
-      "chunk_id": "news:44b9ec49de7bc03c4518",
-      "source_type": "news",
-      "source_id": "44b9ec49de7bc03c4518",
-      "content": "도봉구 창동역 먹자골목, ‘달빛야장’으로 재탄생\n또한 기존 상인을 중심으로 도봉구, 서울아레나, 통장협의회, 도봉구양말제조연합회 등이 참여하는 상생협의체를 구성해 상권의 지속 가능한 발전을 도모한다. 창동역 달빛야장은 서울아레나 개관 시기에 맞춰 본격...",
-      "score": 0.4532048571569528,
-      "url": "https://www.munhwa.com/article/11618628?ref=naver",
-      "org": null,
-      "published_at": "2026-09-21T14:36:00"
-    },
-    {
-      "chunk_id": "news:b2b9a89c7bcad748095d",
-      "source_type": "news",
-      "source_id": "b2b9a89c7bcad748095d",
-      "content": "[오늘의 유통리뷰] 코레일유통·우아한형제들·상미당홀딩스·빙그레·동...\n특히 한국을 찾은 외국인 관광객이 여행의 새로운 콘텐츠로 음식배달을 즐기고 지역상권에도 활력을... 서울 용산구에 위치한 서울특별시립 서울역쪽방상담소에서 폭염 취약계층을 대상으로 건강 꾸러미와 생수를...",
-      "score": 0.45015583927757374,
-      "url": "http://www.financialreview.co.kr/news/articleView.html?idxno=44011",
-      "org": null,
-      "published_at": "2026-08-05T17:32:00"
-    },
-    {
-      "chunk_id": "news:3f3a6106b533b28e87db",
-      "source_type": "news",
-      "source_id": "3f3a6106b533b28e87db",
-      "content": "“가을밤 야장에서 인연 찾으세요”…서울팅 100명 모집\n상봉먹자골목은 다양한 맛집과 주점이 밀집한 중랑구 대표 먹거리 상권으로 이달 ‘서울 달빛야장’에 선정됐다. 행사에서는 취향에 맞는 맛집 체험과 2대 2 야장 데이트, 골목 산책 데이트 등을 진행한다. 참가...",
-      "score": 0.44844440240330985,
-      "url": "https://www.sedaily.com/article/20095935?ref=naver",
-      "org": null,
-      "published_at": "2026-09-29T11:16:00"
-    }
-  ],
+  "news": [],
   "funding_candidates": [
     {
       "program_id": "PBLN_000000000126270",

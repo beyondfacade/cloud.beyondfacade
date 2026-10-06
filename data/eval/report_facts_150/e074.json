@@ -1104,58 +1104,7 @@
     ],
     "recent_news": []
   },
-  "news": [
-    {
-      "chunk_id": "news:a65e32165f59c9b6b573",
-      "source_type": "news",
-      "source_id": "a65e32165f59c9b6b573",
-      "content": "동작구, 사당1동먹자골목 '달빛야장' 시범사업 선정…최대 20억 확보\n사당1동먹자골목은 지하철 2·4호선 환승역인 사당역과 인접해 접근성이 뛰어나고, 동작구 15개 행정동 중 점포수와 유동인구가 가장 많은 핵심 상권으로 꼽힌다. 특히 오후 5시부터 저녁 9시까지 매출이 집중되며...",
-      "score": 0.5290395721338987,
-      "url": "https://www.hg-times.com/news/articleView.html?idxno=305348",
-      "org": null,
-      "published_at": "2026-09-16T12:32:00"
-    },
-    {
-      "chunk_id": "news:11cdec4093d58ed8110c",
-      "source_type": "news",
-      "source_id": "11cdec4093d58ed8110c",
-      "content": "당근·번개장터, 오프라인 결제 강화…사용처 확대 '안간힘'\n지난 2024년 12월 서울 성동구 무신사스퀘어 성수4에서 열린 당근의 팝업스토어 '원마일 워크 클럽'에서 모델이... 중고거래에서 발생한 결제 경험이 지역 상권의 소비로 연결하면 당근페이의 이용 빈도와 결제 규모를 동시에...",
-      "score": 0.4869252717958088,
-      "url": "http://www.newstomato.com/ReadNews.aspx?no=1312023&inflow=N",
-      "org": null,
-      "published_at": "2026-08-31T16:44:00"
-    },
-    {
-      "chunk_id": "news:3f580c6f5f5ccf31a1a8",
-      "source_type": "news",
-      "source_id": "3f580c6f5f5ccf31a1a8",
-      "content": "[강동완의 탐방] 문정동 에이에스커피 가보니…직장인 상권에 맞춘 메뉴...\n서울 송파구 문정동 법원로 일대는 업무시설과 상업시설이 함께 들어선 오피스 상권이다. 출근 시간부터 점심, 퇴근 시간까지 시간대별 소비층이 달라 카페 역시 이용 목적에 따른 대응이 필요한 지역이다. 이곳에서 만난...",
-      "score": 0.47692017646799323,
-      "url": "https://www.shinailbo.co.kr/news/articleView.html?idxno=5061720",
-      "org": null,
-      "published_at": "2026-09-14T14:10:00"
-    },
-    {
-      "chunk_id": "news:ed277fb1e1306dcad4d7",
-      "source_type": "news",
-      "source_id": "ed277fb1e1306dcad4d7",
-      "content": "아워홈, ‘오픈런 뷔페’ 테이크 3호점 미아사거리에 연다\n미아사거리는 강북구 대표 상권으로, 대단지 아파트가 밀집해 있어 안정적인 배후 수요를 갖췄다. 3호점이 위치한 와이스퀘어는 지하철 4호선 미아리사거리역과 직접 연결돼 유동인구도 풍부하다. 아워홈은 지난 5월...",
-      "score": 0.47193506762852455,
-      "url": "https://biz.heraldcorp.com/article/10862402?ref=naver",
-      "org": null,
-      "published_at": "2026-09-04T08:45:00"
-    },
-    {
-      "chunk_id": "news:50ed5cf94254c5af9569",
-      "source_type": "news",
-      "source_id": "50ed5cf94254c5af9569",
-      "content": "“한국서 잘 팔리네”…핵심 상권 파고드는 이 브랜드들\n서울 서초구 강남역에 신규 매장을 연다. 기존 강남점을 이전해 새롭게 문을 여는 것으로, 국내 2호점인 자카페(Zacaffè)도 함께 선보일 예정이다. 주요 상권에서 매장 경쟁력을 높이는 동시에 브랜드 경험을 강화하려는...",
-      "score": 0.466281952311582,
-      "url": "https://www.mk.co.kr/article/12135890",
-      "org": null,
-      "published_at": "2026-08-25T16:29:00"
-    }
-  ],
+  "news": [],
   "funding_candidates": [
     {
       "program_id": "PBLN_000000000126270",

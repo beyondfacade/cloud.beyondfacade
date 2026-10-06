@@ -11,6 +11,7 @@ from apps.agent.adapter.outbound.gateways.event_analog_facts_gateway import (
 )
 from apps.agent.adapter.outbound.gateways.finance_facts_gateway import FinanceFactsGateway
 from apps.agent.adapter.outbound.gateways.funding_facts_gateway import FundingFactsGateway
+from apps.agent.adapter.outbound.gateways.news_links_gateway import NewsLinksGateway
 from apps.agent.adapter.outbound.gateways.question_budget_gateway import QuestionBudgetGateway
 from apps.agent.adapter.outbound.gateways.region_facts_gateway import RegionFactsGateway
 from apps.agent.adapter.outbound.gateways.verdict_facts_gateway import VerdictFactsGateway
@@ -27,7 +28,6 @@ from apps.agent.app.ports.output.agent_port import LLMGatewayPort
 from apps.agent.app.use_cases.analysis_interactor import AnalysisInteractor
 from apps.agent.app.use_cases.report_facts import ReportFactsCollector
 from apps.agent.domain.services.report_sampling import REPORT_SEED, REPORT_TEMPERATURE
-from apps.rag.dependencies.rag_dependencies import get_rag_search_use_case
 
 # 로컬 폴백 컨텍스트 길이 — num_ctx를 안 주면 Ollama 0.31.2 기본값이 입력을 약 2k 토큰에서 잘라 읽는다.
 # 해석 입력(사실 묶음 요약)은 약 2천 자지만 여유를 두어 32768로 올린다(벤치 2026-10-05, bge-m3와 동시 상주 9.8GB 실측).
@@ -99,7 +99,7 @@ def build_analysis_use_case(model: str = "hybrid", budget: int | None = None) ->
         region_facts=RegionFactsGateway(),
         verdict_facts=VerdictFactsGateway(),
         funding_facts=FundingFactsGateway(),
-        news_search=get_rag_search_use_case(),
+        news_links=NewsLinksGateway(),
         analog_facts=EventAnalogFactsGateway(),
         finance_facts=FinanceFactsGateway(),
         question_budget=QuestionBudgetGateway(),

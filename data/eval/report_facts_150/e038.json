@@ -1009,58 +1009,7 @@
     ],
     "recent_news": []
   },
-  "news": [
-    {
-      "chunk_id": "news:4347fd5edf848d0096e6",
-      "source_type": "news",
-      "source_id": "4347fd5edf848d0096e6",
-      "content": "“여기 잡곡밥 있어요”…광진 ‘건강 맛집’ 127곳에 인증마크\n서울 광진구가 주민들이 외식할 때도 손쉽게 잡곡밥을 선택할 수 있도록 ‘광진곡곡’ 참여 음식점 127곳에... 지역 상권과 적극 협력해 외식 환경에서도 자연스럽게 건강한 한 끼를 선택할 수 있는 건강 식문화를...",
-      "score": 0.47702474771455405,
-      "url": "https://www.seoul.co.kr/news/publicnews/2026/08/14/20260814500035?wlog_tag3=naver",
-      "org": null,
-      "published_at": "2026-08-14T09:43:00"
-    },
-    {
-      "chunk_id": "news:6d91520656ff484ef066",
-      "source_type": "news",
-      "source_id": "6d91520656ff484ef066",
-      "content": "광진구, 건강 식문화 확산 위한 '광진곡곡' 인증마크 도입 [동네방네]\n김경호 광진구청장은 “서울시 ‘통쾌한 한끼’ 사업과 연계해 탄생한 ‘광진곡곡’ 인증마크는 구민 건강을 최우선으로 하는 민선9기의 비전을 담고 있다”며 “앞으로도 지역 상권과 적극 협력해 외식 환경에서도...",
-      "score": 0.4708821246905164,
-      "url": "https://www.edaily.co.kr/news/newspath.asp?newsid=05989286645546992",
-      "org": null,
-      "published_at": "2026-08-13T17:55:00"
-    },
-    {
-      "chunk_id": "news:cc94e2bb226f9762dde3",
-      "source_type": "news",
-      "source_id": "cc94e2bb226f9762dde3",
-      "content": "\"잡곡밥 식당 한눈에\"…광진구, '광진곡곡' 인증마크 달고 건강한 한 끼...\n지역 상권과 적극 협력해 외식 환경에서도 자연스럽게 건강한 한 끼를 선택할 수 있는 건강 식문화를 지속적으로 조성해 나가겠다\"고 밝혔다. 광진구는 참여 음식점 확대와 인증 관리를 병행하면서 외식업소와 주민이 함께...",
-      "score": 0.46311842393482916,
-      "url": "https://www.job-post.co.kr/news/articleView.html?idxno=223948",
-      "org": null,
-      "published_at": "2026-08-13T11:36:00"
-    },
-    {
-      "chunk_id": "news:884b5807c08ddfbc898d",
-      "source_type": "news",
-      "source_id": "884b5807c08ddfbc898d",
-      "content": "'광진곡곡' 참여 음식점에 인증마크…구민 건강식 선택 지원\n김경호 광진구청장은 서울시 '통쾌한 한끼' 사업과 연계해 탄생한 '광진곡곡' 인증마크가 구민 건강을 최우선으로 하는 민선9기의 비전을 담고 있다고 밝혔다. 덧붙여 앞으로도 지역 상권과 협력해 외식 환경에서도 건강한...",
-      "score": 0.45491893980308973,
-      "url": "https://www.gukjenews.com/news/articleView.html?idxno=3663695",
-      "org": null,
-      "published_at": "2026-08-13T11:40:00"
-    },
-    {
-      "chunk_id": "news:72eebb16a3868b3ccec3",
-      "source_type": "news",
-      "source_id": "72eebb16a3868b3ccec3",
-      "content": "우아한형제들, 한강 드론라이트쇼서 지역 음식점·시장 연계 프로그램 ...\n우아한형제들은 지역 기반 미식 가이드 ‘민트스타’를 통해 광진구 자양동 일대 음식점 20곳을 소개하는... “지역 상권과 연계한 현장 프로그램을 통해 배달 서비스와 지역 음식점의 접점을 넓히고 있다”고 말했다.",
-      "score": 0.4487296805164762,
-      "url": "http://www.lawissue.co.kr/view.php?ud=20260910193347127204ead0791_12",
-      "org": null,
-      "published_at": "2026-09-10T19:36:00"
-    }
-  ],
+  "news": [],
   "funding_candidates": [
     {
       "program_id": "PBLN_000000000126270",

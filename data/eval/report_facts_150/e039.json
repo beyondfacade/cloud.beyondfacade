@@ -1114,58 +1114,7 @@
     ],
     "recent_news": []
   },
-  "news": [
-    {
-      "chunk_id": "news:3f580c6f5f5ccf31a1a8",
-      "source_type": "news",
-      "source_id": "3f580c6f5f5ccf31a1a8",
-      "content": "[강동완의 탐방] 문정동 에이에스커피 가보니…직장인 상권에 맞춘 메뉴...\n서울 송파구 문정동 법원로 일대는 업무시설과 상업시설이 함께 들어선 오피스 상권이다. 출근 시간부터 점심, 퇴근 시간까지 시간대별 소비층이 달라 카페 역시 이용 목적에 따른 대응이 필요한 지역이다. 이곳에서 만난...",
-      "score": 0.5229383138344699,
-      "url": "https://www.shinailbo.co.kr/news/articleView.html?idxno=5061720",
-      "org": null,
-      "published_at": "2026-09-14T14:10:00"
-    },
-    {
-      "chunk_id": "news:75c5af37dffb99bb546f",
-      "source_type": "news",
-      "source_id": "75c5af37dffb99bb546f",
-      "content": "클라피24·키픽·세자커피, 무인 운영·유통채널 확대\n세자커피 운영사 디딛은 8월 28일 부산 중구 비프광장로에 위치한 올리브영 남포타운점 3층 K-FOOD존에... 매장이 위치한 남포동은 BIFF광장과 국제시장, 자갈치시장 등이 인접한 관광 상권이다. 프랜차이즈 업계 관계자는...",
-      "score": 0.5100441271040372,
-      "url": "https://www.shinailbo.co.kr/news/articleView.html?idxno=5057065",
-      "org": null,
-      "published_at": "2026-09-01T16:10:00"
-    },
-    {
-      "chunk_id": "news:edc60c6655681a514c58",
-      "source_type": "news",
-      "source_id": "edc60c6655681a514c58",
-      "content": "“점심 나가는데 밍기적대는 동료, 짜증나요”…기본 웨이팅 80분인 이...\n캐치테이블 점심 웨이팅 이용건수 집계 올해 1~8월 이용건수 1년새 45.3% 증가 마포구 망원동 평균 대기시간... 40대 이상 이용자도 전체의 3분의 1을 넘어선 가운데, 직장인이 몰리는 오피스 상권을 중심으로 점심시간...",
-      "score": 0.5082756261168562,
-      "url": "https://www.mk.co.kr/article/12157894",
-      "org": null,
-      "published_at": "2026-09-21T10:13:00"
-    },
-    {
-      "chunk_id": "news:bd5bf42fd728de1cb507",
-      "source_type": "news",
-      "source_id": "bd5bf42fd728de1cb507",
-      "content": "캐치테이블, 점심 웨이팅 1년 새 45% 증가…여의도동 비중 69.2%\n상권별 점심 웨이팅 비중은 서울 영등포구 여의도동이 69.2%로 가장 높았다. 평균 대기 시간이 가장 긴 지역은 서울 마포구 망원동으로, 점심 평균 대기 시간이 80분을 넘었다. 연령별로는 40대 이상 이용자 비중이...",
-      "score": 0.5044417381286621,
-      "url": "http://digitalchosun.dizzo.com/site/data/html_dir/2026/09/21/2026092180153.html",
-      "org": null,
-      "published_at": "2026-09-21T15:28:00"
-    },
-    {
-      "chunk_id": "news:17fed3972e2d81c5eebf",
-      "source_type": "news",
-      "source_id": "17fed3972e2d81c5eebf",
-      "content": "급식·도시락·델리…치킨업계의 '영토 확장'\n◆ 기업·아파트 식음 시장 공략 올해 초 서울 서초구 반포동 래미안원펜타스 입주민 전용 카페테리아... 교촌에프앤비 관계자는 \"다양한 상권에 적용할 수 있는 콤팩트한 매장 모델을 구축하고, 핵심 상권을 중심으로...",
-      "score": 0.5003897249001836,
-      "url": "https://www.mk.co.kr/article/12147265",
-      "org": null,
-      "published_at": "2026-09-08T17:17:00"
-    }
-  ],
+  "news": [],
   "funding_candidates": [
     {
       "program_id": "PBLN_000000000126270",

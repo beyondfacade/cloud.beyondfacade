@@ -28,7 +28,7 @@ def _verdict(region_code: str, code: str, industry_id: str = _INDUSTRY) -> Regio
     signals = tuple(
         SignalResult(key=k, level="on" if k == "net_outflow" else "off", value=0.1, percentile=80.0,
                      evidence=f"{k} 근거 — 한글 포함", source="store")
-        for k in ("net_outflow", "survival_cliff", "early_closure", "saturation", "shrinking")
+        for k in ("net_outflow", "survival_cliff", "early_closure", "saturation")
     )
     return RegionIndustryVerdict(region_code, industry_id, code, 0, 1, signals, datetime(2026, 9, 28, 4, 30, tzinfo=timezone.utc))
 

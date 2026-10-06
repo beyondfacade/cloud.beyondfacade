@@ -1571,58 +1571,7 @@
       }
     ]
   },
-  "news": [
-    {
-      "chunk_id": "news:a65e32165f59c9b6b573",
-      "source_type": "news",
-      "source_id": "a65e32165f59c9b6b573",
-      "content": "동작구, 사당1동먹자골목 '달빛야장' 시범사업 선정…최대 20억 확보\n사당1동먹자골목은 지하철 2·4호선 환승역인 사당역과 인접해 접근성이 뛰어나고, 동작구 15개 행정동 중 점포수와 유동인구가 가장 많은 핵심 상권으로 꼽힌다. 특히 오후 5시부터 저녁 9시까지 매출이 집중되며...",
-      "score": 0.5413016080856323,
-      "url": "https://www.hg-times.com/news/articleView.html?idxno=305348",
-      "org": null,
-      "published_at": "2026-09-16T12:32:00"
-    },
-    {
-      "chunk_id": "news:bb934e4ae0165dbb06b5",
-      "source_type": "news",
-      "source_id": "bb934e4ae0165dbb06b5",
-      "content": "관악구, 남현동 ‘사당오락(舍堂五樂) 달빛야장’ 최종 선정\n이투데이=박일경 기자 | ‘남현예술길’부터 레트로 포차까지…최대 20억 지원 확보 사당역 5번 출구에 ‘5가지 즐거움’ 선사 차량 제한 ‘상생 야장’ 운영…환경 개선 서울특별시 관악구 남현동 상권이 골목 맛 집과...",
-      "score": 0.5058058952515648,
-      "url": "https://www.etoday.co.kr/news/view/2626740",
-      "org": null,
-      "published_at": "2026-09-17T11:26:00"
-    },
-    {
-      "chunk_id": "news:c130ecaa3af8b09e5cab",
-      "source_type": "news",
-      "source_id": "c130ecaa3af8b09e5cab",
-      "content": "이희원 서울시의원 “사당1동 먹자골목 ‘서울 달빛야장’ 사업 선정 쾌...\n서울시의회 교육위원회 이희원 부위원장(동작4, 국민의힘)은 서울시가 지난 14일 발표한 ‘2026년 서울 달빛야장 조성사업’ 시범상권 6곳에 동작구 사당1동 먹자골목이 선정됐다고 밝혔다. 이 의원은 사당1동 먹자골목이...",
-      "score": 0.4878318019013532,
-      "url": "https://www.seoul.co.kr/news/publicnews/local_govern/smc_movement/2026/09/15/20260915500046?wlog_tag3=naver",
-      "org": null,
-      "published_at": "2026-09-15T10:11:00"
-    },
-    {
-      "chunk_id": "news:cf54f7a60f3cb1f05fb9",
-      "source_type": "news",
-      "source_id": "cf54f7a60f3cb1f05fb9",
-      "content": "서울의 밤, 골목으로 번진다…‘달빛야장’ 6곳 뜬다\n사당 일대에서는 서로 다른 야간상권 모델을 선보인다. 관악구 사당오락달빛야장은 사당역을 중심으로 관악산, 부추삼겹살골목, 예술인마을을 연결한다. 동작구 사당1동먹자골목은 유동인구와 밀집된 음식점·주점을...",
-      "score": 0.4679277044427006,
-      "url": "https://biz.heraldcorp.com/article/10879267?ref=naver",
-      "org": null,
-      "published_at": "2026-09-19T18:44:00"
-    },
-    {
-      "chunk_id": "news:ed5574ddacc850b4b18c",
-      "source_type": "news",
-      "source_id": "ed5574ddacc850b4b18c",
-      "content": "\"사당역 5번출구에 5가지 즐거움\"…관악구 '사당오락 야장'\n남현동 상권 '달빛야장' 추진…예술거리와 레트로 포차로 구성 서울 관악구(구청장 박준희)는 남현동 상권의 '사당오락'(舍堂五樂)이 골목 맛집과 문화자원을 잇는 서울시 '달빛야장 조성사업' 공모에 선정됨에 따라 환경...",
-      "score": 0.46373734526563215,
-      "url": "https://www.yna.co.kr/view/AKR20260915036000004?input=1195m",
-      "org": null,
-      "published_at": "2026-09-15T09:04:00"
-    }
-  ],
+  "news": [],
   "funding_candidates": [
     {
       "program_id": "PBLN_000000000126270",

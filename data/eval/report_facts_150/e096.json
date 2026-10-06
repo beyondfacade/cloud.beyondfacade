@@ -961,58 +961,7 @@
     ],
     "recent_news": []
   },
-  "news": [
-    {
-      "chunk_id": "news:d04c86ae32e94f13f9b1",
-      "source_type": "news",
-      "source_id": "d04c86ae32e94f13f9b1",
-      "content": "성북구 종암동, 친환경과 지역상권 살리기 품은 '종암장터·종암살리장...\n사진=성북구 종암동주민자치회가 개최한, 환경보호 실천과 골목상권 활력 더한 '종암장터·종암살리장' 모습/성북구청 서울 성북구(구청장 이승로) 종암동주민자치회가 지난 5일 하루 종일 종암동주민센터와 명동골목...",
-      "score": 0.551500359445954,
-      "url": "https://www.gukjenews.com/news/articleView.html?idxno=3688088",
-      "org": null,
-      "published_at": "2026-09-08T11:00:00"
-    },
-    {
-      "chunk_id": "news:24a96661b3cbd78cccab",
-      "source_type": "news",
-      "source_id": "24a96661b3cbd78cccab",
-      "content": "인생소곱창 종암, 고객 의견 반영한 ‘곱창전골’ 도입…메뉴 경쟁력 강...\n▲‘인생소곱창 종암’ 제공 서울 성북구 종암동의 곱창 전문점 ‘인생소곱창 종암’이 고객들의 지속적인... 인생소곱창 종암은 앞으로도 고객 의견을 반영한 메뉴 개발과 서비스 개선을 지속하며 지역 상권 내 경쟁력을...",
-      "score": 0.49494912889244747,
-      "url": "https://www.gosiweek.com/article/1065577752774475",
-      "org": null,
-      "published_at": "2026-07-31T09:06:00"
-    },
-    {
-      "chunk_id": "news:d5705cc18f4e31d2148b",
-      "source_type": "news",
-      "source_id": "d5705cc18f4e31d2148b",
-      "content": "“빈 즉석밥 용기 20개, 종량제봉투 1장으로”…서울 중구, CJ제일제당과...\n(20개), 폐건전지(20개), 우유팩(20개), 폐비닐(1㎏)을 10ℓ 종량제봉투 1장으로 바꿔준다. 한편 중구는 다음 달 1일 충무로와 3일 명동 일대에서 상권 맞춤형 테마로 단장한 골목형상점가 축제를 잇달아 개최할 예정이다.",
-      "score": 0.4722862492120199,
-      "url": "https://www.munhwa.com/article/11619690?ref=naver",
-      "org": null,
-      "published_at": "2026-09-28T06:49:00"
-    },
-    {
-      "chunk_id": "news:0360daee7d26a3f52022",
-      "source_type": "news",
-      "source_id": "0360daee7d26a3f52022",
-      "content": "종로구, 65세 이상 할인 혜택 주는 '시니어 동행상점' 운영 개시\n골목상권 소상공인은 고정 고객을 확보할 수 있도록 설계한 상생 복지 모델이다. 서울시 공모 절차를 거쳐 선발된 관내 4개 점포가 1차로 참여했다. 참여 상점들은 종로구에 거주하는 65세 이상 주민이 신분증을 제시할...",
-      "score": 0.458237503977279,
-      "url": "https://www.insight.co.kr/news/568789",
-      "org": null,
-      "published_at": "2026-08-18T23:22:00"
-    },
-    {
-      "chunk_id": "news:8140645db0bfd7e1fee6",
-      "source_type": "news",
-      "source_id": "8140645db0bfd7e1fee6",
-      "content": "비누 만들고 헌옷 고쳐 입고 골목상권까지…성북 종암동에 주민 500명 모...\n중고 물품을 다시 나누고 헌옷을 고쳐 쓰는 친환경 프로그램에 지역 상권을 연결하면서 주민 500여명이 행사장을 찾았다. 성북구 종암동주민자치회는 지난 5일 오전 10시부터 오후 8시까지 종암동주민센터와 명동골목...",
-      "score": 0.4418132464440958,
-      "url": "https://www.job-post.co.kr/news/articleView.html?idxno=226587",
-      "org": null,
-      "published_at": "2026-09-08T12:30:00"
-    }
-  ],
+  "news": [],
   "funding_candidates": [
     {
       "program_id": "PBLN_000000000126270",

@@ -1005,58 +1005,7 @@
     ],
     "recent_news": []
   },
-  "news": [
-    {
-      "chunk_id": "news:e66597b0e736539489c5",
-      "source_type": "news",
-      "source_id": "e66597b0e736539489c5",
-      "content": "[단독] 자신감 붙은 애슐리퀸즈, 잠실에도 ‘그랜드’ 점포 연다\n최근 직장인, 가족, 관광객 수요를 공략할 수 있는 잠실 상권 내 패밀리 레스토랑의 출점이 이어지고 있다. 현대그린푸드는 지난 4월 송파구 방이동에 텍사스로드하우스 잠실본점을 열었고, 아워홈도 다음 달 롯데월드...",
-      "score": 0.4805249525368135,
-      "url": "https://biz.heraldcorp.com/article/10886977?ref=naver",
-      "org": null,
-      "published_at": "2026-09-29T08:50:00"
-    },
-    {
-      "chunk_id": "news:6e914c083422592c5f60",
-      "source_type": "news",
-      "source_id": "6e914c083422592c5f60",
-      "content": "아워홈, 뷔페 '테이크' 서울 미아사거리 3호점 연다\n주요 상권을 중심으로 뷔페 브랜드 '테이크(TAKE)'의 매장 확대에 나선다. 지난 5월 첫 매장을 선보인 뒤 연내 3호점까지 출점하며 브랜드의 외연을 넓히는 모습이다. 아워홈은 '테이크' 3호점을 서울 강북구 미아사거리에...",
-      "score": 0.47417650606008,
-      "url": "https://www.pinpointnews.co.kr/news/articleView.html?idxno=483861",
-      "org": null,
-      "published_at": "2026-09-04T10:56:00"
-    },
-    {
-      "chunk_id": "news:04250b71ada85e9633b0",
-      "source_type": "news",
-      "source_id": "04250b71ada85e9633b0",
-      "content": "아워홈 '테이크' 출점 속도···11월 미아사거리에 3호점\n미아사거리 일대는 강북구를 대표하는 상권 중 하나로 꼽힌다. 대단지 아파트가 밀집한 주거 중심 상권으로 가족 단위 고객 비중이 높아 외식 수요가 안정적으로 형성돼 있다. 3호점이 들어서는 와이스퀘어는 지하철...",
-      "score": 0.46957810262589916,
-      "url": "http://www.finomy.com/news/articleView.html?idxno=260806",
-      "org": null,
-      "published_at": "2026-09-04T10:30:00"
-    },
-    {
-      "chunk_id": "news:47064f666130bad8f6ba",
-      "source_type": "news",
-      "source_id": "47064f666130bad8f6ba",
-      "content": "[만났조] 김효선 bhc 상무 \"야식에서 '한 끼 식사'로 … '치킨' 소비 공...\n충분히 한 끼 식사가 될 수 있고 가족이나 친구들과 함께 즐길 수도 있습니다.” 11일 서울 강남구 bhc... 직장인뿐 아니라 인근 거주민과 학생, 20·30대 방문객에 외국인 관광객까지 다양한 소비층이 한데 모이는 상권이라는...",
-      "score": 0.4587143982223434,
-      "url": "https://biz.newdaily.co.kr/site/data/html/2026/08/11/2026081100273.html",
-      "org": null,
-      "published_at": "2026-08-11T17:12:00"
-    },
-    {
-      "chunk_id": "news:0dcfccad6c8ff2268923",
-      "source_type": "news",
-      "source_id": "0dcfccad6c8ff2268923",
-      "content": "셰프 손맛을 브랜드로… 외식 매장 늘리는 현대그린푸드\n백화점 식당가를 넘어 별도 상권에도 매장을 내고 외식 브랜드와 셰프의 메뉴를 주력인 단체급식... 지난 4월 서울 송파구 방이동에 문을 연 텍사스로드하우스 잠실본점은 현대그린푸드가 국내에서 처음으로...",
-      "score": 0.457104938359541,
-      "url": "http://www.the-biz.co.kr/news/articleView.html?idxno=728335",
-      "org": null,
-      "published_at": "2026-09-23T10:46:00"
-    }
-  ],
+  "news": [],
   "funding_candidates": [
     {
       "program_id": "PBLN_000000000126270",

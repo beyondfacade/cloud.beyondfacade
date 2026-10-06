@@ -1055,58 +1055,7 @@
     ],
     "recent_news": []
   },
-  "news": [
-    {
-      "chunk_id": "news:afcd189e8f6b1c4fc8d5",
-      "source_type": "news",
-      "source_id": "afcd189e8f6b1c4fc8d5",
-      "content": "탕화쿵푸마라탕, 서울 관악구 '낙성대점' 신규 오픈\n관악구 봉천동에 '낙성대점'을 새롭게 오픈했다고 밝혔다. 지난 9월 21일 문을 연 낙성대점은 하철 2호선 낙성대역 인근 남부순환로 대로변 1층에 위치해 있다. 매장 주변에는 서울대학교와 인근 원룸 주택가, 직장인 상권...",
-      "score": 0.5685271118501717,
-      "url": "https://www.gukjenews.com/news/articleView.html?idxno=3704510",
-      "org": null,
-      "published_at": "2026-09-23T11:44:00"
-    },
-    {
-      "chunk_id": "news:49dc9593a5220e770ed0",
-      "source_type": "news",
-      "source_id": "49dc9593a5220e770ed0",
-      "content": "[릴레이 인터뷰] 강남구청 '초역세권' 뷰티 명당… \"AI 품고 똑똑하게 진...\nK-뷰티 상권과 업무지구가 발산하는 낙수효과를 톡톡히 누리는 업종이 있다. 바로 강남구청역 일대에 늘어선 에스테틱 거리다. 강남구청역에서 지상으로 향하는 에스컬레이터 벽면에는 에스테틱과 피부과 광고가 촘촘히...",
-      "score": 0.5353417405523712,
-      "url": "http://www.mkhealth.co.kr/news/articleView.html?idxno=80083",
-      "org": null,
-      "published_at": "2026-09-16T08:00:00"
-    },
-    {
-      "chunk_id": "news:d32aba815839049b7276",
-      "source_type": "news",
-      "source_id": "d32aba815839049b7276",
-      "content": "기능성 화장품 ‘아데시’, 성수동에서 MZ 고객 공략\n지난달 21~23일 서울시 성동구의 무신사 메가스토어와 연무장길 일대에서 열린 이번 행사는 뷰티와 라이프스타일 트렌드에 관심이 높은 MZ세대 소비자들이 밀집된 성수 상권에서 아데시의 브랜드 아이덴티티를...",
-      "score": 0.49766775951791586,
-      "url": "http://www.segyebiz.com/newsView/20260904500112?OutUrl=naver",
-      "org": null,
-      "published_at": "2026-09-04T00:12:00"
-    },
-    {
-      "chunk_id": "news:61a4386704522b2330b5",
-      "source_type": "news",
-      "source_id": "61a4386704522b2330b5",
-      "content": "'한우물 경영' 박정부의 변주...다이소 뷰티 특화점 시험대\n22일 아성다이소에 따르면 지난달 29일 서울 광진구 건대 상권에 첫 뷰티 특화점을 개장했다. 다이소 건대점에서는 스킨 케어부터 색조 제품까지 1800여종의 뷰티 상품이 판매되고 있다. 가격 정책은 기존 다이소와 같은...",
-      "score": 0.4909511479589792,
-      "url": "https://dealsite.co.kr/articles/169426",
-      "org": null,
-      "published_at": "2026-09-23T07:04:00"
-    },
-    {
-      "chunk_id": "news:2c00514e4a26e2cedf58",
-      "source_type": "news",
-      "source_id": "2c00514e4a26e2cedf58",
-      "content": "신풍제약, 건기식 브랜드 애드마일스 뷰티 아울렛 입점\n애드마일스 제품이 입점한 매장은 ▲성수 메가팩토리점(성동구 성수동) ▲명동스퀘어점(중구 명동)... 주요 상권의 오프라인 매장에서 소비자들이 애드마일스 제품을 보다 쉽고 편리하게 만나볼 수 있기를 기대한다\"고...",
-      "score": 0.48717074974572994,
-      "url": "http://www.medisobizanews.com/news/articleView.html?idxno=141658",
-      "org": null,
-      "published_at": "2026-08-31T08:50:00"
-    }
-  ],
+  "news": [],
   "funding_candidates": [
     {
       "program_id": "PBLN_000000000126270",

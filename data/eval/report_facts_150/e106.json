@@ -961,58 +961,7 @@
     ],
     "recent_news": []
   },
-  "news": [
-    {
-      "chunk_id": "news:3e854808148dd93d8e61",
-      "source_type": "news",
-      "source_id": "3e854808148dd93d8e61",
-      "content": "서초구, 서래마을 일대 제9호 골목형상점가로 지정…245개 점포 혜택\n사진=제_9호_골목형_상점가_지정서_전달식/서초구청  서초구는 19일 서래마을 일대 상권을 서초구 제9호 골목형상점가로 지정했다고 밝혔다. 골목형상점가는 업종과 관계없이 2,000㎡ 이내에 소상공인이 운영하는 점포가...",
-      "score": 0.5177439802122287,
-      "url": "https://www.gukjenews.com/news/articleView.html?idxno=3670827",
-      "org": null,
-      "published_at": "2026-08-21T13:58:00"
-    },
-    {
-      "chunk_id": "news:d0f33033cc4fdf59eeff",
-      "source_type": "news",
-      "source_id": "d0f33033cc4fdf59eeff",
-      "content": "서초구, 방배천길 제11호 골목형상점가로 지정…487개 점포 밀집\n사진=상권 지도/서초구청 다양한 점포들이 골목 곳곳에 자리해 방문객이 머무르는 상권으로 변화하고 있다. 이번 지정은 상인들이 상권 경쟁력 강화와 협력 증진을 위해 자발적으로 요청한 결과다. 서초구는 상인들이...",
-      "score": 0.5166874816009034,
-      "url": "https://www.gukjenews.com/news/articleView.html?idxno=3710839",
-      "org": null,
-      "published_at": "2026-10-01T17:16:00"
-    },
-    {
-      "chunk_id": "news:73ff4236cfb5197b0128",
-      "source_type": "news",
-      "source_id": "73ff4236cfb5197b0128",
-      "content": "서초 염곡사거리 상권 ‘양재잇길’ 제10호 골목형상점가 지정\n서울 서초구는 지난달 31일 양재2동 염곡사거리 일대 상권을 ‘양재잇길’로 이름 짓고 제10호 골목형상점가로 지정했다고 1일 밝혔다. 골목형상점가는 업종과 관계없이 2000㎡ 이내에 소상공인이 운영하는 점포가 15개...",
-      "score": 0.5126159862375177,
-      "url": "https://www.seoul.co.kr/news/publicnews/seoul_local/news_seoul/2026/09/01/20260901500277?wlog_tag3=naver",
-      "org": null,
-      "published_at": "2026-09-01T16:58:00"
-    },
-    {
-      "chunk_id": "news:a412dc57a6868df2909e",
-      "source_type": "news",
-      "source_id": "a412dc57a6868df2909e",
-      "content": "서초구, '살롱in양재천' 제8호 골목형상점가 지정…\"상권 활성화 속도\"\n서울 서초구는 양재천길 일대 상권인 '살롱in양재천'을 서초구 제8호 골목형상점가로 지정했다고 6일 밝혔다. 골목형상점가는 업종과 관계없이 2000㎡ 이내에 소상공인이 운영하는 점포가 15개 이상 밀집한 곳을 지정해...",
-      "score": 0.5120145387658939,
-      "url": "https://www.news1.kr/local/moi/6250713",
-      "org": null,
-      "published_at": "2026-08-06T08:58:00"
-    },
-    {
-      "chunk_id": "news:ce80b5656effe47ea587",
-      "source_type": "news",
-      "source_id": "ce80b5656effe47ea587",
-      "content": "서초구 '골목형상점가' 9곳으로 확대…서래마을 상권 활성화 지원\n서래마을은 서울프랑스학교와 파리15구 공원, 몽마르뜨 공원 등 문화·휴식 공간을 비롯해 유럽풍 식당과 베이커리가 어우러진 서초구 대표 상권이다. '서울 속 작은 프랑스'로 불릴 만큼 전국적인 인지도도 갖추고 있다....",
-      "score": 0.5072370767594285,
-      "url": "http://www.enewstoday.co.kr/news/articleView.html?idxno=2461582",
-      "org": null,
-      "published_at": "2026-08-21T08:10:00"
-    }
-  ],
+  "news": [],
   "funding_candidates": [
     {
       "program_id": "PBLN_000000000126270",

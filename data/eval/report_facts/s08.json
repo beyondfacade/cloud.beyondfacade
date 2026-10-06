@@ -1106,58 +1106,7 @@
     ],
     "recent_news": []
   },
-  "news": [
-    {
-      "chunk_id": "news:bb934e4ae0165dbb06b5",
-      "source_type": "news",
-      "source_id": "bb934e4ae0165dbb06b5",
-      "content": "관악구, 남현동 ‘사당오락(舍堂五樂) 달빛야장’ 최종 선정\n이투데이=박일경 기자 | ‘남현예술길’부터 레트로 포차까지…최대 20억 지원 확보 사당역 5번 출구에 ‘5가지 즐거움’ 선사 차량 제한 ‘상생 야장’ 운영…환경 개선 서울특별시 관악구 남현동 상권이 골목 맛 집과...",
-      "score": 0.4851153177160412,
-      "url": "https://www.etoday.co.kr/news/view/2626740",
-      "org": null,
-      "published_at": "2026-09-17T11:26:00"
-    },
-    {
-      "chunk_id": "news:0cc3ffd9ead1cd3c055b",
-      "source_type": "news",
-      "source_id": "0cc3ffd9ead1cd3c055b",
-      "content": "신당역 골목에 야장 펼친다…중구, 18일부터 3곳 운영\n남대문·충무로·약수·장충남소영길로 순차 확대 서울 중구(구청장 김길성)는 오는 18일부터 신당역 일대 전통시장과 골목상권 3곳에서 '중구형 상생야장'을 운영한다고 10일 밝혔다. 중구형 상생야장은 상인들이 시장별...",
-      "score": 0.47700297695416083,
-      "url": "https://news.tf.co.kr/read/life/2364318.htm",
-      "org": null,
-      "published_at": "2026-09-10T12:31:00"
-    },
-    {
-      "chunk_id": "news:dfc444d22c675de4e371",
-      "source_type": "news",
-      "source_id": "dfc444d22c675de4e371",
-      "content": "[지금 구청은] 중구, 신당역 일대 시장·상점가에 ‘상생야장’ 3곳 조성\n적립해 시장 환경 개선과 편의·안전시설 확충, 주민 복지 등에 사용하게 된다. 중구는 신당역 일대 3곳을 시작으로 상생야장을 확대해 전통시장과 골목상권에 활력을 더하는 중구의 대표 야간 콘텐츠로 키워갈 방침이다.",
-      "score": 0.46994577616938493,
-      "url": "https://biz.heraldcorp.com/article/10869025?ref=naver",
-      "org": null,
-      "published_at": "2026-09-10T11:30:00"
-    },
-    {
-      "chunk_id": "news:38ab61802a4380f4b615",
-      "source_type": "news",
-      "source_id": "38ab61802a4380f4b615",
-      "content": "서울 중구, 신당역 인근에 '상생야장' 연다\n사진=서울 중구  서울 중구가 신당역 일대 '중구형 상생야장'을 선보인다고 10일 밝혔다. 중구는 오는 18일... 구 관계자는 \"상생야장이 전통시장과 골목상권의 새로운 경쟁력이 될 수 있도록 지원하겠다\"고 말했다.",
-      "score": 0.46541734967364945,
-      "url": "https://weekly.hankooki.com/news/articleView.html?idxno=7183529",
-      "org": null,
-      "published_at": "2026-09-10T15:42:00"
-    },
-    {
-      "chunk_id": "news:11cdec4093d58ed8110c",
-      "source_type": "news",
-      "source_id": "11cdec4093d58ed8110c",
-      "content": "당근·번개장터, 오프라인 결제 강화…사용처 확대 '안간힘'\n지난 2024년 12월 서울 성동구 무신사스퀘어 성수4에서 열린 당근의 팝업스토어 '원마일 워크 클럽'에서 모델이... 중고거래에서 발생한 결제 경험이 지역 상권의 소비로 연결하면 당근페이의 이용 빈도와 결제 규모를 동시에...",
-      "score": 0.46351711995645584,
-      "url": "http://www.newstomato.com/ReadNews.aspx?no=1312023&inflow=N",
-      "org": null,
-      "published_at": "2026-08-31T16:44:00"
-    }
-  ],
+  "news": [],
   "funding_candidates": [
     {
       "program_id": "PBLN_000000000126270",

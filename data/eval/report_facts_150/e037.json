@@ -1009,58 +1009,7 @@
     ],
     "recent_news": []
   },
-  "news": [
-    {
-      "chunk_id": "news:0089fc04529e2044400b",
-      "source_type": "news",
-      "source_id": "0089fc04529e2044400b",
-      "content": "\"몇 개 집었다간 1만원 훌쩍\"…꼬마김밥 가격 보고 '화들짝'\n서울 마포구 한 분식점을 찾은 직장인 A씨. 바쁜 출근길에 아침을 건너뛴 그는 간단히 꼬마김밥이나 몇... 서울시 상권분석서비스에 따르면 올해 1분기 서울 시내 분식전문점은 9448곳으로 1년 전보다 287곳(2.9...",
-      "score": 0.48501949966651536,
-      "url": "https://www.hankyung.com/article/202609155927H",
-      "org": null,
-      "published_at": "2026-09-15T19:26:00"
-    },
-    {
-      "chunk_id": "news:99239d39b4d6844a4158",
-      "source_type": "news",
-      "source_id": "99239d39b4d6844a4158",
-      "content": "'김밥 한 줄도 부담인데'... 대전 분식점 감소율 '전국 평균 이상'\n유성구도 7.0%, 서구는 5.4%, 동구는 4.8%, 중구는 4.2% 줄었다. 대학가와 업무·주거상권이 밀집한 유성구와 서구에서도 점포 감소가 이어졌다는 점이 눈에 띈다. 아울러 충남 분식점은 같은 기간 2291곳에서 2209곳으로 82곳...",
-      "score": 0.4793473171798852,
-      "url": "http://www.chungnamilbo.co.kr/news/articleView.html?idxno=906563",
-      "org": null,
-      "published_at": "2026-08-31T09:54:00"
-    },
-    {
-      "chunk_id": "news:d3be6053031da1f93dbb",
-      "source_type": "news",
-      "source_id": "d3be6053031da1f93dbb",
-      "content": "서초구, 외식업 경영 아카데미 수강생 30명 모집…AI 활용 교육 강화\n사진/서초구청  서초구는 외식업 경영 역량 강화와 지역 상권 활성화를 위해 '제9기 외식업 경영 아카데미' 수강생 30명을 내달 14일까지 모집한다고 밝혔다. 이번 아카데미는 서초구가 ㈜우아한형제들이 운영하는 외식업...",
-      "score": 0.4718000928581173,
-      "url": "https://www.gukjenews.com/news/articleView.html?idxno=3704196",
-      "org": null,
-      "published_at": "2026-09-23T09:06:00"
-    },
-    {
-      "chunk_id": "news:73ff4236cfb5197b0128",
-      "source_type": "news",
-      "source_id": "73ff4236cfb5197b0128",
-      "content": "서초 염곡사거리 상권 ‘양재잇길’ 제10호 골목형상점가 지정\n서울 서초구는 지난달 31일 양재2동 염곡사거리 일대 상권을 ‘양재잇길’로 이름 짓고 제10호 골목형상점가로 지정했다고 1일 밝혔다. 골목형상점가는 업종과 관계없이 2000㎡ 이내에 소상공인이 운영하는 점포가 15개...",
-      "score": 0.46862776758638014,
-      "url": "https://www.seoul.co.kr/news/publicnews/seoul_local/news_seoul/2026/09/01/20260901500277?wlog_tag3=naver",
-      "org": null,
-      "published_at": "2026-09-01T16:58:00"
-    },
-    {
-      "chunk_id": "news:ce80b5656effe47ea587",
-      "source_type": "news",
-      "source_id": "ce80b5656effe47ea587",
-      "content": "서초구 '골목형상점가' 9곳으로 확대…서래마을 상권 활성화 지원\n서래마을은 서울프랑스학교와 파리15구 공원, 몽마르뜨 공원 등 문화·휴식 공간을 비롯해 유럽풍 식당과 베이커리가 어우러진 서초구 대표 상권이다. '서울 속 작은 프랑스'로 불릴 만큼 전국적인 인지도도 갖추고 있다....",
-      "score": 0.46824229331456446,
-      "url": "http://www.enewstoday.co.kr/news/articleView.html?idxno=2461582",
-      "org": null,
-      "published_at": "2026-08-21T08:10:00"
-    }
-  ],
+  "news": [],
   "funding_candidates": [
     {
       "program_id": "PBLN_000000000126270",

@@ -1007,58 +1007,7 @@
     ],
     "recent_news": []
   },
-  "news": [
-    {
-      "chunk_id": "news:42add13799d4cdbe9a2a",
-      "source_type": "news",
-      "source_id": "42add13799d4cdbe9a2a",
-      "content": "강정천하 연희점, 샐러드 전문점에서 업종전환 오픈\n▲ 강정천하 닭강정 전문 프랜차이즈 브랜드 강정천하가 서울 서대문구 연희동에 강정천하 연희점을 새롭게... 있도록 상권과 매장 특성을 고려한 창업 모델을 제공하고 있다. ▲ 강정천하 연희점 점주는 “업종을 바꾼 뒤...",
-      "score": 0.5034789747260249,
-      "url": "https://thedrive.co.kr/news/newsview.php?ncode=1065588898524118",
-      "org": null,
-      "published_at": "2026-08-13T13:58:00"
-    },
-    {
-      "chunk_id": "news:afa1695bf3dda39f4dd8",
-      "source_type": "news",
-      "source_id": "afa1695bf3dda39f4dd8",
-      "content": "강남·판교기업 잇단 둥지…4대 오피스 지구로 ‘끝모를 성수기’\n서울 성동구 성수동을 찾은 사람들이라면 평일이든 주말이든 긴 줄과 마주하게 된다. 이름난 맛집과 유명... 24일 한국관광공사 데이터랩에 따르면 서울지하철2호선 성수역 3번 출구에서 핵심 상권인 연무장길로...",
-      "score": 0.480131423532157,
-      "url": "https://n.news.naver.com/mnews/article/011/0004654673?sid=101",
-      "org": null,
-      "published_at": "2026-08-24T18:08:00"
-    },
-    {
-      "chunk_id": "news:9bad4fbac2af989c8b73",
-      "source_type": "news",
-      "source_id": "9bad4fbac2af989c8b73",
-      "content": "‘핫플’ 넘어 핵심 업무지구로…강남·판교 기업 끌어당기는 성수동 [...\n서울 성동구 성수동을 찾은 사람들이라면 평일이든 주말이든 긴 줄과 마주하게 된다. 이름난 맛집과 유명... 24일 한국관광공사 데이터랩에 따르면 서울지하철2호선 성수역 3번 출구에서 핵심 상권인 연무장길로...",
-      "score": 0.4724988904594085,
-      "url": "https://n.news.naver.com/mnews/article/011/0004654760?sid=101",
-      "org": null,
-      "published_at": "2026-08-25T06:41:00"
-    },
-    {
-      "chunk_id": "news:0089fc04529e2044400b",
-      "source_type": "news",
-      "source_id": "0089fc04529e2044400b",
-      "content": "\"몇 개 집었다간 1만원 훌쩍\"…꼬마김밥 가격 보고 '화들짝'\n서울 마포구 한 분식점을 찾은 직장인 A씨. 바쁜 출근길에 아침을 건너뛴 그는 간단히 꼬마김밥이나 몇... 서울시 상권분석서비스에 따르면 올해 1분기 서울 시내 분식전문점은 9448곳으로 1년 전보다 287곳(2.9...",
-      "score": 0.47106709386519197,
-      "url": "https://www.hankyung.com/article/202609155927H",
-      "org": null,
-      "published_at": "2026-09-15T19:26:00"
-    },
-    {
-      "chunk_id": "news:ce0b427fabe23d73180b",
-      "source_type": "news",
-      "source_id": "ce0b427fabe23d73180b",
-      "content": "서금원·우리은행·선한영향력가게, 영세자영업자 성장 돕는 '인정가게...\n서울 마포구 소재 중식당 '연화식탁'에서 '인정가게' 현판식을 개최했다\"고 8일 밝혔다. '인정가게'는... 연화식탁은 홍익대학교 상권 인근에서 청년 자영업자가 운영하는 중식당으로 올해 5월 문을 열었다. 10개 남짓한...",
-      "score": 0.4679296796070682,
-      "url": "http://www.enewstoday.co.kr/news/articleView.html?idxno=2467958",
-      "org": null,
-      "published_at": "2026-09-08T10:55:00"
-    }
-  ],
+  "news": [],
   "funding_candidates": [
     {
       "program_id": "PBLN_000000000126270",

@@ -1056,58 +1056,7 @@
     ],
     "recent_news": []
   },
-  "news": [
-    {
-      "chunk_id": "news:ea7b665cb7eee2a57c00",
-      "source_type": "news",
-      "source_id": "ea7b665cb7eee2a57c00",
-      "content": "[현장탐방] 다이소의 '뷰티' 승부수…매장 80% 화장품으로 채운 이곳\n다이소가 첫 뷰티 특화매장을 건대 상권으로 정한 건 뷰티 부문의 주요 고객층인 20대와 K-뷰티 제품에... 대표적으로 지난 7월 말 서울 강남구에 새롭게 문을 연 다이소 신사가로수길점이 있다. 해당 매장은 지하 1층부터...",
-      "score": 0.4869120097599471,
-      "url": "https://www.cnbizm.com/news/articleView.html?idxno=315881",
-      "org": null,
-      "published_at": "2026-09-22T09:50:00"
-    },
-    {
-      "chunk_id": "news:2c00514e4a26e2cedf58",
-      "source_type": "news",
-      "source_id": "2c00514e4a26e2cedf58",
-      "content": "신풍제약, 건기식 브랜드 애드마일스 뷰티 아울렛 입점\n애드마일스 제품이 입점한 매장은 ▲성수 메가팩토리점(성동구 성수동) ▲명동스퀘어점(중구 명동)... 주요 상권의 오프라인 매장에서 소비자들이 애드마일스 제품을 보다 쉽고 편리하게 만나볼 수 있기를 기대한다\"고...",
-      "score": 0.48583277806633973,
-      "url": "http://www.medisobizanews.com/news/articleView.html?idxno=141658",
-      "org": null,
-      "published_at": "2026-08-31T08:50:00"
-    },
-    {
-      "chunk_id": "news:46da6f79c910a68af779",
-      "source_type": "news",
-      "source_id": "46da6f79c910a68af779",
-      "content": "신성통상·F&F·한섬 外 공간 체험부터 상권 맞춤화까지…패션업계, 오...\n글로벌 미인대회 수상자를 초청한 체험 프로모션부터 뉴욕 현지 감성을 재현한 팝업스토어, 지역 상권... 한섬은 지난 9일 서울 강남구 청담동 플래그십 스토어 '타임 서울'에서 '2026 미스 유니버스 타일랜드' 수상자 TOP...",
-      "score": 0.4682521077384568,
-      "url": "http://www.dailypop.kr/news/articleView.html?idxno=102477",
-      "org": null,
-      "published_at": "2026-09-11T13:16:00"
-    },
-    {
-      "chunk_id": "news:61a4386704522b2330b5",
-      "source_type": "news",
-      "source_id": "61a4386704522b2330b5",
-      "content": "'한우물 경영' 박정부의 변주...다이소 뷰티 특화점 시험대\n22일 아성다이소에 따르면 지난달 29일 서울 광진구 건대 상권에 첫 뷰티 특화점을 개장했다. 다이소 건대점에서는 스킨 케어부터 색조 제품까지 1800여종의 뷰티 상품이 판매되고 있다. 가격 정책은 기존 다이소와 같은...",
-      "score": 0.46774938702584645,
-      "url": "https://dealsite.co.kr/articles/169426",
-      "org": null,
-      "published_at": "2026-09-23T07:04:00"
-    },
-    {
-      "chunk_id": "news:d8dd667d2678ee712e6a",
-      "source_type": "news",
-      "source_id": "d8dd667d2678ee712e6a",
-      "content": "[뷰티 트렌드] 더후, '비첩 NAD 파워 앰플' 앞세워 글로벌 럭셔리 K-뷰티...\n명동, 홍대, 인천공항 등 내·외국인 유입이 많은 주요 상권의 약국을 중심으로 입점을 확대했다.... 플레이엑스스튜디오는 코스닥 상장사 세화피앤씨의 자회사로, 서울 성동구 연무장길에 약 500평 규모의 복합...",
-      "score": 0.46683225431058095,
-      "url": "https://www.ibabynews.com/news/articleView.html?idxno=154179",
-      "org": null,
-      "published_at": "2026-09-02T18:28:00"
-    }
-  ],
+  "news": [],
   "funding_candidates": [
     {
       "program_id": "PBLN_000000000126270",

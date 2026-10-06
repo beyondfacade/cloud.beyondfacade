@@ -63,17 +63,3 @@ def build_funding_chunk(program: "FundingProgram") -> RagChunk:
         url=program.url,
     )
 
-
-def build_news_chunk(article) -> RagChunk:
-    """뉴스 기사 → RagChunk. content = title + 개행 + description만 사용 (본문 미저장 — 저작권 경계)."""
-    title = article.title or ""
-    description = article.description or ""
-    return RagChunk(
-        chunk_id=f"news:{article.article_id}",
-        source_type="news",
-        source_id=article.article_id,
-        content=f"{title}\n{description}",
-        published_at=article.published_at,
-        org=article.press,
-        url=article.url,
-    )

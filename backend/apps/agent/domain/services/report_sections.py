@@ -4,19 +4,17 @@
 LLM은 맨 위 해석(answer) 한 단락만 쓴다. 원칙:
 ① 숫자에는 범위(무엇의·어디의·언제의)를 붙인다 — 줄마다 동·업종 이름이나 "서울"을 적는다.
 ② 자료가 없으면 "자료 부족 — 이유"를 쓰고 추정으로 메우지 않는다.
-③ 신뢰 태그는 코드가 붙인다 — 정형 값 [확인된 사실], 뉴스 [참고 신호].
+③ 신뢰 태그는 코드가 붙인다 — 정형 값 [확인된 사실]. 뉴스는 본문에 넣지 않는다(네이버 검색 결과는 화면 링크로만).
 ④ 화면 차트와 같은 규칙을 쓴다 — 시간대 문장은 프론트 `hour-gap-sentence.ts`와 같은 규칙.
 """
 
 import logging
-import re
 
 from apps.agent.domain.services.report_guards import FUNDING_DISCLAIMER
 
 LOGGER = logging.getLogger(__name__)
 
 FACT = "[확인된 사실]"
-SIGNAL = "[참고 신호]"
 
 # 절 이름 → 제목. 방출·저장 순서다(section_stream.SECTION_ORDER는 answer 다음에 이 순서).
 SECTION_TITLES = {
@@ -36,7 +34,6 @@ SIGNAL_LABELS = {
     "survival_cliff": "생존 절벽",
     "early_closure": "조기 폐업",
     "saturation": "포화",
-    "shrinking": "상권 축소",
     "closure_rate": "폐업률",
     "tobacco_gap": "담배권 빈자리",
     "trade_per_office": "사무소당 거래",
@@ -191,9 +188,8 @@ def _reasons(facts: dict) -> str:
 
 
 def _category_paragraph(analogs: dict, category: str) -> str:
-    """한 유형 = 한 문단 — 사례·종합 고정 문장([확인된 사실]) 뒤에 그 유형의 최근 조치 소식([참고 신호]).
-
-    소식이 없으면(기사 0건·확인 못 함) 줄을 생략한다 — "없다"고 쓰지 않는다(설계서 §4).
+    """한 유형 = 한 문단 — 사례·종합 고정 문장([확인된 사실]). 최근 조치 뉴스는 네이버 검색 결과라
+    본문(LLM 입력)에 넣지 않고 화면 링크로만 보여 준다(검색 API 특약 2.3).
     """
     events = [*(analogs.get("current_events") or []), *(analogs.get("analogs") or [])]
     outlook = next((o for o in analogs.get("outlooks") or [] if o.get("category") == category), {})
@@ -201,9 +197,7 @@ def _category_paragraph(analogs: dict, category: str) -> str:
         *(s for e in events if e.get("category") == category for s in (e.get("summary_sentence"), e.get("overlap_sentence")) if s),
         *(s for s in (outlook.get("condition_sentence"), outlook.get("recommended_sentence")) if s),
     ]
-    news = [r["sentence"] for r in analogs.get("recent_news") or [] if r.get("category") == category and r.get("article_count")]
-    parts = [*([f"{FACT} " + " ".join(sentences)] if sentences else []), *([f"{SIGNAL} " + " ".join(news)] if news else [])]
-    return " ".join(parts)
+    return f"{FACT} " + " ".join(sentences) if sentences else ""
 
 
 def topic_particle(word: str) -> str:
@@ -291,11 +285,6 @@ def _staying(change: dict, region: str) -> str:
     )
 
 
-# 동 이름 꼬리(번호·"제"·"가"·"동") — 남은 어간이 기사에 나오면 이 동 기사로 본다(상도제1동→상도, 종로1.2.3.4가동→종로)
-_DONG_SUFFIX = re.compile(r"(?:제?\d+(?:\.\d+)*가?동|동)$")
-_NEWS_MAX = 3
-
-
 def resident_line(facts: dict) -> str:
     """주민 연령 구성(주민등록)과 아파트 평균 시가(참고값) — 사람 검수 "거주민 생활수준" 메모(설계서 §6)."""
     region, _ = subject_names(facts)
@@ -318,37 +307,13 @@ def resident_line(facts: dict) -> str:
     return f"{head}{tail}."
 
 
-def news_line(facts: dict) -> str | None:
-    """동 이름이 든 기사만 최신순 최대 3건 — 뉴스 검색은 다른 구 기사가 섞여 와서 거른다. 없으면 None(줄 생략)."""
-    region, _ = subject_names(facts)
-    base = _DONG_SUFFIX.sub("", region)
-    news = facts.get("news")
-    if len(base) < 2 or not isinstance(news, list):
-        return None
-    hits = sorted(
-        (h for h in news if base in (h.get("content") or "")),
-        key=lambda h: h.get("published_at") or "",
-        reverse=True,
-    )
-    unique: dict[str, dict] = {}
-    for hit in hits:
-        unique.setdefault(hit.get("url") or hit.get("content"), hit)
-    items = [
-        f"{(h.get('content') or '').split(chr(10))[0].lstrip(chr(0xFEFF)).strip()}({(h.get('published_at') or '')[:10]})"
-        for h in list(unique.values())[:_NEWS_MAX]
-    ]
-    return f"{SIGNAL} {region} 이름이 나온 최근 뉴스: " + " · ".join(items) if items else None
-
-
 def _conditions(facts: dict) -> str:
     region, industry = subject_names(facts)
-    news = news_line(facts)
     lines = [
         _hours(facts.get("hour_gap") or {}, region, industry),
         _profile(facts.get("profile") or {}, region),
         _staying(facts.get("commerce_change") or {}, region),
         resident_line(facts),
-        *([news] if news else []),
         *([_BUDGET_LINE] if facts.get("budget") is not None else []),
     ]
     return "\n\n".join(lines)

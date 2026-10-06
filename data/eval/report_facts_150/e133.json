@@ -1068,58 +1068,7 @@
     ],
     "recent_news": []
   },
-  "news": [
-    {
-      "chunk_id": "news:10dc0f3a7039d1de7db1",
-      "source_type": "news",
-      "source_id": "10dc0f3a7039d1de7db1",
-      "content": "상봉의 밤, 골목상점가 '활기'…공연·먹거리 어우러진 여름 축제\n중랑구, '별이 빛나는 상봉의 밤' 개최로 골목상권 활력 더해 [사진제공=중랑구청]  중랑구는 10일 저녁 제2호 상봉먹자 골목형상점가 일대에서 '별이 빛나는 상봉의 밤' 행사를 열어 여름밤 골목상권에 활기를 더했다....",
-      "score": 0.4782584270701056,
-      "url": "https://www.gukjenews.com/news/articleView.html?idxno=3632883",
-      "org": null,
-      "published_at": "2026-07-11T09:32:00"
-    },
-    {
-      "chunk_id": "news:fc474ab95ff692af5dd3",
-      "source_type": "news",
-      "source_id": "fc474ab95ff692af5dd3",
-      "content": "중랑구 상봉먹자 골목형상점가, '별이 빛나는 상봉의 밤' 개최\n서울 중랑구가 골목상권 활성화와 지역 문화 확산을 위해 마련한 여름밤 행사가 주민과 방문객들의 호응 속에 마무리됐다. 중랑구는 지난 10일 저녁 제2호 상봉먹자 골목형상점가에서 '별이 빛나는 상봉의 밤' 행사를...",
-      "score": 0.4721894926573189,
-      "url": "https://www.shinailbo.co.kr/news/articleView.html?idxno=5039814",
-      "org": null,
-      "published_at": "2026-07-12T08:50:00"
-    },
-    {
-      "chunk_id": "news:a102d6ff09189a893715",
-      "source_type": "news",
-      "source_id": "a102d6ff09189a893715",
-      "content": "서초구 잠원하길, 맥주·DJ·먹거리 어우러진 가을밤 축제 연다\n맥주와 DJ 공연, 먹거리를 한자리에서 즐기는 성인 대상 상권 축제가 올가을 서초구 잠원하길을 다시 찾는다. 서초구(구청장 전성수)는 잠원동 골목상권 활성화를 위한 '19금 신비파티'를 9월 11일과 18일, 10월 2일 오후...",
-      "score": 0.46662097970372396,
-      "url": "http://www.enewstoday.co.kr/news/articleView.html?idxno=2468385",
-      "org": null,
-      "published_at": "2026-09-09T08:10:00"
-    },
-    {
-      "chunk_id": "news:6d0a75056c83e5319bb6",
-      "source_type": "news",
-      "source_id": "6d0a75056c83e5319bb6",
-      "content": "'경쟁률 23대 1' 서울시판 '나는 솔로', 가을 야장편 참가자 모집\n상봉먹자골목은 다양한 맛집과 주점이 밀집해 저녁 시간에도 활기가 이어지는 중랑구의 대표 먹거리 상권이다. 취향 맞춤 맛집 체험, 2:2 야장 데이트, 골목 산책 데이트 등 도심 야장 특유의 편안한 분위기 속에서...",
-      "score": 0.45938356099675803,
-      "url": "https://www.mt.co.kr/policy/2026/09/29/2026092910330235800",
-      "org": null,
-      "published_at": "2026-09-29T11:15:00"
-    },
-    {
-      "chunk_id": "news:8c7ec4e5177a0f1cb505",
-      "source_type": "news",
-      "source_id": "8c7ec4e5177a0f1cb505",
-      "content": "중랑구, 골목상권 3곳서 축제 릴레이…먹거리·공연 풍성\n서울 중랑구가 지역 골목상권 활성화를 위해 상봉먹자골목과 묵동도깨비시장, 사가정먹자골목에서 잇달아 축제를 연다. 11일 중랑구에 따르면 이날부터 오는 19일까지 지역 내 골목형상점가 3곳에서 먹거리와 공연, 체험...",
-      "score": 0.45330528538102355,
-      "url": "https://www.ebn.co.kr/news/articleView.html?idxno=1723849",
-      "org": null,
-      "published_at": "2026-09-11T07:36:00"
-    }
-  ],
+  "news": [],
   "funding_candidates": [
     {
       "program_id": "PBLN_000000000126270",

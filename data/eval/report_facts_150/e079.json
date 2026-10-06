@@ -1110,58 +1110,7 @@
     ],
     "recent_news": []
   },
-  "news": [
-    {
-      "chunk_id": "news:84e8093871531efa424f",
-      "source_type": "news",
-      "source_id": "84e8093871531efa424f",
-      "content": "1만원 쓰면 맥주 무제한…서초 잠원하길, 금요일 밤 '야장'으로 변신\n'19금 신비파티'는 '19세 이상 성인을 위한 금요일 신사역·논현역 비어파티'라는 의미를 담은 상권 축제다. 서초구가 주최하고 잠원하길 골목형상점가 상인회가 공동 주관한다. 행사는 잠원동 상권에 새로운 활력을...",
-      "score": 0.50823598903752,
-      "url": "https://www.job-post.co.kr/news/articleView.html?idxno=226760",
-      "org": null,
-      "published_at": "2026-09-09T11:38:00"
-    },
-    {
-      "chunk_id": "news:a102d6ff09189a893715",
-      "source_type": "news",
-      "source_id": "a102d6ff09189a893715",
-      "content": "서초구 잠원하길, 맥주·DJ·먹거리 어우러진 가을밤 축제 연다\n맥주와 DJ 공연, 먹거리를 한자리에서 즐기는 성인 대상 상권 축제가 올가을 서초구 잠원하길을 다시 찾는다. 서초구(구청장 전성수)는 잠원동 골목상권 활성화를 위한 '19금 신비파티'를 9월 11일과 18일, 10월 2일 오후...",
-      "score": 0.5002672672271764,
-      "url": "http://www.enewstoday.co.kr/news/articleView.html?idxno=2468385",
-      "org": null,
-      "published_at": "2026-09-09T08:10:00"
-    },
-    {
-      "chunk_id": "news:0d1dd4328fc47554497a",
-      "source_type": "news",
-      "source_id": "0d1dd4328fc47554497a",
-      "content": "금요일밤 맥주파티…서초구 잠원하길서 '19금 신비파티'\n서울 서초구(구청장 전성수)는 오는 11일, 18일, 10월 2일 등 3차례의 금요일에 잠원동 골목상권인 잠원하길에서 '19금 신비파티'를 연다고 9일 밝혔다. 이 파티는 19세 이상 성인을 대상으로 신사역과 논현역 사이...",
-      "score": 0.4915791179004039,
-      "url": "https://www.yna.co.kr/view/AKR20260909014600004?input=1195m",
-      "org": null,
-      "published_at": "2026-09-09T07:08:00"
-    },
-    {
-      "chunk_id": "news:70bbf44cea6410fd202d",
-      "source_type": "news",
-      "source_id": "70bbf44cea6410fd202d",
-      "content": "\"불금엔 맥주 무제한?\"…서초구, 신사·논현역 잠원하길 상권서 '19금 신...\n서울 서초구(구청장 전성수)가 이달 11일과 18일, 10월 2일 세 차례 잠원동 상권 ‘잠원하길’에서 성인 대상 상권 축제 ‘19금 신비파티’를 연다. 매회 금요일 오후 6시부터 9시까지 진행된다. 서초구가 주최하고...",
-      "score": 0.48078301663500056,
-      "url": "https://view.asiae.co.kr/article/2026090909114103189",
-      "org": null,
-      "published_at": "2026-09-09T09:11:00"
-    },
-    {
-      "chunk_id": "news:e87f027e9dfa96accb63",
-      "source_type": "news",
-      "source_id": "e87f027e9dfa96accb63",
-      "content": "서울 야간명소로 키우는 ‘달빛야장’은 어디?\n‘힙당동(힙+신당동)’을 대표하는 중구 신중앙시장은 국내외 방문객에게 사랑받는 전통시장이다. 떡볶이로 유명한 신당동 기존 상권에 카페와 주점이 모여들며 입소문을 탔다. 동대문디자인플라자(DDP)와도 가까워...",
-      "score": 0.4718889279299411,
-      "url": "https://www.dnews.co.kr/uhtml/view.jsp?idxno=202609101421125980485",
-      "org": null,
-      "published_at": "2026-09-11T06:22:00"
-    }
-  ],
+  "news": [],
   "funding_candidates": [
     {
       "program_id": "PBLN_000000000126270",

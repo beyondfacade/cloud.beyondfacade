@@ -1134,58 +1134,7 @@
     ],
     "recent_news": []
   },
-  "news": [
-    {
-      "chunk_id": "news:404d2ad0ac3fabd135fb",
-      "source_type": "news",
-      "source_id": "404d2ad0ac3fabd135fb",
-      "content": "‘1석 3조’ 광진 경로당 외식데이\n서울 광진구는 어르신들의 목소리를 듣고, 경로당을 직접 찾아 시설과 이용환경을 살피는 등 현장행정을... 골목상권에도 활력을 더할 것으로 기대한다. 김 구청장은 지난 11일 중곡1동 제1경로당과 장수경로당을 시작으로...",
-      "score": 0.505149245262146,
-      "url": "https://www.seoul.co.kr/news/publicnews/seoul_local/news_seoul/2026/08/21/20260821020002?wlog_tag3=naver",
-      "org": null,
-      "published_at": "2026-08-21T05:03:00"
-    },
-    {
-      "chunk_id": "news:7f458c28af951d24d35f",
-      "source_type": "news",
-      "source_id": "7f458c28af951d24d35f",
-      "content": "선정릉 걷고 전통시장 찾으면 포인트…강남구, 4500명 '걷기 챌린지'\n서울 강남구가 걷기와 지역 명소·축제·골목상권을 결합한 건강 챌린지를 운영한다. 선정릉과 양재천, 대모산 등 지역 곳곳을 걸으며 미션을 달성하면 포인트를 받을 수 있도록 해 주민 건강과 지역경제 활성화를...",
-      "score": 0.4928036034107208,
-      "url": "https://www.job-post.co.kr/news/articleView.html?idxno=228063",
-      "org": null,
-      "published_at": "2026-09-17T15:58:00"
-    },
-    {
-      "chunk_id": "news:4102952c66b6105bf4cb",
-      "source_type": "news",
-      "source_id": "4102952c66b6105bf4cb",
-      "content": "광진구, 건강한 한끼 '광진곡곡' 참여 인증마크 부착\n광진구가 구민들의 건강한 식습관 형성을 위해 추진 중인 '광진곡곡'사업 참여업소에 공식 인증마크를... 지역 상권과 적극 협력해 외식 환경에서도 자연스럽게 건강한 한 끼를 선택할 수 있는 건강 식문화를 지속적으로...",
-      "score": 0.48500552773475647,
-      "url": "https://www.jeonmae.co.kr/news/articleView.html?idxno=1283743",
-      "org": null,
-      "published_at": "2026-08-13T11:36:00"
-    },
-    {
-      "chunk_id": "news:c769c57ac570a7097d4f",
-      "source_type": "news",
-      "source_id": "c769c57ac570a7097d4f",
-      "content": "[르포] 마트 한복판에 북그라운드·키즈존..서울 첫 스타필드마켓의 실...\n동부간선도로와 접해 있고 지하철 공릉역과도 가까워 강북구에서 차로 20~30분이면 닿을 수 있는 위치다.... 넓어질 배후 상권을 붙잡을 채널은 트레이더스 매장이다. 매장과 물리적으로 연결된 트레이더스 월계점은 유료...",
-      "score": 0.4779996508359081,
-      "url": "http://www.4th.kr/news/articleView.html?idxno=2116961",
-      "org": null,
-      "published_at": "2026-08-27T13:32:00"
-    },
-    {
-      "chunk_id": "news:2eb1aa4ba6b5438e33af",
-      "source_type": "news",
-      "source_id": "2eb1aa4ba6b5438e33af",
-      "content": "'몸 만들기' 공식 바뀌었다…달라진 여름 다이어트 풍경\n러닝 열풍에 비만약까지 유행하면서 젊은 친구들이 등록을 안 해요.\"서울 동대문구에서 10년 넘게 헬스장을... 9일 서울시 상권분석서비스에 따르면 서울 지역 체력단련시설 신규 개업은 2024년 1분기 263곳에서 올해 1분기...",
-      "score": 0.4758142857772998,
-      "url": "https://www.asiatoday.co.kr/kn/view.php?key=20260809010002712",
-      "org": null,
-      "published_at": "2026-08-09T15:10:00"
-    }
-  ],
+  "news": [],
   "funding_candidates": [
     {
       "program_id": "PBLN_000000000126270",

@@ -1002,58 +1002,7 @@
     ],
     "recent_news": []
   },
-  "news": [
-    {
-      "chunk_id": "news:bb934e4ae0165dbb06b5",
-      "source_type": "news",
-      "source_id": "bb934e4ae0165dbb06b5",
-      "content": "관악구, 남현동 ‘사당오락(舍堂五樂) 달빛야장’ 최종 선정\n이투데이=박일경 기자 | ‘남현예술길’부터 레트로 포차까지…최대 20억 지원 확보 사당역 5번 출구에 ‘5가지 즐거움’ 선사 차량 제한 ‘상생 야장’ 운영…환경 개선 서울특별시 관악구 남현동 상권이 골목 맛 집과...",
-      "score": 0.49871368756069967,
-      "url": "https://www.etoday.co.kr/news/view/2626740",
-      "org": null,
-      "published_at": "2026-09-17T11:26:00"
-    },
-    {
-      "chunk_id": "news:ed5574ddacc850b4b18c",
-      "source_type": "news",
-      "source_id": "ed5574ddacc850b4b18c",
-      "content": "\"사당역 5번출구에 5가지 즐거움\"…관악구 '사당오락 야장'\n남현동 상권 '달빛야장' 추진…예술거리와 레트로 포차로 구성 서울 관악구(구청장 박준희)는 남현동 상권의 '사당오락'(舍堂五樂)이 골목 맛집과 문화자원을 잇는 서울시 '달빛야장 조성사업' 공모에 선정됨에 따라 환경...",
-      "score": 0.4661934299393069,
-      "url": "https://www.yna.co.kr/view/AKR20260915036000004?input=1195m",
-      "org": null,
-      "published_at": "2026-09-15T09:04:00"
-    },
-    {
-      "chunk_id": "news:c95963aeec9780e8caf3",
-      "source_type": "news",
-      "source_id": "c95963aeec9780e8caf3",
-      "content": "관악구 남현동, 골목상권에 20억 투입…5대 가치 내세운 '상생야장' 본격...\n관악구 남현동 상권이 서울시의 '달빛야장 조성사업' 공모에 최종 선정돼 최대 20억 원의 사업비를 지원받는다. 관악구는 이번 사업을 통해 남현동 일대의 환경 정비와 상권 특화 콘텐츠 운영, 주민과 상인이 함께하는 상생...",
-      "score": 0.4597386409721689,
-      "url": "https://www.gukjenews.com/news/articleView.html?idxno=3695291",
-      "org": null,
-      "published_at": "2026-09-15T09:08:00"
-    },
-    {
-      "chunk_id": "news:240bf54d33f5a4e9889c",
-      "source_type": "news",
-      "source_id": "240bf54d33f5a4e9889c",
-      "content": "관악구 사당역 '달빛야장' 조성…레트로 포차·예술거리 만든다\n관악구는 남현동 상권의 '사당오락'이 골목 맛집과 문화자원을 잇는 서울시 '달빛야장 조성사업' 공모에 선정돼 환경 정비와 상권 특화 콘텐츠 운영 등을 추진한다고 15일 밝혔다. 남현동은 사당역과 대규모 버스...",
-      "score": 0.4489637145106822,
-      "url": "https://www.mhns.co.kr/news/articleView.html?idxno=760399",
-      "org": null,
-      "published_at": "2026-09-15T14:16:00"
-    },
-    {
-      "chunk_id": "news:0cc3ffd9ead1cd3c055b",
-      "source_type": "news",
-      "source_id": "0cc3ffd9ead1cd3c055b",
-      "content": "신당역 골목에 야장 펼친다…중구, 18일부터 3곳 운영\n남대문·충무로·약수·장충남소영길로 순차 확대 서울 중구(구청장 김길성)는 오는 18일부터 신당역 일대 전통시장과 골목상권 3곳에서 '중구형 상생야장'을 운영한다고 10일 밝혔다. 중구형 상생야장은 상인들이 시장별...",
-      "score": 0.4181650795795204,
-      "url": "https://news.tf.co.kr/read/life/2364318.htm",
-      "org": null,
-      "published_at": "2026-09-10T12:31:00"
-    }
-  ],
+  "news": [],
   "funding_candidates": [
     {
       "program_id": "PBLN_000000000126270",

@@ -1134,58 +1134,7 @@
     ],
     "recent_news": []
   },
-  "news": [
-    {
-      "chunk_id": "news:609b508b720738525bea",
-      "source_type": "news",
-      "source_id": "609b508b720738525bea",
-      "content": "레드포스PC방 신논현점, SBS ‘모닝와이드’ 소개…복합형 PC방 운영 확...\n서울 강남구 신논현역 인근에 위치한 신논현점은 약 200평 규모로 조성됐으며, e스포츠 경기석과 관중석을... 앞서 일부 매장에서는 셰프와 협업한 메뉴를 선보이고 대학가 등 상권별 이용자 특성을 반영한 공간 설계를...",
-      "score": 0.5359724802939946,
-      "url": "https://www.gosiweek.com/article/1065599079170783",
-      "org": null,
-      "published_at": "2026-09-18T16:48:00"
-    },
-    {
-      "chunk_id": "news:426c56576ef56a0bd551",
-      "source_type": "news",
-      "source_id": "426c56576ef56a0bd551",
-      "content": "\"맨날 똑같은 데이트 지겹다면\"...선선한 가을밤 찢어놓을 서울 '야시장...\n강북구 수유전통시장은 10월 3일 처음으로 '수유미식회'를 개최한다. 카테고리별로 3곳 이상 점포를 이용해... 되길 바란다\"며 \"시민들의 발길이 상인들의 매출과 주변 골목상권의 활력으로 이어지도록 하겠다\"고 말했다.",
-      "score": 0.4776506503878004,
-      "url": "https://www.insight.co.kr/news/575885",
-      "org": null,
-      "published_at": "2026-09-30T14:28:00"
-    },
-    {
-      "chunk_id": "news:6dd03fe82e0ad7c8dca2",
-      "source_type": "news",
-      "source_id": "6dd03fe82e0ad7c8dca2",
-      "content": "[SV 리포트] 대기업 중심 유통 문턱 낮춘 ‘올다무’…중소기업 성장 사...\n강북구 ‘수유시장2호점’은 수유시장 측의 요청을 반영해 당초 검토했던 대로변 대신 시장 내부에 자리 잡았다. 다이소 고객이 시장 내 먹거리와 점포를 함께 이용하고 시장 방문객이 다이소를 찾으면서 지역 상권...",
-      "score": 0.47210054771261767,
-      "url": "https://www.socialvalue.kr/news/view/1065579556661830",
-      "org": null,
-      "published_at": "2026-09-17T07:00:00"
-    },
-    {
-      "chunk_id": "news:ca576238eab780a9513f",
-      "source_type": "news",
-      "source_id": "ca576238eab780a9513f",
-      "content": "레드포스 PC방, 게이밍·F&B·e스포츠 결합한 창업 모델 확대\n서울 종로구에 있는 레드포스 PC 아레나 종각점은 최근 한국의 일상과 문화를 소개하는 글로벌 대상 영상... 비엔엠컴퍼니는 종각점 운영 사례를 바탕으로 입지와 상권, 고객 구성에 맞는 창업 컨설팅을 제공할 계획이다....",
-      "score": 0.4601327502649373,
-      "url": "https://www.gosiweek.com/article/1065598441327466",
-      "org": null,
-      "published_at": "2026-08-19T16:38:00"
-    },
-    {
-      "chunk_id": "news:956ebab97343c785dada",
-      "source_type": "news",
-      "source_id": "956ebab97343c785dada",
-      "content": "제우스 PC방 망원점, ZOWIE x C5 PUBG 클랜파티 개최\n망원역과 마포구청역을 잇는 도로에 위치해 대중교통 접근성이 좋다. 망원시장과 망원동 월드컵시장, 망리단길과도 가까워 게임 대회 참가와 지역 상권 방문을 함께 할 수 있다. 매장은 전 좌석에 인텔 15세대...",
-      "score": 0.4580255498856465,
-      "url": "http://www.thebigdata.co.kr/view.php?ud=20260909151510308937600e7ec7_23",
-      "org": null,
-      "published_at": "2026-09-09T15:22:00"
-    }
-  ],
+  "news": [],
   "funding_candidates": [
     {
       "program_id": "PBLN_000000000126270",

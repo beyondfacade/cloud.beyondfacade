@@ -1111,58 +1111,7 @@
     ],
     "recent_news": []
   },
-  "news": [
-    {
-      "chunk_id": "news:131a1d13ea4086aefae2",
-      "source_type": "news",
-      "source_id": "131a1d13ea4086aefae2",
-      "content": "광진구 골목상권에 가을밤 활기…자양동서 이틀 연속 골목축제\n서울 광진구 자양동 골목상권이 먹거리와 공연을 결합한 축제의 장으로 변신한다. 지역 상점의 특색을 주민들에게 알리고 소비를 촉진해 골목상권에 새로운 활력을 불어넣기 위한 행사다. 광진구는 오는 9월 18일과 19일...",
-      "score": 0.5089222647776265,
-      "url": "https://www.job-post.co.kr/news/articleView.html?idxno=227879",
-      "org": null,
-      "published_at": "2026-09-16T15:34:00"
-    },
-    {
-      "chunk_id": "news:cb8c00f7a6a1f24e082d",
-      "source_type": "news",
-      "source_id": "cb8c00f7a6a1f24e082d",
-      "content": "광진구 자양동 골목서 이틀 연속 ‘야장축제’…먹거리·공연 풍성\n서울 광진구가 자양동 골목상권 활성화를 위해 이틀 연속 먹거리와 공연을 즐길 수 있는 골목축제를 연다. 광진구는 오는 18일과 19일 자양15번가와 자양번영로 골목형상점가에서 각각 골목축제를 개최한다고 17일 밝혔다....",
-      "score": 0.49380245693966773,
-      "url": "https://www.munhwa.com/article/11617607?ref=naver",
-      "org": null,
-      "published_at": "2026-09-17T06:42:00"
-    },
-    {
-      "chunk_id": "news:22036961ab8b00497587",
-      "source_type": "news",
-      "source_id": "22036961ab8b00497587",
-      "content": "광진구 자양로13길 상점가 첫 축제…'멋따라 맛따라 자양로 따라' 성황\n서울 광진구 자양1동 골목상권의 새로운 출발을 알리는 주민·상인 축제가 열렸다. 광진구는 11일 오후 5시부터 자양1동 자마장공원과 자양로13길 일대에서 '멋따라 맛따라 자양로 따라' 축제를 개최했다. 이번 행사는...",
-      "score": 0.4777061641216278,
-      "url": "https://www.upkoreanews.kr/news/articleView.html?idxno=100229",
-      "org": null,
-      "published_at": "2026-09-13T15:22:00"
-    },
-    {
-      "chunk_id": "news:b94c2f1c00377e758b5c",
-      "source_type": "news",
-      "source_id": "b94c2f1c00377e758b5c",
-      "content": "배민, 한강 드론라이트쇼서 자양동 맛집 알렸다…2000명 방문\n서울 광진구 뚝섬한강공원에서 열린 ‘한강 드론라이트쇼’에서 자양동 맛집을 소개했다고 13일 밝혔다.... 배민 관계자는 “관람객분들이 배민 부스를 통해 자양동 로컬 맛집을 알게 되고 자연스럽게 지역 상권을 찾는...",
-      "score": 0.46368492515447857,
-      "url": "https://www.seoultimes.news/news/article.html?no=2000099811",
-      "org": null,
-      "published_at": "2026-09-13T11:25:00"
-    },
-    {
-      "chunk_id": "news:15f62afa23f92b2a0ccd",
-      "source_type": "news",
-      "source_id": "15f62afa23f92b2a0ccd",
-      "content": "한강 드론라이트쇼 지원한 배민, 푸드트럭에 2000명 방\n배민은 행사장에 지역 인기 가게를 소개하는 '민트스타' 부스를 마련하고, 관람객들이 광진구 자양동 일대의 음식점과 상권 정보를 직접 확인할 수 있도록 했다. 부스에서는 자양동 지역 맛집 20곳을 소개했으며, 메뉴와...",
-      "score": 0.4388017350189064,
-      "url": "https://www.wolyo.co.kr/news/articleView.html?idxno=317683",
-      "org": null,
-      "published_at": "2026-09-13T09:48:00"
-    }
-  ],
+  "news": [],
   "funding_candidates": [
     {
       "program_id": "PBLN_000000000126270",

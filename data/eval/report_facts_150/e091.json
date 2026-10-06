@@ -1066,58 +1066,7 @@
     ],
     "recent_news": []
   },
-  "news": [
-    {
-      "chunk_id": "news:b478fcb9a119fdf07966",
-      "source_type": "news",
-      "source_id": "b478fcb9a119fdf07966",
-      "content": "해방촌 한복판 단독주택이 단기임대로…7.6평에 주 45만원\n서울 용산구 용산동2가 단독주택 1층이 단기임대 매물로 나왔다. 이태원·경리단길과 남산 사이에 위치한... 해방촌 상권이다. 다만, 지형 특성상 지하철역이 마을 안쪽까지 들어오지 않아 버스와 차량을 이용해야 한다....",
-      "score": 0.44854160836587087,
-      "url": "https://realty.chosun.com/site/data/html_dir/2026/09/24/2026092401628.html",
-      "org": null,
-      "published_at": "2026-09-25T06:04:00"
-    },
-    {
-      "chunk_id": "news:a102d6ff09189a893715",
-      "source_type": "news",
-      "source_id": "a102d6ff09189a893715",
-      "content": "서초구 잠원하길, 맥주·DJ·먹거리 어우러진 가을밤 축제 연다\n맥주와 DJ 공연, 먹거리를 한자리에서 즐기는 성인 대상 상권 축제가 올가을 서초구 잠원하길을 다시 찾는다. 서초구(구청장 전성수)는 잠원동 골목상권 활성화를 위한 '19금 신비파티'를 9월 11일과 18일, 10월 2일 오후...",
-      "score": 0.44714208807254885,
-      "url": "http://www.enewstoday.co.kr/news/articleView.html?idxno=2468385",
-      "org": null,
-      "published_at": "2026-09-09T08:10:00"
-    },
-    {
-      "chunk_id": "news:7238ece5691e1770a7ac",
-      "source_type": "news",
-      "source_id": "7238ece5691e1770a7ac",
-      "content": "코카-콜라, 해방촌 골목축제 'HBC 해방위크' 동행…30곳 한정메뉴·무료...\n| 이코노미사이언스 강은영 기자 | 서울 용산구 해방촌의 식당과 책방, 골목길이 나흘 동안 공연장과 영화관... 해방위크가 일회성 행사에 머물지 않고 골목 상권과 지역문화에 도움이 되려면 행사 이후 방문객 변화와 참여...",
-      "score": 0.4246967210461926,
-      "url": "https://www.e-science.co.kr/news/articleView.html?idxno=135203",
-      "org": null,
-      "published_at": "2026-09-10T11:54:00"
-    },
-    {
-      "chunk_id": "news:9f71e10f65443e107ffa",
-      "source_type": "news",
-      "source_id": "9f71e10f65443e107ffa",
-      "content": "영등포구, '제2회 원조맥주축제' 개최…맥주 본고장 매력 알린다\n영등포구가 오는 18일부터 19일까지 이틀간 영등포공원(영등포구 신길로 275)에서 '제2회 영등포구... 구는 축제 방문객을 지역 상권으로 유도하기 위한 연계 프로그램도 마련했다. 영등포동과 문래동, 양평·당산동 등...",
-      "score": 0.41753480329902826,
-      "url": "https://www.jeonmae.co.kr/news/articleView.html?idxno=1292377",
-      "org": null,
-      "published_at": "2026-09-11T09:36:00"
-    },
-    {
-      "chunk_id": "news:c64e58df082d51af76f8",
-      "source_type": "news",
-      "source_id": "c64e58df082d51af76f8",
-      "content": "도봉구, 12일 '창동 막걸리 페스티벌'…막걸리 빚기 체험 행사도\n서울 도봉구(구청장 김동욱)는 오는 12일 창동신창시장과 창동골목시장 일대에서 '제2회 창동 막걸리... 김동욱 구청장은 \"많은 분이 축제를 즐기며 전통시장의 매력을 재발견하고, 이것이 곧 지역 상권 발전과 경제...",
-      "score": 0.41578124180902976,
-      "url": "https://www.yna.co.kr/view/AKR20260909095500004?input=1195m",
-      "org": null,
-      "published_at": "2026-09-09T11:48:00"
-    }
-  ],
+  "news": [],
   "funding_candidates": [
     {
       "program_id": "PBLN_000000000126270",

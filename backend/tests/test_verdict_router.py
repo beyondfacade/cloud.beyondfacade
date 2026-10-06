@@ -21,7 +21,7 @@ _DTO = RegionIndustryVerdictDto(
     region_code="1168064000", industry_id="korean_food", verdict_code="red", strong_count=2, on_count=3,
     signals=tuple(
         SignalResultDto(key=k, level="strong", value=0.2, percentile=95.0, evidence="근거", source="store")
-        for k in ("net_outflow", "survival_cliff", "early_closure", "saturation", "shrinking")
+        for k in ("net_outflow", "survival_cliff", "early_closure", "saturation")
     ),
     computed_at=datetime(2026, 9, 29, 4, 30, tzinfo=timezone.utc),
 )
@@ -71,7 +71,7 @@ def teardown_function() -> None:
 def test_myself_배선_200():
     app.dependency_overrides.pop(get_region_industry_verdict_use_case, None)  # 실제 DI로 배선 검증
     body = TestClient(app).get("/verdicts/myself").json()
-    assert body["region_code"] == "myself" and len(body["signals"]) == 5
+    assert body["region_code"] == "myself" and len(body["signals"]) == 4
 
 
 def test_목록은_region_code와_value_쌍이다():
@@ -87,7 +87,7 @@ def test_판정_대상이_아닌_업종은_404_INDUSTRY_NOT_FOUND():
     assert res.status_code == 404 and res.json()["error"]["code"] == "INDUSTRY_NOT_FOUND"
 
 
-def test_단건은_신호_5개를_담고_없으면_404_VERDICT_NOT_FOUND():
+def test_단건은_신호_4개를_담고_없으면_404_VERDICT_NOT_FOUND():
     res = _client().get("/verdicts/1168064000?industry=korean_food")
     assert res.status_code == 200
     body = res.json()

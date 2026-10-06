@@ -1105,58 +1105,7 @@
     ],
     "recent_news": []
   },
-  "news": [
-    {
-      "chunk_id": "news:50ed5cf94254c5af9569",
-      "source_type": "news",
-      "source_id": "50ed5cf94254c5af9569",
-      "content": "“한국서 잘 팔리네”…핵심 상권 파고드는 이 브랜드들\n서울 서초구 강남역에 신규 매장을 연다. 기존 강남점을 이전해 새롭게 문을 여는 것으로, 국내 2호점인 자카페(Zacaffè)도 함께 선보일 예정이다. 주요 상권에서 매장 경쟁력을 높이는 동시에 브랜드 경험을 강화하려는...",
-      "score": 0.49317361638222523,
-      "url": "https://www.mk.co.kr/article/12135890",
-      "org": null,
-      "published_at": "2026-08-25T16:29:00"
-    },
-    {
-      "chunk_id": "news:107cc17619d6ec3f4725",
-      "source_type": "news",
-      "source_id": "107cc17619d6ec3f4725",
-      "content": "\"성심당 빵 OK\"…대전지역 카페의 변신 '빵코노미'[출동!인턴]\n마음껏 드세요.\" 지난 11일 대전 중구의 카페 '오픈톨드'. 매장 안에서는 음료와 함께 외부에서 가져온 빵을... 성심당을 찾은 관광객의 소비가 빵 구매에 그치지 않고 주변 카페 이용으로까지 이어지면서, 대전 지역 상권에...",
-      "score": 0.48700807427782467,
-      "url": "https://www.newsis.com/view/NISX20260911_0003786236",
-      "org": null,
-      "published_at": "2026-09-13T15:01:00"
-    },
-    {
-      "chunk_id": "news:24a96661b3cbd78cccab",
-      "source_type": "news",
-      "source_id": "24a96661b3cbd78cccab",
-      "content": "인생소곱창 종암, 고객 의견 반영한 ‘곱창전골’ 도입…메뉴 경쟁력 강...\n▲‘인생소곱창 종암’ 제공 서울 성북구 종암동의 곱창 전문점 ‘인생소곱창 종암’이 고객들의 지속적인... 인생소곱창 종암은 앞으로도 고객 의견을 반영한 메뉴 개발과 서비스 개선을 지속하며 지역 상권 내 경쟁력을...",
-      "score": 0.4866681404908666,
-      "url": "https://www.gosiweek.com/article/1065577752774475",
-      "org": null,
-      "published_at": "2026-07-31T09:06:00"
-    },
-    {
-      "chunk_id": "news:6501cf24db7396fd7b44",
-      "source_type": "news",
-      "source_id": "6501cf24db7396fd7b44",
-      "content": "‘스초생’ 들고 미국 간 투썸…메인스트림서 K카페 도전\n24년간 매장 1750개 늘었지만..출점 둔화에 해외로 눈길 투썸플레이스는 3일 서울 영등포구 콘래드 서울에서... 카페 시장의 경쟁이 치열한 데다 기존 가맹점 상권까지 고려하면 신규 점포를 공격적으로 늘리기 어렵기...",
-      "score": 0.4795963812837236,
-      "url": "https://www.inthenews.co.kr/news/article.html?no=91401",
-      "org": null,
-      "published_at": "2026-09-04T06:32:00"
-    },
-    {
-      "chunk_id": "news:ba93c1776232fa358e59",
-      "source_type": "news",
-      "source_id": "ba93c1776232fa358e59",
-      "content": "스타벅스 성공 신화 이을까…카페 시장에 해외 브랜드 ‘속속’\n해외 브랜드 한국행 14일 업계에 따르면 차지는 최근 서울 종로구 종각역 인근에 국내 8호점인 종로점을 열었다. 종로점은 국내 첫 2층형 매장으로 대형 오피스와 관광 수요가 공존하는 상권 특성을 겨냥했다. 차지는 강남...",
-      "score": 0.47919632244329646,
-      "url": "https://www.news2day.co.kr/article/20260813500250",
-      "org": null,
-      "published_at": "2026-08-14T07:02:00"
-    }
-  ],
+  "news": [],
   "funding_candidates": [
     {
       "program_id": "PBLN_000000000126270",

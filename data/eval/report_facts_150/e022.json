@@ -1009,58 +1009,7 @@
     ],
     "recent_news": []
   },
-  "news": [
-    {
-      "chunk_id": "news:557ed132367e83388572",
-      "source_type": "news",
-      "source_id": "557ed132367e83388572",
-      "content": "﻿'충정로역자이르네' 아파트 흥행 이은 '충정로 GL 스퀘어' 분양 예정…...\n서울역 북부역세권 복합개발도 상권의 성장 기대감을 높인다. 상업시설에서 직선거리 약 350m인 중구 봉래동2가 일원에 연면적 약 10만2,000평 규모로 업무·숙박·컨벤션·문화 기능을 갖춘 복합공간을 조성하는 사업이다....",
-      "score": 0.48050077201430064,
-      "url": "https://www.woodkorea.co.kr/news/articleView.html?idxno=91490",
-      "org": null,
-      "published_at": "2026-09-21T16:00:00"
-    },
-    {
-      "chunk_id": "news:27e22b4a3eecb6584124",
-      "source_type": "news",
-      "source_id": "27e22b4a3eecb6584124",
-      "content": "현대건설 '힐스테이트 송파더그리드' 선착순 계약 순항… 방문객 대거 ...\n올랐고, 강남구 역삼동 '역삼SK리더스뷰' 전용 109㎡도 지난해 10월 15억원에서 올해 9월 19억5,000만원으로... 이 같은 F&B 중심의 상업시설 조성 전략은 배후 상권 활성화에도 힘을 보탤 것으로 기대된다. 포스코홀딩스와...",
-      "score": 0.4375624880567316,
-      "url": "http://www.ikld.kr/news/articleView.html?idxno=341745",
-      "org": null,
-      "published_at": "2026-10-03T11:32:00"
-    },
-    {
-      "chunk_id": "news:5f0a1059f95988103f82",
-      "source_type": "news",
-      "source_id": "5f0a1059f95988103f82",
-      "content": "양천구, 신정재정비촉진지구 재정비촉진계획 개편…“용적률 체계 개편...\n서울 양천구(구청장 이기재)가 서울 지하철 2호선 신정네거리역 일대의 개발 여건을 대폭 개선하며 신정권... 개선, 상권 활성화가 함께 이뤄질 수 있도록 뒷받침할 방침이다. 이 구청장은 “신월·신정권의 주요 거점이...",
-      "score": 0.43235765599140885,
-      "url": "https://www.munhwa.com/article/11617614?ref=naver",
-      "org": null,
-      "published_at": "2026-09-17T07:03:00"
-    },
-    {
-      "chunk_id": "news:b18b9f753e3a0cb7d0f5",
-      "source_type": "news",
-      "source_id": "b18b9f753e3a0cb7d0f5",
-      "content": "지하철 2·5호선 충정로역 직통 연결… 자이S&D, '충정로역자이르네' 이...\n[국토일보 하종숙 기자] 자이S&D가 서울시 중구 중림동 일원에 공급하는 '충정로역자이르네'가 이달 15일... 빠른 상권 활성화가 이뤄질 전망이다. '충정로역자이르네'는 교육환경도 우수하다. 봉래초가 도보권에...",
-      "score": 0.4293027991335525,
-      "url": "http://www.ikld.kr/news/articleView.html?idxno=340554",
-      "org": null,
-      "published_at": "2026-09-14T09:28:00"
-    },
-    {
-      "chunk_id": "news:b0987c4cfdf35600c2ca",
-      "source_type": "news",
-      "source_id": "b0987c4cfdf35600c2ca",
-      "content": "고물가 속 2만원 뷔페 '문전성시'…테이크·애슐리 '출점 질주'\n아워홈 관계자는 \"미아사거리 일대는 강북구를 대표하는 상권 중 하나\"라며 \"테이크는 새로운 콘텐츠를 지속적으로 선보이고 있으며 차별화된 미식 경험을 제공 중\"이라고 설명했다. 이랜드이츠, 아워홈이 뷔페...",
-      "score": 0.4253841029220087,
-      "url": "https://www.ebn.co.kr/news/articleView.html?idxno=1726367",
-      "org": null,
-      "published_at": "2026-10-02T06:00:00"
-    }
-  ],
+  "news": [],
   "funding_candidates": [
     {
       "program_id": "PBLN_000000000126270",

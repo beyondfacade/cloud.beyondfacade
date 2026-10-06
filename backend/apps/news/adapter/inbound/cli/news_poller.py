@@ -2,11 +2,13 @@
 
 기본 키워드: 서울 25개 자치구명 + "상권" (district 마스터에서 로드).
 호출량: 25회/실행 — 시간당 1회 크론 기준 일 600회 (일 한도 25,000회 내).
+적재 뒤 게시 21일이 지난 기사를 지운다 (네이버 검색 API 특약 2.4 — 서버 보관 최대 21일).
 
 실행: python -m apps.news.adapter.inbound.cli.news_poller [키워드 ...]
 """
 
 import sys
+from datetime import datetime
 
 from sqlalchemy import select
 
@@ -31,7 +33,8 @@ def main(keywords: list[str]) -> None:
         gateway=NaverNewsGateway(),
     )
     inserted = interactor.ingest(keywords or _default_keywords())
-    print(f"news poller: 신규 {inserted}건 적재")
+    purged = interactor.purge(datetime.now())
+    print(f"news poller: 신규 {inserted}건 적재, 보관 기한 지난 {purged}건 삭제")
 
 
 if __name__ == "__main__":

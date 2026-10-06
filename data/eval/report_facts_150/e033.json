@@ -1056,58 +1056,7 @@
     ],
     "recent_news": []
   },
-  "news": [
-    {
-      "chunk_id": "news:693026f23fc743ee8a86",
-      "source_type": "news",
-      "source_id": "693026f23fc743ee8a86",
-      "content": "무신사 '약국 뷰티'로 출사표…올리브영 1강 구도 흔들까\n무신사는 11일 서울 마포구 서교동에 첫 뷰티 단독 매장인 '무신사 뷰티 홍대'를 열었다. 지난 4월 무신사... 이번 출점으로 온라인에서 시작된 양사의 경쟁은 홍대와 성수 등 주요 오프라인 상권으로 확대됐다. 다만...",
-      "score": 0.5280432138494509,
-      "url": "https://www.newsway.co.kr/news/view?ud=2026091111303399053",
-      "org": null,
-      "published_at": "2026-09-11T14:18:00"
-    },
-    {
-      "chunk_id": "news:786fe9535f6a6e7330a2",
-      "source_type": "news",
-      "source_id": "786fe9535f6a6e7330a2",
-      "content": "경기 둔화에도…피부관리실·반찬가게 잘나간다\n서울 관악구에 사는 30대 여성 Y씨는 올초부터 월 20만원 안팎을 피부관리에 쓴다. Y씨는 “어릴 때는... 21일 서울시 상권분석서비스에 따르면 서울 전체 외식업 점포는 2024년 2분기 16만1242곳에서 올해 2분기...",
-      "score": 0.5262793302536048,
-      "url": "https://www.hankyung.com/article/2026082154621",
-      "org": null,
-      "published_at": "2026-08-21T17:47:00"
-    },
-    {
-      "chunk_id": "news:5c8825298877e1477e4b",
-      "source_type": "news",
-      "source_id": "5c8825298877e1477e4b",
-      "content": "[릴레이 인터뷰] 잠실서 11년, 손님 시간 아끼고 원장 건강 지킨 '똑똑한...\n서울 송파구 잠실역에 내리자 대로변에 고층 빌딩과 상가가 빼곡하다. 건물 한 채가 내걸고 있는 피부과와 에스테틱 숍 간판만 수십 개다. 이토록 치열한 뷰티 상권 한복판에서 11년간 자리를 지킨 이가 있다. 27년째 피부...",
-      "score": 0.5202430665855211,
-      "url": "http://www.mkhealth.co.kr/news/articleView.html?idxno=79992",
-      "org": null,
-      "published_at": "2026-09-09T17:30:00"
-    },
-    {
-      "chunk_id": "news:f5e651d0e94a90d25382",
-      "source_type": "news",
-      "source_id": "f5e651d0e94a90d25382",
-      "content": "에이비팜, ‘무신사 뷰티 홍대’ 뷰티온누리약국 입점\n더마솔트케어 전문 브랜드 에이비팜은 서울 마포구 서교동에 개점한 ‘무신사 뷰티 홍대’ 내... 최근 명동, 홍대 등 핵심 상권에서는 외국인 관광객이 전문 약국 채널에서 기능성 스킨케어를 대량 구매하는 ‘K-약국’...",
-      "score": 0.5187861191141118,
-      "url": "https://www.sentv.co.kr/article/view/sentv202609180059",
-      "org": null,
-      "published_at": "2026-09-18T10:26:00"
-    },
-    {
-      "chunk_id": "news:3efacdde4c183dbbe183",
-      "source_type": "news",
-      "source_id": "3efacdde4c183dbbe183",
-      "content": "화장품 옆 '약사' 앉혀놨더니…무신사의 K뷰티 '파격 실험' [영상]\n\" 10일 서울 마포구 서교동에 문을 연 무신사 뷰티의 첫 단독 오프라인 매장 '무신사 뷰티 홍대'. 매장 지하... 외국인 관광객과 20·30대 유동인구가 많은 홍대 상권의 특성을 반영해 상품과 체험 공간을 구성했다. 가장 눈에...",
-      "score": 0.5187444996085474,
-      "url": "https://www.hankyung.com/article/202609105903g",
-      "org": null,
-      "published_at": "2026-09-10T14:13:00"
-    }
-  ],
+  "news": [],
   "funding_candidates": [
     {
       "program_id": "PBLN_000000000126270",

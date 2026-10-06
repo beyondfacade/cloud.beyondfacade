@@ -1036,58 +1036,7 @@
     ],
     "recent_news": []
   },
-  "news": [
-    {
-      "chunk_id": "news:036449707e2a54325522",
-      "source_type": "news",
-      "source_id": "036449707e2a54325522",
-      "content": "[추석기획] \"피부 진단부터 맞춤 제작까지\"…K-뷰티 '개인화'로 진화\n비수도권 상권 확대에도 속도를 내는 올리브영은 지난달 부산 중구에 문을 연 '올리브영 남포 타운'(이하 남포 타운)에도 비수도권 최초로 뷰티 컨설턴트 3명을 배치해 피부 진단 및 맞춤형 카운슬링을 제공하고 있다....",
-      "score": 0.5228844203170264,
-      "url": "http://www.srtimes.kr/news/articleView.html?idxno=213156",
-      "org": null,
-      "published_at": "2026-09-23T10:30:00"
-    },
-    {
-      "chunk_id": "news:b5cfcf28f4ebb6cfca2b",
-      "source_type": "news",
-      "source_id": "b5cfcf28f4ebb6cfca2b",
-      "content": "[오늘의 뷰티] 무신사 뷰티·바이오던스·보다나·네오팜·대봉엘에스\n주요 상권으로 확장한다. 보다나와 네오팜은 각각 트리트먼트, 바디케어 제품 등 한정 기획 상품으로 수요... 무신사와 온누리약국은 오는 11일 서울 마포구 홍대 부근에 문을 여는 '무신사 뷰티 홍대'에서 뷰티와 약국을...",
-      "score": 0.5151155112442983,
-      "url": "http://www.financialreview.co.kr/news/articleView.html?idxno=44668",
-      "org": null,
-      "published_at": "2026-09-07T16:48:00"
-    },
-    {
-      "chunk_id": "news:e8c1bb0689c6eec1ca83",
-      "source_type": "news",
-      "source_id": "e8c1bb0689c6eec1ca83",
-      "content": "명동 다음은 부산..올리브영, 'K뷰티 지방 거점' 키운다\n남포 타운은 서울 명동에서 선보인 글로벌 특화매장 모델을 부산 상권에 적용한 매장이다. 올리브영은 3월 서울 중구에 '센트럴 명동타운'을 열었다. 약 950평 규모에 1000여개 브랜드와 1만5000개 상품을 갖추고, 마스크팩...",
-      "score": 0.5139872415081304,
-      "url": "http://www.4th.kr/news/articleView.html?idxno=2117305",
-      "org": null,
-      "published_at": "2026-09-02T11:32:00"
-    },
-    {
-      "chunk_id": "news:f78f0596345e21a28cd8",
-      "source_type": "news",
-      "source_id": "f78f0596345e21a28cd8",
-      "content": "“화장품 어디서 사세요?”…올리브영·다이소 다음은 ‘약국’\n무신사는 지난 11일 서울 마포구에 문을 연 첫 뷰티 단독 오프라인 매장 ‘무신사 뷰티 홍대’ 지하 1층에... 약국마다 규모와 상권, 화장품 판매 역량에 차이가 크다는 점도 넘어야 할 과제로 꼽힌다. 뷰티업계 관계자는...",
-      "score": 0.5129161430897238,
-      "url": "https://www.kukinews.com/article/view/kuk202609180163",
-      "org": null,
-      "published_at": "2026-09-21T06:02:00"
-    },
-    {
-      "chunk_id": "news:272c5f2643e182f59a24",
-      "source_type": "news",
-      "source_id": "272c5f2643e182f59a24",
-      "content": "듀댑, 비수도권 최대 규모 ‘올리브영 남포 타운’에 팩클렌저 3종 입점\n스킨케어 브랜드 듀댑(dewdap)이 부산 중구에 새롭게 문을 연 ‘올리브영 남포 타운’에 모공비움 팩클렌저... 특히 남포동과 광복동 일대는 부산을 대표하는 관광 상권으로, 외국인 관광객의 방문과 K뷰티 제품 구매가...",
-      "score": 0.5115616044215356,
-      "url": "https://www.thepowernews.co.kr/view.php?ud=2026090810485532489aeda69934_7",
-      "org": null,
-      "published_at": "2026-09-08T10:50:00"
-    }
-  ],
+  "news": [],
   "funding_candidates": [
     {
       "program_id": "PBLN_000000000126270",

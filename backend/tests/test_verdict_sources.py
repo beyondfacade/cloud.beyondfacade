@@ -63,7 +63,7 @@ class FakeStoreStats(StoreSignalStatsPort):
 
 class FakeContext(RegionContextPort):
     def latest_contexts(self, quarter_max=None):
-        return [RegionContext(r, 10_000, "HH", "정체", "20262", 25.0, 27.0) for r in _REGIONS]
+        return [RegionContext(r, 10_000) for r in _REGIONS]
 
     def latest_store_counts(self, year_max=None):
         return [LatestStoreCount(r, "korean_food", 90) for r in _REGIONS]
@@ -130,11 +130,11 @@ def test_등록된_업종은_자기_원천과_프로필로_판정하고_basis를
     conv = verdicts[("r19", "convenience_store")]
     assert conv.basis == "proxy"
     assert [s.key for s in conv.signals] == [
-        "net_outflow", "survival_cliff", "early_closure", "saturation", "shrinking", "tobacco_gap",
+        "net_outflow", "survival_cliff", "early_closure", "saturation", "tobacco_gap",
     ]
     assert conv.signals[0].source == "tobacco"
     assert conv.signals[0].value == pytest.approx((29 - 10) / 100)  # 인허가 원천의 편의점 행(90)이 아니라 원천 데이터 값
-    assert conv.signals[5].value == pytest.approx(69 / 100)
+    assert conv.signals[4].value == pytest.approx(69 / 100)
     korean = verdicts[("r19", "korean_food")]
     assert korean.basis == "permit" and korean.signals[0].source == "store"
 
@@ -157,7 +157,7 @@ def test_집계_원천_백테스트는_상한을_넘기고_전체_합산에서_�
     assert report.industry_basis == (("real_estate", "aggregate"),)
     assert all(b.industry_id == "real_estate" for b in report.buckets)  # 전체(None) 버킷 없음
     assert sum(b.opened for b in report.buckets) == 100 * 20  # 인허가 원천의 부동산 결과(999)는 버린다
-    assert {b.signal_key for b in report.signal_buckets} <= {"closure_rate", "saturation", "shrinking"}
+    assert {b.signal_key for b in report.signal_buckets} <= {"closure_rate", "saturation"}
 
 
 def test_등록됐지만_판정_대상이_아닌_업종은_원천을_건드리지_않는다():

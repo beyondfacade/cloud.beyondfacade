@@ -1005,58 +1005,7 @@
     ],
     "recent_news": []
   },
-  "news": [
-    {
-      "chunk_id": "news:448b8bb0eb350d7f030a",
-      "source_type": "news",
-      "source_id": "448b8bb0eb350d7f030a",
-      "content": "샘표, 이천 아트팩토리 프로젝트→현대그린푸드, 삼성동 이탈리 특화 매...\n식품업계에서 생산 현장에 공공미술을 접목하고 상권 맞춤형 외식 공간을 확장하며 일상과 식문화의... 사진=현대그린푸드 현대그린푸드는 28일 서울 강남구 삼성동 현대백화점 무역센터점 10층에 이탈리의 다이닝...",
-      "score": 0.47085978177608734,
-      "url": "https://www.slist.kr/news/articleView.html?idxno=761740",
-      "org": null,
-      "published_at": "2026-08-27T11:24:00"
-    },
-    {
-      "chunk_id": "news:4083f1321227d1f9c023",
-      "source_type": "news",
-      "source_id": "4083f1321227d1f9c023",
-      "content": "한식의 가치를 잇는 마곡 '윤스푸드랩'...﻿K-식문화를 전하다\n최근에는 중구청과 중구 상권발전소가 추진하는 행사에 참여해 한식과 한식 디저트를 알리는 프로그램에도 함께하고 있다. 지역의 역사적 자원과 한식 문화를 연결하는 행사에서 한식 디저트 분야를 담당하며 새로운...",
-      "score": 0.46738507954899433,
-      "url": "https://www.getnews.co.kr/news/articleView.html?idxno=882134",
-      "org": null,
-      "published_at": "2026-09-29T20:36:00"
-    },
-    {
-      "chunk_id": "news:c9c74588f6f088b12460",
-      "source_type": "news",
-      "source_id": "c9c74588f6f088b12460",
-      "content": "대전 중구, 야간 행사 '대흥야장' 성료\n지역 상인과 주민들도 행사에 참여해 상권에 활력을 더했다. 중구는 이번 행사를 통해 대흥동이 먹거리 중심 상권을 넘어 음식과 문화, 지역 주민과 방문객이 함께 어우러지는 야간 공간으로 발전할 가능성을 확인했다고...",
-      "score": 0.4566581443925768,
-      "url": "http://www.chungnamilbo.co.kr/news/articleView.html?idxno=909454",
-      "org": null,
-      "published_at": "2026-09-14T13:00:00"
-    },
-    {
-      "chunk_id": "news:f226af6ff3f277fd6407",
-      "source_type": "news",
-      "source_id": "f226af6ff3f277fd6407",
-      "content": "교육청도 추석맞이 온정 행보…복지시설 찾고 전통시장 장보고\n30분 중구 태화종합시장을 찾았다. 직원들은 명절 제사용품과 추석 선물 등을 구매하며 전통시장 이용에 동참했다. 이어 시장 내 식당에서 점심 식사를 함께하며 지역 상권 활성화에도 힘을 보탰다. 같은 날 오후에는 조...",
-      "score": 0.45597411082952277,
-      "url": "https://weekly.hankooki.com/news/articleView.html?idxno=7185617",
-      "org": null,
-      "published_at": "2026-09-22T15:44:00"
-    },
-    {
-      "chunk_id": "news:03a26a1a34cb1ab3f6d1",
-      "source_type": "news",
-      "source_id": "03a26a1a34cb1ab3f6d1",
-      "content": "울산시교육청, 추석맞이 전통시장 장보기·복지시설 위문\n직원들은 중구 태화종합시장을 찾았다. 직원들은 전통시장에서 명절 제사용품과 추석 선물 등을 구매한 뒤 시장 내 식당에서 점식 식사를 하며 지역 상권 활성화에 힘을 보탰다. 같은 날 오후에는 조 교육감과 교육청...",
-      "score": 0.4539193918897171,
-      "url": "https://www.iusm.co.kr/news/articleView.html?idxno=1068259",
-      "org": null,
-      "published_at": "2026-09-21T17:22:00"
-    }
-  ],
+  "news": [],
   "funding_candidates": [
     {
       "program_id": "PBLN_000000000126270",

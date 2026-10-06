@@ -1,4 +1,6 @@
-from sqlalchemy import select
+from datetime import datetime
+
+from sqlalchemy import delete, select
 
 from apps.news.adapter.outbound.orm_mappers.news_article_orm_mapper import to_orm
 from apps.news.adapter.outbound.orms.news_article_orm import NewsArticleOrm
@@ -25,3 +27,7 @@ class SqlAlchemyNewsArticleRepository(NewsArticleRepositoryPort):
             for article in new_articles.values():
                 session.add(to_orm(article))
             return len(new_articles)
+
+    def delete_published_before(self, cutoff: datetime) -> int:
+        with session_scope() as session:
+            return session.execute(delete(NewsArticleOrm).where(NewsArticleOrm.published_at < cutoff)).rowcount

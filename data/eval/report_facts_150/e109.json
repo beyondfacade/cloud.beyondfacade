@@ -1066,58 +1066,7 @@
     ],
     "recent_news": []
   },
-  "news": [
-    {
-      "chunk_id": "news:d04c86ae32e94f13f9b1",
-      "source_type": "news",
-      "source_id": "d04c86ae32e94f13f9b1",
-      "content": "성북구 종암동, 친환경과 지역상권 살리기 품은 '종암장터·종암살리장...\n사진=성북구 종암동주민자치회가 개최한, 환경보호 실천과 골목상권 활력 더한 '종암장터·종암살리장' 모습/성북구청 서울 성북구(구청장 이승로) 종암동주민자치회가 지난 5일 하루 종일 종암동주민센터와 명동골목...",
-      "score": 0.5657025136239374,
-      "url": "https://www.gukjenews.com/news/articleView.html?idxno=3688088",
-      "org": null,
-      "published_at": "2026-09-08T11:00:00"
-    },
-    {
-      "chunk_id": "news:9fc67705a1e842bf3b9d",
-      "source_type": "news",
-      "source_id": "9fc67705a1e842bf3b9d",
-      "content": "종로구, 종로3가 야장거리 관리…개방화장실 확대 지정\n서울 종로구(구청장 유찬종)가 종로3가 일대 야장거리를 안전하고 쾌적한 환경으로 가꾸겠다고 29일 밝혔다.... 있다\"며 \"상권의 활력은 살리면서 주민의 일상과 보행 안전, 방문객의 편의가 조화를 이루는 깨끗하고 질서...",
-      "score": 0.4928660397015372,
-      "url": "https://www.newsis.com/view/NISX20260929_0003807057",
-      "org": null,
-      "published_at": "2026-09-29T13:55:00"
-    },
-    {
-      "chunk_id": "news:72494a9f21fb7484fc30",
-      "source_type": "news",
-      "source_id": "72494a9f21fb7484fc30",
-      "content": "곽상언, 종로 민심 속으로…‘찾아가는 당사’ 현장 소통 시동\n24일 서울 종로구 동묘앞역 사거리에서 첫 ‘찾아가는 당사’를 열고 주민들의 목소리를 듣는 현장 민원 청취... 주차난과 노후 골목길 정비, 상권 활성화, 주거환경 개선 등 주민 생활과 밀접한 현안에 대해 구체적인...",
-      "score": 0.484296083450486,
-      "url": "https://www.dailyt.co.kr/newsView/dlt202608240007",
-      "org": null,
-      "published_at": "2026-08-24T23:30:00"
-    },
-    {
-      "chunk_id": "news:27a8680d945e9f948200",
-      "source_type": "news",
-      "source_id": "27a8680d945e9f948200",
-      "content": "종로구, 세계가 주목한 종로3가 야장거리...안전·청결 강화\n사진=종로3가 일대/종로구청 종로구(구청장 유찬종)가 종로3가 일대 야장거리의 환경 개선과 안전 관리에... 유찬종 구청장은 종로3가가 세계적으로 주목받는 공간이 된 만큼, 상권의 활력을 살리면서 주민의 일상과 보행...",
-      "score": 0.4834287742888703,
-      "url": "https://www.gukjenews.com/news/articleView.html?idxno=3707820",
-      "org": null,
-      "published_at": "2026-09-29T09:54:00"
-    },
-    {
-      "chunk_id": "news:8140645db0bfd7e1fee6",
-      "source_type": "news",
-      "source_id": "8140645db0bfd7e1fee6",
-      "content": "비누 만들고 헌옷 고쳐 입고 골목상권까지…성북 종암동에 주민 500명 모...\n중고 물품을 다시 나누고 헌옷을 고쳐 쓰는 친환경 프로그램에 지역 상권을 연결하면서 주민 500여명이 행사장을 찾았다. 성북구 종암동주민자치회는 지난 5일 오전 10시부터 오후 8시까지 종암동주민센터와 명동골목...",
-      "score": 0.48096933393763486,
-      "url": "https://www.job-post.co.kr/news/articleView.html?idxno=226587",
-      "org": null,
-      "published_at": "2026-09-08T12:30:00"
-    }
-  ],
+  "news": [],
   "funding_candidates": [
     {
       "program_id": "PBLN_000000000126270",

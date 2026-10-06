@@ -1,7 +1,6 @@
 from apps.agent.domain.services.analog_sentences import (
     condition_sentence,
     llm_view,
-    news_sentence,
     recommended_sentence,
     summary_sentence,
     with_sentences,
@@ -98,12 +97,6 @@ def _recent(checked: bool, count: int) -> dict:
     }
 
 
-def test_뉴스_문장은_유형_조치_단어와_건수를_쓴다():
-    assert news_sentence(_recent(True, 0)) == "최근 30일 근로시간 단축·주4일제 같은 조치 소식은 없습니다."
-    assert news_sentence(_recent(True, 15)) == "최근 30일 근로시간 단축·주4일제 관련 뉴스는 15건입니다."
-    assert news_sentence(_recent(False, 0)) == "근로시간 최근 소식은 확인하지 못했습니다."
-
-
 def test_사례_이름은_짧은_구분어를_괄호로_남기고_같은_이름끼리는_연도로_가른다():
     wages = [
         {**_event("최저임금 인상 — 2026년 시급 10,320원(+2.9%)", 2, 0, 2, current=True), "event_id": "w26", "start_date": "2026-01-01"},
@@ -140,7 +133,8 @@ def test_유사_사례_문장은_동의_수치로_읽히지_않게_서울_전체
     assert outlook["condition_sentence"].startswith("코로나19 국내 유행과 방역 조치 직전 1년 서울 전체 카페는 전 업종보다")
 
 
-def test_사례와_뉴스에도_코드가_만든_문장을_붙인다():
+def test_사례에는_코드가_만든_문장을_붙이고_뉴스에는_붙이지_않는다():
+    """네이버 검색 결과는 LLM 입력에 넣지 않는다 — 뉴스 건수 문장도 만들지 않는다(검색 API 특약 2.3)."""
     analogs = {
         "current_events": [_event("최저임금 인상 — 2026년", 2, 0, 2, current=True)],
         "analogs": [_event("주 52시간제 시행 — 5~49인 사업장", 12, 8, 2)],
@@ -150,7 +144,7 @@ def test_사례와_뉴스에도_코드가_만든_문장을_붙인다():
     enriched = with_sentences(analogs)
     assert enriched["current_events"][0]["summary_sentence"].startswith("최저임금 인상(2026년) 이후 지금까지")
     assert enriched["analogs"][0]["summary_sentence"].startswith("주 52시간제 시행(5~49인 사업장) 이후 12분기")
-    assert enriched["recent_news"][0]["sentence"] == "최근 30일 근로시간 단축·주4일제 관련 뉴스는 15건입니다."
+    assert "sentence" not in enriched["recent_news"][0]
     assert "summary_sentence" not in analogs["analogs"][0]
 
 

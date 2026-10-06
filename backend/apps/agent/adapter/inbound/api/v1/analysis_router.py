@@ -76,7 +76,6 @@ def stream_events(
         )
         # report_delta는 이제 조각 단위다 — 섹션별로 이어 붙여야 저장본이 글이 된다 (설계서 §3-3⑤)
         chunks: list[tuple[str, str]] = []
-        citations: list[dict] = []
         started = time.monotonic()
         try:
             for event in use_case.run(
@@ -90,8 +89,6 @@ def stream_events(
                             frame_event.payload.get("markdown") or "",
                         )
                     )
-                elif frame_event.type == "report_done":
-                    citations = list(frame_event.payload.get("citations") or [])
                 yield _sse_frame(frame_event).encode("utf-8")
         finally:
             # Fake/override 경로에서는 DB 영속화를 건너뛴다 (라우터 단위 테스트)
@@ -111,7 +108,7 @@ def stream_events(
                         industry=pending["industry"],
                         question=pending["question"],
                         report_md=concat_sections(chunks),
-                        citations=citations,
+                        citations=[],  # 인용은 네이버 검색 결과 링크뿐이라 저장하지 않는다(검색 API 특약 2.4)
                         model=model_name,
                         input_tokens=input_tokens,
                         output_tokens=output_tokens,

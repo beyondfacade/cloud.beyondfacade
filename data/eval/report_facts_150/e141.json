@@ -961,58 +961,7 @@
     ],
     "recent_news": []
   },
-  "news": [
-    {
-      "chunk_id": "news:20567411a1fcfedc5707",
-      "source_type": "news",
-      "source_id": "20567411a1fcfedc5707",
-      "content": "도봉구 창4동, 한국마사회 공모사업 선정…취약계층 맞춤 복지사업 본격...\n서울 도봉구 창4동이 한국마사회 도봉지사의 공모사업 지원을 통해 취약계층을 위한 맞춤형 복지사업을... 지역 상권 활성화를 동시에 추진한다. 창4동은 이번 사업을 계기로 민간기관과의 협력을 더욱 확대하고 지역사회...",
-      "score": 0.48520486277277164,
-      "url": "https://www.job-post.co.kr/news/articleView.html?idxno=223260",
-      "org": null,
-      "published_at": "2026-08-06T10:54:00"
-    },
-    {
-      "chunk_id": "news:7b308625823cce5e264a",
-      "source_type": "news",
-      "source_id": "7b308625823cce5e264a",
-      "content": "도봉구 창4동, 추석 앞두고 어르신과 전통시장 장보기…지역상권에 온기...\n서울 도봉구 창4동이 추석을 앞두고 취약계층 어르신들의 명절 준비를 돕는 동시에 지역 전통시장에 활력을... 지역 상권 활성화에도 힘을 보태자는 취지다. 지원 대상 가운데 어르신 20명은 지역사회보장협의체 위원들과...",
-      "score": 0.47834462185574655,
-      "url": "https://www.job-post.co.kr/news/articleView.html?idxno=227333",
-      "org": null,
-      "published_at": "2026-09-14T11:42:00"
-    },
-    {
-      "chunk_id": "news:39563613d6269b7fed5d",
-      "source_type": "news",
-      "source_id": "39563613d6269b7fed5d",
-      "content": "개포 핵심상권 '디에이치 퍼스티어 아이파크' 상가 분양\n서울 강남구 개포동의 6702가구 대단지 아파트 중심부에 들어서는 상업시설이 공급을 시작한다. 이 상업시설은 8개동, 321개 점포 규모로 개포동의 핵심상권으로 자리잡을 것으로 기대된다. 특히 공급되는 상가가 21개...",
-      "score": 0.47393006863298104,
-      "url": "https://www.edaily.co.kr/News/Read?newsId=03778566645578808&mediaCodeNo=257&utm_source=naver&utm_medium=referral&utm_campaign=news_syndication&utm_content=original_article",
-      "org": null,
-      "published_at": "2026-09-10T14:31:00"
-    },
-    {
-      "chunk_id": "news:d5da33ed3dd4e6a5ae4c",
-      "source_type": "news",
-      "source_id": "d5da33ed3dd4e6a5ae4c",
-      "content": "'이대역 초역세권' 염리4구역 조합설립인가\n서울 마포구 염리4구역이 조합설립인가를 받아 재개발 사업이 본격 추진된다. 정비구역에서 해제돼... 한서초와 숭문중·고교가 가깝고 이화여대·연세대·서강대, 아현시장과 신촌 상권도 이용하기 쉽다.",
-      "score": 0.46606911239952553,
-      "url": "https://www.hankyung.com/article/202609168152i",
-      "org": null,
-      "published_at": "2026-09-16T11:23:00"
-    },
-    {
-      "chunk_id": "news:99239d39b4d6844a4158",
-      "source_type": "news",
-      "source_id": "99239d39b4d6844a4158",
-      "content": "'김밥 한 줄도 부담인데'... 대전 분식점 감소율 '전국 평균 이상'\n유성구도 7.0%, 서구는 5.4%, 동구는 4.8%, 중구는 4.2% 줄었다. 대학가와 업무·주거상권이 밀집한 유성구와 서구에서도 점포 감소가 이어졌다는 점이 눈에 띈다. 아울러 충남 분식점은 같은 기간 2291곳에서 2209곳으로 82곳...",
-      "score": 0.4559615736168221,
-      "url": "http://www.chungnamilbo.co.kr/news/articleView.html?idxno=906563",
-      "org": null,
-      "published_at": "2026-08-31T09:54:00"
-    }
-  ],
+  "news": [],
   "funding_candidates": [
     {
       "program_id": "PBLN_000000000126270",

@@ -961,58 +961,7 @@
     ],
     "recent_news": []
   },
-  "news": [
-    {
-      "chunk_id": "news:449a5a696fea1bd14ebe",
-      "source_type": "news",
-      "source_id": "449a5a696fea1bd14ebe",
-      "content": "가을 분양 큰 장 선다…전국 50개 단지 3.8만가구 공급\n서울에서는 강동구 강일동 고덕강일3단지토지임대부분양 500가구와 고덕강일3단지2차토지임대부분양... 단지는 지하철 7호선 산곡역 5·6번 출구와 가깝고 산곡동 일대에 형성된 기존 생활상권과 롯데마트 등...",
-      "score": 0.44759464263916326,
-      "url": "https://www.asiatime.co.kr/article/20260928500279",
-      "org": null,
-      "published_at": "2026-09-28T14:34:00"
-    },
-    {
-      "chunk_id": "news:c269386d71282e09d677",
-      "source_type": "news",
-      "source_id": "c269386d71282e09d677",
-      "content": "용산구, 이태원 1·2동 매장형 중소기업과 소상공인 대상 총 10억원 규모...\n김경대 용산구청장은 \"이번 저금리 융자가 이태원 1·2동에서 사업체를 운영하는 중소기업과 소상공인들에게 실질적인 도움이 되길 바란다\"며 \"앞으로도 지역 상권에 도움이 되는 지원책을 지속적으로 마련하겠다\"고...",
-      "score": 0.4403143907717797,
-      "url": "https://www.cnbizm.com/news/articleView.html?idxno=311663",
-      "org": null,
-      "published_at": "2026-08-14T14:16:00"
-    },
-    {
-      "chunk_id": "news:5596f254aaf438fcce0a",
-      "source_type": "news",
-      "source_id": "5596f254aaf438fcce0a",
-      "content": "용산구, 이태원 1·2동 중소기업·소상공인에 10억원 저금리 융자 지원\n김경대 용산구청장은 이번 지원이 이태원 1·2동 내 중소기업과 소상공인들에게 실질적으로 도움이 되길 바란다고 전했다. 이어 앞으로도 지역 상권 지원을 위한 다양한 대책을 마련하겠다고 밝혔다.",
-      "score": 0.4278556956557049,
-      "url": "https://www.gukjenews.com/news/articleView.html?idxno=3664500",
-      "org": null,
-      "published_at": "2026-08-14T09:00:00"
-    },
-    {
-      "chunk_id": "news:c4b533ba3fce186f0a4f",
-      "source_type": "news",
-      "source_id": "c4b533ba3fce186f0a4f",
-      "content": "고덕역 일대 '강동 복합거점' 육성 ... 상업지 높이·용적률 규제 완화\n고덕택지 지구단위계획구역 결정으로 개발 계획이 재정비된 서울 강동구 명일동 47번지 일대 상업지역... 접근성과 상권 경쟁력이 한층 높아질 것으로 전망된다. 서울시는 이 같은 변화된 여건을 지구단위계획에 반영해...",
-      "score": 0.4270529914593093,
-      "url": "http://www.queen.co.kr/news/articleView.html?idxno=462347",
-      "org": null,
-      "published_at": "2026-08-27T11:50:00"
-    },
-    {
-      "chunk_id": "news:b3670405b408ad322d14",
-      "source_type": "news",
-      "source_id": "b3670405b408ad322d14",
-      "content": "분당 옆 동네부터 GTX 역세권까지…서울 출퇴근 가성비 아파트 5선\n서울 서대문구 홍제동, GTX-A 개통 수혜를 입은 경기 파주 동패동, GTX-B 호재를 기다리는 경기 남양주 호평동... 문발초, 교하중·고 학군과 신도시 상권을 공유해 실거주 만족도가 높다. ▲숲속길마을6단지...",
-      "score": 0.4168542301052709,
-      "url": "https://realty.chosun.com/site/data/html_dir/2026/07/24/2026072401385.html",
-      "org": null,
-      "published_at": "2026-07-27T06:02:00"
-    }
-  ],
+  "news": [],
   "funding_candidates": [
     {
       "program_id": "PBLN_000000000126270",
