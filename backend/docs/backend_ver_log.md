@@ -12,6 +12,7 @@
 
 ### Added
 - 뉴스 수집기가 적재 뒤 게시 21일이 지난 기사를 지운다 (`NewsArticleUseCase.purge`, `delete_published_before`, `RETENTION_DAYS = 21`)
+- 일회성 데이터 마이그레이션 `a9e4c2b7d153`: `rag_chunk` 뉴스 청크 삭제, `analysis_report` 인용 비움, 저장 리포트에서 코드가 쓴 뉴스 줄·뉴스 건수 문장 제거(되돌릴 수 없음). 옛 LLM 해석이 기사를 풀어 쓴 문장은 다루지 않는다
 
 ### Removed
 - 판정 신호 "상권 축소"(`ShrinkingSignal`) — 여러 시점 백테스트에서 0.91~0.96×로 정보가 없었다(docs/verdict-backtest-multi.md ②, 사용자 결정). 참고 신호라 등급 계산에는 원래 안 들어갔다 → 판정 등급은 그대로, 카드·리포트의 신호 목록에서만 빠진다. 그 신호만 쓰던 입력(`SignalInput`·`RegionContext`의 상권변화지표 5개 필드, `RegionContextGateway`의 상권변화 조회)도 뺐다. 상권변화지표 자체는 동 맥락 사실로 계속 쓴다
