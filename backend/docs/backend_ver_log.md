@@ -1,5 +1,11 @@
 # Backend Version Log
 
+## [v0.88.0] - 2026-10-07
+
+### Added
+- 부하 테스트용 가짜 LLM — `LLM_MODE=fake`(기본 live)면 분석 해석(`FixedDelayLLMAdapter`)·의도 폴백(`FixedDelayIntentLlmAdapter`)이 고정 3초만 쉬고 고정 값을 낸다. 분석은 요청 본문이 어떤 모델을 골랐든 가짜로 바뀐다(`_MODE_OVERRIDE`) — 부하 테스트 컨테이너에서 Gemini 요금·한도가 나가지 않게. 운영 배선(live)은 그대로 (testplan §7-4 (c))
+- `scripts/load/` — k6 혼합 부하(`load.js`, PROFILE=smoke|load|stress|spike|soak|llm)·단독 계단(`endpoint.js`, 5→1,500 RPS)·환경 스크립트(`env.sh` up|api|monitor|k6|down: 테스트 DB 5437·테스트 API 8202·CPU 분리). 합격 기준은 testplan §5(10/7 확정)
+
 ## [v0.87.0] - 2026-10-07
 
 ### Added

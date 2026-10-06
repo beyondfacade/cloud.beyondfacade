@@ -39,6 +39,7 @@ class Settings(BaseSettings):
     google_client_secret: str = ""
     # 구글 콘솔 '승인된 리디렉션 URI'와 글자 하나까지 같아야 한다 — 프론트 origin의 /api/backend 프록시 경유
     google_redirect_uri: str = "http://localhost:3200/api/backend/admin/auth/google/callback"
+    llm_mode: str = "live"  # live | fake — fake는 부하 테스트 컨테이너 전용(고정 지연 가짜 LLM, testplan §7-4)
 
 
 @lru_cache
