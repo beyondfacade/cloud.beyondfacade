@@ -50,16 +50,6 @@ class FakeRepository(RegionProfileRepositoryPort):
         candidates = [p for p in self.rows.values() if p.region_code == region_code]
         return max(candidates, key=lambda p: p.year_quarter) if candidates else None
 
-    def latest_quarter(self) -> str | None:
-        quarters = [p.year_quarter for p in self.rows.values()]
-        return max(quarters) if quarters else None
-
-    def list_by_quarter(self, year_quarter: str) -> list[RegionProfile]:
-        return sorted(
-            (p for p in self.rows.values() if p.year_quarter == year_quarter),
-            key=lambda p: p.region_code,
-        )
-
 
 class UnusedObservations(NeighborhoodObservationPort):
     def quarter_observations(self, quarters):
@@ -136,97 +126,6 @@ def test_없는_분기도_404다(client):
 
     assert response.status_code == 404
     assert response.json()["error"]["code"] == "REGION_PROFILE_NOT_FOUND"
-
-
-# --- 단계구분도 목록 (설계서 `2026-09-23-map-metric-contract.md` §3-1) ---
-
-
-def test_지원하는_지표는_region_code와_value_쌍_목록을_준다(client):
-    response = client.get("/profiles", params={"metric": "night_index", "year_quarter": "20253"})
-
-    assert response.status_code == 200
-    body = response.json()
-    assert all(set(row) == {"region_code", "value"} for row in body)
-    assert body == [{"region_code": "1168064000", "value": pytest.approx(0.639)}]
-
-
-def test_파생_지표_7종이_전부_열려_있다(client):
-    # region_profile_quarter의 숫자 컬럼 전부 — extractor 테이블 한 줄씩이다
-    for metric in (
-        "worker_resident_ratio",
-        "weekend_index",
-        "night_index",
-        "footfall_20s_share",
-        "fnb_share",
-        "facility_total",
-        "resident_total",
-    ):
-        response = client.get("/profiles", params={"metric": metric, "year_quarter": "20253"})
-        assert response.status_code == 200, metric
-        assert response.json(), metric
-
-
-def test_분기를_생략하면_최신_분기를_쓴다(client):
-    최신 = client.get("/profiles", params={"metric": "night_index"}).json()
-    지정 = client.get("/profiles", params={"metric": "night_index", "year_quarter": "20261"}).json()
-
-    assert 최신 == 지정
-
-
-def test_값이_없는_동은_행을_만들지_않는다(client):
-    # 직장인구 결측 11개 동을 0으로 내보내면 지도가 "직장인이 없는 동네"로 색칠한다
-    body = client.get(
-        "/profiles", params={"metric": "worker_resident_ratio", "year_quarter": "20261"}
-    ).json()
-
-    assert body == []
-
-
-def test_미지원_metric은_500이_아니라_404다(client):
-    response = client.get("/profiles", params={"metric": "type_reason"})
-
-    assert response.status_code == 404
-    assert response.json()["error"]["code"] == "METRIC_NOT_FOUND"
-
-
-def test_적재_전이면_빈_목록이다():
-    interactor = RegionProfileInteractor(
-        repository=FakeRepository([]), observations=UnusedObservations()
-    )
-
-    assert interactor.list_metric_values("night_index", None) == []
-
-
-# --- 유형 단계구분도 (범주 계약 — `map-metric-contract` §5, 무대 설계서 §3-1) ---
-
-
-def test_유형_목록은_region_code와_type_code_쌍이다(client):
-    response = client.get("/profiles/types", params={"year_quarter": "20253"})
-
-    assert response.status_code == 200
-    assert response.json() == [{"region_code": "1168064000", "type_code": "office"}]
-
-
-def test_유형_목록도_분기를_생략하면_최신_분기를_쓴다(client):
-    body = client.get("/profiles/types").json()
-
-    assert body == [{"region_code": "1168064000", "type_code": "mixed"}]
-
-
-def test_types_경로가_행정동_코드로_오인되지_않는다(client):
-    # `/{region_code}`보다 먼저 선언돼야 한다 — 아니면 404 REGION_PROFILE_NOT_FOUND가 난다
-    response = client.get("/profiles/types")
-
-    assert response.status_code == 200
-    assert isinstance(response.json(), list)
-
-
-def test_유형_목록은_배치_전이면_빈_목록이다():
-    interactor = RegionProfileInteractor(
-        repository=FakeRepository([]), observations=UnusedObservations()
-    )
-
-    assert interactor.list_types(None) == []
 
 
 # --- 4블록 강도 (무대 설계서 §5-1) ---

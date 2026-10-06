@@ -1,4 +1,4 @@
-"""childcare 조회 검증 — myself 배선·마커 목록·행정동 요약 계약·404 에러 바디 (Fake 포트)."""
+"""childcare 조회 검증 — myself 배선·마커 목록·행정동 요약 집계·404 에러 바디 (Fake 포트)."""
 
 from datetime import date
 
@@ -8,18 +8,11 @@ from apps.childcare.app.ports.output.childcare_center_port import (
     ChildcareCenterQueryRepositoryPort,
     RegionCatalogPort,
 )
-from apps.childcare.app.ports.output.childcare_center_stat_port import (
-    ChildcareCenterStatRepositoryPort,
-)
 from apps.childcare.app.use_cases.childcare_center_interactor import (
     ChildcareCenterQueryInteractor,
 )
-from apps.childcare.app.use_cases.childcare_center_stat_interactor import (
-    ChildcareCenterStatInteractor,
-)
 from apps.childcare.dependencies.childcare_dependencies import (
     get_childcare_center_query_use_case,
-    get_childcare_center_stat_use_case,
 )
 from apps.childcare.domain.entities.childcare_center_entity import ChildcareCenter
 from apps.childcare.domain.entities.childcare_center_stat_entity import (
@@ -72,11 +65,6 @@ class FakeCenterRepository(ChildcareCenterQueryRepositoryPort):
         return [_center("c1"), _center("c2")] if region_code == _REGION else []
 
 
-class FakeStatRepository(ChildcareCenterStatRepositoryPort):
-    def list_latest(self, region_code: str) -> list[ChildcareCenterStat]:
-        return [_stat(40, 30, 5), _stat(60, 30, None)]
-
-
 def teardown_function() -> None:
     app.dependency_overrides.clear()
 
@@ -87,11 +75,6 @@ def _client() -> TestClient:
             repository=FakeCenterRepository(), region_catalog=FakeRegionCatalog()
         )
     )
-    app.dependency_overrides[get_childcare_center_stat_use_case] = lambda: (
-        ChildcareCenterStatInteractor(
-            repository=FakeStatRepository(), region_catalog=FakeRegionCatalog()
-        )
-    )
     return TestClient(app)
 
 
@@ -99,12 +82,6 @@ def test_childcare_center_myself_wiring_returns_200():
     response = TestClient(app).get("/childcare-centers/myself")
     assert response.status_code == 200
     assert response.json()["center_id"] == "myself"
-
-
-def test_childcare_center_stat_myself_wiring_returns_200():
-    response = TestClient(app).get("/childcare-center-stats/myself")
-    assert response.status_code == 200
-    assert response.json()["region_code"] == "myself"
 
 
 def test_list_centers_returns_marker_contract():
@@ -125,26 +102,10 @@ def test_list_centers_returns_marker_contract():
     }
 
 
-def test_summary_returns_region_aggregate():
-    response = _client().get("/childcare-center-stats/summary", params={"region": _REGION})
-    assert response.status_code == 200
-    assert response.json() == {
-        "region_code": _REGION,
-        "base_date": "2026-09-17",
-        "center_count": 2,
-        "capacity": 100,
-        "child_count": 60,
-        "occupancy_rate": 0.6,
-        "waiting_count": 5,
-    }
-
-
 def test_unknown_region_returns_404_error_body():
-    client = _client()
-    for path in ("/childcare-centers", "/childcare-center-stats/summary"):
-        response = client.get(path, params={"region": "0000000000"})
-        assert response.status_code == 404
-        assert response.json()["error"]["code"] == "REGION_NOT_FOUND"
+    response = _client().get("/childcare-centers", params={"region": "0000000000"})
+    assert response.status_code == 404
+    assert response.json()["error"]["code"] == "REGION_NOT_FOUND"
 
 
 def test_region_summary_of_empty_has_no_rates():

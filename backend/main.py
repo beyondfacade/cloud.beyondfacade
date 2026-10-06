@@ -15,9 +15,6 @@ from apps.admin.app.errors import AdminError
 from apps.childcare.adapter.inbound.api.v1.childcare_center_router import (
     router as childcare_center_router,
 )
-from apps.childcare.adapter.inbound.api.v1.childcare_center_stat_router import (
-    router as childcare_center_stat_router,
-)
 from apps.convenience.adapter.inbound.api.v1.convenience_store_router import (
     router as convenience_store_router,
 )
@@ -28,25 +25,14 @@ from apps.funding.adapter.inbound.api.v1.funding_program_router import (
 from apps.agent.adapter.inbound.api.v1.analysis_router import router as analysis_router
 from apps.intent.adapter.inbound.api.v1.intent_router import router as intent_router
 from apps.master.adapter.inbound.api.v1.region_router import router as region_router
-from apps.metric.adapter.inbound.api.v1.region_industry_hour_gap_router import (
-    router as hour_gap_router,
-)
-from apps.metric.adapter.inbound.api.v1.region_industry_metric_router import (
-    router as metric_router,
-)
 from apps.metric.adapter.inbound.api.v1.region_profile_router import (
     router as region_profile_router,
-)
-from apps.neighborhood.adapter.inbound.api.v1.region_commerce_change_router import (
-    router as commerce_change_router,
 )
 from apps.news.adapter.inbound.api.v1.news_article_router import router as news_router
 from apps.ops.adapter.inbound.api.error_handlers import ops_error_handler
 from apps.ops.adapter.inbound.api.v1.facility_router import router as facility_router
 from apps.ops.adapter.inbound.api.v1.healthcare_router import router as healthcare_router
 from apps.ops.app.errors import OpsError
-from apps.shock.adapter.inbound.api.v1.event_analog_router import router as event_analog_router
-from apps.shock.adapter.inbound.api.v1.shock_event_router import router as shock_router
 from apps.store.adapter.inbound.api.v1.store_router import router as store_router
 from apps.verdict.adapter.inbound.api.v1.region_industry_verdict_router import (
     router as verdict_router,
@@ -74,19 +60,13 @@ app.include_router(healthcare_router)
 app.include_router(facility_router)
 app.include_router(analysis_router)
 app.include_router(childcare_center_router)
-app.include_router(childcare_center_stat_router)
 app.include_router(convenience_store_router)
 app.include_router(finance_router)
 app.include_router(funding_router)
 app.include_router(intent_router)
 app.include_router(region_router)
-app.include_router(metric_router)
 app.include_router(region_profile_router)
-app.include_router(hour_gap_router)
-app.include_router(commerce_change_router)
 app.include_router(news_router)
-app.include_router(shock_router)
-app.include_router(event_analog_router)
 app.include_router(store_router)
 app.include_router(verdict_router)
 

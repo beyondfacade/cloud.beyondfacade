@@ -8,10 +8,6 @@ from apps.shock.domain.entities.shock_event_entity import ShockEvent
 
 class ShockEventUseCase(ABC):
     @abstractmethod
-    def myself(self) -> ShockEventDto:
-        """배선 검증용 — 하드코딩 데이터 왕복 (CLAUDE.md §12)."""
-
-    @abstractmethod
     def ingest(self) -> tuple[int, int]:
         """소스(거리두기 API 또는 시드 파일)에서 수신·업서트(멱등) — (신규, 갱신) 반환."""
 

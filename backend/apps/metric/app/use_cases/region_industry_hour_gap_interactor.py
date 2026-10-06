@@ -31,17 +31,6 @@ class RegionIndustryHourGapInteractor(RegionIndustryHourGapUseCase):
         self._footfall = footfall
         self._sales = sales
 
-    def myself(self) -> RegionIndustryHourGapDto:
-        return RegionIndustryHourGapDto(
-            region_code="myself",
-            industry_id="cafe",
-            year_quarter="20251",
-            hour_band="06_11",
-            footfall_intensity=1.0,
-            sales_intensity=1.0,
-            gap=0.0,
-        )
-
     def build(self, quarters: list[str]) -> int:
         footfall_intensity = {
             (row.region_code, row.year_quarter): intensity
