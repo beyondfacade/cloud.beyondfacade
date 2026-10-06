@@ -17,8 +17,8 @@ it("알 수 없는 코드는 원문을 이름으로 돌려준다", () => {
   expect(verdictLabel("weird").name).toBe("weird");
 });
 
-it("신호 라벨은 공통 5개 뒤에 업종 특화 신호를 둔다", () => {
-  expect(Object.keys(SIGNAL_LABELS)).toEqual(["net_outflow", "survival_cliff", "early_closure", "saturation", "shrinking", "closure_rate", "tobacco_gap", "trade_per_office"]);
+it("신호 라벨은 공통 4개 뒤에 업종 특화 신호를 둔다", () => {
+  expect(Object.keys(SIGNAL_LABELS)).toEqual(["net_outflow", "survival_cliff", "early_closure", "saturation", "closure_rate", "tobacco_gap", "trade_per_office"]);
   expect(signalLabel("net_outflow")).toBe("순유출");
   expect(signalLabel("closure_rate")).toBe("폐업률");
   expect(signalLabel("tobacco_gap")).toBe("담배권 빈자리");
@@ -26,10 +26,9 @@ it("신호 라벨은 공통 5개 뒤에 업종 특화 신호를 둔다", () => {
   expect(signalLabel("unknown")).toBe("unknown");
 });
 
-it("담배권 빈자리와 사무소당 거래는 상권 축소처럼 참고 신호다", () => {
+it("담배권 빈자리와 사무소당 거래는 참고 신호다", () => {
   expect(ADVISORY_SIGNAL_KEYS.has("tobacco_gap")).toBe(true);
   expect(ADVISORY_SIGNAL_KEYS.has("trade_per_office")).toBe(true);
-  expect(ADVISORY_SIGNAL_KEYS.has("shrinking")).toBe(true);
 });
 
 it("판정 원천 배지는 인허가에는 없고 대리·집계 원천에만 있다", () => {

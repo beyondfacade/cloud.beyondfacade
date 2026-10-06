@@ -29,6 +29,7 @@ it("지도 경로에서 경고 지도 탭이 활성화된다", () => {
   navigation.pathname = "/map";
   render(<TopBar />);
   expect(screen.getByRole("link", { name: "경고 지도" })).toHaveAttribute("aria-current", "page");
+  expect(screen.getByRole("link", { name: "데이터 출처" })).toHaveAttribute("href", "/sources");
 });
 
 it("관리자 화면은 자체 헤더를 쓰므로 서비스 헤더를 숨긴다", () => {

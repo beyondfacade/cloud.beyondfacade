@@ -27,7 +27,6 @@ export const SIGNAL_LABELS: Record<VerdictSignalKey, string> = {
   survival_cliff: "생존 절벽",
   early_closure: "조기 폐업",
   saturation: "포화",
-  shrinking: "상권 축소",
   closure_rate: "폐업률",
   tobacco_gap: "담배권 빈자리",
   trade_per_office: "사무소당 거래",
@@ -41,8 +40,8 @@ export function signalLabel(key: string): string {
  *  백엔드 `EXCLUDED_INDUSTRIES` 중 프론트 `INDUSTRIES`(14)에 남아 있는 것만 여기 둔다. */
 export const VERDICT_EXCLUDED_INDUSTRIES: ReadonlySet<string> = new Set(["convenience_store", "real_estate"]);
 
-/** 백엔드 `ADVISORY_SIGNAL_KEYS` 미러 — 상권 축소(무신호)·담배권 빈자리(진입 가능성) 등은 평가·표시만. */
-export const ADVISORY_SIGNAL_KEYS: ReadonlySet<VerdictSignalKey> = new Set(["shrinking", "tobacco_gap", "trade_per_office"]);
+/** 백엔드 `ADVISORY_SIGNAL_KEYS` 미러 — 담배권 빈자리(진입 가능성)·사무소당 거래는 평가·표시만. */
+export const ADVISORY_SIGNAL_KEYS: ReadonlySet<VerdictSignalKey> = new Set(["tobacco_gap", "trade_per_office"]);
 
 /** 판정 원천 배지 — 인허가는 배지 없음. 문구는 설계서 §7-2. */
 export const VERDICT_BASIS_BADGE: Record<VerdictBasis, { label: string; description: string } | null> = {

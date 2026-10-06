@@ -19,7 +19,7 @@ export function TopBar() {
   if (pathname === "/" || OWN_HEADER.some((prefix) => pathname.startsWith(prefix))) return null;
 
   return (
-    <header className={styles.header}>
+    <header className={`${styles.header} relative`}>
       <div className={styles.inner}>
         <Link href="/" className={styles.brand} aria-label="Metabole">
           <span className={styles.mark} aria-hidden="true">m.</span>
@@ -46,6 +46,7 @@ export function TopBar() {
           <div className={styles.theme}><ThemeToggle /></div>
         </div>
       </div>
+      {pathname === "/map" && <Link href="/sources" className="absolute bottom-1 right-4 text-[10px] text-[var(--text-secondary)] hover:text-[var(--accent)] sm:right-8">데이터 출처</Link>}
     </header>
   );
 }

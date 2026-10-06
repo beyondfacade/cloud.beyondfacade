@@ -160,6 +160,5 @@ export function analogAnchors(analogs: EventAnalogs | UnavailableFact | undefine
   return [
     ...[...data.current_events, ...data.analogs].flatMap((e) => [...fact(e.category, e.summary_sentence), ...fact(e.category, e.overlap_sentence)]),
     ...(data.outlooks ?? []).flatMap((o) => [...fact(o.category, o.condition_sentence), ...fact(o.category, o.recommended_sentence)]),
-    ...(data.recent_news ?? []).flatMap((r): SentenceAnchor[] => (r.sentence ? [{ category: r.category, tag: SIGNAL_TAG, text: r.sentence }] : [])),
   ];
 }

@@ -32,12 +32,10 @@ it("인허가 판정은 원천 배지가 없다", () => {
   expect(screen.queryByText("담배소매인 이력 기준")).toBeNull();
 });
 
-it("켜진 참고 신호가 둘이면 참고 줄도 둘이다", () => {
+it("담배권 빈자리가 켜지면 참고 줄로 표시한다", () => {
   render(<VerdictCard industryLabel="편의점" verdict={{ ...base, industry_id: "convenience_store", verdict_code: "clear", on_count: 0, basis: "proxy", signals: [
-    signal({ key: "shrinking", level: "on", source: "neighborhood", evidence: "상권축소 근거" }),
     signal({ key: "tobacco_gap", level: "strong", source: "tobacco", evidence: "담배권 근거" }),
   ] }} />);
-  expect(screen.getByText("참고: 상권축소 근거")).toBeInTheDocument();
   expect(screen.getByText("참고: 담배권 근거")).toBeInTheDocument();
   expect(screen.getByText("담배소매인 이력 기준")).toBeInTheDocument();
 });

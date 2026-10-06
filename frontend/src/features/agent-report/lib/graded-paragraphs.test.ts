@@ -71,7 +71,7 @@ it("확인된 사실로 잘못 붙은 '가능성이 있습니다' 전망은 그 
   );
 });
 
-it("리포트 사실의 사례·유형 종합·뉴스 문장을 유형별 기준 문장으로 모은다", () => {
+it("리포트 사실의 사례·유형 종합 문장을 유형별 기준 문장으로 모은다", () => {
   const data = eventAnalogs();
   const analogs = {
     ...data,
@@ -80,13 +80,11 @@ it("리포트 사실의 사례·유형 종합·뉴스 문장을 유형별 기준
       overlap_sentence: "같은 기간 1년 차 2분기에는 지원금 지급도 있었습니다.",
     }],
     outlooks: [{ ...data.outlooks![0], recommended_sentence: "감염병 시기에 잘 버틴 업종은 양식이었습니다.", condition_sentence: null }],
-    recent_news: [{ ...data.recent_news![0], sentence: "최근 30일 집합금지 같은 조치 소식은 없습니다." }],
   };
   expect(analogAnchors(analogs)).toEqual([
     { category: "pandemic", tag: "[확인된 사실]", text: "코로나 이후 12분기 내내 카페가 평소보다 약했습니다." },
     { category: "pandemic", tag: "[확인된 사실]", text: "같은 기간 1년 차 2분기에는 지원금 지급도 있었습니다." },
     { category: "pandemic", tag: "[확인된 사실]", text: "감염병 시기에 잘 버틴 업종은 양식이었습니다." },
-    { category: "pandemic", tag: "[참고 신호]", text: "최근 30일 집합금지 같은 조치 소식은 없습니다." },
   ]);
   expect(analogAnchors(undefined)).toEqual([]);
 });

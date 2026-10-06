@@ -37,13 +37,13 @@ it("부동산은 판정 대상이 아니라 404 INDUSTRY_NOT_FOUND", async () =>
   expect((await res.json()).error.code).toBe("INDUSTRY_NOT_FOUND");
 });
 
-it("단건은 신호 5개를 유지하되 참고 신호를 빼고 판정 가능 신호가 한 개이면 보류한다", async () => {
+it("단건은 신호 4개 중 판정 가능 신호가 한 개이면 보류한다", async () => {
   const res = await call("1135056000", "?industry=chinese_food"); // 월계1동
   expect(res.status).toBe(200);
   const v = await res.json();
-  expect(v.signals.map((s: { key: string }) => s.key)).toEqual(["net_outflow", "survival_cliff", "early_closure", "saturation", "shrinking"]);
+  expect(v.signals.map((s: { key: string }) => s.key)).toEqual(["net_outflow", "survival_cliff", "early_closure", "saturation"]);
   expect(v.signals.map((s: { level: string }) => s.level)).toEqual([
-    "unavailable", "unavailable", "unavailable", "off", "on",
+    "unavailable", "unavailable", "unavailable", "off",
   ]);
   expect(v).toMatchObject({ verdict_code: "insufficient", strong_count: 0, on_count: 0 });
   for (const s of v.signals) expect(s.evidence.length).toBeGreaterThan(5);

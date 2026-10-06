@@ -25,7 +25,7 @@ const SOURCE_LABEL: Record<VerdictSignal["source"], string> = {
   molit: "국토부 실거래가",
 };
 
-/** 참고 신호(shrinking)를 뺀 켜진 신호 최대 3개, strong 먼저. 백엔드 순서(SIGNAL_KEYS)는 같은 레벨 안에서 유지된다(안정 정렬). */
+/** 참고 신호를 뺀 켜진 신호 최대 3개, strong 먼저. 백엔드 순서(SIGNAL_KEYS)는 같은 레벨 안에서 유지된다(안정 정렬). */
 function firedSignals(signals: VerdictSignal[]): VerdictSignal[] {
   const rank: Record<VerdictSignal["level"], number> = { strong: 0, on: 1, off: 2, unavailable: 3 };
   return signals

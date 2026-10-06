@@ -84,11 +84,19 @@ it("본문 조각이 그림 아래에 붙고 해당 스켈레톤만 사라지며
   const initial = { ...initialAgentState(), facts: reportFacts() };
   const { rerender } = render(<ReportView state={initial} />);
   const next = applyAgentEvent(initial, { type: "report_delta", section: "verdict", markdown: "판정 해석입니다." });
-  rerender(<ReportView state={{ ...next, done: true, citations: [{ title: "공공 자료", url: "https://example.com", grade: "fact" }] }} />);
+  rerender(<ReportView state={{ ...next, done: true, citations: [
+    { title: "상권 동향", url: "https://www.example.com/news/1", grade: "signal", press: null, published_at: "2026-10-06" },
+    { title: "창업 소식", url: "https://news.example.com/2", grade: "signal", press: "서울신문", published_at: null },
+  ] }} />);
   const chart = screen.getByRole("status", { name: "카페 판정: 조건부" });
   expect(chart.compareDocumentPosition(screen.getByText("판정 해석입니다.")) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   expect(screen.getAllByLabelText("본문 작성 중")).toHaveLength(5);
-  expect(screen.getByRole("link", { name: "공공 자료" })).toBeInTheDocument();
+  expect(screen.getByRole("heading", { name: "최근 뉴스 — 네이버 검색결과" })).toBeInTheDocument();
+  const link = screen.getByRole("link", { name: "상권 동향" });
+  expect(link).toHaveAttribute("href", "https://www.example.com/news/1");
+  expect(link.closest("li")).toHaveTextContent("example.com · 2026-10-06");
+  expect(screen.getByRole("link", { name: "창업 소식" }).closest("li")).toHaveTextContent("서울신문");
+  expect(screen.getByText("네이버 뉴스 검색 결과입니다. 기사 내용은 원문에서 확인하세요.")).toBeInTheDocument();
 });
 it("사실 조회 실패와 필드 누락을 각 그림 자리의 자료 없음으로 처리한다", () => {
   const facts = reportFacts();

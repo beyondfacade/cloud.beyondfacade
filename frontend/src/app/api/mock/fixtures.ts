@@ -336,7 +336,6 @@ export function agentEventScript(hasQuestion = false): AgentEvent[] {
       closure_rate: closureRate, growth_rate: growthRate,
     };
   });
-  const news = [{ title: "강남 카페 상권 동향 (시연 자료)", url: "https://data.seoul.go.kr", summary: "인근 점포 변화와 소비 시간대를 함께 확인하세요." }];
   const facts: ReportFacts = {
     region: { code: regionCode, name: REGIONS.find((r) => r.region_code === regionCode)!.name, industry_id: industryId, industry_name: INDUSTRY_LABELS[industryId] },
     verdict, alternatives, profile,
@@ -347,7 +346,7 @@ export function agentEventScript(hasQuestion = false): AgentEvent[] {
     population: { region_code: regionCode, resident_total: profile.resident_total },
     shocks: [{ event_id: "mock-shock-1", name: "원두 가격 상승", start_date: "2026-09-01", industry_specific: true, summary: "원가 변동에 따른 마진 영향을 확인하세요.", grade: "signal" }],
     analogs: eventAnalogsDemo(industryId, INDUSTRY_LABELS[industryId]),
-    news,
+    news: [],
     funding_candidates: fundingCandidatesOf(null).map((candidate) => ({
       program_id: candidate.program_id, title: candidate.title, org: candidate.org,
       why: candidate.why, summary: candidate.summary, url: candidate.url,
@@ -412,8 +411,7 @@ export function agentEventScript(hasQuestion = false): AgentEvent[] {
     {
       type: "report_done", report_id: "mock-report-001",
       citations: [
-        { title: "서울시 상권분석 서비스", url: "https://data.seoul.go.kr", grade: "fact" },
-        { title: "소상공인시장진흥공단 정책자금 공고", url: "https://semas.or.kr", grade: "fact" },
+        { title: "강남 카페 상권 동향 (시연 자료)", url: "https://news.example.com/articles/mock-001", published_at: "2026-10-06", press: null, grade: "signal" },
       ],
     },
   );
@@ -848,9 +846,9 @@ export function planQuestionsOf(body: {
 const BASIS_BY_INDUSTRY: Partial<Record<string, VerdictBasis>> = { convenience_store: "proxy", real_estate: "aggregate" };
 // 백엔드 profiles.py 미러 — 원천별 신호 순서
 const SIGNAL_KEYS_BY_BASIS: Record<VerdictBasis, VerdictSignalKey[]> = {
-  permit: ["net_outflow", "survival_cliff", "early_closure", "saturation", "shrinking"],
-  proxy: ["net_outflow", "survival_cliff", "early_closure", "saturation", "shrinking", "tobacco_gap"],
-  aggregate: ["closure_rate", "survival_cliff", "early_closure", "saturation", "shrinking", "trade_per_office"],
+  permit: ["net_outflow", "survival_cliff", "early_closure", "saturation"],
+  proxy: ["net_outflow", "survival_cliff", "early_closure", "saturation", "tobacco_gap"],
+  aggregate: ["closure_rate", "survival_cliff", "early_closure", "saturation", "trade_per_office"],
 };
 // 원천 표기 교체 (SourcedSignal 미러) — 없는 키는 SIGNAL_SOURCE 기본값
 const SOURCE_BY_BASIS: Record<VerdictBasis, Partial<Record<VerdictSignalKey, VerdictSignalSource>>> = {
@@ -864,11 +862,11 @@ const UNSUPPORTED_BY_BASIS: Record<VerdictBasis, ReadonlySet<VerdictSignalKey>> 
 };
 const UNSUPPORTED_EVIDENCE = "집계 원천 — 개별 점포 개업·폐업일이 없어 산출하지 않음";
 const SIGNAL_SOURCE: Record<VerdictSignalKey, VerdictSignalSource> = {
-  net_outflow: "store", survival_cliff: "store", early_closure: "store", saturation: "metric", shrinking: "neighborhood",
+  net_outflow: "store", survival_cliff: "store", early_closure: "store", saturation: "metric",
   closure_rate: "commerce", tobacco_gap: "tobacco", trade_per_office: "molit",
 };
 
-const SIGNAL_BAND_WORDS: Record<Exclude<VerdictSignalKey, "shrinking">, [string, string, string]> = {
+const SIGNAL_BAND_WORDS: Record<VerdictSignalKey, [string, string, string]> = {
   net_outflow: ["순유출", "많은", "적은"],
   survival_cliff: ["생존율", "낮은", "높은"],
   early_closure: ["폐업 점포 영업 기간", "짧은", "긴"],
@@ -905,15 +903,11 @@ function signalOf(key: VerdictSignalKey, regionCode: string, industryId: string,
     survival_cliff: `3년 전 개업한 ${name} 40곳 중 ${40 - Math.floor(u * 25)}곳만 남음 (생존율 ${100 - Math.round(u * 62)}%)`,
     early_closure: `최근 3년 폐업 ${name}의 영업 기간 중위 ${36 - Math.round(u * 20)}개월`,
     saturation: `상주인구 1,000명당 ${name} ${(2 + u * 9).toFixed(1)}곳`,
-    shrinking: `서울시 상권변화지표 '${u >= 0.75 ? "상권축소" : "정체"}' (2026년 2분기, 동 전체 기준)`,
     closure_rate: `지난 4분기 폐업 ${5 + Math.floor(u * 30)}곳 (4분기 전 점포 ${60 + Math.floor(u * 100)}곳의 ${Math.round(u * 8)}%, 서울시 상권분석 집계)`,
     tobacco_gap: `이 동 상가 자리 ${300 + Math.floor(u * 900)}곳 중 ${50 + Math.round(u * 30)}%가 영업 중인 담배소매인 50m 안 — 새 담배소매인 지정이 어렵다`,
     trade_per_office: `지난 12개월 아파트 매매 ${100 + Math.floor(u * 400)}건 ÷ 중개사무소 ${40 + Math.floor(u * 60)}곳 = 사무소당 ${(1 + u * 6).toFixed(1)}건 (국토부 실거래가)`,
   };
-  const value = key === "shrinking" ? (u >= 0.75 ? 1 : 0) : Math.round(u * 100) / 100;
-  if (key === "shrinking") {
-    return { key, level, value, percentile: null, band: null, band_label: null, evidence: EVIDENCE[key], source };
-  }
+  const value = Math.round(u * 100) / 100;
   const band = VERDICT_BANDS.find(([min]) => percentile >= min)![1];
   const [subject, bad, good] = SIGNAL_BAND_WORDS[key];
   const labels: Record<VerdictBand, string> = {

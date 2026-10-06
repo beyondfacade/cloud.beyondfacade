@@ -2,7 +2,6 @@ import Link from "next/link";
 import ReactMarkdown, { type Options } from "react-markdown";
 import remarkGfm from "remark-gfm";
 import type { FactSection, ReportFacts } from "@/shared/api/types";
-import { GradeBadge } from "@/shared/ui/grade-badge";
 import type { AgentState } from "../lib/agent-events";
 import { analogAnchors, gradedParagraphs } from "../lib/graded-paragraphs";
 import { ReportVisuals } from "./report-visuals";
@@ -32,23 +31,6 @@ function sectionBody(state: AgentState, section: FactSection): string {
   return state.facts
     ? markdown.replace(new RegExp(`^(#{1,6}\\s+)?${SECTION_LABEL[section]}\\s*(\\n|$)`), "")
     : markdown;
-}
-
-interface Citation {
-  title: string;
-  url: string;
-  grade: "fact" | "signal";
-}
-
-function isCitation(v: unknown): v is Citation {
-  const c = v as Partial<Citation> | null;
-  return (
-    typeof c === "object" &&
-    c !== null &&
-    typeof c.title === "string" &&
-    typeof c.url === "string" &&
-    (c.grade === "fact" || c.grade === "signal")
-  );
 }
 
 interface ReportViewProps {
@@ -98,7 +80,7 @@ export function ReportView({ state }: ReportViewProps) {
     );
   }
 
-  const citations = state.citations.filter(isCitation);
+  const citations = state.citations;
 
   return (
     <article className={`${styles.reportSheet} border-[var(--border)] bg-[var(--bg-surface)]`} aria-label="창업 경고 리포트">
@@ -153,22 +135,26 @@ export function ReportView({ state }: ReportViewProps) {
         ))}
         {state.done && citations.length > 0 && (
           <div className={`${styles.citations} border-[var(--border)]`}>
-            <h3>참고 자료</h3>
+            <h3>최근 뉴스 — 네이버 검색결과</h3>
             <ul className="mt-3 flex flex-col divide-y divide-[var(--border)]">
               {citations.map((c) => (
-                <li key={`${c.title}:${c.url}`} className="flex items-center justify-between gap-3 py-2.5 text-sm">
+                <li key={`${c.title}:${c.url}`} className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1 py-2.5 text-sm">
                   <a
                     href={c.url}
                     target="_blank"
-                    rel="noreferrer"
+                    rel="noopener noreferrer"
                     className="min-w-0 text-[var(--accent)] underline decoration-[var(--border)] underline-offset-4 transition-colors hover:decoration-[var(--accent)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
                   >
                     {c.title}
                   </a>
-                  <GradeBadge grade={c.grade} />
+                  <span className="text-xs text-[var(--text-secondary)]">
+                    {c.press ?? new URL(c.url).hostname.replace(/^www\./, "")}
+                    {c.published_at && <> · <time dateTime={c.published_at}>{c.published_at}</time></>}
+                  </span>
                 </li>
               ))}
             </ul>
+            <p className="mt-3 text-xs text-[var(--text-secondary)]">네이버 뉴스 검색 결과입니다. 기사 내용은 원문에서 확인하세요.</p>
           </div>
         )}
         {state.done && state.facts?.region && <NextSteps facts={state.facts} />}

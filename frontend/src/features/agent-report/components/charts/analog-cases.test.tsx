@@ -73,6 +73,7 @@ it("진행 중 이벤트가 없는 유형은 사례 종합에 최근 조치 소�
   rerender(<AnalogCases analogs={{ ...data, recent_news: [active] }} />);
   expect(outlook()).toHaveTextContent("최근 30일 집합금지·영업제한·거리두기 격상 기사 2건");
   expect(within(outlook()).getByRole("link", { name: /집합금지 명령 발동/ })).toHaveAttribute("href", "https://news.example/1");
+  expect(within(outlook()).getByText("네이버 검색결과")).toBeInTheDocument();
   rerender(<AnalogCases analogs={{ ...data, recent_news: [{ ...active, checked: false }] }} />);
   expect(outlook()).toHaveTextContent("최근 소식은 확인하지 못했어요");
 });

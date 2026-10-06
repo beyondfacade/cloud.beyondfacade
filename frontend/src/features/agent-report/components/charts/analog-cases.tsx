@@ -130,6 +130,7 @@ function RecentNewsLine({ recent }: { recent: RecentNews }) {
   return (
     <div className="flex flex-col gap-1 text-xs">
       <p className="text-[var(--danger)]">{subject} {recent.article_count}건</p>
+      <p className="text-[10px] text-[var(--text-secondary)]">네이버 검색결과</p>
       <ul className="flex flex-col gap-0.5 text-[var(--text-secondary)]">
         {recent.headlines.map((h) => (
           <li key={h.url}>

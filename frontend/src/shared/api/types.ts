@@ -4,12 +4,21 @@ export type ReportSection = "answer_lead" | "answer" | "verdict" | "reasons" | "
 /** 코드가 사실로 쓰는 6개 절 — 맨 위 직접 답과 해석을 뺀 나머지. 그림·제목은 이 절들에만 있다. */
 export type FactSection = Exclude<ReportSection, "answer" | "answer_lead">;
 
+export interface Citation {
+  title: string;
+  url: string;
+  /** YYYY-MM-DD */
+  published_at: string | null;
+  press: string | null;
+  grade: "signal";
+}
+
 export type AgentEvent =
   | { type: "agent_status"; agent: AgentName; status: "running" | "done" | "error" }
   | { type: "tool_call"; agent: AgentName; tool: string; summary: string }
   | { type: "facts"; facts: ReportFacts }
   | { type: "report_delta"; section: ReportSection; markdown: string }
-  | { type: "report_done"; report_id: string; citations: unknown[] };
+  | { type: "report_done"; report_id: string; citations: Citation[] };
 
 /** 사실 조회 실패는 해당 항목만 자료 없음으로 표시한다. */
 export type UnavailableFact = { available: false; reason: string };
@@ -148,8 +157,6 @@ export interface RecentNews {
   checked: boolean;
   article_count: number;
   headlines: { title: string; published_at: string; url: string }[];
-  /** 리포트 본문이 그대로 옮기는 코드 문장 (리포트 사실에만 있다). */
-  sentence?: string;
 }
 
 /** 리포트 카드가 사용하는 필드만 좁힌다. 도구별 ID·대상 필드 차이와 누락을 허용한다. */
@@ -511,7 +518,7 @@ export type VerdictCode = "red" | "orange" | "clear" | "insufficient";
 export type VerdictSignalLevel = "off" | "on" | "strong" | "unavailable";
 export type VerdictBand = "very_bad" | "bad" | "normal" | "good" | "very_good";
 export type VerdictSignalKey =
-  | "net_outflow" | "survival_cliff" | "early_closure" | "saturation" | "shrinking"
+  | "net_outflow" | "survival_cliff" | "early_closure" | "saturation"
   | "closure_rate" | "tobacco_gap" | "trade_per_office"; // 업종 특화 — 부동산 폐업률·편의점 담배권 빈자리·사무소당 거래
 export type VerdictSignalSource = "store" | "metric" | "neighborhood" | "tobacco" | "commerce" | "molit";
 /** 판정 원천 — permit 인허가 개별 이력 · proxy 담배소매인 대리 이력(편의점) · aggregate 상권분석 동×분기 집계(부동산). */

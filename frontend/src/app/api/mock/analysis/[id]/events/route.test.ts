@@ -41,6 +41,10 @@ it("SSE는 사실 수집 후 작성하고 작성과 오케스트레이터 완료
     { type: "agent_status", agent: "orchestrator", status: "done" },
     { type: "report_done", report_id: expect.any(String), citations: expect.any(Array) },
   ]);
+  const done = events.find((e) => e.type === "report_done");
+  expect(done?.citations).toEqual([{
+    title: expect.any(String), url: expect.any(String), published_at: "2026-10-06", press: null, grade: "signal",
+  }]);
 });
 
 it("SSE 사실은 계약의 13개 키와 기존 결정적 픽스처를 담는다", async () => {

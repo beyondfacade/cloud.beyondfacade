@@ -27,14 +27,13 @@ it("신호 백분위와 기준선을 이름 있는 그룹으로 노출한다", (
   expect(within(thresholds).getByText("90")).toBeInTheDocument();
 });
 
-it("다섯 신호와 백분위 기준선 및 참고 표시를 그린다", () => {
+it("네 신호와 백분위 기준선을 그린다", () => {
   render(<SignalBars verdict={reportFacts().verdict} />);
-  expect(screen.getAllByRole("listitem")).toHaveLength(5);
+  expect(screen.getAllByRole("listitem")).toHaveLength(4);
   expect(screen.getByRole("meter", { name: "순유출" })).toHaveAttribute("aria-valuenow", "95");
   expect(screen.getByText("75")).toBeInTheDocument();
   expect(screen.getByText("90")).toBeInTheDocument();
-  expect(within(screen.getByText("상권 축소").closest("li")!).getByText("참고")).toBeInTheDocument();
-  expect(screen.getAllByText("미판정")).toHaveLength(2);
+  expect(screen.getAllByText("미판정")).toHaveLength(1);
 });
 it("인허가 판정 응답에 없는 업종 특화 신호는 그리지 않는다", () => {
   render(<SignalBars verdict={reportFacts().verdict} />);

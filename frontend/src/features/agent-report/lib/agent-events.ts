@@ -1,4 +1,4 @@
-import type { AgentEvent, AgentName, ReportFacts, ReportSection } from "@/shared/api/types";
+import type { AgentEvent, AgentName, Citation, ReportFacts, ReportSection } from "@/shared/api/types";
 
 export type AgentStatus = "idle" | "running" | "done" | "error";
 
@@ -17,7 +17,7 @@ export interface AgentState {
   facts: ReportFacts | null;
   sections: Partial<Record<ReportSection, string>>;
   done: boolean;
-  citations: unknown[];
+  citations: Citation[];
   error: string | null;
 }
 

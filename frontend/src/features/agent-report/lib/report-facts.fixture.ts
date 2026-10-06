@@ -74,7 +74,6 @@ export function reportFacts(): ReportFacts {
         { key: "survival_cliff", level: "on", percentile: 80, value: 0.1, source: "store", evidence: "생존 근거" },
         { key: "early_closure", level: "off", percentile: 20, value: 0.1, source: "store", evidence: "폐업 근거" },
         { key: "saturation", level: "unavailable", percentile: null, value: null, source: "metric", evidence: "자료 부족" },
-        { key: "shrinking", level: "on", percentile: null, value: 1, source: "neighborhood", evidence: "축소 근거" },
       ],
     },
     alternatives: {
