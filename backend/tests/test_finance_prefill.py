@@ -48,6 +48,7 @@ class FakeRates(LoanRateFactsPort):
 _REVENUE = RevenueBasis(
     year_quarter="20254", quarterly_sales=35_327_445_013, store_count=400,
     source_codes=["CS100006", "CS100008", "CS100010"],
+    seoul_median_quarterly_sales_per_store=23_490_000,
 )
 
 
@@ -66,6 +67,24 @@ def test_매출_없는_조합은_404가_아니라_값_null이다():
     dto = _interactor(revenue=None).prefill("1168064000", "childcare")
     assert dto.expected_monthly_revenue.value is None
     assert "직접" in dto.expected_monthly_revenue.caveat
+
+
+def test_서울_같은_업종_동_중앙값의_3분의_1에_못_미치면_값을_비운다():
+    # 가양제1동 미용실 실측 — 분기 8.6억 / 428곳 → 월 약 67만 원, 서울 동 중앙값 월 약 244만 원
+    low = RevenueBasis(
+        year_quarter="20254", quarterly_sales=864_701_313, store_count=428,
+        source_codes=["CS200028", "CS200029", "CS200030"],
+        seoul_median_quarterly_sales_per_store=7_320_000,
+    )
+    dto = _interactor(revenue=low).prefill("1168064000", "hair_salon")
+    assert dto.expected_monthly_revenue.value is None
+    assert "3분의 1" in dto.expected_monthly_revenue.caveat and "직접" in dto.expected_monthly_revenue.caveat
+
+
+def test_부동산중개업은_카드_매출로_잴_수_없어_값을_비운다():
+    dto = _interactor().prefill("1168064000", "real_estate")
+    assert dto.expected_monthly_revenue.value is None
+    assert "중개보수" in dto.expected_monthly_revenue.caveat
 
 
 def test_임대료는_구를_권역으로_바꿔_묻는다():

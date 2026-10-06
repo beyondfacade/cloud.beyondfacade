@@ -6,7 +6,7 @@
 비현실적이다. ③ 서울 전체 점포당 값도 같은 자릿수다(v0.33.0 검증). 인터랙터가 ÷3을 맡는다.
 
 업종에 CS 코드가 여러 개 붙는 경우(academy 4·cafe 3·hair_salon 3, v0.26.0 매핑 보정)는
-매출 합 ÷ 점포 합 — 코드별로 나눠 평균하면 모집단이 쪼개진다.
+매출 합 ÷ 점포 합 — 코드별로 나눠 평균하면 모집단이 쪼개진다. 서울 중앙값도 같은 방식으로 동마다 낸 값의 중앙값이다.
 """
 
 from sqlalchemy import and_, func, select
@@ -62,14 +62,38 @@ class RevenueFactsGateway(RevenueFactsPort):
                 .order_by(sales.year_quarter.desc())
                 .limit(1)
             ).one_or_none()
-        if row is None:
-            return None
-        year_quarter, quarterly_sales, store_count = row
-        if not store_count:
-            return None
+            if row is None:
+                return None
+            year_quarter, quarterly_sales, store_count = row
+            if not store_count:
+                return None
+            per_region = (
+                select((func.sum(sales.sales_amount) / func.sum(store.store_count)).label("per_store"))
+                .join(
+                    store,
+                    and_(
+                        store.adstrd_code == sales.adstrd_code,
+                        store.service_industry_code == sales.service_industry_code,
+                        store.year_quarter == sales.year_quarter,
+                    ),
+                )
+                .where(
+                    sales.year_quarter == year_quarter,
+                    sales.service_industry_code.in_(codes),
+                    sales.sales_amount.is_not(None),
+                    store.store_count.is_not(None),
+                )
+                .group_by(sales.region_code)
+                .having(func.sum(store.store_count) > 0)
+                .subquery()
+            )
+            seoul_median = session.execute(
+                select(func.percentile_cont(0.5).within_group(per_region.c.per_store))
+            ).scalar()
         return RevenueBasis(
             year_quarter=year_quarter,
             quarterly_sales=int(quarterly_sales),
             store_count=int(store_count),
             source_codes=sorted(codes),
+            seoul_median_quarterly_sales_per_store=None if seoul_median is None else float(seoul_median),
         )

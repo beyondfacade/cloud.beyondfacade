@@ -44,7 +44,11 @@ def test_R1_업무_밀집형은_직장비_상위10퍼센트와_주말_감소를_
     verdict = classify(_input(worker_resident_ratio=2.714, weekend_index=0.81), _THRESHOLDS)
 
     assert verdict.type_code == "office"
-    assert "2.7배" in verdict.reason and "상위 10%" in verdict.reason
+    # "서울 상위 10%"는 뜻을 못 읽었다(사람 검수 3차) — 판정 근거와 같은 "100곳으로 치면" 표기
+    assert verdict.reason == (
+        "직장인구가 상주인구의 2.7배로 매우 높은 편(서울 동을 100곳으로 치면 높은 쪽 10곳 안)이고, "
+        "주말 유동이 평일보다 적습니다."
+    )
 
 
 def test_R1은_주말지수가_중앙값_이상이면_통과하지_못한다():
@@ -136,7 +140,7 @@ def test_R6_혼합형이_최후의_보루다():
     verdict = classify(_input(worker_resident_ratio=1.2, night_index=0.90), _THRESHOLDS)
 
     assert verdict.type_code == "mixed"
-    assert "어느 축에서도" in verdict.reason
+    assert verdict.reason == "어느 지표도 서울 동 가운데 두드러지게 높거나 낮지 않습니다."
 
 
 def test_상주인구_하한에_걸린_동은_비율_판정을_건너뛰고_혼합형이_된다():

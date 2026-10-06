@@ -89,12 +89,16 @@ _BANDS = {
 def test_점심_질문은_그_구간의_사람_흐름과_매출_강도를_쓴다():
     text = answer_lead(_facts(hour_gap=_BANDS), QuestionTopic("hours", "lunch"))
     assert text.startswith("[확인된 사실] 점심(11~14시) 위주로 보면 송정동 한식은")
-    assert "점심(11~14시)(송정동 유동인구·한식 매출, 2025년 4분기): 사람 흐름은 시간당 하루 평균의 0.99배, 매출은 0.35배." in text
+    assert (
+        "점심(11~14시)(송정동 유동인구·한식 매출, 2025년 4분기): "
+        "사람 흐름은 하루 평균과 비슷(시간당 하루 평균의 0.99배). 매출은 하루 평균의 절반 미만(0.35배)."
+    ) in text
 
 
 def test_밤_질문은_밤과_새벽_두_구간을_쓴다():
     text = answer_lead(_facts(hour_gap=_BANDS), QuestionTopic("hours", "night"))
     assert "밤(21~24시)(송정동" in text and "새벽(00~06시)(송정동" in text
+    assert "매출은 하루 평균보다 크게 많음(2.38배)" in text
 
 
 def test_시간대_자료가_없으면_자료_부족과_동_사람_흐름을_쓴다():
