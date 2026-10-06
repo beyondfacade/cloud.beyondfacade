@@ -24,11 +24,11 @@ const MONEY_HINTS: Partial<Record<AmountField, string>> = {
 };
 
 /** 손대지 않은 0은 빈 칸으로 보여준다. 출처는 입력 라벨과 분리한다. */
-function MoneyField({ name, label, value, touched, onChange, badge }: {
+function MoneyField({ name, label, hint, value, touched, onChange, badge }: {
   name: AmountField; label: string; value: number; touched: boolean; onChange: (won: number) => void;
+  hint: string | undefined;
   badge?: { label: string; caveat: string };
 }) {
-  const hint = MONEY_HINTS[name];
   const describedBy = [`${name}-unit`, hint && `${name}-hint`, badge && `${name}-caveat`].filter(Boolean).join(" ");
   return (
     <div className={styles.field}>
@@ -101,7 +101,10 @@ export function PlanForm({ defaults, prefill, submitting, onSubmit, onValuesChan
   };
 
   const money = (name: AmountField) => (
-    <MoneyField key={name} name={name} label={AMOUNT_LABELS[name]} value={values[name]} touched={touched.has(name)} onChange={set(name)} badge={badges.get(name)} />
+    <MoneyField key={name} name={name} label={AMOUNT_LABELS[name]} value={values[name]} touched={touched.has(name)} onChange={set(name)} badge={badges.get(name)}
+      hint={name === "expected_monthly_revenue" && prefill !== null && prefill.expected_monthly_revenue.value == null
+        ? "한 달 매출 예상액 · 평균값이 없어 직접 넣어 주세요."
+        : MONEY_HINTS[name]} />
   );
 
   return (
