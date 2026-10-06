@@ -67,18 +67,24 @@ export const SOURCES: DataSource[] = [
     links: [{ label: "공공데이터포털 — 부동산중개업 정보", url: "https://www.data.go.kr/data/15123990/openapi.do" }],
   },
   {
-    agency: "교육부", dataset: "어린이집정보공개포털 어린이집 기본정보", terms: "출처표시 조건",
-    attribution: "출처: 교육부 어린이집정보공개포털(info.childcare.go.kr)",
-    links: [{ label: "어린이집정보공개포털", url: "https://info.childcare.go.kr" }],
+    agency: "한국사회보장정보원", dataset: "어린이집정보공개포털 어린이집 기본정보", terms: "공공누리 제1유형", koglType1: true,
+    attribution: "본 서비스는 한국사회보장정보원이 공공누리 제1유형으로 개방한 '어린이집 정보'(공공데이터포털 3065251, 어린이집정보공개포털 제공)를 이용했습니다.",
+    links: [
+      { label: "공공데이터포털 — 한국사회보장정보원_어린이집 정보", url: "https://www.data.go.kr/data/3065251/openapi.do" },
+      { label: "어린이집정보공개포털", url: "https://info.childcare.go.kr" },
+    ],
   },
   {
     agency: "한국은행", dataset: "경제통계시스템(ECOS) 기준금리·대출금리", terms: "원천 이용조건 확인",
     links: [{ label: "경제통계시스템(ECOS)", url: "https://ecos.bok.or.kr" }],
   },
   {
-    agency: "중소벤처기업부", dataset: "기업마당 지원사업 공고", terms: "원천 이용조건 확인",
-    attribution: "출처: 기업마당(중소벤처기업부)",
-    links: [{ label: "기업마당", url: "https://www.bizinfo.go.kr" }],
+    agency: "중소벤처기업부", dataset: "기업마당 지원사업 공고", terms: "공공누리 제3유형(출처표시·변경금지)",
+    attribution: "출처: 기업마당(중소벤처기업부) — 공고 문구는 원문 그대로 보여 줍니다.",
+    links: [
+      { label: "공공데이터포털 — 중소기업 지원사업 공고 조회 서비스", url: "https://www.data.go.kr/data/15157820/openapi.do" },
+      { label: "기업마당", url: "https://www.bizinfo.go.kr" },
+    ],
   },
   {
     agency: "보건복지부", dataset: "코로나19 사회적 거리두기 현황", terms: "이용 제한 없음",
