@@ -1,5 +1,17 @@
 # Backend Version Log
 
+## [v0.84.0] - 2026-10-06
+
+### Changed
+- 행정동 경계 원천을 브이월드 WFS(`lt_c_cademd`·법정동 보충)에서 vuski/admdongkor `ver20260701`(통계청 SGIS 행정동 경계 가공, CC BY 4.0 — 원자료는 공공데이터포털 15129688 "이용허락범위 제한 없음")로 바꿨다. 이용조건 2번(사용자 지시) — 브이월드 약관은 사전 승낙 없는 저장·재배포를 막는다
+  - `AdmdongkorBoundaryGateway`(버전 고정 GeoJSON), `load_boundaries`는 `adm_cd2`(행안부 10자리) = region_code로 바로 맞춘다(`match_features`) — 동명 정규화 매칭·법정동 보충(신설동·용두동) 제거. 427/427 일치
+  - 경계 비교(옛 → 새): 동별 IoU 중위 0.924(새 경계가 꼭짓점이 적은 일반화 선), 중심 이동 중위 약 1m, 서울 외곽 IoU 0.989
+  - 다시 돈 것: 점포 동 재배정 `assign_regions --full`(841,461곳 중 10,165곳 1.2% 동 바뀜) · 담배소매인 1,269곳·어린이집 52곳 재배정 · `build_metrics`(55,077행) · `build_verdicts`(5,124건 중 141건 판정 바뀜, 🔴77→76·🟠1,845→1,858·⚪1,190→1,184·보류 2,012→2,006)
+  - 정적 GeoJSON(`frontend/public/geojson/seoul-regions.geojson`)도 새 경계로(5.4MB → 0.45MB)
+
+### Removed
+- `VworldBoundaryGateway`(행정동 WFS·법정동 데이터 API)와 동명 정규화·매칭 함수(`normalize_wfs_name`·`normalize_db_name`·`build_mapping`)·테스트
+
 ## [v0.83.1] - 2026-10-06
 
 ### Fixed

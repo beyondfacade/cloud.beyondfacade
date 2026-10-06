@@ -2,7 +2,7 @@
 
 - 엔드포인트: api.vworld.kr/ned/data/getEBOfficeInfo (2026-09-07 실호출 검증)
   — data.go.kr 15123990은 이 서비스로의 LINK형 (data.go.kr 쿼터 미사용)
-- 인증: VWORLD_API_KEY + domain(인증키 등록 서비스URL) — VworldBoundaryGateway 전례
+- 인증: VWORLD_API_KEY + domain(인증키 등록 서비스URL)
 - ldCode = district_code(시군구 5자리) 그대로 사용. 상태 무필터 조회가 영업중·휴업·업무정지
   전 상태 포함 (강남 2,990 = 영업중 2,972 + 휴업 16 + 업무정지 2 실측)
 - 원천에 좌표·폐업일 없음: lat/lng NULL 적재(SGIS 지오코딩 후속 대상, 학원과 동일 대기열),
