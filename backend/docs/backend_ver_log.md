@@ -1,5 +1,11 @@
 # Backend Version Log
 
+## [v0.72.0] - 2026-10-06
+
+### Added
+- `AnthropicLLMAdapter` — Claude 모델로 리포트 해석 한 턴(도구 없음)을 쓰는 LLMGatewayPort 구현. 모델별 요청 차이(Haiku 4.5만 온도, Sonnet 5.5는 생각 `between_tools`, Opus 5.5는 effort low)는 배선이 정한다. 운영 경로에는 아직 붙이지 않았다(평가용).
+- 리포트 벤치 모델에 claude-haiku-4-5·claude-sonnet-5-5·claude-opus-5-5, `run --ids`(표본 시나리오만 실행).
+
 ## [v0.71.2] - 2026-10-06
 
 ### Changed

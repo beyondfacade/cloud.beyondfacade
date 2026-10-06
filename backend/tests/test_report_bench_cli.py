@@ -26,8 +26,10 @@ def test_고정_facts는_지역_업종으로_돌려준다():
 
 
 def test_레지스트리_exaone만_도구_없음_gemini만_온라인():
-    assert [n for n, m in REPORT_MODELS.items() if not m.tools] == ["exaone3.5:7.8b"]
-    assert [n for n, m in REPORT_MODELS.items() if not m.local] == ["gemini-2.5-flash"]
+    assert [n for n, m in REPORT_MODELS.items() if not m.tools] == [
+        "exaone3.5:7.8b", "claude-haiku-4-5", "claude-sonnet-5-5", "claude-opus-5-5"]
+    assert [n for n, m in REPORT_MODELS.items() if not m.local] == [
+        "gemini-2.5-flash", "claude-haiku-4-5", "claude-sonnet-5-5", "claude-opus-5-5"]
 
 
 def test_리포트_게이트():

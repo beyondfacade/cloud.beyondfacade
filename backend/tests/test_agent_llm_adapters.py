@@ -3,6 +3,7 @@
 import json
 
 import httpx
+import pytest
 
 from apps.agent.adapter.outbound.llm.ollama_llm_adapter import OllamaLLMAdapter
 from apps.agent.app.ports.output.agent_port import LLMToolSpec
@@ -146,3 +147,28 @@ def test_gemini_tool_spec_to_function_declarations():
             "parameters": {"type": "object", "properties": {}},
         }
     ]
+
+
+def test_anthropic_메시지는_system을_분리하고_user_assistant만_남긴다():
+    from apps.agent.adapter.outbound.llm.anthropic_llm_adapter import to_anthropic_messages
+
+    system, messages = to_anthropic_messages(
+        [
+            {"role": "system", "content": "규칙 1"},
+            {"role": "system", "content": "규칙 2"},
+            {"role": "user", "content": "질문"},
+            {"role": "assistant", "content": "답"},
+        ]
+    )
+
+    assert system == "규칙 1\n규칙 2"
+    assert messages == [{"role": "user", "content": "질문"}, {"role": "assistant", "content": "답"}]
+
+
+def test_anthropic_어댑터는_도구를_받지_않는다():
+    # 리포트 해석은 도구 없는 한 턴이다(v0.68.0 도구 루프 제거) — 도구가 오면 조용히 무시하지 않고 거절한다
+    from apps.agent.adapter.outbound.llm.anthropic_llm_adapter import AnthropicLLMAdapter
+
+    adapter = AnthropicLLMAdapter(model="claude-haiku-4-5", api_key="test")
+    with pytest.raises(ValueError):
+        adapter.chat([{"role": "user", "content": "q"}], [LLMToolSpec(name="t", description="d", input_schema={})])
