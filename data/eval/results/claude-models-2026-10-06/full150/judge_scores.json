@@ -1,0 +1,2564 @@
+{
+  "gemini-2.5-flash": {
+    "e001": {
+      "answered": true,
+      "core_error": true,
+      "errors": [
+        "'상권 자체의 활력은 유지되고 있는 것으로 보입니다' — 본문 상권변화지표는 '정체'이고 활력 유지 근거가 없음, 본문에 없는 판단을 보탬"
+      ],
+      "hard_to_judge": true,
+      "note": "순유출·조기폐업은 맞게 옮겼으나 상권 활력 유지라는 본문과 어긋난 말을 보탬"
+    },
+    "e002": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "순유출(개업 0)·포화·표본 부족·대학가형·새벽 유동/저녁 매출 어긋남 모두 본문과 일치, 판정 등급 명시는 없음"
+    },
+    "e003": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "밀집·순유출·저녁 유동·생존율 자료 부족 일치, 판정 등급 언급 없음"
+    },
+    "e004": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": true,
+      "note": "조기폐업·상권축소·주거형 흐름·유사 사례 일치. 60세 이상 33%를 '삼분의 일을 넘고'라 한 것은 반올림 여부 불명"
+    },
+    "e005": {
+      "answered": true,
+      "core_error": true,
+      "errors": [
+        "'연간 폐업률은 재난지원 시기에 다소 높게 나타났으나, 최근에는 ... 안정화' — 2020~2022년 폐업률이 늦춰진 폐업으로 왜곡됐을 수 있다는 점을 무시하고, 2023~2024년(14.5%·14.9%)도 같은 수준이었던 점을 가림"
+      ],
+      "hard_to_judge": false,
+      "note": "응답 규칙 ② 재난지원 시기 폐업률 왜곡 가능성 무시"
+    },
+    "e006": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": true,
+      "note": "경고 없음·자료 부족·상권축소·시간 어긋남·주민 구성 일치. '아파트 시가 낮은 편'은 본문에 비교 기준이 없음"
+    },
+    "e011": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "순유출·조기폐업·원리금 부담으로 권하지 않음 — 직접 답과 일치"
+    },
+    "e012": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "순유출 수치(3곳 차·7번째쯤)·외국인 자료 부족 일치"
+    },
+    "e013": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "생존율 35%·조기폐업·포화로 권하지 않음 — 직접 답과 일치"
+    },
+    "e014": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "직접 답처럼 '예산 1억으로 권하지 않음'과 순유출·포화 근거 일치, 예산 충분성 판단 불가는 직접 답에 있음"
+    },
+    "e015": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "저녁 위주 운영 권하지 않음과 조기폐업·포화 근거 — 직접 답과 일치"
+    },
+    "e016": {
+      "answered": true,
+      "core_error": true,
+      "errors": [
+        "'전반적으로 경쟁이 치열하고 생존율이 낮은 환경' — 생존 절벽 신호는 켜지지 않았고 본문은 조기 폐업이 신규 점포 생존율이 아니라고 밝힘"
+      ],
+      "hard_to_judge": false,
+      "note": "포화·조기폐업은 맞으나 본문에 없는 낮은 생존율을 보탬"
+    },
+    "e017": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "순유출(6곳/0곳)·포화 1위·상권축소·밤 매출·고른 유동 일치, 판정 등급 명시 없음"
+    },
+    "e018": {
+      "answered": true,
+      "core_error": true,
+      "errors": [
+        "'육십 세 이상 주민 비율이 높은 점' — 본문은 60세 이상 25%, 20~39세 43%로 고령층 비중이 높다는 근거가 없음"
+      ],
+      "hard_to_judge": false,
+      "note": "순유출·생존율·조기폐업은 맞으나 주민 구성을 본문과 다르게 말함"
+    },
+    "e019": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "포화·순유출·올해 점포 감소로 권하지 않음 — 직접 답과 일치"
+    },
+    "e020": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "순유출 2배·생존율 12%·조기폐업·밤 유동 일치, 판정 등급 명시 없음"
+    },
+    "e021": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "순유출·포화·생존율 자료 부족·불안정한 폐업률·직장인구 3.1배 일치"
+    },
+    "e022": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "권하지 않음·순유출·생존 절벽(절반 이상 폐업)·조기폐업·포화 — 직접 답과 일치"
+    },
+    "e023": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "생존율·조기폐업·폐업률 상승·주거형·상권확장·상권 영업 기간 서울과 유사 일치"
+    },
+    "e024": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "생존율·조기폐업·포화 1위·먹자형 저녁 유동 일치, 판정 등급 명시 없음"
+    },
+    "e025": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "직접 답의 결론(5천만 원 기준 비추천·경고 2개)과 포화·조기 폐업 서술이 본문과 일치"
+    },
+    "e026": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "점심 유동 평균 수준·매출 절반 미만, 포화, 폐업>개업 모두 본문과 일치"
+    },
+    "e027": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "경쟁 치열하지 않음(밀집 매우 낮음)과 생존율·조기 폐업 경고를 본문대로 연결"
+    },
+    "e028": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "비추천과 순유출·포화 근거를 본문대로 옮김"
+    },
+    "e029": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "총평: 폐업 5·개업 0, 조기 폐업 매우 짧음, 생존율 표본 부족을 본문대로 짚음"
+    },
+    "e030": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "직접 답이 예산 판단 불가를 밝힘. 해석의 비추천·순유출(폐업 5>개업 3)·조기 폐업 서술이 본문과 일치"
+    },
+    "e031": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "밤 유동 0.72배·매출 0.37배, 점심 최다, 직장인구 7.5배, 생존율·조기 폐업·포화 모두 본문과 일치"
+    },
+    "e032": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "폐업 8>개업 2, 조기 폐업, 밀집 높은 편, 생존율 표본 부족, 낮 인구 우위·주말 유동 적음 모두 본문과 일치"
+    },
+    "e033": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "포화·조기 폐업·오후 매출/유동 집중·저녁 유동 최다(먹자형)·20~39세 45%·뷰티 뉴스 모두 본문과 일치"
+    },
+    "e034": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "폐업 10·개업 0, 밀집 서울 2위권, 생존율 표본 부족, 대학가형·밤 유동/매출 최다 모두 본문과 일치"
+    },
+    "e035": {
+      "answered": true,
+      "core_error": true,
+      "errors": [
+        "\"경쟁 점포 수가 서울 전체 한식 동 중 밀집도가 높은 편에 속하고\" — 본문(직접 답 근거)은 밀집 보통(높은 쪽에서 62번째쯤)"
+      ],
+      "hard_to_judge": false,
+      "note": "생존율·조기 폐업·상권 축소는 맞으나 질문의 핵심인 경쟁(밀집)을 높다고 바꿔 말함"
+    },
+    "e036": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "밀집·조기 폐업·생존율 자료 부족·먹자형·하루 종일 고른 흐름 모두 본문과 일치"
+    },
+    "e037": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "순유출·포화·점포 감소·폐업률 10%대 유지·먹자형 저녁 유동 모두 본문과 일치"
+    },
+    "e038": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "순유출·밀집·2024→2025 폐업률 상승·낮 인구 우위·시간대 자료 부족 모두 본문과 일치"
+    },
+    "e039": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "비추천·생존 절벽·조기 폐업·포화를 본문대로 옮김"
+    },
+    "e040": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "순유출·포화·먹자형 저녁 유동·상권 영업 기간 서울과 비슷·상권확장 모두 본문과 일치"
+    },
+    "e041": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "직접 답의 결론(7천만 원 기준 비추천)과 조기 폐업·포화·직장인구 3.1배·오후 집중이 본문과 일치"
+    },
+    "e042": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": true,
+      "note": "순유출·생존율 18%·상권 영업 기간 짧음·다이나믹·저녁 유동은 맞음. '60세 이상과 20~39세가 비교적 높은 비중'은 혼합형(두드러진 지표 없음)인 본문에 비교 근거가 없어 모호"
+    },
+    "e043": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "주말 유동이 평일과 비슷·순유출·조기 폐업·밤 최다/낮 최소 모두 본문과 일치"
+    },
+    "e044": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "폐업 6>개업 4·조기 폐업·생존율 표본 부족·주거형 밤 유동·점심 매출 모두 본문과 일치"
+    },
+    "e045": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "조기 폐업·포화·점심 유동/오후 매출·먹자형 모두 본문대로. '기회를 찾을 수도'는 비추천을 뒤집지 않는 수준"
+    },
+    "e046": {
+      "answered": true,
+      "core_error": true,
+      "errors": [
+        "'경쟁이 치열하고' — 본문·직접 답은 밀집 매우 낮은 편(높은 쪽에서 91번째)이라 경쟁 질문에 반대로 답함"
+      ],
+      "hard_to_judge": false,
+      "note": "점포 수 감소·순유출·조기 폐업은 맞으나 경쟁이 치열하다고 밀집 근거와 어긋나게 말함"
+    },
+    "e047": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "비추천·순유출(9 vs 3)·생존율 40%(절반 이상 폐업)·조기 폐업 짧음 본문과 일치"
+    },
+    "e048": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "코드 폴백(LEAD_FALLBACK). 직접 답이 예산 충분 여부는 판단 불가+이유를 밝혀 answered"
+    },
+    "e049": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "밀집 상위권·상권 축소·생존/조기 폐업 자료 부족·점심 유동/오후 매출 본문대로"
+    },
+    "e050": {
+      "answered": true,
+      "core_error": true,
+      "errors": [
+        "'저녁 시간대 유동인구와 매출이 하루 평균보다 많아' — 직접 답은 저녁 사람 흐름이 하루 평균과 비슷(0.97배), 많은 것은 매출(1.49배)뿐"
+      ],
+      "hard_to_judge": false,
+      "note": "저녁 유동인구를 평균보다 많다고 잘못 옮김"
+    },
+    "e051": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "밀집 높음·생존/조기 폐업 자료 부족·먹자형 낮 유동·음식 지출 높음 본문과 일치"
+    },
+    "e052": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "밀집 높음·폐업률 낮음·재난지원 왜곡·자료 부족·저녁 유동/매출·대학가형 본문과 일치"
+    },
+    "e053": {
+      "answered": true,
+      "core_error": true,
+      "errors": [
+        "'재난지원 시기를 제외하더라도 연간 폐업률이 꾸준히 높게 나타났던' — 2023~2026 폐업률 7.5·4.2·9.3·4.2%로 본문에 높다는 근거 없음",
+        "'이십 대에서 삼십 대 주민 비율이 높은 편' — 본문은 20~39세 35%만 제시, 높은 편이라는 비교 없음"
+      ],
+      "hard_to_judge": false,
+      "note": "세 경고는 맞으나 폐업률 꾸준히 높음·20~30대 비율 높음을 본문 없이 보탬"
+    },
+    "e054": {
+      "answered": true,
+      "core_error": true,
+      "errors": [
+        "'재난지원 시기 이후 폐업률이 꾸준히 상승하다가 최근 다시 높아진' — 2023 27.3%→2024 8.3%→2025 7.7%로 하락했다가 2026 33.3%, 꾸준히 상승이 아님"
+      ],
+      "hard_to_judge": false,
+      "note": "순유출·자료 부족·주거형은 맞으나 폐업률 추이를 잘못 옮김"
+    },
+    "e055": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": true,
+      "note": "점포 감소·순유출은 맞음. '경쟁 환경이 좋지 않음'이 밀집 보통과 어긋나는지(시장 여건 뜻인지) 모호"
+    },
+    "e056": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "순유출·생존율 45%·폐업률 범위·저녁 최다·60세 이상 39%/20~39세 22% 본문 수치와 맞음(점포 수 '유지·소폭 증가'는 최근 감소를 덜 반영)"
+    },
+    "e057": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "밀집 높음·자료 부족·점심 유동/밤 매출·낮 인구 우위형 본문과 일치"
+    },
+    "e058": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "조기 폐업(짧은 쪽 15번째) 우선 확인 — 직접 답·본문과 일치"
+    },
+    "e059": {
+      "answered": true,
+      "core_error": true,
+      "errors": [
+        "'최근 몇 년간 폐업률이 상승하는 추세' — 2025 5.1%·2026 9.2%로 2023~2024보다 낮아 상승 추세가 아님"
+      ],
+      "hard_to_judge": false,
+      "note": "포화는 맞으나 폐업률 추세를 잘못 옮김"
+    },
+    "e060": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "밀집 매우 높음·점포 수 증가·먹자형 저녁 유동·상권 영업 기간 비슷·상권확장·시간대 자료 부족 본문과 대체로 일치(폐업률 범위는 2025~26년 5~6%대를 덜 반영)"
+    },
+    "e061": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": true,
+      "note": "밀집·자료 부족·저녁 집중·상권 영업 기간 짧음은 맞음. '최근 몇 년간의 폐업률은 재난지원 시기 영향으로 왜곡' — 왜곡 대상은 2020~2022년인데 최근 몇 년이라 불러 모호"
+    },
+    "e062": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "밀집 매우 높음·낮 직장인 유동·생존율 자료 부족·재난지원 왜곡·폐업률 변동 본문과 일치"
+    },
+    "e063": {
+      "answered": true,
+      "core_error": true,
+      "errors": [
+        "'지난 일 년간 폐업이 개업보다 세 곳 더 많아' — 본문은 폐업 3곳·개업 1곳으로 두 곳 차이"
+      ],
+      "hard_to_judge": false,
+      "note": "순유출 상위권·자료 부족·2025년 28.6%·주거형은 맞으나 폐업-개업 차이를 잘못 셈"
+    },
+    "e064": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "코드 폴백(LEAD_FALLBACK). 직접 답이 예산 판단 불가+이유를 밝혀 answered"
+    },
+    "e065": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "순유출 매우 많음을 먼저 볼 것으로 짚음, 본문과 일치"
+    },
+    "e066": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "시간대 자료 부족·사람 흐름 밤 많음·포화 먼저 확인 — 직접 답과 일치"
+    },
+    "e067": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": true,
+      "note": "밀집 높음·폐업1/개업1 사실은 맞음. 다만 '변동 적음→경쟁 치열 시사'는 본문에 없는 추론이라 판단 애매"
+    },
+    "e068": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "순유출·생존율 43%(절반 이상 폐업)·조기 폐업·포화 정확"
+    },
+    "e069": {
+      "answered": false,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "코드 폴백 문장 — 질문 없음·직접 답 없음이라 answered false"
+    },
+    "e070": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "포화 신호 정확, 예산 판단 불가는 직접 답이 다룸"
+    },
+    "e071": {
+      "answered": true,
+      "core_error": true,
+      "errors": [
+        "'이천이십육 년 최저임금 인상 시기에 서울 전체에서 분식업이 다른 업종보다 상대적으로 잘 버티지 못했던 점' — 본문은 잘 버틴 업종으로 PC방·당구장·미용실을 들었을 뿐 분식이 잘 버티지 못했다고 하지 않음"
+      ],
+      "hard_to_judge": false,
+      "note": "유사 사례 절에 없는 사실을 보탬"
+    },
+    "e072": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "직장인구 5.4배·낮 흐름 우세·시간대 자료 부족·포화 먼저 — 직접 답과 일치"
+    },
+    "e073": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": true,
+      "note": "밀집 10번째쯤·개업·폐업 0곳 맞음. '진입 쉽지 않음 시사할 수 있음'은 본문에 없는 추론이나 단서를 붙임"
+    },
+    "e074": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "순유출 많음(18번째쯤)·상권축소 정확"
+    },
+    "e075": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "포화·낮 인구 우위형·평일 유동·표본 부족 정확"
+    },
+    "e076": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "예산 판단 불가 이유·순유출·포화 정확"
+    },
+    "e077": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "주말 1.03배(약간 많음)·순유출 매우 많음·폐업 8 vs 개업 4·상권축소 정확"
+    },
+    "e078": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "밀집 높음·자료 부족·주거형·영업 기간 길음·정체·주민 구성 정확"
+    },
+    "e079": {
+      "answered": true,
+      "core_error": true,
+      "errors": [
+        "'전반적으로 경쟁 환경이 좋지 않음을 나타냅니다' — 직접 답은 포화(밀집) '보통'이라 했는데 경쟁 환경이 나쁘다고 말해 직접 답 결론을 흐림"
+      ],
+      "hard_to_judge": false,
+      "note": "밀집 보통이라는 직접 답과 어긋나는 경쟁 판단"
+    },
+    "e080": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "생존율 낮은 편·절반도 안 남음 정확"
+    },
+    "e081": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "포화 9번째쯤·예산 판단 불가 정확"
+    },
+    "e082": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "저녁 유동 최소·순유출 매우 많음 정확"
+    },
+    "e083": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "밀집 보통·조기 폐업·순유출·점포 감소·생존 자료 부족 정확"
+    },
+    "e084": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": true,
+      "note": "순유출·조기 폐업·재난지원 이후 폐업률 급등·먹자형 맞음. '조기 폐업률'은 본문의 폐업 점포 영업 기간 지표를 비율처럼 표현해 애매"
+    },
+    "e085": {
+      "answered": true,
+      "core_error": true,
+      "errors": [
+        "\"최근 몇 년간 폐업률이 영 퍼센트로 나타난 것은 재난지원 시기의 영향으로 왜곡되었을 가능성이 있어 실제 생존율이나 조기 폐업률에 대한 자료가 부족\" — 왜곡 가능성은 2020~2022년에만 붙어 있고 2023~2026년 0%는 재난지원 시기 밖이며, 생존율·조기 폐업 자료 부족은 표본(개업 코호트·폐업 0곳) 때문이지 왜곡 때문이 아님"
+      ],
+      "hard_to_judge": false,
+      "note": "경고 없음·대학가형·밤 유동은 맞지만 0% 폐업률 왜곡 범위와 자료 부족 이유를 본문과 다르게 연결"
+    },
+    "e086": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "경고 없음·자료 부족·주거형 밤 유동 대 점심 매출 엇갈림 본문과 일치"
+    },
+    "e087": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "직접 답을 한 문장으로 되풀이, 본문과 어긋남 없음(질문 근거는 직접 답이 제공)"
+    },
+    "e088": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "경고 없음·자료 부족·새벽 유동 대 저녁 매출·서울 헬스장 증감 약함 본문과 일치"
+    },
+    "e089": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "주거형·하루 종일 고르게·저녁 유동(동네 유형 절)과 오후 매출 엇갈림을 짚음, 본문과 어긋남 없음"
+    },
+    "e090": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "예산 충분 여부 판단 불가와 이유(보증금·권리금·인테리어 자료 없음), 월 평균 매출 890만 원, 저녁 유동 모두 본문과 일치"
+    },
+    "e091": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "점심 유동 0.82배·매출 0.11배, 새벽 유동·밤 매출 본문과 일치"
+    },
+    "e092": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "밀집 보통·폐업=개업(순유출 0%)으로 경쟁 질문에 답, 직접 답과 일치"
+    },
+    "e093": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "경고 없음≠장사 근거, 표본 부족, 월 평균 매출 약 1,198만 원·신규 점포 평균 아래 시작 — 직접 답·본문과 일치"
+    },
+    "e094": {
+      "answered": true,
+      "core_error": true,
+      "errors": [
+        "\"최근 몇 년간 폐업률이 다소 높게 나타났으나, 이는 재난지원 시기의 영향으로 왜곡되었을 가능성\" — 본문의 왜곡 표시는 2020~2022년에 폐업이 늦춰졌을 수 있다는 뜻(수치가 낮게 나올 수 있음)이고, 최근 높은 폐업률(2025년 23.1%)은 재난지원 시기 밖이라 왜곡으로 설명할 수 없음"
+      ],
+      "hard_to_judge": false,
+      "note": "주거형·밤 유동·영업 기간 서울보다 김·정체는 맞지만 높은 폐업률을 재난지원 왜곡으로 돌려 본문과 어긋남"
+    },
+    "e095": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "예산 판단 불가 이유, 표본 부족, 상권 영업 기간 서울 기준보다 짧음(80·48개월) 본문과 일치"
+    },
+    "e096": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "경고 없음·자료 부족, 주거형 밤 최다·낮 최소, 영업 기간 서울보다 김·정체 본문과 일치"
+    },
+    "e097": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "밤 매출 높고 새벽 매출 낮음 — 직접 답 수치와 일치하는 한 문장"
+    },
+    "e098": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "1,000명당 2.9곳 중간 밀집, 폐업 2·개업 3으로 소폭 증가, 생존 절벽 자료 부족 본문과 일치"
+    },
+    "e099": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "경고 없음·자료 부족, 주거형 저녁 최다, 영업 기간 서울보다 김·정체 본문과 일치(정체=안정 시사는 해석 수준)"
+    },
+    "e100": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "경고 없음≠성공 보장, 월 평균 매출 약 192만 원·신규 점포 평균 아래 시작, 표본 부족 — 직접 답과 일치"
+    },
+    "e101": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "경고 없음, 상권축소, 주거형 밤 유동 대 오후 매출 본문과 일치"
+    },
+    "e102": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "2억 원 예산 판단 불가 이유, 매출 자료 불신·예상 월매출 직접 입력 — 직접 답과 일치"
+    },
+    "e103": {
+      "answered": true,
+      "core_error": true,
+      "errors": [
+        "\"지난 몇 년간 점포 수와 폐업률에 변화가 없어 안정적으로 보이지만\" — 2020~2022년 0%를 재난지원 시기 왜곡 가능성 언급 없이 안정 근거로 씀(응답 규칙 ②)",
+        "\"상권 전체의 영업 기간은 서울 평균과 비슷하게\" — 영업 중 104개월·폐업 52개월로 서울 기준값 118·54개월보다 짧음"
+      ],
+      "hard_to_judge": false,
+      "note": "시간대 엇갈림·생활 중심형·표본 부족은 맞지만 폐업률 왜곡 무시와 영업 기간 비교가 본문과 어긋남"
+    },
+    "e104": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "주말 유동 평일보다 약간 많음(1.04배)·경고 없음≠장사 근거·시간대 자료 부족 — 직접 답과 일치"
+    },
+    "e105": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "생존율 표본 부족, 2025년 급감, 재난지원 왜곡, 새벽/저녁 어긋남, 60세 이상 37% 모두 본문과 일치"
+    },
+    "e106": {
+      "answered": true,
+      "core_error": true,
+      "errors": [
+        "\"이러한 상황이 반드시 장사가 잘되지 않는다는 의미는 아니며\" — 직접 답의 '경고 없음이 장사가 된다는 근거는 아님'을 거꾸로 낙관 쪽으로 흐림(본문에 없는 안심 문구)"
+      ],
+      "hard_to_judge": false,
+      "note": "밀집 보통·순유출(폐업 4>개업 2)은 맞으나 감소 추세를 낙관으로 덮어 직접 답의 단서를 흐림"
+    },
+    "e107": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "경고 없음, 자료 부족, 상권축소, 낮 최소·밤 최다 모두 본문과 일치"
+    },
+    "e108": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "경고 없음≠성공 근거, 매출 자료 신뢰 불가·카드 외 매출 가능성 모두 직접 답과 일치"
+    },
+    "e109": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "경고 없음, 자료 부족, 밤 흐름, 영업 기간 124/57 > 기준값, 밤 매출/새벽 유동 어긋남 모두 본문 근거 있음"
+    },
+    "e110": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": true,
+      "note": "표본 부족, 새벽 유동/점심 매출은 일치. '최근 몇 년간 폐업률 증가'는 2019~2024년 기준으론 맞으나 2025~2026년 하락을 빠뜨렸고, '밤 시간 체류가 높은 편'은 본문의 '낮은 쪽이 아님'을 다소 강하게 옮김"
+    },
+    "e111": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "경고 없음, 예산 충분 여부 판단 불가, 보증금·권리금·인테리어 자료 없음, 자금 계획 화면 모두 직접 답과 일치"
+    },
+    "e112": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "경고 없음·자료 부족·재난지원 왜곡은 일치. '점포 수 꾸준히 증가'는 2021·2026년 소폭 감소가 있어 다소 과장이나 전반 증가 흐름(6→11)과 맞음"
+    },
+    "e113": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "새벽 유동/오후 매출 어긋남·주거형 한 문장, 본문과 일치"
+    },
+    "e114": {
+      "answered": true,
+      "core_error": true,
+      "errors": [
+        "\"사람 흐름은 밤 시간대에 가장 많고 … 저녁 장사에 유리한 면이 있을 수 있습니다\" — 밤(21~06시) 흐름을 저녁(17~21시) 장사 유리로 옮겨, 본문이 자료 부족이라 한 시간대 판단을 추정으로 메움"
+      ],
+      "hard_to_judge": false,
+      "note": "경고 없음≠근거, 시간대 자료 부족은 맞으나 밤 흐름을 저녁 장사 유리로 추정"
+    },
+    "e139": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "순유출(15>11), 생존율 48%(절반 이상 폐업), 조기 폐업 짧음, 밀집 높음, 대출 위험 크다 — 비추천 결론과 일치"
+    },
+    "e140": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "순유출·포화, 원리금 부담, 상권축소 — 조건부 직접 답과 일치"
+    },
+    "e141": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "경고 없음≠성공 보장, 표본 부족, 원리금 고정·손익분기 확인 — 직접 답과 일치"
+    },
+    "e143": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "강한 경고 3개로 비추천, 외국인 자료 없음 — 직접 답과 일치, 규칙 위반 없음"
+    },
+    "e144": {
+      "answered": true,
+      "core_error": true,
+      "errors": [
+        "\"주민과 유동인구 모두 고령층 비율이 높지만\" — 주민 60세 이상 27%는 20~39세 28%와 비슷하고 비교 기준도 없어 '높다'는 본문에 없는 판단"
+      ],
+      "hard_to_judge": false,
+      "note": "순유출 매우 많음은 맞으나 주민 고령층 비율을 근거 없이 높다고 단정('밤 체류가 높은'도 '낮은 쪽 아님'의 과장)"
+    },
+    "e145": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "2022년까지 폐업률 감소·재난지원 왜곡, 2025년 15.5%로 높음 — 직접 답과 일치"
+    }
+  },
+  "claude-opus-5-5": {
+    "e001": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "비추천·순유출·조기폐업·폐업률 반등과 재난지원 왜곡, 자료 부족 두 항목, 저녁 유동 최소, 대안 모두 본문과 일치"
+    },
+    "e002": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "비추천·순유출·포화·재난지원 왜곡·표본 부족·시간 어긋남·경고 없는 대안 모두 본문과 일치"
+    },
+    "e003": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "조건부·밀집·순유출·점포 감소·재난지원 왜곡·대학가 저녁 유동·자료 부족·대안 동네 모두 본문과 일치"
+    },
+    "e004": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "조건부·조기폐업 1개·폐업률 흐름과 재난지원 왜곡·주거형 밤/낮 흐름·상권축소·지원사업 주의 모두 일치"
+    },
+    "e005": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "경고 없음·생존 절벽 자료 부족·재난지원 왜곡·이후 폐업률 하락·새벽/점심 어긋남·장기 영업·대안 없음 모두 일치"
+    },
+    "e006": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "경고 0개·두 신호 표본 부족·점포 수 정체·재난지원 왜곡·상권축소·새벽/밤 어긋남·고령층 비중 모두 일치"
+    },
+    "e011": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "순유출·조기폐업·원리금 부담·올해 폐업률 상승과 재난지원 왜곡·점심 피크·금리 예상치 모두 일치"
+    },
+    "e012": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "외국인 자료 없음으로 판단 불가 명시, 순유출·점포 감소·재난지원 왜곡·뉴스는 참고 신호로 처리, 조건부 유지"
+    },
+    "e013": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "세 신호·재난지원 이후 폐업률 급등·오후 유동/점심 매출 어긋남·대안 비교 모두 일치"
+    },
+    "e014": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "순유출·포화·재난지원 이후 폐업률·상권 폐업 점포 영업 기간 짧음·예산 판단 불가·경고 없는 다른 동네 모두 일치"
+    },
+    "e015": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": true,
+      "note": "저녁 매출 2.26배·조기폐업·포화·오후 매출 최다·점포 수 증가 일치. 밤 유동을 음식·유흥 수요로 본 것은 해석적 추론"
+    },
+    "e016": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "비추천·두 강한 신호·점포 증가와 폐업률 재상승·재난지원 왜곡·낮 인구 우위형·시간대 자료 부족·대안 모두 일치"
+    },
+    "e017": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "비추천·순유출·포화·점포 감소·최근 폐업률 급등·재난지원 왜곡·표본 부족·상권축소·점심/밤 어긋남·뉴스 참고 신호·대안 모두 일치"
+    },
+    "e018": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "비추천·생존 절벽·조기폐업·순유출·재난지원 왜곡과 이후 급등·주거형·시간대 자료 부족·대안 모두 일치"
+    },
+    "e019": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "포화·순유출·올해 점포 감소·밤 사람/매출 집중·생존 절벽 자료 부족 모두 일치"
+    },
+    "e020": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "비추천·세 신호·재난지원 왜곡과 이후 급등·주거형 밤 유동·시간대 자료 부족·대안·지원사업 주의 모두 일치"
+    },
+    "e021": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "비추천·순유출·포화·낮 인구 우위형·주말 유동 감소·대안 모두 일치"
+    },
+    "e022": {
+      "answered": true,
+      "core_error": true,
+      "errors": [
+        "'저녁·주말 매출이 중요한 양식 업종에는 수요 시간대가 좁게 형성되는 구조' — 양식 매출이 저녁·주말에 중요하다는 말은 본문에 없고, 시간대 자료는 부족이라 했음"
+      ],
+      "hard_to_judge": false,
+      "note": "포화·낮 인구 우위형은 맞으나 본문에 없는 업종 특성을 보태 시간대를 추정함"
+    },
+    "e023": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "비추천·두 강한 신호·재난지원 왜곡과 이후 급등·새벽 유동/점심 매출 어긋남·상권확장 구분·대안 모두 일치"
+    },
+    "e024": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "비추천·생존 절벽·포화·재난지원 왜곡과 이후 회복된 폐업률·먹자형 저녁 흐름·시간대 자료 부족·뉴스 참고 신호·대안 모두 일치"
+    },
+    "e025": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": true,
+      "note": "포화·조기 폐업·재난지원 왜곡·예산 판단 불가 모두 본문과 일치. 다만 '폐업률도 꾸준히 높게'는 본문에 비교 기준이 없어 높다고 단정할 근거가 모호"
+    },
+    "e026": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "점심 유동 0.97배·매출 0.15배, 밤 매출 최다, 폐업 5·개업 0, 포화, 표본 부족 항목 모두 본문과 일치('거의 일어나지 않고'는 다소 강한 표현)"
+    },
+    "e027": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "밀집 매우 낮음·개업>폐업·생존율 0%·영업 기간 짧음·주거형 밤 최다 모두 본문과 일치"
+    },
+    "e028": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "개업 0·점포 감소·포화·낮 인구 우위·주말 감소·시간대/생존 자료 부족·재난지원 왜곡 모두 본문과 일치"
+    },
+    "e029": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "비추천·순유출·조기 폐업·자료 부족 항목·먹자형 밤 유동·경고 없는 대안·뉴스는 참고 신호 모두 본문과 일치"
+    },
+    "e030": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "폐업>개업, 영업 기간 짧음, 재난지원 왜곡과 2025~26 폐업률 급등, 예산 판단 불가 이유가 본문과 일치"
+    },
+    "e031": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "낮 인구 우위·점심 집중·밤 매출이 유동보다 더 줄어듦·포화·생존율 낮음·폐업률 상승 모두 본문과 일치"
+    },
+    "e032": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "비추천 근거 3개 신호·재난지원 왜곡·최근 폐업률 20%대·자료 부족 항목·도곡2동 대안 모두 본문과 일치"
+    },
+    "e033": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "강한 신호 2개·밀집 서울 1위권·점포 수 증가·재난지원 왜곡·오후 집중·뉴스는 참고 신호·대안 동 모두 본문과 일치"
+    },
+    "e034": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "순유출·밀집·최근 폐업률 상승·재난지원 왜곡·대학가 밤 집중·대안 모두 본문과 일치('해마다 꾸준히 줄었고'는 2021~23 75곳 보합이 있어 다소 과장)"
+    },
+    "e035": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "밀집·순유출 보통, 생존율·조기 폐업 경고, 상권 축소, 시간대 자료 부족 모두 본문과 일치"
+    },
+    "e036": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "강한 신호 2개(조기 폐업·포화)·자료 부족 항목·재난지원 왜곡·2024~25 폐업률 상승·먹자형 저녁 유동 모두 본문과 일치"
+    },
+    "e037": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "폐업 23>개업 3, 포화, 점포 수 매년 감소, 재난지원 왜곡, 최근 폐업률 상승, 상권 영업 기간 서울 기준보다 짧음, 대안 동 모두 본문과 일치"
+    },
+    "e038": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "비추천·강한 신호 2개·재난지원 왜곡·최근 폐업률 상승과 점포 감소·낮 인구 우위·주말/밤 유동 약함·대안 모두 본문과 일치"
+    },
+    "e039": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "LEAD_FALLBACK 문장 — 규칙상 core_error false. 직접 답이 비추천과 근거를 줌"
+    },
+    "e040": {
+      "answered": false,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "ANSWER_FALLBACK 문장 — 규칙상 core_error false. 질문 없음·직접 답 없음이라 answered false"
+    },
+    "e041": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "조기 폐업 서울 1위권·밀집·점포 수 매년 증가·재난지원 왜곡·예산 판단 불가와 이유 모두 본문과 일치"
+    },
+    "e042": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "두 강한 신호(서울 3번째쯤)·재난지원 왜곡·저녁/밤 흐름·시간대 자료 부족·상권 영업 기간·대안 모두 본문과 일치"
+    },
+    "e043": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "주말 1.04배=주거형 중앙값, 폐업 7>개업 1, 조기 폐업, 시간대 자료 부족, 경고 없는 대안 모두 본문과 일치"
+    },
+    "e044": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "강한 신호 2개·생존율 표본 부족·재난지원 왜곡·2024~25 폐업률 급등·밤 유동/점심 매출 어긋남·대안 모두 본문과 일치"
+    },
+    "e045": {
+      "answered": false,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "코드 폴백 문장(ANSWER_FALLBACK)이며 질문 없는 총평이라 직접 답 없음"
+    },
+    "e046": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "밀집 낮음→경쟁보다 순유출이 문제, 재난지원 이후 폐업률 상승(10.0→20.8%), 생존율·시간대 자료 부족 모두 본문과 일치"
+    },
+    "e047": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "순유출·생존율 절반 미만·조기 폐업·재난지원 왜곡·시간대 자료 부족·대안 모두 본문대로"
+    },
+    "e048": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "생존율 36%·조기 폐업 1개월·포화 4번째·재난지원 후 폐업률 상승(38~47%)·예산 판단 불가 모두 본문과 일치"
+    },
+    "e049": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "포화 강한 신호·조건부·표본 부족·점포 수 감소·상권축소·점심 유동/오후 매출·뉴스 참고 신호 모두 본문대로"
+    },
+    "e050": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "저녁 사람 흐름 평균 수준·매출 1.49배, 점심 최다·밤 최소, 조기 폐업 우선·최근 폐업률 급등 모두 본문과 일치"
+    },
+    "e051": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "조건부·켜진 경고 포화 하나·생존/조기 폐업·시간대 자료 부족·재난지원 왜곡·먹자형 낮 흐름·대안 모두 본문대로"
+    },
+    "e052": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "조건부·포화 하나·점포 수 증가·자료 부족·재난지원 왜곡·헬스장 증감 약함·저녁 집중 모두 본문대로"
+    },
+    "e053": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "조건부·3개 켜짐(강한 0)·순유출·생존율 55%·조기 폐업·재난지원 왜곡·밤 주거형/오후 매출 모두 본문대로"
+    },
+    "e054": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "강한 신호 순유출 하나·조건부·폐업률 들쭉날쭉·재난지원 왜곡·자료 부족·밤 주거형·상권확장·대안 본문과 일치"
+    },
+    "e055": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "밀집 보통·점포 해마다 감소·개업 0·상권축소·동 전체 폐업 점포 영업 기간 46<54·자료 부족·밤 매출 본문과 일치"
+    },
+    "e056": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "조건부·순유출·생존율 절반 미만·재난지원 왜곡·저녁 최다·고령층 비중·시간대 자료 부족·뉴스 참고 신호 본문대로"
+    },
+    "e057": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "조건부·포화 하나·자료 부족·재난지원 왜곡·점심 유동/밤 매출·밤 유동 최소·대안 동네 본문대로"
+    },
+    "e058": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "켜진 경고 조기 폐업 하나·생존율 자료 부족·재난지원 왜곡·먹자형 저녁 흐름·순유출/포화 미달 본문대로"
+    },
+    "e059": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "포화 매우 높음·대학가형 밤 최다·시간대/생존 자료 부족·상권 영업 기간 짧음·재난지원 왜곡·대안 동네 본문대로"
+    },
+    "e060": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "포화 강한 신호(1번째)·점포 수 증가·폐업률 하락·재난지원 왜곡·먹자형·상권확장·융자 뉴스는 참고 신호로 원문 확인 안내 — 본문대로"
+    },
+    "e061": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "조건부·포화 하나·자료 부족·최근 폐업률 잠잠·재난지원 왜곡·저녁 집중·상권 영업 기간 짧음·같은 동네 대안 본문대로"
+    },
+    "e062": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "포화 강한 신호·생존율 자료 부족·재난지원 왜곡·오후 유동/매출·주말·밤 약함 본문대로"
+    },
+    "e063": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "조건부·순유출 강한 신호(5번째)·재난지원 왜곡·최근 폐업률 상승·점포 수 감소·자료 부족 3종·주거형·상권 기간 짧음·대안 본문대로"
+    },
+    "e064": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "순유출 매우 많음·올해 폐업률 23.1%·자료 부족·재난지원 왜곡·예산 판단 불가·자금 계획 화면 본문과 일치('조건부 이유'에 폐업률 급등을 함께 든 것은 사소)"
+    },
+    "e065": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "조건부·순유출·재난지원 왜곡·생존 표본 부족·시간대 모두 본문과 일치"
+    },
+    "e066": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "먹자형·밤 흐름·시간대 자료 부족·포화 신호 정확히 옮김"
+    },
+    "e067": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "포화 유일 경고·순유출 균형·표본 부족·재난지원 왜곡·저녁 vs 밤 매출 모두 본문과 일치"
+    },
+    "e068": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "4개 신호·재난지원 이후 폐업률 상승·상권축소·시간대 자료 부족 정확"
+    },
+    "e069": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "조건부·순유출 매우 많음·표본 부족·재난지원 왜곡·점포 감소·시간대 차이 정확"
+    },
+    "e070": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "포화·표본 부족·매출 자료 신뢰 낮음·권역 임대료·예산 판단 불가 정확"
+    },
+    "e071": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "조기 폐업 유일 경고·점포 감소·재난지원 이후 폐업률 상승·표본/시간대 자료 부족 정확"
+    },
+    "e072": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "낮 인구 우위형·밤 적음·시간대 자료 부족·포화 1위·점포 증가·재난지원 왜곡 정확"
+    },
+    "e073": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "포화 유일 경고·점포 감소·12개월 무변동·표본 부족·2022 재난지원 왜곡·저녁 매출 정확"
+    },
+    "e074": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "순유출·상권축소·표본/매출 자료 부족·저녁 매출 어긋남 정확"
+    },
+    "e075": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "포화 유일 경고·표본·시간대 자료 부족·재난지원 왜곡·대안 정확"
+    },
+    "e076": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "두 신호(순유출·포화)·낮 인구 우위형·저녁 매출·표본 부족·예산 판단 불가 정확"
+    },
+    "e077": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "주말 차이 같은 유형 중앙값과 비슷·오후 매출·순유출·상권축소·표본 부족 정확"
+    },
+    "e078": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "포화 유일 경고·자료 부족 항목·재난지원 왜곡·주거형·영업 기간 길음·정체 정확"
+    },
+    "e079": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "밀집 보통·점포 수 유지·순유출·상권축소·표본 부족·재난지원 정확"
+    },
+    "e080": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "생존 절벽 유일 경고·넘지 않은 기준·생존율 47%·재난지원 이후 폐업률 상승·시간대 자료 부족 정확"
+    },
+    "e081": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "포화 강한 신호·표본 부족·소수 점포 평균 매출·예산 판단 불가 정확"
+    },
+    "e082": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "시간대 자료 부족·아침 많고 저녁 적음·순유출 매우 많음·점포 감소·재난지원 왜곡 정확"
+    },
+    "e083": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "밀집 중간·조기 폐업·점포 감소·표본 부족·재난지원 왜곡·대학가형 정확"
+    },
+    "e084": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "두 신호·점포 증가와 폐업률 등락·재난지원 왜곡·시간대 자료 부족·대안·참고 신호 정확"
+    },
+    "e085": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "자료 부족 두 신호, 점포 수 정체·재난지원 왜곡, 밤·새벽 유동과 저녁 매출 엇갈림, 참고 신호·대안 없음까지 본문과 일치"
+    },
+    "e086": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "경고 없음·표본 부족·재난지원 왜곡·밤새벽 유동 대 점심 매출·영업 기간 기준값 비교·다이나믹·대안 없음 모두 본문과 일치"
+    },
+    "e087": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "순유출·포화 미달, 표본 부족, 재난지원 왜곡과 이후 폐업 발생(2023~2025), 상권축소 모두 본문과 일치"
+    },
+    "e088": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "표본 부족·점포 수 증가·2025년 폐업률 상승·재난지원 왜곡·상권축소·서울 헬스장 증감 약함·시간대 엇갈림 모두 본문과 일치"
+    },
+    "e089": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "표본 부족·폐업률 들쭉날쭉·재난지원 왜곡·밤 유동 대 오후 매출(시간대 절)·고령층 많은 주거형·대안 없음 본문과 일치"
+    },
+    "e090": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "자료 부족 두 신호, 폐업률 들쭉날쭉·재난지원 왜곡, 상권축소, 예산 판단 불가 모두 본문·직접 답과 일치"
+    },
+    "e091": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "낮 사람 흐름 최저·밤 매출 집중·점심 매출 크게 못 미침·표본 부족·상권축소 본문과 일치"
+    },
+    "e092": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "밀집 중간·순유출 미미, 2023~2025 폐업률 11~12% 지속, 재난지원 왜곡, 정체, 시간대 자료 부족 모두 본문과 일치"
+    },
+    "e093": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "표본 부족 이유, 점포 수 12곳 안팎 유지·폐업 드묾, 재난지원 왜곡, 새벽 유동 대 밤 매출 본문과 일치"
+    },
+    "e094": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "자료 부족 두 신호·시간대 자료 부족, 점포 수 감소·높게 튄 해, 재난지원 왜곡, 영업 기간·정체·고령층·대안 없음 본문과 일치"
+    },
+    "e095": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "표본 부족 이유, 폐업률 들쭉날쭉·재난지원 왜곡, 하루 종일 고른 주거형, 시간대·비용 자료 부족으로 예산 판단 불가 — 본문과 일치"
+    },
+    "e096": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "자료 부족 두 신호, 소수 점포로 폐업률 흔들림, 재난지원 왜곡, 주거형 밤 유동, 시간대 자료 부족, 정체·영업 기간, 뉴스=참고 신호 모두 본문과 일치"
+    },
+    "e097": {
+      "answered": true,
+      "core_error": true,
+      "errors": [
+        "\"밤 시간대에 경고가 없는 것은 이 동네 사람 흐름이 밤에 가장 많은 생활 중심형 상권이고, 밤 앞부분에는 당구장 매출도 하루 평균보다 크게 많기 때문입니다\" — 본문의 경고 없음은 경고 신호 4개 중 0개 켜짐(2개 자료 부족) 때문이며, 유동인구·시간대 매출이 경고 판정의 근거라는 내용은 본문에 없음"
+      ],
+      "hard_to_judge": false,
+      "note": "저녁 매출 최다·새벽 매출 0.58배·표본 부족·대안 없음은 맞지만 경고 없음의 이유를 본문에 없는 인과로 지어냄"
+    },
+    "e098": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "밀집·순유출 보통으로 경쟁 질문에 답, 점포 수 완만, 폐업률 들쭉날쭉·재난지원 왜곡, 표본 부족, 저녁 유동 대 점심 매출, 고령층 비중 본문과 일치"
+    },
+    "e099": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "자료 부족 두 신호, 점포 수 유지, 재난지원 왜곡, 주거형 저녁 최다·낮 최소, 시간대 자료 부족, 영업 기간 김·정체, 공고·금리 예상치 본문과 일치"
+    },
+    "e100": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "순유출·포화 미달, 표본 부족, 폐업률 오르내림·재난지원 왜곡, 직장인구 2.6배·주말 유동 적음, 점심 유동 대 저녁 매출 본문과 일치"
+    },
+    "e101": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "생존 절벽 표본 부족, 점포 수 75~81곳 유지, 재난지원금·손실보상 시기 왜곡, 상권축소, 밤 유동 대 오후 매출, 고령층, 대안 없음 본문과 일치"
+    },
+    "e102": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "예산 판단 불가 이유(매출 자료 불신·임대료 권역 평균·비용 자료 없음), 표본 부족, 재난지원 왜곡, 자금 계획 화면 — 직접 답·본문과 일치"
+    },
+    "e103": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "개업·폐업 0곳으로 두 신호 자료 부족, 점포 수·폐업률 불변과 재난지원 왜곡, 저녁 유동 대 밤 매출(밤 유동 최저), 영업 기간 서울보다 짧음·다이나믹 본문과 일치"
+    },
+    "e104": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "주말 유동 1.04배로 같은 유형 중앙값과 같음을 근거로 주말 질문에 답, 시간대 자료 부족·밤 최다 낮 최소·표본 부족 본문과 일치"
+    },
+    "e105": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "경고 없음≠안전, 2025년 점포 급감·폐업률 급등, 재난지원 왜곡, 시간대 어긋남, 고령층 37%>23%, 대안 없음 모두 본문과 일치"
+    },
+    "e106": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "밀집·순유출 보통, 점포 수 감소(37→36→33), 표본 부족, 재난지원 왜곡, 낮 최다·밤 최소, 시간대 자료 없음 모두 일치. 밤 장사 중심은 일반 추론"
+    },
+    "e107": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "경고 없음≠안전, 점포 수 12~15곳 유지, 재난지원 왜곡, 상권축소, 시간대 자료 부족, 고령층 33%, 뉴스·지원사업 처리 모두 일치"
+    },
+    "e108": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "표본 부족, 매출 자료 불신, 폐업률 등락·재난지원 왜곡, 영업 기간 기준값과 비슷(116/56 vs 118/54), 상권확장, 예상 매출 직접 입력 모두 일치"
+    },
+    "e109": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "자료 부족, 점포 10곳 유지·폐업 드묾, 재난지원 왜곡, 새벽 유동/밤 매출, 상권 정체, 고령 29%·청년 27% 비슷, 뉴스·지원사업 처리 모두 일치"
+    },
+    "e110": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "생존 절벽 자료 부족, 점포 34곳 고점 후 감소, 폐업률 높다 최근 하락, 점심 매출/새벽 유동, 고령층 35%>26%, 상권 정체, 대안 없음 모두 일치"
+    },
+    "e111": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "표본 부족, 폐업률 등락·최근 33.3%/30.0%로 높음, 예산 판단 불가, 권역 평균 임대료, 매출 자료 불신, 밤 흐름 주거형 모두 일치"
+    },
+    "e112": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "자료 부족, 재난지원 왜곡, 최근 점포 증가, 서울 헬스장 증감 약함, 새벽 유동/저녁 매출, 고령층 32%, 뉴스 참고 신호 모두 일치"
+    },
+    "e113": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "표본 부족, 재난지원 왜곡, 최근 폐업률 하락·2026년 점포 25→39 급증, 시간대 어긋남, 상권확장·영업 기간 짧음, 대안 없음, 뉴스 처리 모두 일치"
+    },
+    "e114": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": true,
+      "note": "시간대 자료 부족·상권축소·고령층 35%>28%·표본 부족·재난지원 왜곡은 일치. '사람 흐름이 밤에 가장 많아 퇴근 뒤 저녁 수요와 어긋나지는 않아 보이지만'은 밤(21~06시)과 저녁(17~21시)을 섞은 추정이나 곧바로 따로 확인하라고 유보해 핵심 오류로 보기 애매"
+    },
+    "e139": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "생존율 서울 하위 2번째, 조기 폐업 짧음, 순유출, 밀집, 원리금 고정, 재난지원 왜곡, 다른 동네 비교 권유 — 비추천과 일치. 상환 기간 위험은 해석상 추론"
+    },
+    "e140": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "점포 26→20 감소, 상권축소, 재난지원 왜곡, 생존 자료 부족, 금리 예상치·상환액 손익분기, 밤 매출 모두 일치. 켜진 신호(순유출·포화) 언급은 빠짐"
+    },
+    "e141": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "경고 없음≠안전, 표본 부족, 상권축소, 저녁 최소 사람 흐름(본문 '가장 적은 때 저녁'), 원리금·자금 계획, 뉴스 참고 신호, 금리 예상치 모두 일치"
+    },
+    "e143": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "외국인 자료 없어 판단 불가, 순유출(30>18)·생존율 낮음·조기 폐업, 주거형·고령층·청년층 — 일치, 외국인 비하 없음"
+    },
+    "e144": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "직장/상주 0.07배, 밤 최다 주거형, 어르신·2030 비중 비슷, 시간대 자료 부족, 순유출 서울 4번째 — 일치"
+    },
+    "e145": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "코로나 시기 폐업률 하락·왜곡, 2024~2025년 코로나 이전보다 높음, 표본 부족, 영업 기간 비슷, 밤 흐름 주거형 — 일치"
+    }
+  },
+  "gemma4:12b": {
+    "e001": {
+      "answered": true,
+      "core_error": true,
+      "errors": [
+        "'최저임금 인상 시기에도 한식은 다른 업종에 비해 상대적으로 견고하게 버틴 사례' — 본문은 한식 증감이 직전과 비슷했고 잘 버틴 업종은 PC방·당구장·미용실"
+      ],
+      "hard_to_judge": false,
+      "note": "유사 사례를 반대로 옮김"
+    },
+    "e002": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "순유출·포화·표본 부족·저녁 매출·카페/미용실 대안 일치. 뉴스 헤드라인을 '인근 성공 사례'로 옮긴 것은 참고 신호 인용 수준"
+    },
+    "e003": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "대학가형·밀집·개업 없음·다이나믹·시간대 자료 부족·대안 업종(조건부) 언급, 유사 사례도 본문과 맞음"
+    },
+    "e004": {
+      "answered": true,
+      "core_error": true,
+      "errors": [
+        "'최저임금 인상 시기에도 한식 업종은 다른 업종 대비 비교적 견고하게 유지된 사례' — 본문은 한식 증감이 직전과 비슷, 잘 버틴 업종은 PC방·당구장·미용실"
+      ],
+      "hard_to_judge": false,
+      "note": "유사 사례를 본문과 다르게 옮김"
+    },
+    "e005": {
+      "answered": true,
+      "core_error": true,
+      "errors": [
+        "'최저임금 인상 시기에도 카페는 다른 업종 대비 비교적 견고하게 유지된 사례' — 본문의 상대적으로 잘 버틴 업종은 PC방·당구장·미용실로 카페가 아님"
+      ],
+      "hard_to_judge": true,
+      "note": "경고 없음·표본 부족·시간 어긋남은 맞으나 업종 간 비교를 본문과 다르게 보탬"
+    },
+    "e006": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "경고 없음 취지와 상권축소·표본 부족·밤 매출 일치, 판정 등급 명시 없음"
+    },
+    "e011": {
+      "answered": true,
+      "core_error": true,
+      "errors": [
+        "'영업 기간이 매우 짧아 초기 생존 가능성이 낮으며' — 본문은 조기 폐업이 새로 연 점포의 생존율이 아니라고 밝히고, 생존 절벽 신호는 켜지지 않음"
+      ],
+      "hard_to_judge": false,
+      "note": "대출 원리금 부담은 짚었으나 조기 폐업을 신규 점포 생존율로 바꿔 읽음"
+    },
+    "e012": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "외국인 자료 없음으로 판단 불가, 순유출 일치"
+    },
+    "e013": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "생존율·조기폐업·포화·높은 폐업률 일치. 직접 답 '권하지 않습니다'를 '신중한 접근'으로 약하게 말했으나 뒤집지는 않음"
+    },
+    "e014": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "밀집·순유출·예산 판단 불가와 자금 계획 화면 안내 일치"
+    },
+    "e015": {
+      "answered": true,
+      "core_error": true,
+      "errors": [
+        "'저녁 시간대 유동인구와 매출이 높게 나타나더라도' — 본문은 저녁 유동인구가 하루 평균과 비슷(1.06배)하다고 함"
+      ],
+      "hard_to_judge": false,
+      "note": "저녁 유동인구를 본문과 다르게 옮기고 직접 답의 '권하지 않음'을 '신중한 접근'으로 흐림"
+    },
+    "e016": {
+      "answered": true,
+      "core_error": true,
+      "errors": [
+        "'최저임금 인상 시기에 일식 업종은 타 업종 대비 상대적으로 견고하게 버틴 기록' — 본문은 일식 증감이 1분기 약했고 잘 버틴 업종은 PC방·당구장·미용실"
+      ],
+      "hard_to_judge": false,
+      "note": "유사 사례를 반대로 옮김"
+    },
+    "e017": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "밀집·순유출·상권축소·생존율 표본 부족 일치, 재개발 뉴스는 참고 신호로 처리"
+    },
+    "e018": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "순유출·낮은 생존율·조기폐업·시간대 자료 부족 일치, 대안 언급은 다소 일반적"
+    },
+    "e019": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "포화·순유출로 진입 위험이 높다 — 직접 답과 같은 방향, 경쟁 질문에 근거 제시"
+    },
+    "e020": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "순유출·낮은 생존율·조기폐업·경고 없는 중식/미용실/일식 대안 일치"
+    },
+    "e021": {
+      "answered": true,
+      "core_error": true,
+      "errors": [
+        "'최저임금 인상 등 외부 충격 시기에 분식 업종은 다른 업종에 비해 상대적으로 견고하게 버틴 사례' — 본문은 분식 증감이 1분기 약했고 잘 버틴 업종은 PC방·당구장·미용실"
+      ],
+      "hard_to_judge": false,
+      "note": "유사 사례를 반대로 옮김"
+    },
+    "e022": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "포화·낮은 생존율·조기폐업·순유출 일치, '주의가 필요'로 다소 약하게 표현"
+    },
+    "e023": {
+      "answered": true,
+      "core_error": true,
+      "errors": [
+        "'특히 최저임금 인상 등 외부 충격에 취약한 구조' — 본문은 2026년 최저임금 인상 후 서울 카페 증감이 직전보다 강했다고 함, 취약하다는 근거 없음"
+      ],
+      "hard_to_judge": false,
+      "note": "생존율·조기폐업·폐업률 상승·시간 어긋남·대안은 맞으나 외부 충격 취약성을 보탬"
+    },
+    "e024": {
+      "answered": true,
+      "core_error": true,
+      "errors": [
+        "'최근 개업한 점포들의 영업 기간이 짧은 편' — 본문 조기 폐업은 최근 3년 문 닫은 점포의 영업 기간이며 새로 연 점포에 관한 수치가 아님"
+      ],
+      "hard_to_judge": false,
+      "note": "밀집·생존율은 맞으나 조기 폐업 지표 대상을 바꿔 옮김"
+    },
+    "e025": {
+      "answered": true,
+      "core_error": true,
+      "errors": [
+        "\"최근 개업한 점포들의 영업 기간이 짧아\" — 본문의 조기 폐업은 최근 3년 문 닫은 점포의 영업 기간이며 새로 연 점포의 생존율이 아니라고 명시"
+      ],
+      "hard_to_judge": false,
+      "note": "예산 판단 불가와 이유는 맞으나 조기 폐업 지표를 신규 개업 점포 이야기로 바꿈"
+    },
+    "e026": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "점심 유동·매출 배율, 밀집·순유출을 본문대로 옮기고 비추천 유지"
+    },
+    "e027": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "질문의 경쟁 요소는 직접 답 근거(포화 매우 낮음)가 답함. 해석은 생존 절벽·조기 폐업·2023~24 고폐업률을 본문대로 서술"
+    },
+    "e028": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "순유출(개업 0)·포화, 낮 인구 우위·밤 유동 최소 모두 본문과 일치"
+    },
+    "e029": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "순유출·짧은 영업 기간·시간대 자료 부족·참고 뉴스 언급 대체로 일치('평균 영업 기간'은 본문의 중위값을 평균으로 부른 경미한 표현 차이)"
+    },
+    "e030": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "순유출·짧은 영업 기간과 예산은 자금 계획으로 별도 확인 — 본문과 어긋남 없음('평균'은 중위값의 경미한 표현 차이)"
+    },
+    "e031": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "밤 유동·매출 낮음, 포화·낮은 생존율, 낮 인구 우위형·밤 유동 최소 모두 본문과 일치"
+    },
+    "e032": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "밀집·조기 폐업·순유출·시간대 자료 부족·다이나믹을 본문대로 서술('논현동'은 논현2동의 경미한 표기 차이)"
+    },
+    "e033": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "밀집·조기 폐업·저녁 유동·오후 매출·뉴스는 참고 수준 — 본문과 어긋남 없음"
+    },
+    "e034": {
+      "answered": true,
+      "core_error": true,
+      "errors": [
+        "\"최저임금 인상 시기에는 다른 업종에 비해 상대적으로 견고했던 사례가 있으나\" — 본문은 잘 버틴 업종이 PC방·당구장·미용실이고 노래방은 증감이 약했던 분기가 있었다고 함. 노래방에 유리한 사례처럼 옮김(또 확인된 사실을 참고 신호로 부름)"
+      ],
+      "hard_to_judge": false,
+      "note": "밀집·순유출·생존 절벽 표본 부족은 맞으나 유사 사례를 노래방에 유리하게 잘못 옮김"
+    },
+    "e035": {
+      "answered": true,
+      "core_error": true,
+      "errors": [
+        "\"한식 업종의 높은 밀집도\" — 본문은 밀집 보통(62번째쯤)"
+      ],
+      "hard_to_judge": false,
+      "note": "생존율·영업 기간·상권 축소는 맞으나 밀집을 높다고 잘못 옮김"
+    },
+    "e036": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "조기 폐업·생존율 자료 부족·다이나믹·시간대 자료 부족을 본문대로 서술(포화 언급 누락은 오류 아님)"
+    },
+    "e037": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": true,
+      "note": "밀집·폐업>개업·먹자형·시간대 자료 부족은 맞음. '영업 기간이 짧은 점포가 많아'는 분식 조기 폐업 경고(켜지지 않음)인지 상권 전체 영업 기간(서울 기준보다 짧음)인지 모호"
+    },
+    "e038": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": true,
+      "note": "밀집·폐업 빈번·낮 인구 우위·시간대 자료 부족·정체는 맞음. '최저임금 인상 속 견고한 생존력을 보인 사례를 참고'는 다른 업종(PC방 등) 사례 언급으로 읽히나 모호하고 확인된 사실을 참고 신호로 부름"
+    },
+    "e039": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "생존율 매우 낮음·영업 기간 짧음·밀집 높음·높은 폐업률 모두 본문과 일치"
+    },
+    "e040": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "밀집·순유출·생존/조기 폐업 표본 부족·먹자형 저녁 유동·융자 뉴스는 참고만 — 본문과 일치, 대출 추천 없음"
+    },
+    "e041": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "포화·조기 폐업, 예산은 보증금·인테리어 자료 부족으로 판단 불가 — 본문과 일치"
+    },
+    "e042": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": true,
+      "note": "순유출·생존율·시간대 자료 부족·경고 없는 일식·헬스장 대안은 맞음. '최근 몇 년간 폐업률이 높게'는 5~13% 오르내림이라 비교 기준 없이 높다고 하기 모호"
+    },
+    "e043": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "비추천·순유출·짧은 영업 기간 맞음. '주말 유동이 평일보다 높게'는 1.04배로 사실상 동일(유형 중앙값과 같음)이라 다소 과장이나 수치상 틀리지 않음"
+    },
+    "e044": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "순유출·조기 폐업·다이나믹·유동/매출 시간대 어긋남·생존율 자료 부족 모두 본문과 일치(유사 사례를 참고 신호로 부른 경미한 표현)"
+    },
+    "e045": {
+      "answered": true,
+      "core_error": true,
+      "errors": [
+        "'최근 개업한 점포들의 생존 기간이 짧아' — 본문 조기 폐업은 최근 3년 폐업 점포의 영업 기간이며 '새로 연 점포의 생존율이 아님'이라 명시",
+        "'참고 신호로 언급된 뉴스 외에 다른 특별한 변수는 없으나' — 본문 '왜 안 되나'에 외부 충격(1차 긴급재난지원금 2020년, 손실보상제 2021년)이 있음"
+      ],
+      "hard_to_judge": false,
+      "note": "포화·시간대는 맞으나 조기 폐업을 신규 점포 생존 얘기로 바꾸고 외부 충격이 없다고 말함"
+    },
+    "e046": {
+      "answered": true,
+      "core_error": true,
+      "errors": [
+        "'낮은 생존율' — 생존 절벽은 표본 부족(코호트 5곳)으로 자료 부족인데 낮다고 메움"
+      ],
+      "hard_to_judge": false,
+      "note": "순유출·조기 폐업·점포 수 감소는 맞으나 자료 부족인 생존율을 낮다고 단정"
+    },
+    "e047": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "신규 점포 생존율 낮음(생존 절벽 40%)·폐업 점포 영업 기간 짧음·순유출 본문과 일치"
+    },
+    "e048": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "포화·신규 생존율 낮음·조기 폐업, 보증금 등 자료 없어 예산 판단 불가 — 본문과 일치"
+    },
+    "e049": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "낮 인구 우위형·밀집 높음·자료 부족·상권 축소·오후 매출 본문과 일치('양재동' 표기는 사소)"
+    },
+    "e050": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "저녁 매출 평균 이상·폐업 점포 영업 기간 짧음·최근 폐업률 상승(46.8→61.1%) 본문과 일치"
+    },
+    "e051": {
+      "answered": false,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "켜진 유일 경고(포화)를 짚지 않고 일반론 위주. 외부 충격을 '참고 신호'로 부른 표기는 사소"
+    },
+    "e052": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "대학가형·하루 고르게·밀집 높음·자료 부족·저녁 유동/매출 본문과 일치(유사 사례를 '참고 신호'로 부른 표기는 사소)"
+    },
+    "e053": {
+      "answered": true,
+      "core_error": true,
+      "errors": [
+        "'최근 몇 년간의 폐업률이 높게 나타나며 경쟁이 치열한 상황' — 본문 폐업률은 4~9%대로 높다는 평가가 없고, 포화 신호는 켜지지 않아 경쟁 치열 근거가 없음"
+      ],
+      "hard_to_judge": false,
+      "note": "순유출·생존율·조기 폐업은 맞으나 본문에 없는 높은 폐업률·경쟁 치열을 보탬"
+    },
+    "e054": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "순유출·생존/조기 폐업 자료 부족·밤 주거형·대안 업종 경고 없음 본문과 일치"
+    },
+    "e055": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "개업 없이 폐업만·순유출 많은 편·상권축소·자료 부족 본문과 일치"
+    },
+    "e056": {
+      "answered": true,
+      "core_error": true,
+      "errors": [
+        "'최근 몇 년간 폐업률이 높게 나타나는 등 경쟁이 치열한 상황' — 포화 신호는 켜지지 않았고 본문에 경쟁 치열 근거 없음",
+        "'참고 신호로 언급된 지역 축제나 소상공인 지원 정책을 활용하여 초기 리스크를 관리' — 뉴스 제목을 활용 가능한 지원 정책으로 확대, 본문에 없는 내용"
+      ],
+      "hard_to_judge": false,
+      "note": "순유출·생존율은 맞으나 경쟁 치열·뉴스 기반 지원 정책 활용을 본문 없이 보탬"
+    },
+    "e057": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "낮 인구 우위형·밀집 높음·자료 부족·폐업률 대체로 낮음·밤 매출 본문과 일치"
+    },
+    "e058": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "생존율 자료 부족·조기 폐업 검토 본문과 어긋남 없음(짧지만 직접 답이 질문에 답함)"
+    },
+    "e059": {
+      "answered": true,
+      "core_error": true,
+      "errors": [
+        "'최근 몇 년간 폐업률이 상승하는 추세' — 2023 14.1%→2024 15.4%→2025 5.1%→2026 9.2%로 상승 추세가 아님"
+      ],
+      "hard_to_judge": false,
+      "note": "포화·대학가형·자료 부족은 맞으나 폐업률 추세를 잘못 옮김"
+    },
+    "e060": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": true,
+      "note": "먹자형·밀집 매우 높음·상권확장·시간대 자료 부족·뉴스 참고 신호는 맞음. '영업 기간은 평균적으로 긴 편'은 영업 중 116<118, 폐업 60>54라 무엇을 말하는지 모호"
+    },
+    "e061": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": true,
+      "note": "밀집·자료 부족·혼합형 저녁 집중·같은 동네 대안 본문과 일치. '최근 몇 년간의 폐업률' 왜곡 언급이 2020~2022년을 가리키는지 모호"
+    },
+    "e062": {
+      "answered": true,
+      "core_error": true,
+      "errors": [
+        "'최근 최저임금 인상 등 외부 충격 속에서도 카페 업종은 다른 업종 대비 비교적 견고하게 버티는 양상' — 본문의 잘 버틴 업종은 PC방·당구장·미용실이며 카페는 없음"
+      ],
+      "hard_to_judge": false,
+      "note": "밀집·낮 인구 우위형·생존율 자료 부족은 맞으나 유사 사례를 반대로 옮김"
+    },
+    "e063": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "순유출·밤 주거형·자료 부족 본문과 일치. 최저임금 시기 잘 버틴 업종에 중식이 없다는 내용도 맞음(유사 사례를 '참고 신호'로 부른 표기는 사소)"
+    },
+    "e064": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "예산 판단 불가+이유·순유출 우선 — 직접 답·본문과 일치"
+    },
+    "e065": {
+      "answered": true,
+      "core_error": true,
+      "errors": [
+        "'휘경제동 미용실' — 본문은 휘경제2동, 존재하지 않는 동 이름으로 바꿔 씀",
+        "'높은 순유출률로 인해 경쟁이 치열하고' — 순유출이 경쟁 때문이라는 인과는 본문에 없음"
+      ],
+      "hard_to_judge": false,
+      "note": "동 이름 오기와 본문에 없는 인과 추가"
+    },
+    "e066": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "밀집 높음·시간대 자료 부족·밤 흐름 우세 정확"
+    },
+    "e067": {
+      "answered": true,
+      "core_error": true,
+      "errors": [
+        "'최근 몇 년간의 폐업과 개업이 비슷하게 교차하며 순유출이 매우 적게' — 순유출 매우 적음은 지난 12개월 수치이고, 2023→2024에 30→27곳으로 줄어 몇 년간으로 넓힐 수 없음"
+      ],
+      "hard_to_judge": false,
+      "note": "12개월 순유출 지표를 몇 년간으로 확대"
+    },
+    "e068": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "밀집·생존율·영업 기간·2023~25 폐업률 상승·상권축소 본문과 일치"
+    },
+    "e069": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "생활 중심형·고른 유동·개업 없이 순유출·표본 부족 본문과 일치"
+    },
+    "e070": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "포화 먼저·예산은 보증금·인테리어 자료 필요 — 직접 답과 일치"
+    },
+    "e071": {
+      "answered": true,
+      "core_error": true,
+      "errors": [
+        "'동네 전반의 영업 기간이 긴 편' — 본문은 영업 중 113개월·폐업 51개월로 서울 기준값 118·54개월보다 짧음",
+        "'낮은 생존율을 고려할 때' — 생존 절벽은 표본 부족(코호트 2곳)으로 자료 부족인데 낮다고 단정"
+      ],
+      "hard_to_judge": false,
+      "note": "상권 영업 기간 방향 반대, 자료 부족 생존율을 낮다고 메움"
+    },
+    "e072": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "낮 중심·밤 유동 적음·밀집 매우 높음 정확"
+    },
+    "e073": {
+      "answered": true,
+      "core_error": true,
+      "errors": [
+        "'최근 몇 년간의 순유출이 매우 적어' — 순유출 매우 적음은 지난 12개월(폐업·개업 0곳) 수치이고, 2025년엔 16→13곳으로 줄며 폐업률 18.8%였음"
+      ],
+      "hard_to_judge": false,
+      "note": "12개월 지표를 몇 년간으로 확대해 2025년 감소와 어긋남"
+    },
+    "e074": {
+      "answered": true,
+      "core_error": true,
+      "errors": [
+        "'상권 내 영업 기간도 서울 평균보다 짧은 편' — 영업 중 점포 평균 122개월로 기준값 118개월보다 김(폐업 점포만 52 vs 54)"
+      ],
+      "hard_to_judge": false,
+      "note": "상권 영업 기간을 본문과 다르게 옮김"
+    },
+    "e075": {
+      "answered": true,
+      "core_error": true,
+      "errors": [
+        "'참고 신호로 확인된 최근 몇 년간의 폐업률은 재난지원 시기의 영향으로 왜곡' — 왜곡 가능성은 2020~2022년 재난지원 시기에 한정되며, 최근 몇 년(2023~)은 해당 없음. 폐업률은 [확인된 사실]이지 참고 신호도 아님",
+        "'대치동 지역' — 본문은 대치2동"
+      ],
+      "hard_to_judge": false,
+      "note": "재난지원 왜곡 범위를 최근 몇 년으로 잘못 옮김"
+    },
+    "e076": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "밀집 매우 높음·순유출·예산 판단 불가 — 직접 답과 일치"
+    },
+    "e077": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": true,
+      "note": "주말 소폭 높음·순유출·상권축소 맞음. '높은 폐업률'은 본문에 비교 기준이 없어 판단 애매"
+    },
+    "e078": {
+      "answered": true,
+      "core_error": true,
+      "errors": [
+        "'참고 신호로 확인된 최근 몇 년간의 폐업률은 재난지원 시기의 영향으로 왜곡되었을 가능성' — 왜곡 가능성은 2020~2022년에 한정, 최근 몇 년(2023~)에 넓혀 적용. 폐업률은 [확인된 사실]이지 참고 신호도 아님"
+      ],
+      "hard_to_judge": false,
+      "note": "재난지원 왜곡 범위를 최근 몇 년으로 잘못 옮김"
+    },
+    "e079": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "순유출(폐업 1곳)·상권축소·표본 부족 정확, 경쟁 답은 직접 답이 다룸"
+    },
+    "e080": {
+      "answered": true,
+      "core_error": true,
+      "errors": [
+        "'경쟁이 치열한 환경임을 고려하여' — 직접 답은 포화 기준을 넘지 않았다고 했음"
+      ],
+      "hard_to_judge": false,
+      "note": "넘지 않은 포화 기준을 경쟁 치열로 바꿔 말함"
+    },
+    "e081": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "밀집 매우 높음·예산 판단 불가 정확"
+    },
+    "e082": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "순유출·시간대 자료 부족·저녁 유동 최소 정확"
+    },
+    "e083": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "조기 폐업 주의·대학가형·생존 자료 부족 맞음('폐업 기간'은 영업 기간의 어색한 표현)"
+    },
+    "e084": {
+      "answered": true,
+      "core_error": true,
+      "errors": [
+        "'공릉동에서' — 본문은 공릉1동",
+        "'매우 짧은 평균 영업 기간' — 본문은 폐업 점포 영업 기간 중위 10개월"
+      ],
+      "hard_to_judge": false,
+      "note": "동 이름을 넓혀 부르고 중위를 평균으로 옮김"
+    },
+    "e085": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "대학가형·20대 비중·상권확장·표본 부족·시간대 엇갈림 모두 본문과 일치, 아파트 소식은 참고 신호로 다룸"
+    },
+    "e086": {
+      "answered": true,
+      "core_error": true,
+      "errors": [
+        "\"최근 최저임금 인상 시기에도 카페 업종은 다른 업종 대비 비교적 견고하게 유지된 사례\" — 본문은 카페 점포 증감이 직전 1년보다 강했다고만 하고, 상대적으로 잘 버틴 업종은 PC방·당구장·미용실로 카페는 없음; 또 이 내용은 [참고 신호]가 아니라 확인된 사실 절"
+      ],
+      "hard_to_judge": false,
+      "note": "시간대·주거형·표본 부족은 맞지만 최저임금 유사 사례를 다른 업종 대비 견고로 바꿔 말함"
+    },
+    "e087": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": true,
+      "note": "직접 답 결론 유지·상권축소·자료 부족 맞음. '낮 시간 유동 인구가 고르게 분포'는 본문 동네 유형 문장(낮 유동이 밤보다 강함 / 하루 종일 고르게, 가장 많은 때 밤) 자체가 엇갈려 옳고 그름 판단 어려움"
+    },
+    "e088": {
+      "answered": true,
+      "core_error": true,
+      "errors": [
+        "\"최근 몇 년간의 폐업률 수치가 낮게 나타나는 경향이 있습니다\" — 본문상 가장 최근 완결 연도인 2025년 폐업률이 18.2%로 기간 중 가장 높음; 낮은 경향이라고 묶는 건 본문과 어긋남"
+      ],
+      "hard_to_judge": false,
+      "note": "주거형·자료 부족·상권축소·시간대는 맞지만 최근 폐업률을 낮은 경향으로 잘못 요약"
+    },
+    "e089": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "경고 없음·자료 부족·오후 매출 대 저녁 유동 본문과 일치('수유동'은 이름 축약일 뿐)"
+    },
+    "e090": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "경고 없음이 성공 보장 아님, 예산 판단 불가·자금 계획 화면 안내 — 직접 답과 일치"
+    },
+    "e091": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "점심 유동·매출 모두 하루 평균 아래, 낮이 사람 흐름 최저 — 질문(점심 손님)에 근거로 답함, 본문과 일치"
+    },
+    "e092": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "밀집 보통·개업=폐업으로 경쟁 질문에 근거 제시, 주거형·밤 유동 본문과 일치"
+    },
+    "e093": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "일반적이지만 경고 없음·자료 부족·재난지원 왜곡 가능성 모두 본문과 어긋나지 않음(질문 근거는 직접 답이 제공)"
+    },
+    "e094": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "주거형·밤 유동·표본 부족·정체·영업 기간 서울보다 김 본문과 일치"
+    },
+    "e095": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "예산 7천만 원 충분 여부 판단 불가와 이유(보증금·권리금·인테리어 자료 없음)·자금 계획 화면 — 직접 답과 일치"
+    },
+    "e096": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "주거형·밤 유동·자료 부족 맞음, 상권 살리기 뉴스는 참고 신호로 언급만"
+    },
+    "e097": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "밤 유동 평균 수준·매출 1.73배, 새벽 매출 0.58배 — 직접 답 수치와 일치하고 질문(심야 영업)에 답함"
+    },
+    "e098": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "밀집 보통·점포 수 45→47 완만 증가·생존 절벽 표본 부족·정체 본문과 일치"
+    },
+    "e099": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "주거형·고른 유동, 자료 부족, 2023~2025 폐업률 7~8%대로 안정, 정체·영업 기간 김, 시간대 자료 부족 본문과 일치"
+    },
+    "e100": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "일반적이지만 경고 없음·자료 부족·신규 점포 평균 아래 시작 모두 직접 답과 일치"
+    },
+    "e101": {
+      "answered": true,
+      "core_error": true,
+      "errors": [
+        "\"참고 신호에 따르면 최근 최저임금 인상 시기에 미용실은 다른 업종에 비해 상대적으로 견고하게 버틴 사례가 있습니다\" — 본문은 이번 사례에서 잘 버틴 업종을 PC방·당구장·분식으로 들어 미용실은 없고, 미용실은 3분기 중 1분기만 직전보다 강했음; 또 [참고 신호]가 아니라 확인된 사실 절"
+      ],
+      "hard_to_judge": false,
+      "note": "주거형·시간대 엇갈림·상권축소·생존율 자료 부족은 맞지만 최저임금 유사 사례를 본문과 다르게 옮김"
+    },
+    "e102": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "경고 없음≠성공 보장, 매출·보증금·권리금 자료 부족으로 예산 판단 불가 — 직접 답과 일치"
+    },
+    "e103": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "집객시설 많은 생활 중심형·하루 종일 고른 유동, 낮은 폐업률과 재난지원 왜곡, 밤 매출 대 저녁 유동, 다이나믹 본문과 일치"
+    },
+    "e104": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "주말 유동 평일보다 높음(1.04배)이 매출 근거 아님, 시간대 자료 부족 — 직접 답과 어긋남 없음"
+    },
+    "e105": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "주거형·밤 흐름, 재난지원 왜곡, 새벽/저녁 어긋남, 생존 절벽 자료 부족 모두 본문과 일치. 2025년 급감은 빠졌으나 오류는 아님"
+    },
+    "e106": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "밀집 보통·순유출 보통·경고 없음, 생존·조기폐업 자료 부족, 생활 중심형 낮 유동 모두 본문과 일치"
+    },
+    "e107": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "주거형·밤 흐름, 상권축소, 생존·조기폐업·시간대 자료 부족, 뉴스 참고 신호 처리 모두 일치"
+    },
+    "e108": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": true,
+      "note": "경고 없음·매출 자료 부족·상권확장·주거형 밤 흐름은 일치. '시간대별 유동 인구 자료 부족'은 본문의 '시간대 어긋남 자료 없음'을 부정확하게 옮긴 표현(동 사람 흐름은 있음)이나 핵심 오류로 보기엔 애매"
+    },
+    "e109": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "주거형·밤 흐름, 표본 부족, 밤 매출, 상권 정체, 골목상권 뉴스 참고 신호 모두 일치"
+    },
+    "e110": {
+      "answered": true,
+      "core_error": true,
+      "errors": [
+        "\"최근 몇 년간 카페 업종의 폐업률이 상승하는 추세\" — 본문은 2024년 19.4% 이후 2025년 7.7%·2026년 8.0%로 낮아짐"
+      ],
+      "hard_to_judge": false,
+      "note": "시간대·주거형·정체는 맞으나 최근 폐업률 하락을 상승 추세로 옮김"
+    },
+    "e111": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "경고 없음≠성공 보장, 비용 자료 없어 예산 판단 불가, 자금 계획 화면 모두 직접 답과 일치"
+    },
+    "e112": {
+      "answered": true,
+      "core_error": true,
+      "errors": [
+        "\"최근 몇 년간 폐업률이 낮게 나타나고 있으나 재난지원 시기의 영향으로 수치가 왜곡되었을 가능성\" — 최근 낮은 폐업률(2023~2025년 0%)은 재난지원 시기(2020~2022)가 아니며, 재난지원 시기 중 2021·2022년은 오히려 25.0%·16.7%로 높음"
+      ],
+      "hard_to_judge": false,
+      "note": "주거형·다이나믹·새벽/저녁 어긋남은 맞으나 왜곡 경고를 엉뚱한 연도에 붙임"
+    },
+    "e113": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "표본 부족, 상권확장, 영업 중 평균 95개월<118개월, 시간대 어긋남, 뉴스 참고 신호 모두 일치. 동 이름을 '잠실동'으로 줄여 씀(사실 오류로 보지 않음)"
+    },
+    "e114": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "밤 유동 최다 주거형, 업종 시간대 자료 부족으로 매출 연결 판단 불가 — 본문과 일치"
+    },
+    "e139": {
+      "answered": true,
+      "core_error": true,
+      "errors": [
+        "\"대출을 통한 창업이 부담될 수 있습니다\"·\"철저한 손익분기점 확인이 필요\" — 직접 답의 '권하지 않습니다'(비추천·경고 4개)를 '확인하면 할 수 있다'는 조건부 수준으로 흐림"
+      ],
+      "hard_to_judge": false,
+      "note": "신호 나열은 맞으나 비추천 결론을 약하게 옮김"
+    },
+    "e140": {
+      "answered": true,
+      "core_error": true,
+      "errors": [
+        "\"상권 축소 지표와 낮은 생존율 등 부정적인 신호가 확인되므로\" — 생존 절벽은 표본 부족(코호트 0곳)으로 계산하지 못함. 자료 부족을 '낮은 생존율'로 메움"
+      ],
+      "hard_to_judge": false,
+      "note": "밀집·순유출은 맞으나 생존율을 근거 없이 낮다고 함"
+    },
+    "e141": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "경고 없음≠성공 보장, 원리금 고정, 금리 예상치, 손익분기 검토 — 일치"
+    },
+    "e143": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "세 경고 신호, 외국인 자료 없음 — 일치"
+    },
+    "e144": {
+      "answered": true,
+      "core_error": false,
+      "errors": [],
+      "hard_to_judge": false,
+      "note": "높은 순유출, 최근 폐업 잦음(2023 20%·2026 26.7%), 자료 부족 — 일치. 질문의 고령 주민은 직접 답 근거가 다룸"
+    },
+    "e145": {
+      "answered": true,
+      "core_error": true,
+      "errors": [
+        "\"최근 연도들의 폐업률 추이를 살펴보면 특별한 경고 신호가 발견되지 않습니다\" — 본문은 2024년 19.2%·2025년 15.5%로 코로나 이전(13.5%)보다 높아짐. 최근 추이를 안심 근거로 바꿈"
+      ],
+      "hard_to_judge": false,
+      "note": "재난지원 왜곡은 맞으나 최근 폐업률 상승을 무시하고 문제없다고 함"
+    }
+  }
+}
