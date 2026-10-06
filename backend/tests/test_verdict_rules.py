@@ -11,7 +11,7 @@ from apps.verdict.domain.entities.region_industry_verdict_entity import (
     VERDICT_RED,
     SignalResult,
 )
-from apps.verdict.domain.services.rules import evaluable_count, judge, on_count, strong_count
+from apps.verdict.domain.services.rules import evaluable_count, judge, on_count, rules_for, strong_count
 from apps.verdict.domain.services.thresholds import DEFAULT_THRESHOLDS as T
 
 
@@ -82,3 +82,11 @@ def test_참고_신호_tobacco_gap_strong은_혼자서는_판정을_뒤집지_�
     r = _results_with_keys(net_outflow=LEVEL_OFF, survival_cliff=LEVEL_OFF, early_closure=LEVEL_OFF,
                             saturation=LEVEL_OFF, tobacco_gap=LEVEL_STRONG)
     assert judge(r, T) == VERDICT_CLEAR
+
+
+def test_판정_근거_약한_업종은_강한_신호가_둘이어도_조건부까지만_낸다():
+    """여러 시점 백테스트에서 안정 신호가 없는 업종(분식 등)은 비추천을 내지 않는다 — docs/verdict-backtest-multi.md ⑤."""
+    strong_two = _results(LEVEL_STRONG, LEVEL_STRONG, LEVEL_OFF, LEVEL_OFF)
+    assert judge(strong_two, T, rules_for("snack")) == VERDICT_ORANGE
+    assert judge(strong_two, T, rules_for("cafe")) == VERDICT_RED
+    assert judge(_results(LEVEL_STRONG, LEVEL_UNAVAILABLE, LEVEL_UNAVAILABLE, LEVEL_UNAVAILABLE), T, rules_for("snack")) == VERDICT_INSUFFICIENT

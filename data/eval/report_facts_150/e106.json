@@ -64,7 +64,8 @@
     ],
     "computed_at": "2026-10-04T19:34:24.166035+00:00",
     "basis": "permit",
-    "available": true
+    "available": true,
+    "weak_basis": true
   },
   "alternatives": {
     "region_code": "1165053100",

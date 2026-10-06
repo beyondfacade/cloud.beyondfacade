@@ -23,6 +23,7 @@ class RegionIndustryVerdictResponse(BaseModel):
     signals: list[SignalResultResponse]
     computed_at: datetime
     basis: str  # permit | proxy | aggregate — 카드 배지 (업종 특화 신호 설계서 §9-3)
+    weak_basis: bool = False  # 판정 근거가 약한 업종 — 카드 "판정 근거 약함" 배지, 비추천 없음
 
 
 class VerdictValueResponse(BaseModel):

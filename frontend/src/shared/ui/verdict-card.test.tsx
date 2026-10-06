@@ -14,6 +14,14 @@ const signal = (over: Partial<VerdictSignal>): VerdictSignal => ({
 });
 const base = { region_code: "1", industry_id: "real_estate", verdict_code: "orange" as const, strong_count: 0, on_count: 1, computed_at: "2026-09-29T04:30:00+09:00" };
 
+it("판정 근거 약함 배지는 weak_basis가 true일 때만 표시한다", () => {
+  const verdict = { ...base, industry_id: "japanese_food", basis: "permit" as const, signals: [], weak_basis: true };
+  const { rerender } = render(<VerdictCard industryLabel="일식" verdict={verdict} />);
+  expect(screen.getByText("판정 근거 약함")).toHaveAttribute("title", "이 업종은 과거 여러 시점에서 경고 신호가 폐업을 꾸준히 가르지 못했습니다. 신호가 켜져도 비추천은 내지 않습니다.");
+  rerender(<VerdictCard industryLabel="일식" verdict={{ ...verdict, weak_basis: false }} />);
+  expect(screen.queryByText("판정 근거 약함")).toBeNull();
+});
+
 it("켜진 신호에 위험 등급 라벨이 있으면 카드에 표시한다", () => {
   render(<VerdictCard industryLabel="부동산중개업" verdict={{ ...base, basis: "permit", signals: [signal({ level: "on", band: "bad", band_label: "높은 편" })] }} />);
   expect(screen.getByText("높은 편")).toBeVisible();

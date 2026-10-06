@@ -844,11 +844,12 @@ export function planQuestionsOf(body: {
 
 // ---------------------------------------------------------------------------
 // 판정 카드 mock — 설계서 2026-09-28-verdict-card-design §3. 판정 규칙은 백엔드 rules.py를 그대로 옮긴 것
-// (보류 우선 → strong 2+ red → on 1+ orange → clear). 값·근거는 해시 기반 결정적.
+// (보류 우선 → 근거가 약하지 않고 strong 2+ red → on 1+ orange → clear). 값·근거는 해시 기반 결정적.
 // ---------------------------------------------------------------------------
 
 // 업종별 판정 원천 — 백엔드 dependencies의 sources 미러 (업종 특화 신호 설계서 §4). 판정 대상 여부는 isVerdictIndustry가 정한다.
 const BASIS_BY_INDUSTRY: Partial<Record<string, VerdictBasis>> = { convenience_store: "proxy", real_estate: "aggregate" };
+const WEAK_BASIS_INDUSTRIES: ReadonlySet<string> = new Set(["japanese_food", "pub", "snack", "gym", "pc_bang", "billiard", "karaoke"]);
 // 백엔드 profiles.py 미러 — 원천별 신호 순서
 const SIGNAL_KEYS_BY_BASIS: Record<VerdictBasis, VerdictSignalKey[]> = {
   permit: ["net_outflow", "survival_cliff", "early_closure", "saturation"],
@@ -923,26 +924,28 @@ function signalOf(key: VerdictSignalKey, regionCode: string, industryId: string,
   return { key, level, value, percentile, band, band_label, evidence, source };
 }
 
-function judgeOf(signals: VerdictSignal[]): VerdictCode {
+function judgeOf(signals: VerdictSignal[], weakBasis: boolean): VerdictCode {
   const judging = signals.filter((s) => !ADVISORY_SIGNAL_KEYS.has(s.key));
   const evaluable = judging.filter((s) => s.level !== "unavailable").length;
   const strong = judging.filter((s) => s.level === "strong").length;
   const on = judging.filter((s) => s.level === "on" || s.level === "strong").length;
   if (evaluable < 2) return "insufficient";
-  if (strong >= 2) return "red";
+  if (strong >= 2 && !weakBasis) return "red";
   if (on >= 1) return "orange";
   return "clear";
 }
 
 export function verdictOf(regionCode: string, industryId: string): RegionIndustryVerdict {
   const basis = BASIS_BY_INDUSTRY[industryId] ?? "permit";
+  const weakBasis = WEAK_BASIS_INDUSTRIES.has(industryId);
   const signals = SIGNAL_KEYS_BY_BASIS[basis].map((key) => signalOf(key, regionCode, industryId, basis));
   const judging = signals.filter((s) => !ADVISORY_SIGNAL_KEYS.has(s.key));
   return {
     region_code: regionCode,
     industry_id: industryId,
-    verdict_code: judgeOf(signals),
+    verdict_code: judgeOf(signals, weakBasis),
     basis,
+    weak_basis: weakBasis,
     strong_count: judging.filter((s) => s.level === "strong").length,
     on_count: judging.filter((s) => s.level === "on" || s.level === "strong").length,
     signals,

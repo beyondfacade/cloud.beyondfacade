@@ -56,6 +56,11 @@ export function VerdictCard({ verdict, industryLabel }: { verdict: RegionIndustr
             {basisBadge.label}
           </span>
         )}
+        {verdict.weak_basis && (
+          <span title="이 업종은 과거 여러 시점에서 경고 신호가 폐업을 꾸준히 가르지 못했습니다. 신호가 켜져도 비추천은 내지 않습니다." className="rounded border border-[var(--border)] px-1 text-[10px] text-[var(--text-secondary)]">
+            판정 근거 약함
+          </span>
+        )}
       </div>
 
       {fired.length > 0 ? (

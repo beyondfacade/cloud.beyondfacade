@@ -550,6 +550,7 @@ export interface RegionIndustryVerdict {
   region_code: string;
   industry_id: string;
   basis: VerdictBasis;
+  weak_basis?: boolean;
   verdict_code: VerdictCode;
   strong_count: number;
   on_count: number;

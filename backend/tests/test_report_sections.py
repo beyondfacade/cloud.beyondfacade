@@ -343,3 +343,9 @@ def test_조건_절에_지역_사건을_달까지_출처와_함께_쓴다():
 def test_지역_사건이_없거나_못_모았으면_줄을_뺀다():
     assert regional_events_line({**_BASE, "regional_events": []}) is None
     assert regional_events_line({**_BASE, "regional_events": {"available": False, "reason": "x"}}) is None
+
+
+def test_판정_근거가_약한_업종이면_판정_줄에_밝힌다():
+    weak = {**_BASE, "verdict": {**_BASE["verdict"], "weak_basis": True}}
+    assert "판정 근거 약함" in build_sections(weak)["verdict"]
+    assert "판정 근거 약함" not in build_sections(_BASE)["verdict"]

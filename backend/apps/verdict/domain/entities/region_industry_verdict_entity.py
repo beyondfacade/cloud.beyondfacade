@@ -42,6 +42,12 @@ EXCLUDED_INDUSTRIES: frozenset[str] = frozenset(
     {"academy", "childcare", "restaurant_other", "chicken", "convenience_store", "real_estate"}
 )
 
+# 판정 근거가 약한 업종 — 여러 시점 백테스트(T=2019·2021·2022·2023)에서 lift ≥ 1.10×가 3번 이상인 신호가 하나도 없다
+# (docs/verdict-backtest-multi.md ⑤, 2026-10-06 사용자 결정). 판정은 내되 비추천은 내지 않고(최대 조건부) "판정 근거 약함"을 밝힌다.
+WEAK_BASIS_INDUSTRIES: frozenset[str] = frozenset(
+    {"japanese_food", "pub", "snack", "gym", "pc_bang", "billiard", "karaoke"}
+)
+
 
 @dataclass(frozen=True)
 class SignalResult:
@@ -65,3 +71,7 @@ class RegionIndustryVerdict:
     signals: tuple[SignalResult, ...]  # 프로필의 신호, 프로필 순서
     computed_at: datetime
     basis: str = BASIS_PERMIT  # permit | proxy | aggregate
+
+    @property
+    def weak_basis(self) -> bool:
+        return self.industry_id in WEAK_BASIS_INDUSTRIES

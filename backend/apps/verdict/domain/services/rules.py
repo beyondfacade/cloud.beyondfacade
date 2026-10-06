@@ -13,6 +13,7 @@ from apps.verdict.domain.entities.region_industry_verdict_entity import (
     VERDICT_INSUFFICIENT,
     VERDICT_ORANGE,
     VERDICT_RED,
+    WEAK_BASIS_INDUSTRIES,
     SignalResult,
 )
 from apps.verdict.domain.services.thresholds import VerdictThresholds
@@ -57,10 +58,16 @@ class ClearRule(VerdictRule):
 
 
 RULES: tuple[VerdictRule, ...] = (InsufficientRule(), RedRule(), OrangeRule(), ClearRule())
+# 판정 근거가 약한 업종 — 비추천 규칙을 뺀 목록 (강한 신호 둘도 조건부)
+WEAK_BASIS_RULES: tuple[VerdictRule, ...] = (InsufficientRule(), OrangeRule(), ClearRule())
 
 
-def judge(results: Sequence[SignalResult], t: VerdictThresholds) -> str:
-    for rule in RULES:
+def rules_for(industry_id: str) -> tuple[VerdictRule, ...]:
+    return WEAK_BASIS_RULES if industry_id in WEAK_BASIS_INDUSTRIES else RULES
+
+
+def judge(results: Sequence[SignalResult], t: VerdictThresholds, rules: Sequence[VerdictRule] = RULES) -> str:
+    for rule in rules:
         verdict = rule.judge(results, t)
         if verdict is not None:
             return verdict

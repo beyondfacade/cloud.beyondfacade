@@ -28,6 +28,7 @@ class RegionIndustryVerdictDto:
     signals: tuple[SignalResultDto, ...]
     computed_at: datetime
     basis: str = BASIS_PERMIT
+    weak_basis: bool = False  # 판정 근거가 약한 업종 — 비추천을 내지 않는다
 
 
 @dataclass(frozen=True)

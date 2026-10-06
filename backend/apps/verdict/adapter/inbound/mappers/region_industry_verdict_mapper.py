@@ -23,6 +23,7 @@ def to_response(dto: RegionIndustryVerdictDto) -> RegionIndustryVerdictResponse:
         strong_count=dto.strong_count, on_count=dto.on_count,
         signals=[SignalResultResponse(**asdict(s)) for s in dto.signals], computed_at=dto.computed_at,
         basis=dto.basis,
+        weak_basis=dto.weak_basis,
     )
 
 

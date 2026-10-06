@@ -44,7 +44,7 @@ from apps.verdict.domain.errors import IndustryNotFoundError
 from apps.verdict.domain.services.alternatives import rank_alternatives
 from apps.verdict.domain.services.backtest import GATE_POLICIES, quarter_before, reinclusion_gate, summarize, summarize_signals
 from apps.verdict.domain.services.profiles import PermitProfile, SignalProfile
-from apps.verdict.domain.services.rules import judge, on_count, strong_count
+from apps.verdict.domain.services.rules import judge, on_count, rules_for, strong_count
 from apps.verdict.domain.services.signals import SIGNALS, Signal, SignalInput
 from apps.verdict.domain.services.thresholds import DEFAULT_THRESHOLDS, VerdictThresholds
 
@@ -239,7 +239,7 @@ class RegionIndustryVerdictInteractor(RegionIndustryVerdictUseCase):
         for i in inputs:
             r = tuple(results[i.region_code])
             verdicts.append(RegionIndustryVerdict(
-                region_code=i.region_code, industry_id=i.industry_id, verdict_code=judge(r, t),
+                region_code=i.region_code, industry_id=i.industry_id, verdict_code=judge(r, t, rules_for(i.industry_id)),
                 strong_count=strong_count(r), on_count=on_count(r), signals=r, computed_at=computed_at,
                 basis=profile.basis,
             ))
@@ -251,5 +251,5 @@ def _to_dto(entity: RegionIndustryVerdict) -> RegionIndustryVerdictDto:
         region_code=entity.region_code, industry_id=entity.industry_id, verdict_code=entity.verdict_code,
         strong_count=entity.strong_count, on_count=entity.on_count,
         signals=tuple(SignalResultDto(**asdict(s)) for s in entity.signals), computed_at=entity.computed_at,
-        basis=entity.basis,
+        basis=entity.basis, weak_basis=entity.weak_basis,
     )

@@ -12,6 +12,7 @@ it("단건은 판정 원천 basis를 싣는다 — 인허가 업종은 permit", 
   expect(res.status).toBe(200);
   const v = await res.json();
   expect(v.basis).toBe("permit");
+  expect(v.weak_basis).toBe(false);
   for (const signal of v.signals) {
     if (signal.percentile === null) {
       expect(signal.band).toBeNull();
@@ -22,6 +23,19 @@ it("단건은 판정 원천 basis를 싣는다 — 인허가 업종은 permit", 
       expect(signal.evidence).toContain(` — ${signal.band_label}(서울 한식 동을 100곳으로 치면 `);
       expect(signal.evidence).not.toMatch(/상위|하위/);
     }
+  }
+});
+
+it("근거가 약한 업종은 weak_basis를 싣고 목록에서도 비추천을 내지 않는다", async () => {
+  const { GET: list } = await import("../route");
+  for (const industry of ["japanese_food", "pub", "snack", "gym", "pc_bang", "billiard", "karaoke"]) {
+    const res = await call("1168064000", `?industry=${industry}`);
+    expect(res.status, industry).toBe(200);
+    expect((await res.json()).weak_basis, industry).toBe(true);
+    const response = await list(new Request(`http://test/api/mock/verdicts?industry=${industry}`));
+    expect(response.status, industry).toBe(200);
+    const rows = await response.json();
+    expect(rows.some((row: { value: string }) => row.value === "red"), industry).toBe(false);
   }
 });
 

@@ -1,5 +1,10 @@
 # Backend Version Log
 
+## [v0.87.0] - 2026-10-07
+
+### Added
+- 판정 근거 약함 — 여러 시점 백테스트에서 안정 신호(lift ≥ 1.10×가 3번 이상)가 하나도 없는 7개 업종(일식·호프·주점·분식·헬스장·PC방·당구장·노래방, `WEAK_BASIS_INDUSTRIES`)은 판정은 내되 비추천을 내지 않는다(최대 조건부). 판정 규칙 목록을 업종별로 고른다(`rules_for` — 비추천 규칙을 뺀 `WEAK_BASIS_RULES`). 판정 DTO·API에 `weak_basis`, 리포트 판정 줄에 "판정 근거 약함 — … 비추천은 내지 않습니다" 문장. 사용자 결정(docs/verdict-backtest-multi.md ⑤)
+
 ## [v0.86.0] - 2026-10-06
 
 ### Added

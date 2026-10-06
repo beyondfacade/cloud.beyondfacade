@@ -8,7 +8,7 @@
   "verdict": {
     "region_code": "1135060000",
     "industry_id": "pub",
-    "verdict_code": "red",
+    "verdict_code": "orange",
     "strong_count": 2,
     "on_count": 3,
     "signals": [
@@ -68,7 +68,8 @@
     ],
     "computed_at": "2026-10-04T19:34:24.166035+00:00",
     "basis": "permit",
-    "available": true
+    "available": true,
+    "weak_basis": true
   },
   "alternatives": {
     "region_code": "1135060000",

@@ -83,6 +83,11 @@ def quarter_label(year_quarter: str | None) -> str:
 # ── 판정 ─────────────────────────────────────────────────────
 
 
+_WEAK_BASIS = (
+    "판정 근거 약함 — 이 업종은 과거 여러 시점에서 경고 신호가 폐업을 꾸준히 가르지 못해, 신호가 켜져도 비추천은 내지 않습니다."
+)
+
+
 def _verdict(facts: dict) -> str:
     region, industry = subject_names(facts)
     verdict = facts.get("verdict") or {}
@@ -101,6 +106,7 @@ def _verdict(facts: dict) -> str:
             if (group := [s for s in judged if s.get("level") == level])
         ),
         f"산출 {str(verdict.get('computed_at') or '')[:10]}.",
+        *([_WEAK_BASIS] if verdict.get("weak_basis") else []),
     ]
     return " ".join(parts)
 
