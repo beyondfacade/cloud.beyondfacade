@@ -7,10 +7,6 @@ from apps.metric.app.dtos.region_industry_hour_gap_dto import RegionIndustryHour
 
 class RegionIndustryHourGapUseCase(ABC):
     @abstractmethod
-    def myself(self) -> RegionIndustryHourGapDto:
-        """배선 검증용 — 하드코딩 데이터 왕복 (CLAUDE.md §12)."""
-
-    @abstractmethod
     def build(self, quarters: list[str]) -> int:
         """분기 목록의 시간대 어긋남을 재계산·업서트하고 처리 건수를 반환한다 (멱등)."""
 

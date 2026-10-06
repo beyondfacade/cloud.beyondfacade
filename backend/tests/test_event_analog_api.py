@@ -1,8 +1,7 @@
-"""유사 사례 유스케이스·캐시 프록시·라우터·시드 유형·저장소 왕복 (흐름 원천은 Fake, 이벤트 저장은 실제 DB)."""
+"""유사 사례 유스케이스·캐시 프록시·시드 유형·저장소 왕복 (흐름 원천은 Fake, 이벤트 저장은 실제 DB)."""
 
 from datetime import date, datetime, timedelta
 
-from fastapi.testclient import TestClient
 from sqlalchemy import delete
 
 from apps.news.app.ports.output.news_article_port import NewsSearchGatewayPort
@@ -29,7 +28,6 @@ from apps.shock.domain.services.industry_flows import IndustryFlows
 from apps.shock.domain.value_objects.event_category import EventCategory
 from apps.shock.domain.value_objects.news_headline import NewsHeadline
 from core.matrix.grid_oracle_database_manager import session_scope
-from main import app
 
 TODAY = date(2026, 9, 30)
 _TEST_PREFIX = "test-analog-"
@@ -295,17 +293,6 @@ def test_뉴스_검색_결과를_제목_날짜_링크만_남긴_헤드라인으�
     assert RecentNewsGateway(FakeSearch()).latest("집합금지") == [
         NewsHeadline("집합금지 명령", datetime(2026, 9, 25, 10), "https://news/1")
     ]
-
-
-# ── 라우터 ─────────────────────────────────────────────────────────────
-
-
-def test_유사_사례_myself_배선():
-    response = TestClient(app).get("/shocks/analogs/myself")
-    assert response.status_code == 200
-    body = response.json()
-    assert body["industry_id"] == "myself"
-    assert body["analogs"][0]["quarters"][0]["label"]
 
 
 # ── 시드 유형 ──────────────────────────────────────────────────────────

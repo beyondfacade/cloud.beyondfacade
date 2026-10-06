@@ -1,15 +1,11 @@
-from collections.abc import Callable, Sequence
+from collections.abc import Sequence
 from dataclasses import asdict
 
-from apps.metric.app.dtos.region_industry_metric_dto import (
-    MetricValueDto,
-    RegionIndustryMetricDto,
-)
+from apps.metric.app.dtos.region_industry_metric_dto import RegionIndustryMetricDto
 from apps.metric.app.ports.input.region_industry_metric_use_case import (
     RegionIndustryMetricUseCase,
 )
 from apps.metric.app.ports.output.region_industry_metric_port import (
-    IndustryCatalogPort,
     RegionIndustryMetricRepositoryPort,
     SnapshotStoreCountPort,
     StoreStatsPort,
@@ -17,14 +13,6 @@ from apps.metric.app.ports.output.region_industry_metric_port import (
 from apps.metric.domain.entities.region_industry_metric_entity import (
     RegionIndustryMetric,
 )
-from apps.metric.domain.errors import IndustryNotFoundError, MetricNotFoundError
-
-# Strategy (GoF) — metric 이름 → 값 추출. if/elif 분기 대신 테이블 디스패치
-_METRIC_EXTRACTORS: dict[str, Callable[[RegionIndustryMetric], float | int | None]] = {
-    "store_count": lambda m: m.store_count,
-    "closure_rate": lambda m: m.closure_rate,
-    "growth_rate": lambda m: m.growth_rate,
-}
 
 
 def _rate(numerator: int | None, prev_store_count: int) -> float | None:
@@ -44,25 +32,11 @@ class RegionIndustryMetricInteractor(RegionIndustryMetricUseCase):
         self,
         repository: RegionIndustryMetricRepositoryPort,
         store_stats: StoreStatsPort,
-        industry_catalog: IndustryCatalogPort,
         snapshot_counts: Sequence[SnapshotStoreCountPort] = (),
     ) -> None:
         self._repository = repository
         self._store_stats = store_stats
-        self._industry_catalog = industry_catalog
         self._snapshot_counts = snapshot_counts
-
-    def myself(self) -> RegionIndustryMetricDto:
-        return RegionIndustryMetricDto(
-            region_code="myself",
-            industry_id="cafe",
-            year=2026,
-            store_count=1,
-            open_count=1,
-            close_count=0,
-            closure_rate=None,
-            growth_rate=None,
-        )
 
     def build(self, years: list[int]) -> int:
         # 첫 대상 연도의 비율 계산에 전년 말 store_count가 필요해 보조 연도 1개를 함께 집계
@@ -106,20 +80,6 @@ class RegionIndustryMetricInteractor(RegionIndustryMetricUseCase):
             if count.year in target_years
         )
         return self._repository.upsert(metrics)
-
-    def list_metric_values(
-        self, industry_id: str, metric: str, year: int
-    ) -> list[MetricValueDto]:
-        extractor = _METRIC_EXTRACTORS.get(metric)
-        if extractor is None:
-            raise MetricNotFoundError(metric)
-        if not self._industry_catalog.exists(industry_id):
-            raise IndustryNotFoundError(industry_id)
-        return [
-            MetricValueDto(region_code=entity.region_code, value=float(value))
-            for entity in self._repository.list_by_industry_year(industry_id, year)
-            if (value := extractor(entity)) is not None
-        ]
 
     def find(
         self, region_code: str, industry_id: str, year: int

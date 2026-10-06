@@ -7,14 +7,12 @@ import type {
   EventAnalogs,
   ReportFacts,
   ReportSection,
-  CategoryRow,
   ChildcareCenter,
   FinancePrefill,
   FundingCandidate,
   SupportGuide,
   SupportItem,
   PlanQuestion,
-  ChildcareRegionSummary,
   ConvenienceRegionSummary,
   IntentCandidate,
   IntentDiagnosis,
@@ -22,8 +20,6 @@ import type {
   ConvenienceStore,
   MetricKey,
   MetricRow,
-  CommerceChangeMetricKey,
-  ProfileMetricKey,
   RegionCommerceChangeDetail,
   RegionIndustryHourGap,
   RegionIndustryVerdict,
@@ -201,23 +197,6 @@ export function childcareCentersOf(regionCode: string): ChildcareCenter[] {
   });
 }
 
-/** childcareCentersOf 합산 — 실 API의 ChildcareRegionSummary.of 규칙과 동일. */
-export function childcareSummaryOf(regionCode: string): ChildcareRegionSummary {
-  const centers = childcareCentersOf(regionCode);
-  const capacity = centers.reduce((sum, c) => sum + c.capacity, 0);
-  const childCount = centers.reduce((sum, c) => sum + c.child_count, 0);
-  const waitings = centers.map((c) => c.waiting_count).filter((w): w is number => w !== null);
-  return {
-    region_code: regionCode,
-    base_date: centers.length > 0 ? "2026-09-17" : null,
-    center_count: centers.length,
-    capacity,
-    child_count: childCount,
-    occupancy_rate: capacity > 0 ? Math.round((childCount / capacity) * 10000) / 10000 : null,
-    waiting_count: waitings.length > 0 ? waitings.reduce((sum, w) => sum + w, 0) : null,
-  };
-}
-
 const CONVENIENCE_BRANDS = ["GS25", "CU", "세븐일레븐", "이마트24", "미니스톱", null] as const;
 
 /** 행정동별 결정적 편의점 2~15곳 — 브랜드 미확인(null) 포함. */
@@ -260,7 +239,7 @@ export function convenienceSummaryOf(regionCode: string): ConvenienceRegionSumma
 }
 
 /** 고정 시연 입력의 사실 선수집 → 문장 스트리밍. 실 API의 이벤트 순서·스키마를 미러한다. */
-/** 이벤트 달부터 3개월씩 count개 분기 — 라벨·달은 GET /shocks/analogs 계약과 같다. */
+/** 이벤트 달부터 3개월씩 count개 분기 — 라벨·달은 리포트 facts의 유사 사례 계약과 같다. */
 function demoQuarters(year: number, month: number, count: number, overlaps: Record<number, string[]> = {}): AnalogQuarter[] {
   const ym = (offset: number) => {
     const index = year * 12 + month - 1 + offset;
@@ -272,7 +251,7 @@ function demoQuarters(year: number, month: number, count: number, overlaps: Reco
   }));
 }
 
-/** 유사 사례 시연 표본 — 분기·업종 흐름 구조는 GET /shocks/analogs 계약과 같다. 수치는 시연용이다. */
+/** 유사 사례 시연 표본 — 분기·업종 흐름 구조는 리포트 facts의 유사 사례 계약과 같다. 수치는 시연용이다. */
 function eventAnalogsDemo(industryId: string, industryName: string): EventAnalogs {
   return {
     industry_id: industryId, as_of: "2026-08",
@@ -529,21 +508,6 @@ function blockIntensitiesOf(peak: string, trough: string, unit: number): RegionP
   return blocks;
 }
 
-/** 동 단위 분기 지표 — 실측 분포(최소 31 · 중앙 117 · 최대 206개월)에 맞춰 결정적으로 만든다. */
-const REGION_METRIC_RANGES: Record<CommerceChangeMetricKey, [number, number]> = {
-  operating_months: [31, 206],
-};
-
-export const LATEST_CHANGE_QUARTER = "20262";
-
-export function changeMetricRows(metric: CommerceChangeMetricKey, yearQuarter: string): MetricRow[] {
-  const [min, max] = REGION_METRIC_RANGES[metric];
-  return REGIONS.map(({ region_code }) => ({
-    region_code,
-    value: Math.round(min + unitFrom(hashSeed(metric, yearQuarter, region_code)) * (max - min)),
-  }));
-}
-
 // ---------------------------------------------------------------------------
 // 관문 mock 파서 — 백엔드 apps/intent 규칙 경로의 미러. LLM 경로는 "홍대"→서교동 한 건만 흉내 낸다.
 // ---------------------------------------------------------------------------
@@ -688,23 +652,6 @@ export function intentOfText(text: string): IntentResult {
   });
 }
 
-/** 유형 단계구분도 — 실 API `GET /profiles/types` 미러. 프로필 픽스처의 유형을 그대로 쓴다(결정적). */
-/** 파생 지표 숫자 단계구분도 — 단일 프로필과 같은 원천(regionProfileOf)이라 두 계약이 어긋나지 않는다.
- *  값이 null인 동은 행을 만들지 않는다(실 API 계약: 0으로 내보내면 지도가 거짓말한다). */
-export function profileMetricRows(metric: ProfileMetricKey, yearQuarter: string): MetricRow[] {
-  return REGIONS.flatMap(({ region_code }) => {
-    const value = regionProfileOf(region_code, yearQuarter)[metric];
-    return value === null ? [] : [{ region_code, value }];
-  });
-}
-
-export function profileTypeRows(yearQuarter: string): CategoryRow[] {
-  return REGIONS.map(({ region_code }) => ({
-    region_code,
-    type_code: regionProfileOf(region_code, yearQuarter).neighborhood_type,
-  }));
-}
-
 // ---------------------------------------------------------------------------
 // 얼마나 버티나 · 시간대 어긋남 — 상세 계약 mock (무대 설계서 §5-2·§6-1)
 // ---------------------------------------------------------------------------
@@ -713,7 +660,7 @@ const CHANGE_CODES: [string, string][] = [["LL", "다이나믹"], ["HH", "정체
 /** 서울 평균 — v0.32.0 실측(118·54)에 맞춘 고정값. */
 const SEOUL_BASELINE = { operating_months: 118, closed_months: 54 };
 
-/** 동별 상권 변화 상세 — 단계구분도(`changeMetricRows`)와 같은 해시라 지도 색과 패널 숫자가 어긋나지 않는다. */
+/** 리포트 facts의 동별 상권 변화 상세 — 영업 개월 수를 결정적으로 만든다. */
 export function commerceChangeDetailOf(regionCode: string, yearQuarter: string): RegionCommerceChangeDetail {
   const operating = Math.round(31 + unitFrom(hashSeed("operating_months", yearQuarter, regionCode)) * (206 - 31));
   const [change_code, change_name] = CHANGE_CODES[hashSeed("change", regionCode, yearQuarter) % CHANGE_CODES.length];
@@ -746,7 +693,7 @@ const SALES_SHAPE: Record<string, number[]> = {
   office: [1, 14, 40, 22, 16, 3], campus: [3, 8, 22, 18, 30, 15], dining: [4, 6, 18, 14, 34, 22],
   hub: [2, 12, 30, 22, 24, 6], residential: [3, 10, 20, 18, 32, 12], mixed: [3, 12, 26, 20, 26, 8],
 };
-/** 매출 원천이 없는 업종 — 실 API가 404 `HOUR_GAP_NOT_FOUND`를 주는 조합. */
+/** 매출 원천이 없는 업종 — 리포트 facts에서 시간대 자료 없음으로 표시하는 조합. */
 const NO_SALES_INDUSTRIES = new Set(["childcare"]);
 
 export function hourGapOf(regionCode: string, industryId: string, yearQuarter: string): RegionIndustryHourGap | null {

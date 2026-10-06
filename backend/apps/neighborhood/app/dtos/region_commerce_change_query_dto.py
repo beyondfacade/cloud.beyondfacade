@@ -20,11 +20,3 @@ class RegionCommerceChangeDto:
     operating_months: float | None
     closed_months: float | None
     seoul: SeoulBaselineDto | None = None  # baseline 행이 없는 분기면 None
-
-
-@dataclass
-class ChangeMetricValueDto:
-    """단계구분도 응답 단위 — {region_code, value}. metric BC의 `/metrics`와 같은 계약이다."""
-
-    region_code: str
-    value: float

@@ -16,9 +16,6 @@ from apps.childcare.adapter.outbound.orms.childcare_center_stat_orm import (
 from apps.childcare.adapter.outbound.repositories.childcare_center_repository import (
     SqlAlchemyChildcareCenterRepository,
 )
-from apps.childcare.adapter.outbound.repositories.childcare_center_stat_repository import (
-    SqlAlchemyChildcareCenterStatRepository,
-)
 from apps.childcare.domain.entities.childcare_center_entity import ChildcareCenter
 from apps.childcare.domain.entities.childcare_center_stat_entity import ChildcareCenterStat
 from apps.master.adapter.outbound.orms.district_orm import DistrictOrm
@@ -102,13 +99,4 @@ def test_list_operating_returns_latest_seen_with_coords_and_latest_stat():
                if c.center_id.startswith(_PREFIX)]
     assert [c.center_id for c in centers] == [f"{_PREFIX}1"]
     assert (centers[0].stat.base_date, centers[0].stat.child_count) == (_NEW, 25)
-    _cleanup()
-
-
-def test_list_latest_stats_includes_operating_centers_without_coords():
-    _cleanup()
-    region_code = _seed()
-    stats = SqlAlchemyChildcareCenterStatRepository().list_latest(region_code)
-    # 시험 구의 최신 관측일이 2099-01-08이 되어 실적재 행은 소실로 판정 — c1·c3의 최신 현황만 남는다
-    assert sorted((s.base_date, s.child_count) for s in stats) == [(_NEW, 25), (_NEW, 25)]
     _cleanup()

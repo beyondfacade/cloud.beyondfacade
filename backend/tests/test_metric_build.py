@@ -5,7 +5,6 @@ from apps.metric.app.dtos.region_industry_metric_dto import (
     YearlyStoreStat,
 )
 from apps.metric.app.ports.output.region_industry_metric_port import (
-    IndustryCatalogPort,
     RegionIndustryMetricRepositoryPort,
     SnapshotStoreCountPort,
     StoreStatsPort,
@@ -27,18 +26,6 @@ class FakeRepository(RegionIndustryMetricRepositoryPort):
             self.rows[(metric.region_code, metric.industry_id, metric.year)] = metric
         return len(metrics)
 
-    def list_by_industry_year(
-        self, industry_id: str, year: int
-    ) -> list[RegionIndustryMetric]:
-        return sorted(
-            (
-                m
-                for m in self.rows.values()
-                if m.industry_id == industry_id and m.year == year
-            ),
-            key=lambda m: m.region_code,
-        )
-
     def find(
         self, region_code: str, industry_id: str, year: int
     ) -> RegionIndustryMetric | None:
@@ -53,14 +40,6 @@ class FakeStoreStats(StoreStatsPort):
     def yearly_stats(self, years: list[int]) -> list[YearlyStoreStat]:
         self.requested_years = years
         return [s for s in self._stats if s.year in years]
-
-
-class FakeIndustryCatalog(IndustryCatalogPort):
-    def __init__(self, industry_ids: set[str]) -> None:
-        self._industry_ids = industry_ids
-
-    def exists(self, industry_id: str) -> bool:
-        return industry_id in self._industry_ids
 
 
 def _stat(year: int, store: int, opened: int, closed: int) -> YearlyStoreStat:
@@ -82,7 +61,6 @@ def _interactor(
     interactor = RegionIndustryMetricInteractor(
         repository=repository,
         store_stats=store_stats,
-        industry_catalog=FakeIndustryCatalog({"cafe"}),
     )
     return interactor, repository, store_stats
 
@@ -158,7 +136,6 @@ def test_build_adds_snapshot_store_count_without_open_close_or_rates():
     interactor = RegionIndustryMetricInteractor(
         repository=repository,
         store_stats=FakeStoreStats([]),
-        industry_catalog=FakeIndustryCatalog({"childcare", "convenience_store"}),
         snapshot_counts=[
             FakeSnapshotCounts([SnapshotStoreCount("1111051500", "childcare", 2026, 4)]),
             FakeSnapshotCounts([SnapshotStoreCount("1168064000", "convenience_store", 2026, 149)]),
@@ -172,8 +149,6 @@ def test_build_adds_snapshot_store_count_without_open_close_or_rates():
     assert (childcare.open_count, childcare.close_count) == (None, None)
     assert (childcare.closure_rate, childcare.growth_rate) == (None, None)
     assert repository.rows[("1168064000", "convenience_store", 2026)].store_count == 149
-    assert [v.value for v in interactor.list_metric_values("childcare", "store_count", 2026)] == [4.0]
-    assert interactor.list_metric_values("childcare", "closure_rate", 2026) == []
 
 
 def test_build_skips_snapshot_counts_outside_target_years():
@@ -181,7 +156,6 @@ def test_build_skips_snapshot_counts_outside_target_years():
     interactor = RegionIndustryMetricInteractor(
         repository=repository,
         store_stats=FakeStoreStats([]),
-        industry_catalog=FakeIndustryCatalog({"childcare"}),
         snapshot_counts=[FakeSnapshotCounts([SnapshotStoreCount("1111051500", "childcare", 2027, 4)])],
     )
     assert interactor.build([2026]) == 0

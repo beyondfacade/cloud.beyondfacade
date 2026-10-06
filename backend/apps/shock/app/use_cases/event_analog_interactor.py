@@ -180,30 +180,6 @@ class EventAnalogInteractor(EventAnalogUseCase):
         ]
         return base
 
-    def myself(self) -> EventAnalogReportDto:
-        return EventAnalogReportDto(
-            industry_id="myself",
-            as_of="2026-08",
-            categories=[AnalogCategoryDto(EventCategory.PANDEMIC, CATEGORY_LABELS[EventCategory.PANDEMIC], "question")],
-            analogs=[
-                EventImpactDto(
-                    event_id="myself",
-                    name="shock 유사 사례 배선 검증",
-                    category=EventCategory.PANDEMIC,
-                    category_label=CATEGORY_LABELS[EventCategory.PANDEMIC],
-                    start_date=date(2020, 1, 20),
-                    end_date=None,
-                    duration_months=None,
-                    description=None,
-                    source="beyondfacade",
-                    current=False,
-                    years=3,
-                    quarters=[QuarterDto(1, "1년 차 1분기", "2020-01", "2020-03")],
-                    series=[IndustrySeriesDto("myself", "배선 검증", "target", [None])],
-                )
-            ],
-        )
-
     def analogs(self, industry_id: str, question: str | None) -> EventAnalogReportDto:
         today = self._today()
         events = self._events.list_categorized()

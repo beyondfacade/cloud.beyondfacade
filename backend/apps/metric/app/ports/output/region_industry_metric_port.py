@@ -17,12 +17,6 @@ class RegionIndustryMetricRepositoryPort(ABC):
         """(region_code, industry_id, year) 기준 업서트 — 처리 건수 반환."""
 
     @abstractmethod
-    def list_by_industry_year(
-        self, industry_id: str, year: int
-    ) -> list[RegionIndustryMetric]:
-        """해당 업종×연도의 전 행정동 지표를 region_code 순으로 반환한다."""
-
-    @abstractmethod
     def find(
         self, region_code: str, industry_id: str, year: int
     ) -> RegionIndustryMetric | None:
@@ -39,9 +33,3 @@ class SnapshotStoreCountPort(ABC):
     @abstractmethod
     def current_counts(self) -> list[SnapshotStoreCount]:
         """스냅샷 원천의 행정동×업종 현행 점포수 (region_code 보유분만)."""
-
-
-class IndustryCatalogPort(ABC):
-    @abstractmethod
-    def exists(self, industry_id: str) -> bool:
-        """industry 마스터 등록 여부."""

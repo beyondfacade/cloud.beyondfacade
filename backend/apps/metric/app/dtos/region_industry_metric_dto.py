@@ -13,14 +13,6 @@ class RegionIndustryMetricDto:
     growth_rate: float | None
 
 
-@dataclass
-class MetricValueDto:
-    """단계구분도 응답 단위 — {region_code, value} (프론트엔드 계약)."""
-
-    region_code: str
-    value: float
-
-
 @dataclass(frozen=True)
 class YearlyStoreStat:
     """집계 입력 단위 = 행정동×업종×연도의 store 원천 카운트."""

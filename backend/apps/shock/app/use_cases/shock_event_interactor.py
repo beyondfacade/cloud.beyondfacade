@@ -1,5 +1,3 @@
-from datetime import date
-
 from apps.shock.app.dtos.shock_event_dto import IndustryImpactDto, ShockEventDto
 from apps.shock.app.ports.input.shock_event_use_case import ShockEventUseCase
 from apps.shock.app.ports.output.shock_event_port import (
@@ -7,7 +5,6 @@ from apps.shock.app.ports.output.shock_event_port import (
     ShockEventSourcePort,
 )
 from apps.shock.domain.entities.shock_event_entity import ShockEvent
-from apps.shock.domain.value_objects.shock_layer import ShockLayer
 
 
 def _to_dto(entity: ShockEvent) -> ShockEventDto:
@@ -37,16 +34,6 @@ class ShockEventInteractor(ShockEventUseCase):
     ) -> None:
         self._repository = repository
         self._source = source
-
-    def myself(self) -> ShockEventDto:
-        return ShockEventDto(
-            event_id="myself",
-            layer=ShockLayer.POLICY,
-            name="shock BC 배선 검증",
-            start_date=date(2026, 9, 7),
-            scope="전국",
-            source="beyondfacade",
-        )
 
     def ingest(self) -> tuple[int, int]:
         if self._source is None:

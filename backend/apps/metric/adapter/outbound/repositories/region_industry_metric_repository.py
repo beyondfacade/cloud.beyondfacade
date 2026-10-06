@@ -1,5 +1,3 @@
-from sqlalchemy import select
-
 from apps.metric.adapter.outbound.orm_mappers.region_industry_metric_orm_mapper import (
     to_entity,
     to_orm,
@@ -24,24 +22,6 @@ class SqlAlchemyRegionIndustryMetricRepository(RegionIndustryMetricRepositoryPor
             for metric in metrics:
                 session.merge(to_orm(metric))
         return len(metrics)
-
-    def list_by_industry_year(
-        self, industry_id: str, year: int
-    ) -> list[RegionIndustryMetric]:
-        with session_scope() as session:
-            rows = (
-                session.execute(
-                    select(RegionIndustryMetricOrm)
-                    .where(
-                        RegionIndustryMetricOrm.industry_id == industry_id,
-                        RegionIndustryMetricOrm.year == year,
-                    )
-                    .order_by(RegionIndustryMetricOrm.region_code)
-                )
-                .scalars()
-                .all()
-            )
-            return [to_entity(row) for row in rows]
 
     def find(
         self, region_code: str, industry_id: str, year: int

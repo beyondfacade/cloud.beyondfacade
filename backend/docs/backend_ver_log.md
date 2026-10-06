@@ -1,5 +1,10 @@
 # Backend Version Log
 
+## [v0.79.0] - 2026-10-06
+
+### Removed
+- 공개 GET API 9개: `/metrics`·`/hour-gaps`·`/shocks`·`/shocks/analogs`·`/commerce-changes`·`/commerce-changes/{region_code}`·`/profiles/types`·`/profiles`(목록, `?metric=`)·`/childcare-center-stats/summary`(각 `/myself` 포함, `/profiles/{region_code}`·`/profiles/myself`는 남김). 9/29 화면 재편 뒤 프론트가 부르지 않는 공개 입구다 — 같은 데이터는 리포트가 내부에서 읽는다.
+- 그 입구만 쓰던 코드: `RegionIndustryMetricUseCase.list_metric_values`(+ `list_by_industry_year`·metric `IndustryCatalogPort`/`IndustryCatalogGateway`), `RegionProfileUseCase.list_metric_values`·`list_types`(+ 저장소 `latest_quarter`·`list_by_quarter`), `RegionCommerceChangeQueryUseCase.list_metric_values`(+ 조회 포트 `latest_quarter`·`list_by_quarter`), `ChildcareCenterStatUseCase` 전체(`summarize_region`·인터랙터·포트·저장소·DTO·배선), 라우터가 사라진 유스케이스의 `myself`, 해당 schema·mapper, metric·neighborhood `MetricNotFoundError`·metric `IndustryNotFoundError`, 관련 테스트.
 ## [v0.78.0] - 2026-10-06
 
 ### Fixed
