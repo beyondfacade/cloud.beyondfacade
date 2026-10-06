@@ -53,7 +53,7 @@ HOUR_BAND_LABELS = {
 _MAX_PER_AXIS = 3  # 대안 두 축 각 최대 3개
 _DISASTER_YEARS = range(2020, 2023)
 DISASTER_NOTE = "2020~2022년 폐업률은 재난지원금·손실보상으로 폐업이 늦춰져 왜곡됐을 수 있습니다."
-_DISASTER_YEAR_NOTE = "(재난지원금·손실보상으로 폐업이 늦춰져 왜곡됐을 수 있는 해)"
+_DISASTER_YEAR_NOTE = "(재난지원 시기 — 폐업이 늦춰져 왜곡됐을 수 있음)"
 _BUDGET_LINE = f"{FACT} 입력한 예산으로 총 준비자금·조달 필요액·손익분기 매출을 계산하려면 자금 계획 화면을 이용하세요."
 # 충격 목록이 이 업종 것인지(True) 전 업종 공통으로 되돌린 것인지(False) — report_facts._shocks가 정한다
 _SHOCK_SCOPES = {True: "{industry}에 영향을 준 충격", False: "{industry} 전용 기록은 없어 전 업종 공통 충격"}
@@ -149,18 +149,21 @@ def _closure_trend(history: object, region: str, industry: str, current_year: st
     rows = [r for r in history or [] if r.get("closure_rate") is not None] if reason is None else []
     if not rows:
         return f"{FACT} {region} {industry} 연간 폐업률: {missing(reason or '연도별 폐업률 없음')}"
+    # 해마다 값을 다 싣는다 — 첫해·끝해 두 점만 주면 LLM이 "꾸준히 증가"로 옮겼다
+    rows = sorted(rows, key=lambda r: r["year"])
     first, last = rows[0], rows[-1]
-    partial = "(올해 현재까지)" if str(last["year"]) == current_year else ""
+    rates = " · ".join(_year_rate(r, current_year) for r in rows)
     return (
-        f"{FACT} {region} {industry} 연간 폐업률: {first['year']}년 {_rate(first)} → "
-        f"{last['year']}년{partial} {_rate(last)}(점포 {first['store_count']}곳 → {last['store_count']}곳)."
+        f"{FACT} {region} {industry} 연간 폐업률(해마다): {rates} — "
+        f"점포 {first['store_count']}곳({first['year']}년) → {last['store_count']}곳({last['year']}년)."
     )
 
 
-def _rate(row: dict) -> str:
-    """폐업률 — 재난지원 해면 단서를 바로 옆에 붙인다. 문장 끝에 두면 LLM이 다른 해 수치에도 옮겨 붙인다."""
+def _year_rate(row: dict, current_year: str | None) -> str:
+    """한 해 폐업률 — 재난지원 해면 단서를 바로 옆에 붙인다. 문장 끝에 두면 LLM이 다른 해 수치에도 옮겨 붙인다."""
+    partial = "(올해 현재까지)" if str(row["year"]) == current_year else ""
     note = _DISASTER_YEAR_NOTE if row["year"] in _DISASTER_YEARS else ""
-    return f"{row['closure_rate'] * 100:.1f}%{note}"
+    return f"{row['year']}년{partial} {row['closure_rate'] * 100:.1f}%{note}"
 
 
 def _shocks(shocks: object, industry: str) -> str:
