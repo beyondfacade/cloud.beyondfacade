@@ -22,6 +22,7 @@ from apps.finance.domain.services.engine import FinanceInput, FinanceResult, sim
 from apps.finance.domain.services.questions import QuestionContext, build_questions
 from apps.finance.domain.value_objects.cost_ratios import cost_ratio_of
 from apps.finance.domain.value_objects.rent_zones import rent_zone_of
+from apps.finance.domain.value_objects.revenue_plausibility import implausible_revenue_reason
 
 _MONTHS_PER_QUARTER = 3
 
@@ -115,6 +116,13 @@ class FinanceInteractor(FinanceUseCase):
                 caveat="이 동네엔 이 업종의 매출 자료가 없습니다. 예상 월매출을 직접 넣으세요.",
                 unit="원/월",
             )
+        reason = implausible_revenue_reason(
+            industry_id,
+            basis.quarterly_sales / basis.store_count,
+            basis.seoul_median_quarterly_sales_per_store,
+        )
+        if reason is not None:
+            return PrefillValueDto(value=None, basis={}, caveat=reason, unit="원/월")
         # 분기 합 ÷ 점포 수 ÷ 3 — 원천 `당월_매출_금액`은 이름과 달리 분기 합이다(게이트웨이 주석)
         monthly = round(basis.quarterly_sales / basis.store_count / _MONTHS_PER_QUARTER)
         return PrefillValueDto(

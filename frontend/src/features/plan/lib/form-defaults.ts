@@ -92,6 +92,8 @@ export function prefillBadges(prefill: FinancePrefill | null): PrefillBadge[] {
       label: `실측 · ${rev.basis.year_quarter} · ${rev.basis.store_count.toLocaleString("ko-KR")}점포`,
       caveat: rev.caveat,
     });
+  } else if (rev.caveat) {
+    badges.push({ field: "expected_monthly_revenue", label: "평균값 없음", caveat: rev.caveat });
   }
   const rent = prefill.rent_per_m2;
   if (rent.value != null) {

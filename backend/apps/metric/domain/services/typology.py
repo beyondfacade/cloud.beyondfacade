@@ -100,6 +100,12 @@ class TypologyRule(ABC):
         """판정되면 Verdict, 아니면 None을 반환해 다음 규칙에 넘긴다."""
 
 
+# 근거 문장의 순위 표기 — 판정 근거(verdict BC risk_band)와 같은 "100곳으로 치면" 꼴. "서울 상위 10%"는 뜻을 못 읽었다
+_HIGH_10 = "서울 동을 100곳으로 치면 높은 쪽 10곳 안"
+_HIGH_25 = "서울 동을 100곳으로 치면 높은 쪽 25곳 안"
+_LOW_25 = "서울 동을 100곳으로 치면 낮은 쪽 25곳 안"
+
+
 class ResidentFloorRule(TypologyRule):
     """R0 — 상주인구가 서울 하위 1%인 동은 비율 기반 판정에서 제외한다 (설계서 §3-3).
 
@@ -127,7 +133,7 @@ class OfficeRule(TypologyRule):
         return TypologyVerdict(
             type_code="office",
             reason=(
-                f"직장인구가 상주인구의 {metrics.worker_resident_ratio:.1f}배로 서울 상위 10%이고, "
+                f"직장인구가 상주인구의 {metrics.worker_resident_ratio:.1f}배로 매우 높은 편({_HIGH_10})이고, "
                 "주말 유동이 평일보다 적습니다."
             ),
         )
@@ -145,7 +151,7 @@ class CampusRule(TypologyRule):
             type_code="campus",
             reason=(
                 f"대학 시설이 있고, 거리 위 20대 비중이 {metrics.footfall_20s_share * 100:.1f}%로 "
-                "서울 상위 10%입니다."
+                f"매우 높은 편({_HIGH_10})입니다."
             ),
         )
 
@@ -161,7 +167,7 @@ class DiningRule(TypologyRule):
                 type_code="dining",
                 reason=(
                     "이 동에서 결제된 음식·유흥 금액이 상주인구 1인당 "
-                    f"{round(metrics.fnb_amount_per_resident):,}원으로 서울 상위 25%입니다."
+                    f"{round(metrics.fnb_amount_per_resident):,}원으로 높은 편({_HIGH_25})입니다."
                 ),
             )
         if _at_least(metrics.fnb_share, thresholds.fnb_share_q75) and _below(
@@ -170,8 +176,8 @@ class DiningRule(TypologyRule):
             return TypologyVerdict(
                 type_code="dining",
                 reason=(
-                    f"결제액의 {metrics.fnb_share * 100:.1f}%가 음식·유흥이고, "
-                    "낮 시간 유동이 서울 상위 25%입니다."
+                    f"결제액의 {metrics.fnb_share * 100:.1f}%가 음식·유흥으로 높은 편({_HIGH_25})이고, "
+                    f"밤 시간 체류가 낮은 편({_LOW_25})입니다."
                 ),
             )
         return None
@@ -188,7 +194,7 @@ class HubRule(TypologyRule):
         return TypologyVerdict(
             type_code="hub",
             reason=(
-                f"집객시설이 {metrics.facility_total}개로 서울 상위 25%이고, "
+                f"집객시설이 {metrics.facility_total}개로 높은 편({_HIGH_25})이고, "
                 "낮 시간 유동이 밤보다 강합니다."
             ),
         )
@@ -203,7 +209,7 @@ class ResidentialRule(TypologyRule):
             return None
         if not _at_least(metrics.night_index, thresholds.night_q25):
             return None
-        tail = "밤 시간 체류가 서울 하위 25%에 들지 않습니다."
+        tail = "밤 시간 체류가 낮은 쪽이 아닙니다(서울 동을 100곳으로 치면 낮은 쪽 25곳 밖)."
         # 직장인구 결측 동은 0으로 채우면 주거형으로 오판하므로 근거에서 앞 절을 뺀다 (설계서 §3-4)
         reason = tail if ratio is None else f"직장인구가 상주인구보다 적고, {tail}"
         return TypologyVerdict(type_code="residential", reason=reason)
@@ -215,7 +221,7 @@ class MixedRule(TypologyRule):
     def judge(self, metrics, thresholds):
         return TypologyVerdict(
             type_code="mixed",
-            reason="어느 축에서도 서울 상위·하위 경계를 넘지 않습니다.",
+            reason="어느 지표도 서울 동 가운데 두드러지게 높거나 낮지 않습니다.",
         )
 
 

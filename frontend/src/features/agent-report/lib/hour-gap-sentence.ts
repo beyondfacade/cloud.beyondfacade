@@ -14,6 +14,6 @@ export function hourGapSentence(bands: HourGapBand[]): string | null {
   const people = peakBand(bands, (b) => b.footfall_intensity);
   const money = peakBand(bands, (b) => b.sales_intensity);
   if (!people || !money) return null;
-  if (people === money) return `사람과 돈이 ${hourBandLabel(people)}에 같이 몰립니다.`;
-  return `사람은 ${hourBandLabel(people)}에 가장 많고, 돈은 ${hourBandLabel(money)}에 돕니다.`;
+  if (people === money) return `사람(유동인구)과 매출이 모두 ${hourBandLabel(people)}에 가장 많습니다.`;
+  return `사람(유동인구)이 가장 많은 때는 ${hourBandLabel(people)}입니다. 매출이 가장 많은 때는 ${hourBandLabel(money)}으로, 사람이 가장 많은 때와 다릅니다.`;
 }

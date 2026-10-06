@@ -64,6 +64,7 @@ class RevenueBasis:
     quarterly_sales: int  # 분기 합 (원)
     store_count: int
     source_codes: list[str]
+    seoul_median_quarterly_sales_per_store: float | None  # 같은 분기·업종 서울 동별 점포당 매출의 중앙값
 
 
 @dataclass(frozen=True)

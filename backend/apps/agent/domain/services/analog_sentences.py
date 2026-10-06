@@ -15,6 +15,9 @@ SITUATIONS = {
 # 강세·약세로 잡혔고(서울 전체 한식 34%), 서울 전체와 판정이 같은 비율은 22~41%였다.
 AREA = "서울 전체"
 
+# 사례 분기의 비교 기준 — shock BC `Quarter.baseline`(이벤트 직전 1년의 같은 분기)
+_BASELINE = "사례 직전 1년 같은 분기"
+
 # 전 업종과의 차이가 이 안(%p)이면 "비슷하게", 폐업률 차이가 이 안(%p)이면 "비슷했습니다"
 _SAME_BAND = 0.5
 
@@ -72,24 +75,26 @@ def condition_sentence(condition: dict | None, industry_name: str, name: str | N
 
 
 def summary_sentence(event: dict, industry_name: str, name: str | None = None) -> str | None:
-    """사례 이후 분기 중 내 업종이 평소보다 약했던·강했던 분기 수."""
+    """사례 이후 분기 중 내 업종 점포 증감이 사례 직전 1년 같은 분기보다 약했던·강했던 분기 수.
+
+    비교 기준(`Quarter.baseline`)을 문장에 적는다 — "평소"만 쓰면 "다른 업종보다"로 읽혔다.
+    """
     quarters = len(event.get("quarters") or [])
     if quarters == 0:
         return None
     weak, strong = event.get("target_weak_quarters", 0), event.get("target_strong_quarters", 0)
     head = f"{name or event['name'].split(' — ')[0]} 이후{' 지금까지' if event.get('current') else ''}"
-    subject = f"{industry_name}{'이' if _has_final_consonant(industry_name) else '가'}"
+    subject = f"{industry_name} 점포 증감"
     if weak == quarters or strong == quarters:
-        return f"{head} {quarters}분기 내내 {subject} 평소보다 {'약했' if weak else '강했'}습니다."
+        return f"{head} {quarters}분기 내내 {subject}이 {_BASELINE}보다 {'약했' if weak else '강했'}습니다."
     if not weak and not strong:
-        topic = "은" if _has_final_consonant(industry_name) else "는"
-        return f"{head} {quarters}분기 동안 {industry_name}{topic} 평소와 비슷했습니다."
+        return f"{head} {quarters}분기 동안 {subject}은 {_BASELINE}와 비슷했습니다."
     counts = ", ".join(
         [*([f"약했던 분기는 {weak}분기"] if weak else []), *([f"강했던 분기는 {strong}분기"] if strong else [])]
     )
     streak = event.get("target_weak_streak", 0)
     tail = f"였고, 처음 {streak}분기는 연속으로 약했습니다." if streak >= 2 else "였습니다."
-    return f"{head} {quarters}분기 중 {subject} 평소보다 {counts}{tail}"
+    return f"{head} {quarters}분기 중 {subject}이 {_BASELINE}보다 {counts}{tail}"
 
 
 # 겹친 정책을 이름까지 적는 분기 수 — 나머지는 분기 수로만 줄인다

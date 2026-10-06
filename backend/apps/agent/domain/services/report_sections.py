@@ -53,6 +53,7 @@ HOUR_BAND_LABELS = {
 _MAX_PER_AXIS = 3  # 대안 두 축 각 최대 3개
 _DISASTER_YEARS = range(2020, 2023)
 DISASTER_NOTE = "2020~2022년 폐업률은 재난지원금·손실보상으로 폐업이 늦춰져 왜곡됐을 수 있습니다."
+_DISASTER_YEAR_NOTE = "(재난지원금·손실보상으로 폐업이 늦춰져 왜곡됐을 수 있는 해)"
 _BUDGET_LINE = f"{FACT} 입력한 예산으로 총 준비자금·조달 필요액·손익분기 매출을 계산하려면 자금 계획 화면을 이용하세요."
 # 충격 목록이 이 업종 것인지(True) 전 업종 공통으로 되돌린 것인지(False) — report_facts._shocks가 정한다
 _SHOCK_SCOPES = {True: "{industry}에 영향을 준 충격", False: "{industry} 전용 기록은 없어 전 업종 공통 충격"}
@@ -111,12 +112,23 @@ _SIGNAL_LINES = {
 }
 
 
+# 이름만으로 헷갈리는 두 신호의 뜻 — 한쪽이 표본 부족이면 LLM이 다른 쪽 수치로 메웠다(12b 4건)
+_SIGNAL_MEANINGS = {
+    "survival_cliff": "3년 전 새로 연 점포 중 지금 남은 비율",
+    "early_closure": "최근 3년 문 닫은 점포가 문 닫기 전까지 영업한 기간, 새로 연 점포의 생존율이 아님",
+}
+
+
 def _signals(verdict: dict, region: str, industry: str) -> str:
     if not verdict.get("available"):
         return f"{FACT} 경고 신호({region} {industry}): {missing(verdict.get('reason'))}"
     where = f"{region} {industry}"
     lines = [
-        _SIGNAL_LINES[bool(s.get("advisory"))](SIGNAL_LABELS.get(s.get("key"), s.get("key")), s.get("evidence"), where)
+        _SIGNAL_LINES[bool(s.get("advisory"))](
+            SIGNAL_LABELS.get(s.get("key"), s.get("key")),
+            s.get("evidence"),
+            f"{where} — {_SIGNAL_MEANINGS[s.get('key')]}" if s.get("key") in _SIGNAL_MEANINGS else where,
+        )
         for s in verdict.get("signals") or []
         if s.get("level") != "off"
     ]
@@ -139,11 +151,16 @@ def _closure_trend(history: object, region: str, industry: str, current_year: st
         return f"{FACT} {region} {industry} 연간 폐업률: {missing(reason or '연도별 폐업률 없음')}"
     first, last = rows[0], rows[-1]
     partial = "(올해 현재까지)" if str(last["year"]) == current_year else ""
-    line = (
-        f"{FACT} {region} {industry} 연간 폐업률: {first['year']}년 {first['closure_rate'] * 100:.1f}% → "
-        f"{last['year']}년{partial} {last['closure_rate'] * 100:.1f}%(점포 {first['store_count']}곳 → {last['store_count']}곳)."
+    return (
+        f"{FACT} {region} {industry} 연간 폐업률: {first['year']}년 {_rate(first)} → "
+        f"{last['year']}년{partial} {_rate(last)}(점포 {first['store_count']}곳 → {last['store_count']}곳)."
     )
-    return line + (f" {DISASTER_NOTE}" if any(r["year"] in _DISASTER_YEARS for r in rows) else "")
+
+
+def _rate(row: dict) -> str:
+    """폐업률 — 재난지원 해면 단서를 바로 옆에 붙인다. 문장 끝에 두면 LLM이 다른 해 수치에도 옮겨 붙인다."""
+    note = _DISASTER_YEAR_NOTE if row["year"] in _DISASTER_YEARS else ""
+    return f"{row['closure_rate'] * 100:.1f}%{note}"
 
 
 def _shocks(shocks: object, industry: str) -> str:
@@ -226,8 +243,12 @@ def hour_gap_sentence(bands: list[dict]) -> str | None:
     people = max(bands, key=lambda b: b["footfall_intensity"])["hour_band"]
     money = max(bands, key=lambda b: b["sales_intensity"])["hour_band"]
     if people == money:
-        return f"사람과 돈이 {HOUR_BAND_LABELS.get(people, people)}에 같이 몰립니다."
-    return f"사람은 {HOUR_BAND_LABELS.get(people, people)}에 가장 많고, 돈은 {HOUR_BAND_LABELS.get(money, money)}에 돕니다."
+        return f"사람(유동인구)과 매출이 모두 {HOUR_BAND_LABELS.get(people, people)}에 가장 많습니다."
+    # 사람과 매출을 두 문장으로 나눈다 — 한 문장이면 LLM이 둘을 한 구간으로 합쳐 옮긴다
+    return (
+        f"사람(유동인구)이 가장 많은 때는 {HOUR_BAND_LABELS.get(people, people)}입니다. "
+        f"매출이 가장 많은 때는 {HOUR_BAND_LABELS.get(money, money)}으로, 사람이 가장 많은 때와 다릅니다."
+    )
 
 
 def _hours(hour_gap: dict, region: str, industry: str) -> str:

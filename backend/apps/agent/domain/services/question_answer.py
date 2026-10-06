@@ -195,6 +195,20 @@ def _flow_line(facts: dict) -> str:
     )
 
 
+# 시간당 하루 평균 대비 배수 → 낱말. 숫자만 주면 LLM이 0.97배를 "평균보다 높다"로, 사람 흐름과 매출을 섞어 옮긴다
+_INTENSITY_WORDS = (
+    (1.5, "하루 평균보다 크게 많음"),
+    (1.1, "하루 평균보다 많음"),
+    (0.9, "하루 평균과 비슷"),
+    (0.5, "하루 평균보다 적음"),
+)
+
+
+def intensity_word(value: float) -> str:
+    """위에서부터 처음 넘는 경계의 낱말, 다 못 넘으면 절반 미만."""
+    return next((word for floor, word in _INTENSITY_WORDS if value >= floor), "하루 평균의 절반 미만")
+
+
 def _band_lines(facts: dict, topic: QuestionTopic) -> list[str]:
     region, industry = subject_names(facts)
     hour_gap = facts.get("hour_gap") or {}
@@ -205,7 +219,9 @@ def _band_lines(facts: dict, topic: QuestionTopic) -> list[str]:
     when = quarter_label(hour_gap.get("year_quarter"))
     lines = [
         f"{FACT} {HOUR_BAND_LABELS[code]}({region} 유동인구·{industry} 매출, {when}): "
-        f"사람 흐름은 시간당 하루 평균의 {bands[code]['footfall_intensity']:.2f}배, 매출은 {bands[code]['sales_intensity']:.2f}배."
+        f"사람 흐름은 {intensity_word(bands[code]['footfall_intensity'])}"
+        f"(시간당 하루 평균의 {bands[code]['footfall_intensity']:.2f}배). "
+        f"매출은 {intensity_word(bands[code]['sales_intensity'])}({bands[code]['sales_intensity']:.2f}배)."
         for code in _BAND_CODES[topic.detail]
         if code in bands
     ]
