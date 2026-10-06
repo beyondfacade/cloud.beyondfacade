@@ -1,0 +1,281 @@
+{
+ "mapping": {
+  "e006": {
+   "A": "claude-opus-5-5",
+   "B": "gemini-3.8-flash"
+  },
+  "e022": {
+   "A": "claude-opus-5-5",
+   "B": "gemini-3.8-flash"
+  },
+  "e032": {
+   "A": "claude-opus-5-5",
+   "B": "gemini-3.8-flash"
+  },
+  "e038": {
+   "A": "gemini-3.8-flash",
+   "B": "claude-opus-5-5"
+  },
+  "e043": {
+   "A": "claude-opus-5-5",
+   "B": "gemini-3.8-flash"
+  },
+  "e050": {
+   "A": "claude-opus-5-5",
+   "B": "gemini-3.8-flash"
+  },
+  "e054": {
+   "A": "claude-opus-5-5",
+   "B": "gemini-3.8-flash"
+  },
+  "e056": {
+   "A": "gemini-3.8-flash",
+   "B": "claude-opus-5-5"
+  },
+  "e058": {
+   "A": "claude-opus-5-5",
+   "B": "gemini-3.8-flash"
+  },
+  "e066": {
+   "A": "gemini-3.8-flash",
+   "B": "claude-opus-5-5"
+  },
+  "e067": {
+   "A": "claude-opus-5-5",
+   "B": "gemini-3.8-flash"
+  },
+  "e069": {
+   "A": "gemini-3.8-flash",
+   "B": "claude-opus-5-5"
+  },
+  "e070": {
+   "A": "claude-opus-5-5",
+   "B": "gemini-3.8-flash"
+  },
+  "e079": {
+   "A": "gemini-3.8-flash",
+   "B": "claude-opus-5-5"
+  },
+  "e102": {
+   "A": "gemini-3.8-flash",
+   "B": "claude-opus-5-5"
+  },
+  "e105": {
+   "A": "gemini-3.8-flash",
+   "B": "claude-opus-5-5"
+  },
+  "e111": {
+   "A": "gemini-3.8-flash",
+   "B": "claude-opus-5-5"
+  },
+  "e113": {
+   "A": "claude-opus-5-5",
+   "B": "gemini-3.8-flash"
+  },
+  "e143": {
+   "A": "claude-opus-5-5",
+   "B": "gemini-3.8-flash"
+  },
+  "e144": {
+   "A": "gemini-3.8-flash",
+   "B": "claude-opus-5-5"
+  }
+ },
+ "reviews": {
+  "e006-A": {
+   "error": false
+  },
+  "e006-B": {
+   "error": false
+  },
+  "e006-best": {
+   "pick": "비슷함"
+  },
+  "e022-A": {
+   "error": false,
+   "answered": true
+  },
+  "e022-B": {
+   "error": false,
+   "answered": true
+  },
+  "e022-best": {
+   "pick": "비슷함"
+  },
+  "e032-A": {
+   "error": false
+  },
+  "e032-B": {
+   "error": false
+  },
+  "e032-best": {
+   "pick": "비슷함"
+  },
+  "e038-A": {
+   "error": false
+  },
+  "e038-B": {
+   "error": false
+  },
+  "e038-best": {
+   "pick": "비슷함"
+  },
+  "e043-A": {
+   "error": false,
+   "answered": true
+  },
+  "e043-B": {
+   "error": false,
+   "answered": true
+  },
+  "e043-best": {
+   "pick": "비슷함"
+  },
+  "e050-A": {
+   "error": false,
+   "answered": true
+  },
+  "e050-B": {
+   "error": false,
+   "answered": true
+  },
+  "e050-best": {
+   "pick": "B"
+  },
+  "e054-A": {
+   "error": false
+  },
+  "e054-B": {
+   "error": false
+  },
+  "e054-best": {
+   "pick": "비슷함"
+  },
+  "e056-A": {
+   "error": false
+  },
+  "e056-B": {
+   "error": false
+  },
+  "e056-best": {
+   "pick": "비슷함"
+  },
+  "e058-A": {
+   "error": false,
+   "answered": true
+  },
+  "e058-B": {
+   "error": false,
+   "answered": true
+  },
+  "e058-best": {
+   "pick": "비슷함"
+  },
+  "e066-A": {
+   "error": false,
+   "answered": true
+  },
+  "e066-B": {
+   "error": false,
+   "answered": true
+  },
+  "e066-best": {
+   "pick": "비슷함"
+  },
+  "e067-A": {
+   "error": false,
+   "answered": true
+  },
+  "e067-B": {
+   "error": false,
+   "answered": true
+  },
+  "e069-A": {
+   "error": false
+  },
+  "e069-B": {
+   "error": false
+  },
+  "e070-A": {
+   "error": false,
+   "answered": true
+  },
+  "e070-B": {
+   "error": false,
+   "answered": true
+  },
+  "e070-best": {
+   "pick": "A"
+  },
+  "e079-A": {
+   "error": false,
+   "answered": false
+  },
+  "e079-B": {
+   "error": false,
+   "answered": false
+  },
+  "e102-A": {
+   "error": false,
+   "answered": true
+  },
+  "e102-B": {
+   "error": false,
+   "answered": true
+  },
+  "e102-best": {
+   "pick": "비슷함"
+  },
+  "e105-A": {
+   "error": false
+  },
+  "e105-B": {
+   "error": false
+  },
+  "e105-best": {
+   "pick": "비슷함"
+  },
+  "e111-A": {
+   "error": false,
+   "answered": true
+  },
+  "e111-B": {
+   "error": false,
+   "answered": true
+  },
+  "e111-best": {
+   "pick": "비슷함"
+  },
+  "e113-A": {
+   "error": false
+  },
+  "e113-B": {
+   "error": false
+  },
+  "e113-best": {
+   "pick": "비슷함"
+  },
+  "e143-A": {
+   "error": false,
+   "answered": true
+  },
+  "e143-B": {
+   "error": false,
+   "answered": true
+  },
+  "e143-best": {
+   "pick": "비슷함"
+  },
+  "e144-A": {
+   "error": false,
+   "answered": true
+  },
+  "e144-B": {
+   "error": false,
+   "answered": true
+  },
+  "e144-best": {
+   "pick": "A"
+  }
+ }
+}
