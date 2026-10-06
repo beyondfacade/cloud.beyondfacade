@@ -1,7 +1,8 @@
-"""기업마당(bizinfo) 지원사업정보 Open API Driven Adapter.
+"""기업마당 지원사업 공고 Driven Adapter — 공공데이터포털판 "중소벤처기업부_중소기업 지원사업 공고 조회 서비스"(15157820).
 
-docs/api.md §5.2: 엔드포인트 bizinfo.go.kr/uss/rss/bizinfoApi.do, 자체 키(crtfcKey), JSON.
-중앙부처+지자체+유관기관 공고 ~1,500건 상시 통합 — searchCnt 한 번으로 전량 수신 (페이징 불필요).
+이용조건: 공공누리 제3유형(출처표시·변경금지, 상업 이용 가능) — 화면에 "출처: 기업마당", 공고 문구는 원문 그대로.
+기업마당 자체 API(bizinfoApi.do)는 저작권정책상 직접 수익·무단변경 금지·사전 협의 대상이라 바꿨다(BE v0.85.0).
+필드명은 자체 API와 같다(2026-10-06 1,468건 대조, 값 차이 0) — 지원분야 중분류만 없다. 1,000건씩 페이징.
 """
 
 import html
@@ -14,20 +15,27 @@ from apps.funding.app.ports.output.funding_program_port import FundingSearchGate
 from apps.funding.domain.entities.funding_program_entity import FundingProgram
 from core.matrix.grid_keymaker_secret_manager import get_settings
 
-_ENDPOINT = "https://www.bizinfo.go.kr/uss/rss/bizinfoApi.do"
-_SEARCH_CNT = 3000  # 상시 ~1,500건 — 여유분 포함 1회 호출 전량 수신
+_ENDPOINT = "https://apis.data.go.kr/1421000/bizinfo/pblancBsnsService"
+_PAGE_SIZE = 1000
 _TAG_PATTERN = re.compile(r"<[^>]+>")
 _DATE_PATTERN = re.compile(r"\d{4}-\d{2}-\d{2}")
-_SUMMARY_MAX = 1000  # 요약 발췌 상한 — 본문 전문 저장 금지 (brainstorming §8.1)
 
 
 def clean_summary(raw: str | None) -> str | None:
-    """HTML 태그 제거 + 엔티티 복원 + 공백 정리 후 발췌."""
+    """HTML 태그 제거 + 엔티티 복원 + 공백 정리. 변경금지라 자르지 않는다."""
     if not raw:
         return None
     text = html.unescape(_TAG_PATTERN.sub(" ", raw))
-    text = re.sub(r"\s+", " ", text).strip()
-    return text[:_SUMMARY_MAX] or None
+    return re.sub(r"\s+", " ", text).strip() or None
+
+
+def page_items(body: dict) -> list[dict]:
+    """포털 응답 body.items.item — 여러 건이면 목록, 한 건이면 dict, 결과가 없으면 빈 문자열이 온다."""
+    items = body.get("items") or {}
+    item = items.get("item") if isinstance(items, dict) else None
+    if item is None:
+        return []
+    return item if isinstance(item, list) else [item]
 
 
 def parse_period(raw: str | None) -> tuple[date | None, date | None]:
@@ -89,19 +97,24 @@ def to_entity(item: dict) -> FundingProgram | None:
 
 class BizinfoGateway(FundingSearchGatewayPort):
     def fetch_all(self) -> list[FundingProgram]:
-        response = httpx.get(
-            _ENDPOINT,
-            params={
-                "crtfcKey": get_settings().bizinfo_api_key,
-                "dataType": "json",
-                "searchCnt": _SEARCH_CNT,
-            },
-            timeout=60,
-        )
-        response.raise_for_status()
-        programs = []
-        for item in response.json().get("jsonArray", []):
-            entity = to_entity(item)
-            if entity is not None:
-                programs.append(entity)
-        return programs
+        items: list[dict] = []
+        page = 1
+        while True:
+            response = httpx.get(
+                _ENDPOINT,
+                params={
+                    "serviceKey": get_settings().data_go_kr_api_key,
+                    "pageNo": page,
+                    "numOfRows": _PAGE_SIZE,
+                    "dataType": "json",
+                },
+                timeout=60,
+            )
+            response.raise_for_status()
+            body = response.json()["response"]["body"]
+            batch = page_items(body)
+            items += batch
+            if not batch or len(items) >= int(body.get("totalCount") or 0):
+                break
+            page += 1
+        return [entity for entity in (to_entity(item) for item in items) if entity is not None]

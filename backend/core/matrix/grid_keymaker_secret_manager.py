@@ -22,7 +22,6 @@ class Settings(BaseSettings):
     naver_ncp_api_key_id: str = ""
     naver_ncp_api_key: str = ""
     data_go_kr_api_key: str = ""
-    bizinfo_api_key: str = ""
     seoul_open_data_api_key: str = ""
     ecos_api_key: str = ""
     rone_api_key: str = ""

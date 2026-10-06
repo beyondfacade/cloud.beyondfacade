@@ -1,9 +1,11 @@
-"""bizinfo 게이트웨이 파싱 검증 — 실응답(2026-09-07 표본) 기반 픽스처, 네트워크 미사용."""
+"""기업마당 공고 게이트웨이 파싱 검증 — 실응답(2026-09-07 표본) 기반 픽스처, 네트워크 미사용.
+원천은 공공데이터포털 15157820(공공누리 제3유형) — 필드명은 기업마당 자체 API와 같다(2026-10-06 1,468건 대조, 값 차이 0)."""
 
 from datetime import date, datetime
 
 from apps.funding.adapter.outbound.gateways.bizinfo_gateway import (
     clean_summary,
+    page_items,
     parse_period,
     to_entity,
 )
@@ -60,7 +62,15 @@ def test_parse_period_defensive_variants():
     assert parse_period("2026-13-99 ~ 2026-11-13") == (date(2026, 11, 13), None)  # 비정상 날짜 방어
 
 
-def test_clean_summary_truncates_and_handles_empty():
+def test_clean_summary_keeps_full_text_and_handles_empty():
+    """공공누리 제3유형(변경금지) — 사업개요는 태그·공백만 정리하고 자르지 않는다."""
     assert clean_summary(None) is None
     assert clean_summary("<p><br></p>") is None
-    assert len(clean_summary("<p>" + "가" * 2000 + "</p>")) == 1000  # 발췌 상한
+    assert len(clean_summary("<p>" + "가" * 2000 + "</p>")) == 2000
+
+
+def test_page_items_reads_portal_body_list_single_and_empty():
+    """공공데이터포털 응답 body.items.item — 여러 건이면 목록, 한 건이면 dict, 없으면 빈 값."""
+    assert page_items({"items": {"item": [_ITEM, _ITEM]}}) == [_ITEM, _ITEM]
+    assert page_items({"items": {"item": _ITEM}}) == [_ITEM]
+    assert page_items({"items": ""}) == []

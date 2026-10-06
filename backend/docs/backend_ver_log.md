@@ -1,5 +1,14 @@
 # Backend Version Log
 
+## [v0.85.0] - 2026-10-06
+
+### Changed
+- 지원사업 공고 수집 원천을 기업마당 자체 API(`bizinfoApi.do`)에서 공공데이터포털판 "중소벤처기업부_중소기업 지원사업 공고 조회 서비스"(15157820, 공공누리 제3유형 출처표시·변경금지, 상업 이용 가능)로 바꿨다 — 이용조건 3번. `BizinfoGateway`는 `apis.data.go.kr/1421000/bizinfo/pblancBsnsService`를 1,000건씩 페이징(`page_items`), 키는 `DATA_GO_KR_API_KEY`. 같은 날 두 원천 1,468건 대조: ID·필드값 차이 0(지원분야 중분류만 없음 → 새 공고는 `field_subcategory` 비움). 첫 수집 신규 47건
+- 사업개요(`summary`)를 1,000자로 자르지 않는다(변경금지) — 태그·공백만 정리. 이미 잘린 1건(지난 공고 PBLN_000000000126458)은 원천에 없어 그대로
+
+### Removed
+- 설정 `bizinfo_api_key`(`BIZINFO_API_KEY`) — 더 쓰지 않는다
+
 ## [v0.84.0] - 2026-10-06
 
 ### Changed
