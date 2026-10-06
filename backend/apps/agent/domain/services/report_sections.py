@@ -149,21 +149,16 @@ def _closure_trend(history: object, region: str, industry: str, current_year: st
     rows = [r for r in history or [] if r.get("closure_rate") is not None] if reason is None else []
     if not rows:
         return f"{FACT} {region} {industry} 연간 폐업률: {missing(reason or '연도별 폐업률 없음')}"
-    # 해마다 값을 다 싣는다 — 첫해·끝해 두 점만 주면 LLM이 "꾸준히 증가"로 옮겼다
-    rows = sorted(rows, key=lambda r: r["year"])
-    first, last = rows[0], rows[-1]
-    rates = " · ".join(_year_rate(r, current_year) for r in rows)
-    return (
-        f"{FACT} {region} {industry} 연간 폐업률(해마다): {rates} — "
-        f"점포 {first['store_count']}곳({first['year']}년) → {last['store_count']}곳({last['year']}년)."
-    )
+    # 점포 수·폐업률 모두 해마다 싣는다 — 첫해·끝해 두 점만 주면 LLM이 "꾸준히 증가"로 옮겼다
+    years = " · ".join(_year_line(r, current_year) for r in sorted(rows, key=lambda r: r["year"]))
+    return f"{FACT} {region} {industry} 점포 수·연간 폐업률(해마다): {years}."
 
 
-def _year_rate(row: dict, current_year: str | None) -> str:
-    """한 해 폐업률 — 재난지원 해면 단서를 바로 옆에 붙인다. 문장 끝에 두면 LLM이 다른 해 수치에도 옮겨 붙인다."""
+def _year_line(row: dict, current_year: str | None) -> str:
+    """한 해 점포 수·폐업률 — 재난지원 해면 단서를 바로 옆에 붙인다. 문장 끝에 두면 LLM이 다른 해 수치에도 옮겨 붙인다."""
     partial = "(올해 현재까지)" if str(row["year"]) == current_year else ""
     note = _DISASTER_YEAR_NOTE if row["year"] in _DISASTER_YEARS else ""
-    return f"{row['year']}년{partial} {row['closure_rate'] * 100:.1f}%{note}"
+    return f"{row['year']}년{partial} 점포 {row['store_count']}곳·폐업률 {row['closure_rate'] * 100:.1f}%{note}"
 
 
 def _shocks(shocks: object, industry: str) -> str:
