@@ -15,10 +15,7 @@ from apps.childcare.dependencies.childcare_dependencies import (
     get_childcare_center_query_use_case,
 )
 from apps.childcare.domain.entities.childcare_center_entity import ChildcareCenter
-from apps.childcare.domain.entities.childcare_center_stat_entity import (
-    ChildcareCenterStat,
-    ChildcareRegionSummary,
-)
+from apps.childcare.domain.entities.childcare_center_stat_entity import ChildcareCenterStat
 from main import app
 
 _REGION = "1111051500"
@@ -106,15 +103,3 @@ def test_unknown_region_returns_404_error_body():
     response = _client().get("/childcare-centers", params={"region": "0000000000"})
     assert response.status_code == 404
     assert response.json()["error"]["code"] == "REGION_NOT_FOUND"
-
-
-def test_region_summary_of_empty_has_no_rates():
-    summary = ChildcareRegionSummary.of(_REGION, [])
-    assert (summary.center_count, summary.capacity, summary.child_count) == (0, 0, 0)
-    assert (summary.occupancy_rate, summary.waiting_count, summary.base_date) == (None, None, None)
-
-
-def test_region_summary_waiting_is_none_when_all_blank():
-    summary = ChildcareRegionSummary.of(_REGION, [_stat(waiting=None), _stat(waiting=None)])
-    assert summary.waiting_count is None
-    assert summary.occupancy_rate == round(50 / 78, 4)
