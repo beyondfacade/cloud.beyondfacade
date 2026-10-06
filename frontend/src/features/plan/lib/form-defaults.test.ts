@@ -52,6 +52,17 @@ describe("폼 초기값", () => {
     expect(unconfirmed).toContain("expected_monthly_revenue");
     expect(unconfirmed).toContain("equity"); // 예산 없음
     expect(unconfirmed).toContain("deposit");
+    expect(prefillBadges(nullRevenue).some((b) => b.field === "expected_monthly_revenue")).toBe(false);
+  });
+
+  it("월매출 평균값이 없고 이유가 있으면 평균값 없음 배지로 이유를 표시한다", () => {
+    const caveat = "이 동은 매출 자료를 믿기 어렵습니다 — 점포당 평균이 서울 같은 업종 동 중앙값의 3분의 1에도 못 미칩니다(카드로 잡히지 않는 매출이 많을 수 있습니다). 예상 월매출을 직접 넣으세요.";
+    const nullRevenue = prefill({
+      expected_monthly_revenue: { value: null, basis: { year_quarter: "", quarterly_sales: 0, store_count: 0, source_codes: [] }, caveat, unit: "원/월" },
+    });
+    expect(prefillBadges(nullRevenue).find((b) => b.field === "expected_monthly_revenue")).toEqual({
+      field: "expected_monthly_revenue", label: "평균값 없음", caveat,
+    });
   });
 
   it("예산이 숫자가 아니거나 0 이하면 자기자본 0", () => {

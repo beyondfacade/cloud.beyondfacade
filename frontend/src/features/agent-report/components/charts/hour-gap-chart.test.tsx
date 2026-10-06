@@ -32,7 +32,7 @@ describe("시간대 두 선", () => {
 
   it("두 최대 구간을 말하는 문장과 기준 분기를 곁들인다", () => {
     render(<HourGapBody gap={{ region_code: "1168064000", industry_id: "cafe", year_quarter: "20254", bands: BANDS }} />);
-    expect(screen.getByText("사람은 오후(14~17시)에 가장 많고, 돈은 점심(11~14시)에 돕니다.")).toBeInTheDocument();
+    expect(screen.getByText("사람(유동인구)이 가장 많은 때는 오후(14~17시)입니다. 매출이 가장 많은 때는 점심(11~14시)으로, 사람이 가장 많은 때와 다릅니다.")).toBeInTheDocument();
     expect(screen.getByText(/2025년 4분기/)).toBeInTheDocument();
   });
 });

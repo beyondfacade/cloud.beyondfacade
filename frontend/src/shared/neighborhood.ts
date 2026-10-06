@@ -54,7 +54,7 @@ const LABELS: Record<NeighborhoodType, NeighborhoodTypeLabel> = {
     name: "혼합형",
     qualifier: "뚜렷한 특징 없음",
     tooltip:
-      "어느 축에서도 서울 상위·하위 경계를 넘지 않는 동네입니다. 대단지 아파트가 동 전체를 차지한 곳이 많습니다.",
+      "어느 지표도 서울 동 가운데 두드러지게 높거나 낮지 않은 동네입니다. 대단지 아파트가 동 전체를 차지한 곳이 많습니다.",
   },
 };
 

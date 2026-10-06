@@ -477,12 +477,12 @@ function pickWeighted(seed: number): string {
 
 function profileReason(type: string, ratio: number, share20s: number, fnbShare: number, facility: number): string {
   const reasons: Record<string, string> = {
-    office: `직장인구가 상주인구의 ${ratio.toFixed(1)}배로 서울 상위 10%이고, 주말 유동이 평일보다 적습니다.`,
-    campus: `대학 시설이 있고, 거리 위 20대 비중이 ${(share20s * 100).toFixed(1)}%로 서울 상위 10%입니다.`,
-    dining: `결제액의 ${(fnbShare * 100).toFixed(1)}%가 음식·유흥이고, 낮 시간 유동이 서울 상위 25%입니다.`,
-    hub: `집객시설이 ${facility}개로 서울 상위 25%이고, 낮 시간 유동이 밤보다 강합니다.`,
-    residential: "직장인구가 상주인구보다 적고, 밤 시간 체류가 서울 하위 25%에 들지 않습니다.",
-    mixed: "어느 축에서도 서울 상위·하위 경계를 넘지 않습니다.",
+    office: `직장인구가 상주인구의 ${ratio.toFixed(1)}배로 매우 높은 편(서울 동을 100곳으로 치면 높은 쪽 10곳 안)이고, 주말 유동이 평일보다 적습니다.`,
+    campus: `대학 시설이 있고, 거리 위 20대 비중이 ${(share20s * 100).toFixed(1)}%로 매우 높은 편(서울 동을 100곳으로 치면 높은 쪽 10곳 안)입니다.`,
+    dining: `결제액의 ${(fnbShare * 100).toFixed(1)}%가 음식·유흥으로 높은 편(서울 동을 100곳으로 치면 높은 쪽 25곳 안)이고, 밤 시간 체류가 낮은 편(서울 동을 100곳으로 치면 낮은 쪽 25곳 안)입니다.`,
+    hub: `집객시설이 ${facility}개로 높은 편(서울 동을 100곳으로 치면 높은 쪽 25곳 안)이고, 낮 시간 유동이 밤보다 강합니다.`,
+    residential: "직장인구가 상주인구보다 적고, 밤 시간 체류가 낮은 쪽이 아닙니다(서울 동을 100곳으로 치면 낮은 쪽 25곳 밖).",
+    mixed: "어느 지표도 서울 동 가운데 두드러지게 높거나 낮지 않습니다.",
   };
   return reasons[type] ?? reasons.mixed;
 }
