@@ -1,7 +1,7 @@
 # commerce BC — 서울시 상권분석서비스 행정동 계열 적재
 
 > 작성 2026-09-23 · 대상 브랜치 `codex/seoul-atlas-landing` · 백엔드 v0.23.0
-> 선행 문서: `HANDOFF-260918.md` §4-1(반출 정책), `docs/api.md` §2-1
+> 선행 문서: `HANDOFF-260918.md`(2026-10-06 삭제 — 내용은 git 이력, 캠퍼스 반출 정책은 `docs/api.md` §8) §4-1(반출 정책), `docs/api.md` §2-1
 
 ## 1. 목적
 

@@ -2,7 +2,7 @@
 
 > 작성 2026-09-23 · 분석 전용(코드 변경 없음, DB는 SELECT만)
 > 대상: `data/raw/seoul_commerce/` 원천 CSV + `beyondfacade` DB 읽기
-> 선행 문서: `docs/superpowers/specs/2026-09-23-commerce-bc-design.md` §3-2·§6, `HANDOFF-260918.md` §1·§5
+> 선행 문서: `docs/superpowers/specs/2026-09-23-commerce-bc-design.md` §3-2·§6, `HANDOFF-260918.md`(2026-10-06 삭제 — 내용은 git 이력, 캠퍼스 반출 정책은 `docs/api.md` §8) §1·§5
 
 ---
 

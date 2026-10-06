@@ -1,7 +1,7 @@
 # neighborhood BC — 동네 맥락 데이터 적재
 
 > 작성 2026-09-23 · 대상 브랜치 `codex/seoul-atlas-landing` · 백엔드 v0.25.0
-> 선행: `2026-09-23-commerce-bc-design.md`, `2026-09-23-commerce-crossvalidation.md`, `HANDOFF-260918.md` §2-1
+> 선행: `2026-09-23-commerce-bc-design.md`, `2026-09-23-commerce-crossvalidation.md`, `HANDOFF-260918.md`(2026-10-06 삭제 — 내용은 git 이력, 캠퍼스 반출 정책은 `docs/api.md` §8) §2-1
 
 ## 1. 왜 새 BC인가
 
