@@ -1114,6 +1114,29 @@
     ],
     "recent_news": []
   },
+  "regional_events": [
+    {
+      "start_date": "2025-05-30",
+      "end_date": null,
+      "name": "나진상가 15동 폐업",
+      "source": "서울 열린데이터광장 OA-16096 서울시 대규모점포 인허가 정보",
+      "source_url": "https://data.seoul.go.kr/dataList/OA-16096/S/1/datasetView.do"
+    },
+    {
+      "start_date": "2024-12-29",
+      "end_date": null,
+      "name": "(주)농협유통하나로클럽용산점 폐업",
+      "source": "서울 열린데이터광장 OA-16096 서울시 대규모점포 인허가 정보",
+      "source_url": "https://data.seoul.go.kr/dataList/OA-16096/S/1/datasetView.do"
+    },
+    {
+      "start_date": "2024-10-28",
+      "end_date": null,
+      "name": "나진상가 17,18동 개설(인허가)",
+      "source": "서울 열린데이터광장 OA-16096 서울시 대규모점포 인허가 정보",
+      "source_url": "https://data.seoul.go.kr/dataList/OA-16096/S/1/datasetView.do"
+    }
+  ],
   "news": [],
   "funding_candidates": [
     {

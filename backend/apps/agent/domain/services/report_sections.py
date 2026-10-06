@@ -307,13 +307,29 @@ def resident_line(facts: dict) -> str:
     return f"{head}{tail}."
 
 
+_SEOUL_OPEN_DATA = "서울 열린데이터광장 "
+
+
+def regional_events_line(facts: dict) -> str | None:
+    """동의 지역 사건(최근 3년) — 날짜는 달까지(인허가일≠개점일), 출처 데이터셋을 끝에 단다(공공누리 1유형). 없으면 None(줄 생략)."""
+    events = facts.get("regional_events")
+    if not isinstance(events, list) or not events:
+        return None
+    region, _ = subject_names(facts)
+    items = " · ".join(f"{(e.get('start_date') or '')[:7]} {e.get('name')}" for e in events)
+    sources = " · ".join(dict.fromkeys((e.get("source") or "").removeprefix(_SEOUL_OPEN_DATA) for e in events if e.get("source")))
+    return f"{FACT} {region} 지역 사건(최근 3년, 서울 열린데이터광장): {items} (출처: {sources})"
+
+
 def _conditions(facts: dict) -> str:
     region, industry = subject_names(facts)
+    events = regional_events_line(facts)
     lines = [
         _hours(facts.get("hour_gap") or {}, region, industry),
         _profile(facts.get("profile") or {}, region),
         _staying(facts.get("commerce_change") or {}, region),
         resident_line(facts),
+        *([events] if events else []),
         *([_BUDGET_LINE] if facts.get("budget") is not None else []),
     ]
     return "\n\n".join(lines)

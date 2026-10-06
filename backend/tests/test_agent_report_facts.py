@@ -1,6 +1,7 @@
 """ReportFactsCollector — LLM 호출 전 사실 선수집의 키 완전성·실패 격리 (Fake 포트, DB 없음)."""
 
 import json
+from datetime import date
 import time
 
 import pytest
@@ -10,6 +11,7 @@ from apps.agent.app.ports.output.agent_port import (
     FinanceFactsPort,
     FundingFactsPort,
     NewsLinksPort,
+    RegionalEventsPort,
     QuestionBudgetPort,
     RegionFactsPort,
     VerdictFactsPort,
@@ -123,21 +125,35 @@ class FakeNewsLinks(NewsLinksPort):
         return [{"title": "역삼동 한식 상권 기사", "url": "https://news.example/1", "published_at": "2026-09-01", "press": None}]
 
 
-def _collector(region=None, verdict=None, funding=None, news=None) -> ReportFactsCollector:
+class FakeRegionalEvents(RegionalEventsPort):
+    """최근 것 먼저 — 2026년 6건과 3년 넘은 2023년 1건."""
+
+    def __init__(self) -> None:
+        self.calls: list[str] = []
+
+    def for_region(self, region_code: str) -> list[dict]:
+        self.calls.append(region_code)
+        recent = [{"start_date": f"2026-0{m}-01", "name": f"사건 {m}", "source": "서울 열린데이터광장 OA-16096 서울시 대규모점포 인허가 정보"} for m in range(6, 0, -1)]
+        return [*recent, {"start_date": "2023-10-05", "name": "오래된 사건", "source": "서울 열린데이터광장 OA-15818 서울시 공동주택 아파트 정보"}]
+
+
+def _collector(region=None, verdict=None, funding=None, news=None, regional=None) -> ReportFactsCollector:
     return ReportFactsCollector(
         region_facts=region or FakeRegionFacts(),
         verdict_facts=verdict or FakeVerdictFacts(),
         funding_facts=funding or FakeFundingFacts(),
         news_links=news or FakeNewsLinks(),
+        regional_events=regional,
+        today=lambda: date(2026, 10, 6),
     )
 
 
-def test_열네_키를_빠짐없이_모은다():
+def test_열다섯_키를_빠짐없이_모은다():
     """프론트 시각 자료가 키 하나에 하나씩 달린다 — 키가 빠지면 그림이 사라진다 (설계서 §5)."""
     facts = _collector().collect("1168064000", "korean_food", 50_000_000)
 
     assert list(facts) == list(FACTS_KEYS)
-    assert len(FACTS_KEYS) == 14 and FACTS_KEYS[-1] == "finance"
+    assert len(FACTS_KEYS) == 15 and FACTS_KEYS[-1] == "finance"
 
 
 class FakeFinanceFacts(FinanceFactsPort):
@@ -398,3 +414,18 @@ def test_느린_항목이_나머지를_기다리게_하지_않는다():
     assert elapsed < 0.45, f"동시 수집이 아니다 ({elapsed:.2f}초)"
     assert list(facts) == list(FACTS_KEYS)  # 순서는 계약이다
     assert facts["metrics_history"][0]["year"] == 2024
+
+
+def test_지역_사건은_동_코드로_찾아_최근_3년_것을_최대_5건_싣는다():
+    regional = FakeRegionalEvents()
+
+    facts = _collector(regional=regional).collect("1168064000", "korean_food", None)
+
+    assert regional.calls == ["1168064000"]
+    assert [e["name"] for e in facts["regional_events"]] == ["사건 6", "사건 5", "사건 4", "사건 3", "사건 2"]
+
+
+def test_지역_사건_원천이_없으면_그_자리만_자료_없음이다():
+    facts = _collector().collect("1168064000", "korean_food", None)
+
+    assert facts["regional_events"]["available"] is False

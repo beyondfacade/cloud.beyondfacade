@@ -9,6 +9,7 @@ from apps.agent.domain.services.report_sections import (
     alternatives_pointer,
     build_sections,
     hour_gap_sentence,
+    regional_events_line,
     resident_line,
     scarce_lead,
     scarcity,
@@ -321,3 +322,24 @@ def test_뉴스는_본문에_넣지_않는다():
     link = {"title": "송정동 골목 상점가 지정", "url": "u1", "published_at": "2026-09-01", "press": None}
     sections = build_sections({**_BASE, "news": [link]})
     assert not any("송정동 골목 상점가" in body or "뉴스" in body for body in sections.values())
+
+
+def test_조건_절에_지역_사건을_달까지_출처와_함께_쓴다():
+    events = [
+        {"start_date": "2025-08-25", "name": "중구 무교다동-31 도시정비형 재개발 착공", "source": "서울 열린데이터광장 OA-22856 서울특별시 도시정비사업 통계"},
+        {"start_date": "2025-06-05", "name": "Chapter M 개설(인허가)", "source": "서울 열린데이터광장 OA-16096 서울시 대규모점포 인허가 정보"},
+        {"start_date": "2025-04-15", "name": "중구 을지로3가-9 도시정비형 재개발 착공", "source": "서울 열린데이터광장 OA-22856 서울특별시 도시정비사업 통계"},
+    ]
+    facts = {**_BASE, "regional_events": events}
+
+    assert regional_events_line(facts) == (
+        "[확인된 사실] 송정동 지역 사건(최근 3년, 서울 열린데이터광장): 2025-08 중구 무교다동-31 도시정비형 재개발 착공"
+        " · 2025-06 Chapter M 개설(인허가) · 2025-04 중구 을지로3가-9 도시정비형 재개발 착공"
+        " (출처: OA-22856 서울특별시 도시정비사업 통계 · OA-16096 서울시 대규모점포 인허가 정보)"
+    )
+    assert regional_events_line(facts) in build_sections(facts)["conditions"]
+
+
+def test_지역_사건이_없거나_못_모았으면_줄을_뺀다():
+    assert regional_events_line({**_BASE, "regional_events": []}) is None
+    assert regional_events_line({**_BASE, "regional_events": {"available": False, "reason": "x"}}) is None

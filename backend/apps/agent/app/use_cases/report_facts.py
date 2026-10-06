@@ -16,7 +16,9 @@ LLM 첫 메시지의 `[FACTS]`로 동시에 나간다.
 
 import logging
 import re
+from collections.abc import Callable
 from concurrent.futures import Future, ThreadPoolExecutor
+from datetime import date, timedelta
 
 from apps.agent.app.ports.output.agent_port import (
     EventAnalogFactsPort,
@@ -24,6 +26,7 @@ from apps.agent.app.ports.output.agent_port import (
     FundingFactsPort,
     NewsLinksPort,
     QuestionBudgetPort,
+    RegionalEventsPort,
     RegionFactsPort,
     VerdictFactsPort,
 )
@@ -43,6 +46,7 @@ FACTS_KEYS = (
     "population",
     "shocks",
     "analogs",
+    "regional_events",
     "news",
     "funding_candidates",
     "budget",
@@ -50,6 +54,9 @@ FACTS_KEYS = (
 )
 
 _SHOCK_LIMIT = 5
+# 지역 사건 — 최근 3년, 최대 5건 (인허가일≠개점일이라 창은 넉넉히)
+_REGIONAL_EVENT_DAYS = 3 * 365
+_REGIONAL_EVENT_LIMIT = 5
 _NEWS_LIMIT = 3
 # 동 이름 꼬리(번호·"제"·"가"·"동") — 남은 어간이 기사에 나오면 이 동 기사로 본다(상도제1동→상도, 종로1.2.3.4가동→종로)
 _DONG_SUFFIX = re.compile(r"(?:제?\d+(?:\.\d+)*가?동|동)$")
@@ -76,6 +83,8 @@ class ReportFactsCollector:
         analog_facts: EventAnalogFactsPort | None = None,
         finance_facts: FinanceFactsPort | None = None,
         question_budget: QuestionBudgetPort | None = None,
+        regional_events: RegionalEventsPort | None = None,
+        today: Callable[[], date] = date.today,
     ) -> None:
         self._region_facts = region_facts
         self._verdict_facts = verdict_facts
@@ -84,6 +93,8 @@ class ReportFactsCollector:
         self._analog_facts = analog_facts
         self._finance_facts = finance_facts
         self._question_budget = question_budget
+        self._regional_events = regional_events
+        self._today = today
 
     def collect(
         self, region: str, industry: str, budget: int | None = None, question: str | None = None
@@ -107,6 +118,7 @@ class ReportFactsCollector:
                 "population": pool.submit(self._region_facts.population, region),
                 "shocks": pool.submit(self._shocks, industry),
                 "analogs": pool.submit(self._analogs, industry, question),
+                "regional_events": pool.submit(self._regional, region),
                 "funding_candidates": pool.submit(self._funding, industry, region),
                 "finance": pool.submit(self._finance, region, industry),
                 # 뉴스 질의는 동 이름을 쓴다 — 워커가 region future를 기다리므로 **맨 뒤**에
@@ -163,6 +175,14 @@ class ReportFactsCollector:
         if self._finance_facts is None:
             return {"available": False, "reason": "자금 계획 프리필이 연결되지 않았습니다"}
         return self._finance_facts.prefill(region, industry)
+
+    def _regional(self, region: str) -> list[dict] | dict:
+        """동의 지역 사건 중 최근 3년, 최근 것부터 최대 5건."""
+        if self._regional_events is None:
+            return {"available": False, "reason": "지역 사건이 연결되지 않았습니다"}
+        since = (self._today() - timedelta(days=_REGIONAL_EVENT_DAYS)).isoformat()
+        events = [e for e in self._regional_events.for_region(region) if (e.get("start_date") or "") >= since]
+        return events[:_REGIONAL_EVENT_LIMIT]
 
     def _question_budget_of(self, question: str | None) -> int | None:
         """폼 예산이 없을 때만 — 질문 속 금액(관문과 같은 규칙)."""

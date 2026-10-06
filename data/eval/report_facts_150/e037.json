@@ -1009,6 +1009,15 @@
     ],
     "recent_news": []
   },
+  "regional_events": [
+    {
+      "start_date": "2026-07-01",
+      "end_date": "2027-07-01",
+      "name": "마포구 신촌지역(마포)2-7 도시정비형 재개발 이주 시작",
+      "source": "서울 열린데이터광장 OA-22856 서울특별시 도시정비사업 통계",
+      "source_url": "https://data.seoul.go.kr/dataList/OA-22856/S/1/datasetView.do"
+    }
+  ],
   "news": [],
   "funding_candidates": [
     {

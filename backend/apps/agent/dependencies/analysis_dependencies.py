@@ -14,6 +14,7 @@ from apps.agent.adapter.outbound.gateways.funding_facts_gateway import FundingFa
 from apps.agent.adapter.outbound.gateways.news_links_gateway import NewsLinksGateway
 from apps.agent.adapter.outbound.gateways.question_budget_gateway import QuestionBudgetGateway
 from apps.agent.adapter.outbound.gateways.region_facts_gateway import RegionFactsGateway
+from apps.agent.adapter.outbound.gateways.regional_events_gateway import RegionalEventsGateway
 from apps.agent.adapter.outbound.gateways.verdict_facts_gateway import VerdictFactsGateway
 from apps.agent.adapter.outbound.llm.anthropic_llm_adapter import AnthropicLLMAdapter
 from apps.agent.adapter.outbound.llm.fallback_llm_adapter import FallbackLLMAdapter
@@ -103,6 +104,7 @@ def build_analysis_use_case(model: str = "hybrid", budget: int | None = None) ->
         analog_facts=EventAnalogFactsGateway(),
         finance_facts=FinanceFactsGateway(),
         question_budget=QuestionBudgetGateway(),
+        regional_events=RegionalEventsGateway(),
     )
     retry = _RETRY_REGISTRY.get(model)
     return AnalysisInteractor(

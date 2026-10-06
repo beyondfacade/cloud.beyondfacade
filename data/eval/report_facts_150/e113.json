@@ -1007,6 +1007,22 @@
     ],
     "recent_news": []
   },
+  "regional_events": [
+    {
+      "start_date": "2025-12-30",
+      "end_date": null,
+      "name": "잠실르엘 입주(1,865세대)",
+      "source": "서울 열린데이터광장 OA-15818 서울시 공동주택 아파트 정보",
+      "source_url": "https://data.seoul.go.kr/dataList/OA-15818/S/1/datasetView.do"
+    },
+    {
+      "start_date": "2025-12-30",
+      "end_date": null,
+      "name": "잠실래미안아이파크 입주(2,678세대)",
+      "source": "서울 열린데이터광장 OA-15818 서울시 공동주택 아파트 정보",
+      "source_url": "https://data.seoul.go.kr/dataList/OA-15818/S/1/datasetView.do"
+    }
+  ],
   "news": [],
   "funding_candidates": [
     {

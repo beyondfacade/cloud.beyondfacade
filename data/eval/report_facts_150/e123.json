@@ -1092,6 +1092,15 @@
     ],
     "recent_news": []
   },
+  "regional_events": [
+    {
+      "start_date": "2026-02-13",
+      "end_date": null,
+      "name": "마포구 마포로1-58-2 도시정비형 재개발 착공",
+      "source": "서울 열린데이터광장 OA-22856 서울특별시 도시정비사업 통계",
+      "source_url": "https://data.seoul.go.kr/dataList/OA-22856/S/1/datasetView.do"
+    }
+  ],
   "news": [],
   "funding_candidates": [
     {

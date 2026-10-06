@@ -1007,6 +1007,15 @@
     ],
     "recent_news": []
   },
+  "regional_events": [
+    {
+      "start_date": "2026-05-18",
+      "end_date": null,
+      "name": "성북구 동선2 주택정비형 재개발 착공",
+      "source": "서울 열린데이터광장 OA-22856 서울특별시 도시정비사업 통계",
+      "source_url": "https://data.seoul.go.kr/dataList/OA-22856/S/1/datasetView.do"
+    }
+  ],
   "news": [],
   "funding_candidates": [
     {

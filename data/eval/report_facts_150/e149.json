@@ -851,6 +851,15 @@
     ],
     "recent_news": []
   },
+  "regional_events": [
+    {
+      "start_date": "2024-11-01",
+      "end_date": "2025-12-31",
+      "name": "중구 신당8 주택정비형 재개발 이주 시작",
+      "source": "서울 열린데이터광장 OA-22856 서울특별시 도시정비사업 통계",
+      "source_url": "https://data.seoul.go.kr/dataList/OA-22856/S/1/datasetView.do"
+    }
+  ],
   "news": [],
   "funding_candidates": [
     {

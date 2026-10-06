@@ -176,3 +176,11 @@ class NewsLinksPort(ABC):
     @abstractmethod
     def mentioning(self, name: str, limit: int) -> list[dict]:
         """제목·발췌에 name이 나온 보관 기간(21일) 안 기사, 최신순 — {title, url, published_at(YYYY-MM-DD), press}."""
+
+
+class RegionalEventsPort(ABC):
+    """Driven Port — shock BC의 지역 사건(정비사업 이주·착공, 대규모점포 개설·폐업, 대단지 입주). 서울 열린데이터광장 원천."""
+
+    @abstractmethod
+    def for_region(self, region_code: str) -> list[dict]:
+        """행정동 1곳의 지역 사건, 최근 것 먼저 — {start_date(YYYY-MM-DD), end_date, name, source, source_url}."""
