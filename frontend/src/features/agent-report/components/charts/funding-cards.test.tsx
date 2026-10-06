@@ -7,9 +7,14 @@ it.each([
   ["", "업종에 맞는 지원사업", "업종에 맞는 지원사업"],
   ["지원 요약", "추천 이유", "지원 요약"],
   [null, null, "요약 없음"],
-])("요약 %s와 추천 이유 %s에 따라 한 줄 설명과 툴팁을 표시한다", (summary, why, expected) => {
+])("요약 %s와 추천 이유 %s에 따라 설명과 툴팁을 표시한다", (summary, why, expected) => {
   render(<FundingCards candidates={[{ title: "공고", summary, why }]} />);
   expect(screen.getByText(expected)).toHaveAttribute("title", expected);
+});
+
+it("공고 카드에 기업마당 출처를 표시한다", () => {
+  render(<FundingCards candidates={[{ title: "공고", summary: "지원 요약" }]} />);
+  expect(screen.getByText("출처: 기업마당")).toBeInTheDocument();
 });
 
 it("후보 다섯 개까지 기관 요약 대상과 안전한 원문 링크를 표시한다", () => {

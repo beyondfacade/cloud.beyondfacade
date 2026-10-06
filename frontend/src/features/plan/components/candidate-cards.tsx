@@ -47,6 +47,7 @@ export function CandidateCards({
           </li>
         ))}
       </ul>
+      {candidates.length > 0 && <p className="text-xs text-[var(--text-secondary)]">출처: 기업마당(중소벤처기업부)</p>}
     </section>
   );
 }

@@ -66,6 +66,7 @@ it("대출·보증 묶음에 금리 참고값과 대출 공고를 보여 준다"
   expect(within(loans).getByText("연 4.05%")).toBeInTheDocument();
   expect(within(loans).getAllByText(/2026년 8월/).length).toBeGreaterThan(0);
   expect(within(loans).getByRole("link", { name: "소상공인 정책자금 융자" })).toHaveAttribute("href", "https://www.bizinfo.go.kr/l1");
+  expect(within(loans).getByText(/출처: 기업마당/)).toBeInTheDocument();
 });
 
 it("우리 구 전용 묶음 제목에 구 이름을 쓰고 전용 표시를 단다", async () => {

@@ -122,21 +122,24 @@ function RateList({ rates }: { rates: RateReference[] }) {
 function ProgramList({ items, districtName, empty }: { items: SupportItem[]; districtName: string | null; empty: string }) {
   if (items.length === 0) return <p className="text-sm text-[var(--text-secondary)]">{empty}</p>;
   return (
-    <ul className="flex flex-col gap-2">
-      {items.map((item) => (
-        <li key={item.program_id} className="rounded-lg border border-[var(--border)] p-3">
-          {/^https?:\/\//i.test(item.url)
-            ? <a href={item.url} target="_blank" rel="noreferrer" className={LINK_CLASS}>{item.title}</a>
-            : <span className="text-sm font-medium text-[var(--text-primary)]">{item.title}</span>}
-          <p className="mt-1 text-xs text-[var(--text-secondary)]">{item.org} · {item.apply_period || "상시"}</p>
-          <p className="mt-1 flex flex-wrap items-center gap-1.5 text-[11px] text-[var(--text-secondary)]">
-            <span>{item.why}</span>
-            {item.district_match && districtName && <Badge>{districtName} 전용</Badge>}
-            {item.industry_match && <Badge>업종 관련</Badge>}
-          </p>
-        </li>
-      ))}
-    </ul>
+    <>
+      <ul className="flex flex-col gap-2">
+        {items.map((item) => (
+          <li key={item.program_id} className="rounded-lg border border-[var(--border)] p-3">
+            {/^https?:\/\//i.test(item.url)
+              ? <a href={item.url} target="_blank" rel="noreferrer" className={LINK_CLASS}>{item.title}</a>
+              : <span className="text-sm font-medium text-[var(--text-primary)]">{item.title}</span>}
+            <p className="mt-1 text-xs text-[var(--text-secondary)]">{item.org} · {item.apply_period || "상시"}</p>
+            <p className="mt-1 flex flex-wrap items-center gap-1.5 text-[11px] text-[var(--text-secondary)]">
+              <span>{item.why}</span>
+              {item.district_match && districtName && <Badge>{districtName} 전용</Badge>}
+              {item.industry_match && <Badge>업종 관련</Badge>}
+            </p>
+          </li>
+        ))}
+      </ul>
+      <p className="text-xs text-[var(--text-secondary)]">출처: 기업마당(중소벤처기업부)</p>
+    </>
   );
 }
 
