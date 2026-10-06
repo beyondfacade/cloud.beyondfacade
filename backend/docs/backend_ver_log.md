@@ -1,5 +1,12 @@
 # Backend Version Log
 
+## [v0.73.0] - 2026-10-06
+
+### Changed
+- 운영 리포트 해석 1차 모델을 claude-opus-5-5로 — 배선 hybrid는 오퍼스 → Gemini → 로컬 gemma4:12b. 해석 가드 재시도는 Gemini(실패 시 로컬). 근거: 116건 opus 판정 Opus 1.7% · Gemini 16.5% · 12b 30.2%(`data/eval/results/claude-models-2026-10-06/notes.md`, 판정자 자기 선호 가능성 있음).
+- `AnthropicLLMAdapter`는 키가 없으면 생성 시점에 ValueError — 폴백 어댑터가 다음 모델로 내려간다.
+- 관리자 헬스케어 LLM 경로: anthropic(1차) · gemini · ollama.
+
 ## [v0.72.0] - 2026-10-06
 
 ### Added

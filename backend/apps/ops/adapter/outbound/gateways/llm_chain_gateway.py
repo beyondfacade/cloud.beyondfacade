@@ -4,21 +4,30 @@ from apps.rag.adapter.outbound.embeddings.ollama_bge_m3_adapter import OllamaBge
 from core.matrix.grid_keymaker_secret_manager import get_settings
 
 # agent/dependencies/analysis_dependencies.py 의 hybrid 배선(_hybrid·_local)과 같아야 한다
-PRIMARY_MODEL = "gemini-2.5-flash"
+PRIMARY_MODEL = "claude-opus-5-5"
+SECONDARY_MODEL = "gemini-2.5-flash"
 FALLBACK_MODEL = "gemma4:12b"
 FALLBACK_NUM_CTX = 32768  # 기본 컨텍스트(~2k)는 리포트 프롬프트(13~14k)를 자른다 — _LOCAL_NUM_CTX와 같아야 한다
 
 
 class LlmChainGateway(LlmChainPort):
     def routes(self) -> list[LlmRouteDto]:
-        has_key = bool(get_settings().gemini_api_key)
+        settings = get_settings()
+        has_claude, has_gemini = bool(settings.anthropic_api_key), bool(settings.gemini_api_key)
         return [
             LlmRouteDto(
                 role="primary",
-                provider="gemini",
+                provider="anthropic",
                 model=PRIMARY_MODEL,
-                available=has_key,
-                detail="API 키 설정됨" if has_key else "API 키 없음 — 로컬로 폴백",
+                available=has_claude,
+                detail="API 키 설정됨" if has_claude else "API 키 없음 — Gemini로 폴백",
+            ),
+            LlmRouteDto(
+                role="fallback",
+                provider="gemini",
+                model=SECONDARY_MODEL,
+                available=has_gemini,
+                detail="API 키 설정됨" if has_gemini else "API 키 없음 — 로컬로 폴백",
             ),
             LlmRouteDto(role="fallback", provider="ollama", model=FALLBACK_MODEL, available=False, detail=""),
         ]

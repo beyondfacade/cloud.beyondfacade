@@ -276,8 +276,8 @@ def test_llm_call_event_테이블에_기록된다():
 def test_레지스트리가_hybrid를_기본으로_하고_단일_모델도_남긴다():
     from apps.agent.dependencies.analysis_dependencies import _LLM_REGISTRY
 
-    # gemma3·gemini 직접 지정은 두뇌 비교 평가 러너(run_agent_eval --model)가 쓴다
-    assert set(_LLM_REGISTRY) == {"hybrid", "gemma3", "gemini"}
+    # gemma3·gemini·opus 직접 지정은 두뇌 비교 평가 러너(run_agent_eval --model)가 쓴다
+    assert set(_LLM_REGISTRY) == {"hybrid", "gemma3", "gemini", "opus"}
 
 
 def test_hybrid_팩토리가_폴백_어댑터를_만든다():

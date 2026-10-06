@@ -172,3 +172,12 @@ def test_anthropic_어댑터는_도구를_받지_않는다():
     adapter = AnthropicLLMAdapter(model="claude-haiku-4-5", api_key="test")
     with pytest.raises(ValueError):
         adapter.chat([{"role": "user", "content": "q"}], [LLMToolSpec(name="t", description="d", input_schema={})])
+
+
+def test_anthropic_키가_없으면_생성_시점에_ValueError다(monkeypatch):
+    # 폴백 어댑터는 생성 실패를 "키 없음"으로 보고 다음 모델로 내려간다 — Gemini 어댑터와 같은 계약
+    from apps.agent.adapter.outbound.llm import anthropic_llm_adapter
+
+    monkeypatch.setattr(anthropic_llm_adapter, "get_settings", lambda: type("S", (), {"anthropic_api_key": ""})())
+    with pytest.raises(ValueError):
+        anthropic_llm_adapter.AnthropicLLMAdapter(model="claude-opus-5-5")

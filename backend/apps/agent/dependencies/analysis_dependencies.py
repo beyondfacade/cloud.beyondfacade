@@ -1,6 +1,6 @@
 """Composition Root (DIP) — Agent 분석 UseCase·Repository 배선.
 
-모델 선택(hybrid|gemini|gemma3)은 Factory Method 레지스트리로 분기한다 (CLAUDE.md §5).
+모델 선택(hybrid|opus|gemini|gemma3)은 Factory Method 레지스트리로 분기한다 (CLAUDE.md §5).
 AnalysisInteractor.last_usage는 가변 인스턴스 상태이므로 요청마다 새 인스턴스를 만든다.
 """
 
@@ -14,6 +14,7 @@ from apps.agent.adapter.outbound.gateways.funding_facts_gateway import FundingFa
 from apps.agent.adapter.outbound.gateways.question_budget_gateway import QuestionBudgetGateway
 from apps.agent.adapter.outbound.gateways.region_facts_gateway import RegionFactsGateway
 from apps.agent.adapter.outbound.gateways.verdict_facts_gateway import VerdictFactsGateway
+from apps.agent.adapter.outbound.llm.anthropic_llm_adapter import AnthropicLLMAdapter
 from apps.agent.adapter.outbound.llm.fallback_llm_adapter import FallbackLLMAdapter
 from apps.agent.adapter.outbound.llm.gemini_llm_adapter import GeminiLLMAdapter
 from apps.agent.adapter.outbound.llm.ollama_llm_adapter import OllamaLLMAdapter
@@ -48,13 +49,26 @@ def _gemini() -> LLMGatewayPort:
     return GeminiLLMAdapter(temperature=REPORT_TEMPERATURE, seed=REPORT_SEED)
 
 
-def _hybrid() -> LLMGatewayPort:
-    """기본 배선 — Gemini로 가되 키가 없거나 호출이 실패하면 로컬로 내려간다.
+# 1차 해석 모델 — 2026-10-06 평가(116건, opus 판정) Opus 5.5 1.7% · Gemini 16.5% · 12b 30.2%.
+# ops/adapter/outbound/gateways/llm_chain_gateway.py 의 PRIMARY_MODEL 과 같아야 한다
+REPORT_PRIMARY_MODEL = "claude-opus-5-5"
 
-    GeminiLLMAdapter는 키가 없으면 **생성 시점에** ValueError를 던진다. 폴백 어댑터가 그
-    예외를 잡는 것이 곧 키 유무 판정이다 — 키 값을 읽지도 남기지도 않는다.
-    """
+
+def _opus() -> LLMGatewayPort:
+    """키가 없으면 생성 시점에 ValueError. Opus 5.5는 생각을 끌 수 없어 effort low로 줄인다(온도는 받지 않는다)."""
+    return AnthropicLLMAdapter(REPORT_PRIMARY_MODEL, effort="low")
+
+
+def _gemini_then_local() -> LLMGatewayPort:
+    """Gemini로 가되 키가 없거나 호출이 실패하면 로컬로 내려간다 — 오퍼스 다음 단계이자 가드 재시도 모델."""
     return FallbackLLMAdapter(primary=_gemini, secondary=_local, recorder=SqlAlchemyLlmCallRecorder())
+
+
+def _hybrid() -> LLMGatewayPort:
+    """기본 배선 — 오퍼스 → Gemini → 로컬. 어댑터는 키가 없으면 **생성 시점에** ValueError를 던지고,
+    폴백 어댑터가 그 예외를 잡는 것이 곧 키 유무 판정이다 — 키 값을 읽지도 남기지도 않는다.
+    """
+    return FallbackLLMAdapter(primary=_opus, secondary=_gemini_then_local, recorder=SqlAlchemyLlmCallRecorder())
 
 
 _LLM_REGISTRY: dict[str, Callable[[], LLMGatewayPort]] = {
@@ -62,11 +76,12 @@ _LLM_REGISTRY: dict[str, Callable[[], LLMGatewayPort]] = {
     # 단일 모델 직접 지정은 남긴다 — 두뇌 비교 평가 러너(run_agent_eval)가 쓴다
     "gemma3": _local,
     "gemini": _gemini,
+    "opus": _opus,
 }
 
-# 해석이 가드에 걸리면(판정 모순·숫자만 남은 단락) 다음 모델 — 운영 hybrid만 로컬로 한 번 더 쓴다(설계서 §5).
+# 해석이 가드에 걸리면(판정 모순·숫자만 남은 단락) 다음 모델 — 운영 hybrid만 Gemini(실패 시 로컬)로 한 번 더 쓴다(설계서 §5).
 # 단일 모델 직접 지정(벤치·run_agent_eval)은 그 모델만 평가한다.
-_RETRY_REGISTRY: dict[str, Callable[[], LLMGatewayPort]] = {"hybrid": _local}
+_RETRY_REGISTRY: dict[str, Callable[[], LLMGatewayPort]] = {"hybrid": _gemini_then_local}
 
 
 def build_analysis_use_case(model: str = "hybrid", budget: int | None = None) -> AnalysisUseCase:
@@ -94,7 +109,7 @@ def build_analysis_use_case(model: str = "hybrid", budget: int | None = None) ->
 
 
 def get_analysis_use_case() -> AnalysisUseCase:
-    """FastAPI Depends 기본 배선 — hybrid(Gemini 우선, 실패 시 로컬)."""
+    """FastAPI Depends 기본 배선 — hybrid(오퍼스 우선, 실패 시 Gemini, 그다음 로컬)."""
     return build_analysis_use_case("hybrid")
 
 

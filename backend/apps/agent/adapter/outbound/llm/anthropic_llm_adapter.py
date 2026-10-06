@@ -1,4 +1,5 @@
 """Anthropic(Claude) LLM 어댑터 — LLMGatewayPort 구현. 리포트 해석 한 턴(도구 없음)만 지원한다.
+운영 1차 해석 모델(claude-opus-5-5, 2026-10-06 평가 — data/eval/results/claude-models-2026-10-06/notes.md).
 
 모델별 요청 차이(2026-10 기준): Claude Opus 5.5·Sonnet 5.5는 temperature를 받지 않는다(400) — 온도는 Haiku 4.5에만 싣는다.
 Opus 5.5는 생각을 끌 수 없어 effort로만 줄이고, Sonnet 5.5는 `between_tools`로 끈다(도구가 없으니 생각 없이 답한다).
@@ -46,7 +47,10 @@ class AnthropicLLMAdapter(LLMGatewayPort):
             self._options["thinking"] = thinking
         if effort is not None:
             self._options["output_config"] = {"effort": effort}
-        self._client = anthropic.Anthropic(api_key=api_key or get_settings().anthropic_api_key)
+        key = api_key or get_settings().anthropic_api_key
+        if not key:  # 생성 시점 실패 = 키 없음 — 폴백 어댑터가 다음 모델로 내려간다(Gemini 어댑터와 같은 계약)
+            raise ValueError("ANTHROPIC_API_KEY가 없다")
+        self._client = anthropic.Anthropic(api_key=key)
 
     def chat(self, messages: list[dict], tools: list[LLMToolSpec]) -> LLMTurn:
         response = self._client.messages.create(**self._request(messages, tools))
