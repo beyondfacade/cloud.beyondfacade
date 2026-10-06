@@ -132,6 +132,11 @@ class FinanceInteractor(FinanceUseCase):
                 "quarterly_sales": basis.quarterly_sales,
                 "store_count": basis.store_count,
                 "source_codes": list(basis.source_codes),
+                **(
+                    {"seoul_median_monthly": round(basis.seoul_median_quarterly_sales_per_store / _MONTHS_PER_QUARTER)}
+                    if basis.seoul_median_quarterly_sales_per_store is not None
+                    else {}
+                ),
             },
             caveat=(
                 f"이 동 같은 업종 {basis.store_count:,}곳의 분기 매출을 점포 수로 나눈 평균입니다. "

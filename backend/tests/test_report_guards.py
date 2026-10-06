@@ -252,6 +252,21 @@ def test_판정과_모순된_해석은_통과하지_못한다():
     assert got.ok is False and got.contradiction == "판정은 **경고 없음"
 
 
+def test_시간대_매출을_모르면_시간대와_매출을_묶은_문장만_지운다():
+    # 자료가 없는데 "저녁 매출은 기대하기 어렵다"처럼 동 사람 흐름·업종 상식으로 메웠다(dong150 오류 3건)
+    text = "저녁 매출은 기대하기 어렵습니다. 밤에 사람이 가장 많습니다. 시간대 매출 자료가 없어 언제 손님이 많은지는 알 수 없습니다."
+
+    got = guard_answer(text, _RED, hour_sales_known=False)
+
+    assert (got.text, got.hour_sales_removed) == (
+        "밤에 사람이 가장 많습니다. 시간대 매출 자료가 없어 언제 손님이 많은지는 알 수 없습니다.", 1
+    )
+
+
+def test_시간대_매출이_있으면_시간대_매출_문장을_지우지_않는다():
+    assert guard_answer("저녁 매출이 가장 큽니다.", _RED).text == "저녁 매출이 가장 큽니다."
+
+
 def test_숫자_문장만_있던_해석은_가드_뒤_비어_통과하지_못한다():
     got = guard_answer("매출은 1,200만원입니다. 폐업률은 31%입니다.", _RED)
 

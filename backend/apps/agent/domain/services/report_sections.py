@@ -92,14 +92,20 @@ def _verdict(facts: dict) -> str:
     if not verdict.get("available"):
         return f"{FACT} {region} {industry} 판정: {missing(verdict.get('reason'))}"
     judged = [s for s in verdict.get("signals") or [] if not s.get("advisory")]
-    short = sum(s.get("level") == "unavailable" for s in judged)
     label = VERDICT_LABELS.get(verdict.get("verdict_code"), verdict.get("verdict_code"))
-    tail = f", {short}개는 자료 부족으로 계산하지 못함" if short else ""
-    return (
+    # 꺼진 신호와 계산 못 한 신호를 한 줄로 묶으면 해석이 "경고 없음은 자료가 비어서"로 읽었다 — 이름까지 나눠 쓴다
+    groups = (("off", "계산했지만 기준을 넘지 않은 신호"), ("unavailable", "자료 부족으로 계산하지 못한 신호"))
+    parts = [
         f"{FACT} {region} {industry} 판정: **{label}** — 경고 신호 {len(judged)}개 중 "
-        f"{verdict.get('on_count', 0)}개 켜짐(강한 신호 {verdict.get('strong_count', 0)}개){tail}. "
-        f"산출 {str(verdict.get('computed_at') or '')[:10]}."
-    )
+        f"{verdict.get('on_count', 0)}개 켜짐(강한 신호 {verdict.get('strong_count', 0)}개).",
+        *(
+            f"{title} {len(group)}개({'·'.join(SIGNAL_LABELS.get(s.get('key'), s.get('key')) for s in group)})."
+            for level, title in groups
+            if (group := [s for s in judged if s.get("level") == level])
+        ),
+        f"산출 {str(verdict.get('computed_at') or '')[:10]}.",
+    ]
+    return " ".join(parts)
 
 
 # ── 왜 안 되나 ───────────────────────────────────────────────

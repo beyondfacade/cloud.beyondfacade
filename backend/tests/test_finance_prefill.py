@@ -63,6 +63,12 @@ def test_월매출은_분기_매출_합을_점포_합으로_나누고_3으로_�
     assert "400곳" in dto.expected_monthly_revenue.caveat
 
 
+def test_월매출_근거에_서울_같은_업종_동_중앙값을_월_단위로_싣는다():
+    # 해석이 비교 기준 없이 "평균 매출이 낮은 편"을 덧붙였다 — 견줄 기준은 코드가 준다
+    dto = _interactor().prefill("1168064000", "cafe")
+    assert dto.expected_monthly_revenue.basis["seoul_median_monthly"] == round(23_490_000 / 3)
+
+
 def test_매출_없는_조합은_404가_아니라_값_null이다():
     dto = _interactor(revenue=None).prefill("1168064000", "childcare")
     assert dto.expected_monthly_revenue.value is None
