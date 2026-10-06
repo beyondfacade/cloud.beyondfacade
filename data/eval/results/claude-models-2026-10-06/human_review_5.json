@@ -1,0 +1,112 @@
+{
+ "mapping": {
+  "e006": {
+   "A": "claude-opus-5-5",
+   "B": "gemini-3.8-flash"
+  },
+  "e022": {
+   "A": "claude-opus-5-5",
+   "B": "gemini-3.8-flash"
+  },
+  "e032": {
+   "A": "claude-opus-5-5",
+   "B": "gemini-3.8-flash"
+  },
+  "e038": {
+   "A": "claude-opus-5-5",
+   "B": "gemini-3.8-flash"
+  },
+  "e043": {
+   "A": "claude-opus-5-5",
+   "B": "gemini-3.8-flash"
+  },
+  "e050": {
+   "A": "gemini-3.8-flash",
+   "B": "claude-opus-5-5"
+  },
+  "e054": {
+   "A": "claude-opus-5-5",
+   "B": "gemini-3.8-flash"
+  },
+  "e056": {
+   "A": "claude-opus-5-5",
+   "B": "gemini-3.8-flash"
+  },
+  "e058": {
+   "A": "gemini-3.8-flash",
+   "B": "claude-opus-5-5"
+  },
+  "e066": {
+   "A": "claude-opus-5-5",
+   "B": "gemini-3.8-flash"
+  },
+  "e067": {
+   "A": "gemini-3.8-flash",
+   "B": "claude-opus-5-5"
+  },
+  "e069": {
+   "A": "gemini-3.8-flash",
+   "B": "claude-opus-5-5"
+  },
+  "e070": {
+   "A": "claude-opus-5-5",
+   "B": "gemini-3.8-flash"
+  },
+  "e079": {
+   "A": "gemini-3.8-flash",
+   "B": "claude-opus-5-5"
+  },
+  "e102": {
+   "A": "gemini-3.8-flash",
+   "B": "claude-opus-5-5"
+  },
+  "e105": {
+   "A": "claude-opus-5-5",
+   "B": "gemini-3.8-flash"
+  },
+  "e111": {
+   "A": "claude-opus-5-5",
+   "B": "gemini-3.8-flash"
+  },
+  "e113": {
+   "A": "gemini-3.8-flash",
+   "B": "claude-opus-5-5"
+  },
+  "e143": {
+   "A": "claude-opus-5-5",
+   "B": "gemini-3.8-flash"
+  },
+  "e144": {
+   "A": "claude-opus-5-5",
+   "B": "gemini-3.8-flash"
+  }
+ },
+ "reviews": {
+  "e022-best": {
+   "at": "2026-10-06T08:20:52.415Z",
+   "pick": "B"
+  },
+  "e022-B": {
+   "at": "2026-10-06T08:20:55.336Z",
+   "error": false
+  },
+  "e022-A": {
+   "answered": true,
+   "at": "2026-10-06T08:20:38.088Z",
+   "error": false
+  },
+  "e006-best": {
+   "at": "2026-10-06T08:20:02.327Z",
+   "pick": "B"
+  },
+  "e006-B": {
+   "at": "2026-10-06T08:20:01.141Z",
+   "error": false
+  },
+  "e006-A": {
+   "at": "2026-10-06T08:19:54.945Z",
+   "error": false
+  }
+ },
+ "note": "20건 중 2건만 기록. 사용자 총평: \"전부 반영은 하는 거 같다. 다만 답변은 B가 훨씬 좋다\"(기록된 2건의 B는 모두 gemini-3.8-flash)"
+}
