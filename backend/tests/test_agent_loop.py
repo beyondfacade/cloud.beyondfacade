@@ -208,6 +208,13 @@ def test_두_프롬프트_모두_중고등학생도_이해할_쉬운_말투를_�
         assert "[말투]" in prompt and "중고등학생" in prompt and "풀어 쓴다" in prompt
 
 
+def test_숫자_금지에서_동_이름은_본문_표기_그대로_쓰게_한다():
+    # 숫자 금지 때문에 "이태원제일동", "답십리제두동"(없는 지명)처럼 풀어 썼다 — 매 회차 3.8 116건 중 약 11건.
+    # 숫자 가드는 분석·대안 동 이름 속 숫자를 세지 않는다(region_names)
+    for prompt in (SYSTEM_PROMPT, QUESTION_SYSTEM_PROMPT):
+        assert "동 이름은 본문에 적힌 그대로" in prompt
+
+
 def test_응답_규칙_2는_숫자_없이_재난지원_시기를_말한다():
     rule = next(line for line in SYSTEM_PROMPT.splitlines() if line.startswith("②"))
 
