@@ -1,5 +1,19 @@
 # Backend Version Log
 
+## [v0.86.0] - 2026-10-06
+
+### Added
+- ④지역 이벤트 적재 — 비어 있던 `shock_event_region`을 서울 열린데이터광장 3개 원천으로 채움(`load_regional_events` CLI, `shock_event` layer=regional·category NULL이라 유사 사례 비교 밖). 2019-01-01 이후만, event_id 결정적 슬러그로 재실행 멱등. 출처표시는 `source`("서울 열린데이터광장 OA-xxxxx 데이터셋 이름")와 데이터셋 페이지 `source_url`.
+  - OA-22856 도시정비사업: 재개발·재건축 이주 시작(종료일=이주 종료)·착공 — 주소를 SGIS로 지오코딩(지번 → 도로명). 브이월드 지오코더는 결과 저장 금지 약관(api.md §2-4)이라 쓰지 않음
+  - OA-16096 대규모점포: 개설(인허가)·폐업 — 준대규모점포(SSM)는 동네 슈퍼 규모라 제외, EPSG:5174 → WGS84
+  - OA-15818 아파트: 1,000세대 이상 사용승인(입주), 세대수 결측·0 제외
+  - 행정동 판정은 store BC `RegionIndex` 재사용. 위치를 못 정한 이벤트는 저장하지 않고 건수·목록을 로그로 남김. 첫 적재: 정비 157(이주 96·착공 61)·대규모점포 84(개설 40·폐업 44)·입주 66 = 307건, 151개 동, 건너뜀 12건(좌표·지오코딩 없음)
+- 행정동 1곳의 지역 이벤트 조회 `ShockEventRegionUseCase.list_for_region`(시작일 내림차순) — 리포트 연결은 후속
+- `scripts/regional-event-collector.sh` 주 1회 크론 러너(미등록)
+
+### Changed
+- `ShockEventRepository.list_events`가 layer=regional을 뺀다 — 리포트 '외부 충격' 공통 폴백(시작일 오름차순 5건)에 2019년 지역 이벤트가 정책 이벤트를 밀어내고 섞이지 않게. 정책 이벤트 결과는 그대로
+
 ## [v0.85.0] - 2026-10-06
 
 ### Changed

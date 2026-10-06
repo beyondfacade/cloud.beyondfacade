@@ -12,7 +12,7 @@ class ShockEventRepositoryPort(ABC):
 
     @abstractmethod
     def list_events(self, industry_id: str | None, limit: int) -> list[ShockEvent]:
-        """시행일 오름차순 limit건 — industry_id가 있으면 영향 업종으로 필터."""
+        """시행일 오름차순 limit건(④지역 이벤트 제외) — industry_id가 있으면 영향 업종으로 필터."""
 
     @abstractmethod
     def list_categorized(self) -> list[ShockEvent]:

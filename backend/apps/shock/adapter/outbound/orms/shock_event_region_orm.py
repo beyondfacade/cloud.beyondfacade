@@ -10,7 +10,7 @@ from core.matrix.grid_oracle_database_manager import OrmBase
 class ShockEventRegionOrm(OrmBase):
     """충격×행정동 M:N — ④지역 이벤트 계층용 자리 (brainstorming §5.2).
 
-    MVP는 빈 테이블 허용 — 뉴스 기반 ④계층 감지(§5.3)가 행을 채우는 후속 작업.
+    서울 열린데이터광장 정비사업·대규모점포·아파트 입주를 load_regional_events가 채운다 (v0.80.0).
     """
 
     __tablename__ = "shock_event_region"

@@ -14,6 +14,7 @@ from apps.shock.adapter.outbound.orms.shock_event_industry_orm import (
 from apps.shock.adapter.outbound.orms.shock_event_orm import ShockEventOrm
 from apps.shock.app.ports.output.shock_event_port import ShockEventRepositoryPort
 from apps.shock.domain.entities.shock_event_entity import ShockEvent
+from apps.shock.domain.value_objects.shock_layer import ShockLayer
 from core.matrix.grid_oracle_database_manager import session_scope
 
 
@@ -71,6 +72,8 @@ class SqlAlchemyShockEventRepository(ShockEventRepositoryPort):
         with session_scope() as session:
             statement = (
                 select(ShockEventOrm)
+                # ④지역 이벤트는 행정동 단위 — 전 업종 공통 충격 목록에 섞지 않는다 (shock_event_region으로 조회)
+                .where(ShockEventOrm.layer != ShockLayer.REGIONAL)
                 .order_by(ShockEventOrm.start_date, ShockEventOrm.event_id)
                 .limit(limit)
             )
