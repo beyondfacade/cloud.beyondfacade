@@ -119,7 +119,7 @@
     "region_code": "1165057000",
     "year_quarter": "20262",
     "neighborhood_type": "dining",
-    "type_reason": "결제액의 35.5%가 음식·유흥이고, 낮 시간 유동이 서울 상위 25%입니다.",
+    "type_reason": "결제액의 35.5%가 음식·유흥으로 높은 편(서울 동을 100곳으로 치면 높은 쪽 25곳 안)이고, 밤 시간 체류가 낮은 편(서울 동을 100곳으로 치면 낮은 쪽 25곳 안)입니다.",
     "time_label": "day",
     "peak_block": "day",
     "trough_block": "night",
@@ -654,7 +654,7 @@
         "target_weak_quarters": 0,
         "target_strong_quarters": 3,
         "target_weak_streak": 0,
-        "summary_sentence": "2026년 최저임금 인상 이후 지금까지 3분기 내내 서울 전체 카페가 평소보다 강했습니다.",
+        "summary_sentence": "2026년 최저임금 인상 이후 지금까지 3분기 내내 서울 전체 카페 점포 증감이 사례 직전 1년 같은 분기보다 강했습니다.",
         "overlap_sentence": null
       }
     ],

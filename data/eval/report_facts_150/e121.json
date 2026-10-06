@@ -120,7 +120,7 @@
     "region_code": "1129066000",
     "year_quarter": "20262",
     "neighborhood_type": "residential",
-    "type_reason": "직장인구가 상주인구보다 적고, 밤 시간 체류가 서울 하위 25%에 들지 않습니다.",
+    "type_reason": "직장인구가 상주인구보다 적고, 밤 시간 체류가 낮은 쪽이 아닙니다(서울 동을 100곳으로 치면 낮은 쪽 25곳 밖).",
     "time_label": "night",
     "peak_block": "night",
     "trough_block": "day",
@@ -655,7 +655,7 @@
         "target_weak_quarters": 2,
         "target_strong_quarters": 0,
         "target_weak_streak": 0,
-        "summary_sentence": "2026년 최저임금 인상 이후 지금까지 3분기 중 서울 전체 노래방이 평소보다 약했던 분기는 2분기였습니다.",
+        "summary_sentence": "2026년 최저임금 인상 이후 지금까지 3분기 중 서울 전체 노래방 점포 증감이 사례 직전 1년 같은 분기보다 약했던 분기는 2분기였습니다.",
         "overlap_sentence": null
       }
     ],
@@ -1254,16 +1254,9 @@
   "finance": {
     "available": true,
     "expected_monthly_revenue": {
-      "value": 2025771,
-      "basis": {
-        "year_quarter": "20254",
-        "quarterly_sales": 42541201,
-        "store_count": 7,
-        "source_codes": [
-          "CS200037"
-        ]
-      },
-      "caveat": "이 동 같은 업종 7곳의 분기 매출을 점포 수로 나눈 평균입니다. 편차가 크고 신규 점포는 평균 아래서 시작하는 경우가 많습니다.",
+      "value": null,
+      "basis": {},
+      "caveat": "이 동은 매출 자료를 믿기 어렵습니다 — 점포당 평균이 서울 같은 업종 동 중앙값의 3분의 1에도 못 미칩니다(카드로 잡히지 않는 매출이 많을 수 있습니다). 예상 월매출을 직접 넣으세요.",
       "unit": "원/월"
     },
     "rent_per_m2": {

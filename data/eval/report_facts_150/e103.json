@@ -78,7 +78,7 @@
     "region_code": "1120053500",
     "year_quarter": "20262",
     "neighborhood_type": "hub",
-    "type_reason": "집객시설이 189개로 서울 상위 25%이고, 낮 시간 유동이 밤보다 강합니다.",
+    "type_reason": "집객시설이 189개로 높은 편(서울 동을 100곳으로 치면 높은 쪽 25곳 안)이고, 낮 시간 유동이 밤보다 강합니다.",
     "time_label": "flat",
     "peak_block": "evening",
     "trough_block": "night",
@@ -613,7 +613,7 @@
         "target_weak_quarters": 2,
         "target_strong_quarters": 0,
         "target_weak_streak": 0,
-        "summary_sentence": "2026년 최저임금 인상 이후 지금까지 3분기 중 서울 전체 노래방이 평소보다 약했던 분기는 2분기였습니다.",
+        "summary_sentence": "2026년 최저임금 인상 이후 지금까지 3분기 중 서울 전체 노래방 점포 증감이 사례 직전 1년 같은 분기보다 약했던 분기는 2분기였습니다.",
         "overlap_sentence": null
       }
     ],

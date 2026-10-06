@@ -78,7 +78,7 @@
     "region_code": "1168065600",
     "year_quarter": "20262",
     "neighborhood_type": "office",
-    "type_reason": "직장인구가 상주인구의 2.6배로 서울 상위 10%이고, 주말 유동이 평일보다 적습니다.",
+    "type_reason": "직장인구가 상주인구의 2.6배로 매우 높은 편(서울 동을 100곳으로 치면 높은 쪽 10곳 안)이고, 주말 유동이 평일보다 적습니다.",
     "time_label": "flat",
     "peak_block": "day",
     "trough_block": "night",
@@ -637,7 +637,7 @@
         "target_weak_quarters": 3,
         "target_strong_quarters": 0,
         "target_weak_streak": 3,
-        "summary_sentence": "2026년 최저임금 인상 이후 지금까지 3분기 내내 서울 전체 헬스장이 평소보다 약했습니다.",
+        "summary_sentence": "2026년 최저임금 인상 이후 지금까지 3분기 내내 서울 전체 헬스장 점포 증감이 사례 직전 1년 같은 분기보다 약했습니다.",
         "overlap_sentence": null
       }
     ],

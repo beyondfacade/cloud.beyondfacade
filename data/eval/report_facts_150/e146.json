@@ -120,7 +120,7 @@
     "region_code": "1159065100",
     "year_quarter": "20262",
     "neighborhood_type": "residential",
-    "type_reason": "직장인구가 상주인구보다 적고, 밤 시간 체류가 서울 하위 25%에 들지 않습니다.",
+    "type_reason": "직장인구가 상주인구보다 적고, 밤 시간 체류가 낮은 쪽이 아닙니다(서울 동을 100곳으로 치면 낮은 쪽 25곳 밖).",
     "time_label": "night",
     "peak_block": "night",
     "trough_block": "day",
@@ -555,7 +555,7 @@
         "target_weak_quarters": 1,
         "target_strong_quarters": 0,
         "target_weak_streak": 0,
-        "summary_sentence": "2026년 최저임금 인상 이후 지금까지 3분기 중 서울 전체 일식이 평소보다 약했던 분기는 1분기였습니다.",
+        "summary_sentence": "2026년 최저임금 인상 이후 지금까지 3분기 중 서울 전체 일식 점포 증감이 사례 직전 1년 같은 분기보다 약했던 분기는 1분기였습니다.",
         "overlap_sentence": null
       }
     ],
@@ -809,7 +809,7 @@
         "target_weak_quarters": 2,
         "target_strong_quarters": 9,
         "target_weak_streak": 2,
-        "summary_sentence": "코로나19 국내 유행과 방역 조치 이후 12분기 중 서울 전체 일식이 평소보다 약했던 분기는 2분기, 강했던 분기는 9분기였고, 처음 2분기는 연속으로 약했습니다.",
+        "summary_sentence": "코로나19 국내 유행과 방역 조치 이후 12분기 중 서울 전체 일식 점포 증감이 사례 직전 1년 같은 분기보다 약했던 분기는 2분기, 강했던 분기는 9분기였고, 처음 2분기는 연속으로 약했습니다.",
         "overlap_sentence": "같은 기간 1년 차 1분기에는 최저임금 인상·주 52시간제 시행(50~299인 사업장), 1년 차 2분기에는 1차 긴급재난지원금 지급 (전 국민)도 있었습니다. 그 밖에 4개 분기에도 다른 정책이 겹쳤습니다."
       },
       {
@@ -1048,7 +1048,7 @@
         "target_weak_quarters": 2,
         "target_strong_quarters": 6,
         "target_weak_streak": 0,
-        "summary_sentence": "메르스(MERS) 국내 유행 이후 12분기 중 서울 전체 일식이 평소보다 약했던 분기는 2분기, 강했던 분기는 6분기였습니다.",
+        "summary_sentence": "메르스(MERS) 국내 유행 이후 12분기 중 서울 전체 일식 점포 증감이 사례 직전 1년 같은 분기보다 약했던 분기는 2분기, 강했던 분기는 6분기였습니다.",
         "overlap_sentence": null
       },
       {
