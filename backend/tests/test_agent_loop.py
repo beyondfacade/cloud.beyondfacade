@@ -202,6 +202,12 @@ def test_시스템_프롬프트가_숫자와_등급_변경과_추정을_금지�
         assert phrase in SYSTEM_PROMPT
 
 
+def test_두_프롬프트_모두_중고등학생도_이해할_쉬운_말투를_요구한다():
+    # 사람 검수 4차(2026-10-06) "LLM 답변이 사용자에게 친절하지 않다" — 전문 용어는 바로 풀어 쓰고, 유치하게 쓰지 않는다
+    for prompt in (SYSTEM_PROMPT, QUESTION_SYSTEM_PROMPT):
+        assert "[말투]" in prompt and "중고등학생" in prompt and "풀어 쓴다" in prompt
+
+
 def test_응답_규칙_2는_숫자_없이_재난지원_시기를_말한다():
     rule = next(line for line in SYSTEM_PROMPT.splitlines() if line.startswith("②"))
 
