@@ -44,7 +44,7 @@ import { SEOUL_DISTRICTS, districtOf } from "@/shared/seoul-districts";
 
 type RegionProperties = { region_code: string; name: string };
 
-/** 서울 행정동 427개 실경계 — 백엔드 GET /regions/geojson 산출물 스냅샷 (v0.8.0, 좌표 5자리 절삭).
+/** 서울 행정동 427개 실경계 — vuski/admdongkor ver20260701 원천, 백엔드 GET /regions/geojson 산출물 스냅샷 (BE v0.84.0, 좌표 5자리 절삭).
  *  서버 전용 모듈(mock 라우트·테스트)에서만 import — 클라이언트 번들에 실리지 않는다. */
 export const SEOUL_REGIONS_GEOJSON: FeatureCollection<MultiPolygon, RegionProperties> = JSON.parse(
   readFileSync(path.join(process.cwd(), "public", "geojson", "seoul-regions.geojson"), "utf-8"),

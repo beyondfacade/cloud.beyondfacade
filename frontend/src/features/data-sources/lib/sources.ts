@@ -89,7 +89,16 @@ export const SOURCES: DataSource[] = [
     links: [{ label: "통계지리정보서비스(SGIS)", url: "https://sgis.mods.go.kr" }],
   },
   {
-    agency: "국토교통부 공간정보 오픈플랫폼", dataset: "브이월드 배경지도·행정동 경계", terms: "© VWorld",
+    agency: "통계청 통계지리정보서비스(SGIS) · vuski/admdongkor", dataset: "행정동 경계(ver20260701)", terms: "공공누리 제1유형(출처표시) · CC BY 4.0",
+    attribution: "본 데이터는 통계청 통계지리정보서비스(SGIS, https://sgis.kostat.go.kr)에서 공공누리 제1유형으로 개방한 행정동 경계를 가공한 것이며(가공: vuski/admdongkor, https://github.com/vuski/admdongkor), CC BY 4.0으로 배포됩니다. 이 서비스는 화면 표시를 위해 좌표를 소수 다섯째 자리로 줄였습니다.",
+    links: [
+      { label: "통계지리정보서비스(SGIS)", url: "https://sgis.kostat.go.kr" },
+      { label: "vuski/admdongkor", url: "https://github.com/vuski/admdongkor" },
+      { label: "CC BY 4.0", url: "https://creativecommons.org/licenses/by/4.0/deed.ko" },
+    ],
+  },
+  {
+    agency: "국토교통부 공간정보 오픈플랫폼", dataset: "브이월드 배경지도", terms: "© VWorld",
     links: [{ label: "브이월드", url: "https://www.vworld.kr" }],
   },
   {

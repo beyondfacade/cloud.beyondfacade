@@ -186,6 +186,7 @@ export function MapView({ regionCode, industry, onSelectRegion, showClosed }: Ma
         map.addSource(REGIONS_SOURCE_ID, {
           type: "geojson",
           data: { type: "FeatureCollection", features: [] },
+          attribution: '<a href="/sources">행정동 경계 © 통계청 SGIS · vuski/admdongkor (CC BY 4.0)</a>',
         });
         map.addLayer({
           id: REGIONS_FILL_LAYER_ID,
