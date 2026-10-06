@@ -346,6 +346,11 @@ export function agentEventScript(hasQuestion = false): AgentEvent[] {
     population: { region_code: regionCode, resident_total: profile.resident_total },
     shocks: [{ event_id: "mock-shock-1", name: "원두 가격 상승", start_date: "2026-09-01", industry_specific: true, summary: "원가 변동에 따른 마진 영향을 확인하세요.", grade: "signal" }],
     analogs: eventAnalogsDemo(industryId, INDUSTRY_LABELS[industryId]),
+    regional_events: [{
+      start_date: "2026-09-15", end_date: null, name: "시연 대규모점포 개점",
+      source: "서울 열린데이터광장 OA-16096 서울시 대규모점포 인허가 정보",
+      source_url: "https://data.seoul.go.kr/dataList/OA-16096/S/1/datasetView.do",
+    }],
     news: [],
     funding_candidates: fundingCandidatesOf(null).map((candidate) => ({
       program_id: candidate.program_id, title: candidate.title, org: candidate.org,

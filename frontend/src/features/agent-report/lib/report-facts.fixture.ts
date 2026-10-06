@@ -97,8 +97,14 @@ export function reportFacts(): ReportFacts {
       { year: 2026, store_count: 120, open_count: 25, close_count: 5, closure_rate: 0.04, growth_rate: 0.2 },
     ],
     population: { available: false, reason: "인구 자료가 없습니다." },
-    shocks: [{ event_id: "s1", name: "원두 가격 상승", start_date: "2026-09-01", industry_specific: true }], news: [],
+    shocks: [{ event_id: "s1", name: "원두 가격 상승", start_date: "2026-09-01", industry_specific: true }],
     analogs: eventAnalogs(),
+    regional_events: [{
+      start_date: "2026-09-15", end_date: null, name: "시연 대규모점포 개점",
+      source: "서울 열린데이터광장 OA-16096 서울시 대규모점포 인허가 정보",
+      source_url: "https://data.seoul.go.kr/dataList/OA-16096/S/1/datasetView.do",
+    }],
+    news: [],
     funding_candidates: [{ program_id: "p1", title: "창업 지원", org: "서울시", why: "창업에 맞는 지원사업", summary: "사업비 지원", field_category: "창업", apply_period: "상시", url: "https://example.com/funding" }],
     budget: null,
   };

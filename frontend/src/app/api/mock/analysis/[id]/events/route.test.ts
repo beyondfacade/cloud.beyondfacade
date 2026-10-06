@@ -47,7 +47,7 @@ it("SSE는 사실 수집 후 작성하고 작성과 오케스트레이터 완료
   }]);
 });
 
-it("SSE 사실은 계약의 13개 키와 기존 결정적 픽스처를 담는다", async () => {
+it("SSE 사실은 계약의 14개 키와 기존 결정적 픽스처를 담는다", async () => {
   const events = await readEvents();
   const event = events.find((e) => e.type === "facts");
   expect(event).toBeDefined();
@@ -55,7 +55,7 @@ it("SSE 사실은 계약의 13개 키와 기존 결정적 픽스처를 담는다
   const facts = event.facts;
   expect(Object.keys(facts).sort()).toEqual([
     "region", "verdict", "alternatives", "profile", "hour_gap", "commerce_change",
-    "metrics_history", "population", "shocks", "analogs", "news", "funding_candidates", "budget",
+    "metrics_history", "population", "shocks", "analogs", "regional_events", "news", "funding_candidates", "budget",
   ].sort());
   if (!("code" in facts.region)) throw new Error("시연 지역 없음");
   const { code, industry_id } = facts.region;
@@ -77,6 +77,11 @@ it("SSE 사실은 계약의 13개 키와 기존 결정적 픽스처를 담는다
   })));
   expect(facts.population).toEqual(expect.any(Object));
   expect(facts.shocks).toEqual(expect.any(Array));
+  expect(facts.regional_events).toEqual([{
+    start_date: "2026-09-15", end_date: null, name: "시연 대규모점포 개점",
+    source: "서울 열린데이터광장 OA-16096 서울시 대규모점포 인허가 정보",
+    source_url: "https://data.seoul.go.kr/dataList/OA-16096/S/1/datasetView.do",
+  }]);
   expect(facts.news).toEqual(expect.any(Array));
   expect(facts.budget).toBeNull();
   expect(events).toEqual(await readEvents());

@@ -23,6 +23,15 @@ export type AgentEvent =
 /** 사실 조회 실패는 해당 항목만 자료 없음으로 표시한다. */
 export type UnavailableFact = { available: false; reason: string };
 
+export interface RegionalEvent {
+  /** YYYY-MM-DD */
+  start_date: string;
+  end_date: string | null;
+  name: string;
+  source: string;
+  source_url: string | null;
+}
+
 export interface ReportFacts {
   region: { code: string; name: string; industry_id: string; industry_name: string };
   verdict: RegionIndustryVerdict | UnavailableFact;
@@ -43,6 +52,8 @@ export interface ReportFacts {
   shocks: ReportShock[] | UnavailableFact;
   // v0.40.0 이전에 저장된 리포트에는 없다.
   analogs?: EventAnalogs | UnavailableFact;
+  /** 최근 3년·최대 5건, 최신순. 옛 백엔드 응답에는 없다. */
+  regional_events?: RegionalEvent[] | UnavailableFact;
   news: Array<Record<string, unknown>> | UnavailableFact;
   funding_candidates: ReportFundingCandidate[] | UnavailableFact;
   budget: number | null;
