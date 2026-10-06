@@ -208,10 +208,12 @@ def test_응답_규칙_2는_숫자_없이_재난지원_시기를_말한다():
     assert "코로나 재난지원 시기" in rule and not any(ch.isdigit() for ch in rule[1:])
 
 
-def test_운영_hybrid만_로컬_재시도를_붙인다():
+def test_운영_hybrid만_gemini_다음_로컬_재시도를_붙인다():
+    from apps.agent.adapter.outbound.llm.fallback_llm_adapter import FallbackLLMAdapter
     from apps.agent.dependencies.analysis_dependencies import build_analysis_use_case
 
-    assert build_analysis_use_case("hybrid")._retry_llm.model_name == "gemma4:12b"
+    # 오퍼스 해석이 가드에 걸리면 Gemini(실패 시 로컬)로 한 번 더 쓴다
+    assert isinstance(build_analysis_use_case("hybrid")._retry_llm, FallbackLLMAdapter)
     assert build_analysis_use_case("gemma3")._retry_llm is None
 
 

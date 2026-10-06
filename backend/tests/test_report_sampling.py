@@ -76,21 +76,26 @@ def test_ollama는_seed를_지정하면_options에_싣고_아니면_싣지_않�
     assert "options" not in _ollama_body(OllamaLLMAdapter(model="m"))
 
 
-def test_운영_리포트_배선은_gemini와_로컬_폴백_모두_상수를_쓴다(monkeypatch):
-    built = {}
+def test_운영_리포트_배선은_오퍼스_다음_gemini_다음_로컬이고_모두_상수를_쓴다(monkeypatch):
+    # 2026-10-06 Claude 평가(116건, opus 판정): Opus 5.5 1.7% · Gemini 16.5% · 12b 30.2% — 오퍼스를 1차로
+    built = []
 
     class _FakeFallback:
         def __init__(self, primary, secondary, recorder):
-            built.update(primary=primary, secondary=secondary)
+            built.append((primary, secondary))
 
     monkeypatch.setattr(analysis_dependencies, "FallbackLLMAdapter", _FakeFallback)
     monkeypatch.setattr(analysis_dependencies, "SqlAlchemyLlmCallRecorder", lambda: None)
     analysis_dependencies._hybrid()
+    primary, gemini_then_local = built[0]
+    gemini_then_local()
     _, models = _gemini(monkeypatch)  # Client 스텁만 깐다
 
-    built["primary"]().chat([{"role": "user", "content": "hi"}], [])
-    body = _ollama_body(built["secondary"]())
+    opus = primary()
+    built[1][0]().chat([{"role": "user", "content": "hi"}], [])
+    body = _ollama_body(built[1][1]())
 
+    assert (opus.model_name, opus._options) == ("claude-opus-5-5", {"output_config": {"effort": "low"}})
     assert (models.configs[0].temperature, models.configs[0].seed) == (REPORT_TEMPERATURE, REPORT_SEED)
     assert body["options"] == {"temperature": REPORT_TEMPERATURE, "num_ctx": 32768, "seed": REPORT_SEED}
 

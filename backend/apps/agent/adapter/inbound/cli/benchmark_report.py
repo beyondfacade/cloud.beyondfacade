@@ -59,6 +59,7 @@ from apps.agent.adapter.outbound.gateways.funding_facts_gateway import FundingFa
 from apps.agent.adapter.outbound.gateways.question_budget_gateway import QuestionBudgetGateway
 from apps.agent.adapter.outbound.gateways.region_facts_gateway import RegionFactsGateway
 from apps.agent.adapter.outbound.gateways.verdict_facts_gateway import VerdictFactsGateway
+from apps.agent.adapter.outbound.llm.anthropic_llm_adapter import AnthropicLLMAdapter
 from apps.agent.adapter.outbound.llm.gemini_llm_adapter import GeminiLLMAdapter
 from apps.agent.adapter.outbound.llm.ollama_llm_adapter import OllamaLLMAdapter
 from apps.agent.app.ports.output.agent_port import FinanceFactsPort, LLMGatewayPort, QuestionBudgetPort
@@ -135,6 +136,12 @@ REPORT_MODELS: dict[str, ReportModel] = {m.name: m for m in (
     _ollama("exaone3.5:7.8b", None, tools=False),
     ReportModel(_ONLINE, lambda: GeminiLLMAdapter(model=_ONLINE, temperature=REPORT_TEMPERATURE, seed=REPORT_SEED),
                 True, False),
+    # 온도는 Haiku 4.5만 받는다. Sonnet 5.5는 생각을 between_tools로 끄고, Opus 5.5는 끌 수 없어 effort low로 줄인다
+    ReportModel("claude-haiku-4-5", lambda: AnthropicLLMAdapter("claude-haiku-4-5", temperature=REPORT_TEMPERATURE),
+                False, False),
+    ReportModel("claude-sonnet-5-5", lambda: AnthropicLLMAdapter("claude-sonnet-5-5", thinking={"type": "between_tools"}),
+                False, False),
+    ReportModel("claude-opus-5-5", lambda: AnthropicLLMAdapter("claude-opus-5-5", effort="low"), False, False),
 )}
 _NOTES = {False: "온라인 비교군"}  # local 여부별 비고
 _NO_TOOL_NOTE = "도구 없음(참고 비교군, 라이선스 NC)"
@@ -396,8 +403,11 @@ def _cmd_run(args: argparse.Namespace) -> None:
     path = _run_path(model.name)
     path.parent.mkdir(parents=True, exist_ok=True)
     done = {(r["id"], r["rep"]) for r in _read_jsonl(path)}
+    ids = set(args.ids.split(",")) if args.ids else None  # 표본 실행 — 없으면 세트 전체
     for rep in range(args.repeat):
         for s in _scenarios():
+            if ids is not None and s["id"] not in ids:
+                continue
             if (s["id"], rep) in done:
                 continue
             frozen = FrozenFacts({(s["region_code"], s["industry_id"]): _facts_of(s["id"])})
@@ -754,6 +764,7 @@ def main() -> None:
     parser.add_argument("command", choices=list(_COMMANDS))
     parser.add_argument("--model", choices=list(REPORT_MODELS))
     parser.add_argument("--repeat", type=int, default=3)
+    parser.add_argument("--ids", default=None, help="run: 이 시나리오만(쉼표 구분) — 모델 고르기용 표본")
     parser.add_argument("--file", default=None, help="judge-import: 판정 json 경로")
     parser.add_argument("--compare-tag", default=None,
                         help="judge-export·import·compare: 이 태그 캐시와 섞어 비교(태그 없는 캐시는 base)")
