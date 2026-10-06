@@ -1,5 +1,10 @@
 # Backend Version Log
 
+## [v0.79.1] - 2026-10-06
+
+### Removed
+- 쓰는 곳 없는 `ChildcareRegionSummary`(어린이집 동 요약 집계)와 그 테스트 2개 — v0.79.0에서 `/childcare-center-stats/summary`를 지운 뒤 남은 코드
+
 ## [v0.79.0] - 2026-10-06
 
 ### Removed
