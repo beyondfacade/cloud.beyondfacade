@@ -34,6 +34,16 @@ describe("계획 입력 폼", () => {
     expect(screen.getByLabelText(/^자기자본/)).toHaveValue(5000);
   });
 
+  it("월매출 프리필 값이 없으면 평균값 대신 직접 입력하도록 안내한다", () => {
+    const emptyRevenuePrefill = {
+      ...prefill,
+      expected_monthly_revenue: { ...prefill.expected_monthly_revenue, value: null },
+    };
+    render(<PlanForm defaults={buildDefaults({ prefill: emptyRevenuePrefill }).values} prefill={emptyRevenuePrefill} onSubmit={() => {}} />);
+    expect(screen.getByText("한 달 매출 예상액 · 평균값이 없어 직접 넣어 주세요.")).toBeVisible();
+    expect(screen.queryByText("한 달 매출 예상액 · 채워진 평균값은 수정할 수 있어요.")).not.toBeInTheDocument();
+  });
+
   it("손대지 않은 0은 빈 칸이고 제출 시 unconfirmed로 넘어간다", () => {
     const onSubmit = vi.fn();
     const { values } = buildDefaults({ prefill });
