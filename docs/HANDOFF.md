@@ -376,6 +376,8 @@
   **교훈: 해석 입력에 글을 더하거나 빼면 3.8이 그걸 재료로 추론을 덧붙인다. 효과가 난 건 코드가 쓰는 사실 문장의 등급 낱말·코드 가드뿐.** 시간대 매출 "저녁 손님" 오류는 v0.78.0 가드까지가 한계로 보고 멈췄다.
 - 사람 검수 5차(운영 v0.78.0 해석): 기록 2건 틀린 내용 0, 더 나은 해석은 3.8 — `docs/model-evaluation.md` §12.
 
+> **A 완료(10/6 밤, main `381af7a`, BE v0.86.0·FE v0.62.0)**: 경계 교체 뒤 적재 재실행(307건 중 11건 동 바뀜) · 사실 묶음 `regional_events`(최근 3년·최대 5건)와 조건 절 "[확인된 사실] ○○동 지역 사건(최근 3년, 서울 열린데이터광장): … (출처: OA-xxxxx)" 줄(뉴스는 본문에 넣지 않으므로 공식 사건만) · 150건 평가 `events150` 3.8 9→3·오퍼스 4→2, 사건 관련 오류 0이라 적용(`docs/model-evaluation.md` 12단계) · 8200 재빌드 · 크론 매주 월 06:00(`scripts/regional-event-collector.sh`). 아래는 계획 당시 기록.
+
 #### A. 지역 충격 이벤트 → 리포트 연결 (적재 완료, 다음은 리포트 연결 — 브랜치 `feat/regional-events`)
 
 - 완료(커밋 `f82cb5f`, 워크트리 `../beyondfacade-regional-events`, **미머지·origin에 브랜치 푸시**): 서울 열린데이터광장 3종으로 `shock_event`(layer=`regional`)·`shock_event_region`을 채우는 수집기. **dev DB에는 이미 307건 적재됨**(151개 동) — 정비사업 이주 96·착공 61(OA-22856), 대규모점포 개설 40·폐업 44(OA-16096, SSM 제외), 1,000세대+ 입주 66(OA-15818). 좌표는 SGIS 지오코딩(브이월드는 결과 저장 금지 약관이라 안 씀), DB엔 행정동 코드만. 기존 정책 충격 조회에 섞이지 않게 `list_events`에 `layer != regional` 추가. 조회 경로 `get_shock_event_region_use_case().list_for_region(region_code)`(최근순). CLI `apps.shock.adapter.inbound.cli.load_regional_events`, 크론 스크립트 `scripts/regional-event-collector.sh`(**미등록**). 테스트 1256 통과, BE v0.80.0 버전 로그 있음.
