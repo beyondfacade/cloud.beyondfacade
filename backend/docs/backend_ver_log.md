@@ -1,5 +1,17 @@
 # Backend Version Log
 
+## [v0.75.0] - 2026-10-06
+
+### Changed
+- 운영 리포트 해석 배선을 gemini-3.8-flash(일반 모드, 사전 추론 끔) → claude-opus-5-5 → 로컬 gemma4:12b로(사용자 결정). 해석 가드 재시도는 오퍼스(실패 시 로컬). 근거: 116건 opus 판정 3.8 일반 6.9% · 오퍼스 4.3%(구간 겹침) · 3.8 비용 약 1/10.
+- 관리자 헬스케어 LLM 경로·LLM 점검 프로브도 gemini-3.8-flash 1차로.
+
+## [v0.74.0] - 2026-10-06
+
+### Added
+- 리포트 벤치 모델 gemini-3.8-flash(사전 추론 끔)·gemini-3.8-flash-think(추론 모드, 모델 기본) — 유료 키로 쓸 수 있는 3.8 Flash를 두 모드로 비교한다.
+- `GeminiLLMAdapter(think=True)` — flash 계열이어도 사전 추론을 끄지 않는다. gemini-3.8-flash도 budget 0을 받아 끄는 대상에 넣었다(실측 1.8초 → 1.3초).
+
 ## [v0.73.0] - 2026-10-06
 
 ### Changed

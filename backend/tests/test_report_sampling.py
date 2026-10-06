@@ -76,8 +76,8 @@ def test_ollama는_seed를_지정하면_options에_싣고_아니면_싣지_않�
     assert "options" not in _ollama_body(OllamaLLMAdapter(model="m"))
 
 
-def test_운영_리포트_배선은_오퍼스_다음_gemini_다음_로컬이고_모두_상수를_쓴다(monkeypatch):
-    # 2026-10-06 Claude 평가(116건, opus 판정): Opus 5.5 1.7% · Gemini 16.5% · 12b 30.2% — 오퍼스를 1차로
+def test_운영_리포트_배선은_gemini_3_8_다음_오퍼스_다음_로컬이고_상수를_쓴다(monkeypatch):
+    # 2026-10-06 평가(116건, opus 판정): 3.8 Flash 일반 6.9% · Opus 4.3%(구간 겹침) · 비용 약 1/10 — 사용자 결정
     built = []
 
     class _FakeFallback:
@@ -87,16 +87,19 @@ def test_운영_리포트_배선은_오퍼스_다음_gemini_다음_로컬이고_
     monkeypatch.setattr(analysis_dependencies, "FallbackLLMAdapter", _FakeFallback)
     monkeypatch.setattr(analysis_dependencies, "SqlAlchemyLlmCallRecorder", lambda: None)
     analysis_dependencies._hybrid()
-    primary, gemini_then_local = built[0]
-    gemini_then_local()
+    primary, opus_then_local = built[0]
+    opus_then_local()
     _, models = _gemini(monkeypatch)  # Client 스텁만 깐다
 
-    opus = primary()
-    built[1][0]().chat([{"role": "user", "content": "hi"}], [])
+    gemini = primary()
+    gemini.chat([{"role": "user", "content": "hi"}], [])
+    opus = built[1][0]()
     body = _ollama_body(built[1][1]())
 
-    assert (opus.model_name, opus._options) == ("claude-opus-5-5", {"output_config": {"effort": "low"}})
+    assert gemini.model_name == "gemini-3.8-flash"
+    assert models.configs[0].thinking_config.thinking_budget == 0  # 일반 모드(사전 추론 끔)
     assert (models.configs[0].temperature, models.configs[0].seed) == (REPORT_TEMPERATURE, REPORT_SEED)
+    assert (opus.model_name, opus._options) == ("claude-opus-5-5", {"output_config": {"effort": "low"}})
     assert body["options"] == {"temperature": REPORT_TEMPERATURE, "num_ctx": 32768, "seed": REPORT_SEED}
 
 
@@ -129,5 +132,6 @@ def test_운영_점검_프로브도_리포트와_같은_샘플링을_쓴다(monk
     built["primary"]().chat([{"role": "user", "content": "hi"}], [])
     body = _ollama_body(built["secondary"]())
 
+    assert built["primary"]().model_name == "gemini-3.8-flash"  # 운영 1차와 같은 모델을 점검한다
     assert (models.configs[0].temperature, models.configs[0].seed) == (REPORT_TEMPERATURE, REPORT_SEED)
     assert body["options"]["seed"] == REPORT_SEED and body["options"]["temperature"] == REPORT_TEMPERATURE
