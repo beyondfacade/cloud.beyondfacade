@@ -404,7 +404,8 @@ export interface PrefillValue<B extends Record<string, unknown> = Record<string,
 export interface FinancePrefill {
   region_code: string;
   industry_id: string;
-  expected_monthly_revenue: PrefillValue<{ year_quarter: string; quarterly_sales: number; store_count: number; source_codes: string[] }>;
+  // seoul_median_monthly: 같은 분기·업종 서울 동별 점포당 월매출 중앙값(원, 정수), 없으면 생략.
+  expected_monthly_revenue: PrefillValue<{ year_quarter: string; quarterly_sales: number; store_count: number; source_codes: string[]; seoul_median_monthly?: number }>;
   rent_per_m2: PrefillValue<{ region_path: string; building_type: string; period: string; level: string; small_per_m2?: number | null; source?: string }>;
   cost_ratio: PrefillValue<{ kind: string; industry_id?: string }>;
   loan_rate: PrefillValue<{ rate_type: string; period: string; rate_pct?: number; source?: string }>;

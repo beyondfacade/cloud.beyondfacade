@@ -718,6 +718,7 @@ export function financePrefillOf(regionCode: string, industryId: string): Financ
   const u = unitFrom(hashSeed("finance-prefill", regionCode, industryId));
   const storeCount = 40 + Math.floor(u * 600);
   const monthly = Math.round(9_000_000 + u * 20_000_000);
+  const seoulMedianMonthly = Math.round(9_000_000 + unitFrom(hashSeed("finance-prefill-seoul-median", "20254", industryId)) * 20_000_000);
   const rent = Math.round((35 + u * 40) * 100) / 100;
   const COST: Record<string, number> = { cafe: 0.35, hair_salon: 0.25, gym: 0.15, billiard: 0.2, karaoke: 0.2, pc_bang: 0.2, academy: 0.3, childcare: 0.3, convenience_store: 0.7, real_estate: 0.1 };
   const hasSales = industryId !== "childcare"; // 어린이집은 매출 원천이 없다
@@ -727,7 +728,7 @@ export function financePrefillOf(regionCode: string, industryId: string): Financ
     expected_monthly_revenue: {
       value: hasSales ? monthly : null,
       basis: hasSales
-        ? { year_quarter: "20254", quarterly_sales: monthly * 3 * storeCount, store_count: storeCount, source_codes: ["CS100010"] }
+        ? { year_quarter: "20254", quarterly_sales: monthly * 3 * storeCount, store_count: storeCount, source_codes: ["CS100010"], seoul_median_monthly: seoulMedianMonthly }
         : { year_quarter: "", quarterly_sales: 0, store_count: 0, source_codes: [] },
       caveat: hasSales
         ? `이 동 같은 업종 ${storeCount}곳의 분기 매출을 점포 수로 나눈 평균입니다. 편차가 크고 신규 점포는 평균 아래서 시작하는 경우가 많습니다.`

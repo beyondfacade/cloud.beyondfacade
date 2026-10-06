@@ -9,6 +9,7 @@ it("등록된 동×업종은 200과 값·출처·단서 네 묶음을 준다", a
   const body = await res.json();
   expect(body.expected_monthly_revenue.value).toBeGreaterThan(0);
   expect(body.expected_monthly_revenue.basis.store_count).toBeGreaterThan(0);
+  expect(body.expected_monthly_revenue.basis.seoul_median_monthly).toBeGreaterThan(0);
   expect(body.rent_per_m2.basis.region_path).toBe("서울>강남");
   expect(body.loan_rate.basis.period).toBe("202607");
   expect(body.equity).toBeNull();
