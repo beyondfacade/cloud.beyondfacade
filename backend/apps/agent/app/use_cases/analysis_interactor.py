@@ -192,9 +192,10 @@ class AnalysisInteractor(AnalysisUseCase):
             {"role": "user", "content": answer_message(facts, question, sections, topic, lead)},
         ]
         names = region_names(facts)
+        hour_sales_known = bool((facts.get("hour_gap") or {}).get("available"))
         pointer = alternatives_pointer(facts)
         for llm in self._answer_models():
-            answer = self._attempt(llm, messages, facts.get("verdict"), names)
+            answer = self._attempt(llm, messages, facts.get("verdict"), names, hour_sales_known)
             if answer:
                 return f"{answer} {pointer}" if pointer else answer
         fallback = LEAD_FALLBACK if lead else ANSWER_FALLBACK
@@ -209,7 +210,9 @@ class AnalysisInteractor(AnalysisUseCase):
         if self._retry_llm is not None and self._retry_llm.model_name != self._llm.model_name:
             yield self._retry_llm
 
-    def _attempt(self, llm: LLMGatewayPort, messages: list[dict], verdict: dict | None, names: list[str]) -> str | None:
+    def _attempt(
+        self, llm: LLMGatewayPort, messages: list[dict], verdict: dict | None, names: list[str], hour_sales_known: bool
+    ) -> str | None:
         """한 모델 1회 — 가드를 통과한 단락, 아니면 None. 시도마다 기록을 남긴다."""
         try:
             turn = llm.chat(messages, [])
@@ -218,12 +221,13 @@ class AnalysisInteractor(AnalysisUseCase):
             self.last_answer_attempts.append({"model": llm.model_name, "error": f"{type(error).__name__}: {error}"})
             return None
         self._accumulate(turn.usage)
-        guarded = guard_answer(turn.text, verdict, names)
+        guarded = guard_answer(turn.text, verdict, names, hour_sales_known)
         self.last_answer_attempts.append(
             {
                 "model": llm.model_name,
                 "raw": turn.text,
                 "removed_sentences": guarded.removed_sentences,
+                "hour_sales_removed": guarded.hour_sales_removed,
                 "links_stripped": guarded.links_stripped,
                 "contradiction": guarded.contradiction,
             }

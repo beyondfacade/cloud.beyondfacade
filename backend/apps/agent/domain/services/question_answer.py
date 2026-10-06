@@ -85,6 +85,19 @@ def _finance_item(facts: dict, key: str) -> tuple[dict | None, str | None]:
     return item, None
 
 
+# 서울 같은 업종 동 중앙값 대비 배수 → 낱말. 금액만 주면 LLM이 "평균 매출이 낮은 편"을 스스로 판단해 덧붙였다
+_MEDIAN_WORDS = ((1.5, "훨씬 높은 편"), (1.1, "높은 편"), (0.9, "비슷한 편"), (0.5, "낮은 편"))
+
+
+def _median_compare(value: float, basis: dict) -> str:
+    """" — 서울 같은 업종 동 중앙값(약 N만 원)과 견주면 낮은 편" 또는 중앙값이 없으면 빈 글."""
+    median = basis.get("seoul_median_monthly")
+    if not median:
+        return ""
+    word = next((w for floor, w in _MEDIAN_WORDS if value / median >= floor), "훨씬 낮은 편")
+    return f" — 서울 같은 업종 동 중앙값(약 {round(median / 10_000):,}만 원)과 견주면 {word}."
+
+
 def revenue_line(facts: dict) -> str:
     region, industry = subject_names(facts)
     item, reason = _finance_item(facts, "expected_monthly_revenue")
@@ -93,7 +106,8 @@ def revenue_line(facts: dict) -> str:
     basis = item.get("basis") or {}
     return (
         f"{FACT} 점포당 월 평균 매출({region} {industry}, {quarter_label(basis.get('year_quarter'))}, "
-        f"점포 {basis.get('store_count')}곳 평균): 약 {round(item['value'] / 10_000):,}만 원 — {item.get('caveat')}"
+        f"점포 {basis.get('store_count')}곳 평균): 약 {round(item['value'] / 10_000):,}만 원"
+        f"{_median_compare(item['value'], basis) or ' —'} {item.get('caveat')}"
     )
 
 

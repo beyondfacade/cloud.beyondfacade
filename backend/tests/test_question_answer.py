@@ -50,6 +50,13 @@ def test_일반_질문은_넘지_않은_기준과_점포당_매출을_근거로_
     assert "점포당 월 평균 매출(송정동 한식, 2025년 4분기, 점포 13곳 평균): 약 433만 원 — 편차가 큽니다." in text
 
 
+def test_점포당_매출은_서울_같은_업종_동_중앙값과_견준_낱말을_붙인다():
+    revenue = {**_FINANCE["expected_monthly_revenue"],
+               "basis": {"year_quarter": "20254", "store_count": 13, "seoul_median_monthly": 6_000_000}}
+    text = answer_lead(_facts(finance={**_FINANCE, "expected_monthly_revenue": revenue}), QuestionTopic("general"))
+    assert "약 433만 원 — 서울 같은 업종 동 중앙값(약 600만 원)과 견주면 낮은 편. 편차가 큽니다." in text
+
+
 def test_예산_질문은_예산으로_시작하고_충분한지는_판단할_수_없다고_쓴다():
     text = answer_lead(_facts(budget=50_000_000), QuestionTopic("budget"))
     lead = text.split("\n")[0]

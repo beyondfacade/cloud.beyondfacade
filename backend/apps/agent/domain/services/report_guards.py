@@ -285,6 +285,24 @@ def drop_digit_sentences(text: str, names: Iterable[str] = ()) -> tuple[str, int
     return " ".join(kept), len(sentences) - len(kept)
 
 
+# 시간대 매출을 모를 때 지울 문장 — 시간대 낱말과 매출 낱말을 함께 쓴 문장. 자료가 없는데 동 사람 흐름이나
+# 업종 상식("술집은 밤 장사")으로 매출이 나는 시간을 단정했다(hours150·dong150). "낮"은 "낮은 편"과 갈라 쓴다.
+_HOUR_WORD = re.compile(r"아침|점심|저녁|새벽|오전|오후|심야|야간|출근|퇴근|밤|시간대|낮(?=에|시간|\s*\(|과|와|부터|까지)")
+_SALES_WORD = re.compile(r"매출|장사|팔리|돈을")  # "손님"은 사람 흐름을 말할 때도 써서 뺐다
+# 모른다고 밝히거나 사람 흐름과 매출을 가르는 문장은 남긴다
+_HOUR_HEDGE = re.compile(
+    r"알 수 없|판단할 수 없|판단하기 어렵|장담하기 어렵|자료가 없|자료[는가도]? ?부족|확인할 수 없|확인되지 않"
+    r"|뜻은 아니|뜻이 아니|와 다르|과 다르|다를 수"
+)
+
+
+def drop_hour_sales_sentences(text: str) -> tuple[str, int]:
+    """시간대 매출 자료가 없을 때 시간대·매출을 묶어 단정한 문장을 지운다 — (남은 단락, 지운 문장 수)."""
+    sentences = [s for s in _SENTENCE_END.split(text.strip()) if s]
+    kept = [s for s in sentences if not (_HOUR_WORD.search(s) and _SALES_WORD.search(s)) or _HOUR_HEDGE.search(s)]
+    return " ".join(kept), len(sentences) - len(kept)
+
+
 @dataclass(frozen=True)
 class GuardedAnswer:
     """가드를 거친 해석 단락과 개입 기록 — 벤치가 그대로 남긴다."""
@@ -293,6 +311,7 @@ class GuardedAnswer:
     removed_sentences: int
     links_stripped: int
     contradiction: str | None
+    hour_sales_removed: int = 0
 
     @property
     def ok(self) -> bool:
@@ -300,8 +319,11 @@ class GuardedAnswer:
         return self.contradiction is None and bool(self.text)
 
 
-def guard_answer(raw: str, verdict_facts: dict | None, names: Iterable[str] = ()) -> GuardedAnswer:
-    """해석 단락 통째 가드 — 링크·공고 번호 제거 → 판정 모순 검사 → 숫자 문장 삭제(`names` 속 숫자는 제외).
+def guard_answer(
+    raw: str, verdict_facts: dict | None, names: Iterable[str] = (), hour_sales_known: bool = True
+) -> GuardedAnswer:
+    """해석 단락 통째 가드 — 링크·공고 번호 제거 → 판정 모순 검사 → 숫자 문장 삭제(`names` 속 숫자는 제외)
+    → 시간대 매출을 모르면(`hour_sales_known=False`) 시간대·매출 단정 문장 삭제.
 
     모순은 단락 전체의 실패다(다음 모델로 넘긴다). 스트리밍하지 않으므로 끝까지 모은 글에 한 번 건다.
     """
@@ -309,4 +331,7 @@ def guard_answer(raw: str, verdict_facts: dict | None, names: Iterable[str] = ()
     text = links.feed(raw) + links.flush()
     contradiction = verdict_contradiction(text, verdict_facts)
     kept, removed = drop_digit_sentences(text, names)
-    return GuardedAnswer(kept, removed, links.events["links_stripped"], contradiction)
+    hour_removed = 0
+    if not hour_sales_known:
+        kept, hour_removed = drop_hour_sales_sentences(kept)
+    return GuardedAnswer(kept, removed, links.events["links_stripped"], contradiction, hour_removed)
