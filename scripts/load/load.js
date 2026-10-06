@@ -3,8 +3,8 @@
 //   k6 run -e PROFILE=load  scripts/load/load.js          ③ 동접 100명 25분 유지
 //   k6 run -e PROFILE=stress scripts/load/load.js         ④ 1,000명까지 계단, 에러 5%·p95 3초 넘으면 중단
 //   k6 run -e PROFILE=spike scripts/load/load.js          ⑤ 10초 만에 500명
-//   k6 run -e PROFILE=soak  scripts/load/load.js          ⑥ 50명 2시간
-//   k6 run -e PROFILE=llm -e LLM=1 scripts/load/load.js   ⑦ 동시 분석 4→8→16→35 + 지도 탐색 낮은 부하
+//   k6 run -e PROFILE=soak  scripts/load/load.js          ⑥ 50명 1시간 50분
+//   k6 run -e PROFILE=llm -e LLM=1 -e LLM_TARGET=live -e MODEL=gemini scripts/load/load.js   ⑦ 동시 분석 4→8→16→35(Gemini 단독) + 지도 탐색 낮은 부하
 // 대상: -e BASE=http://localhost:8202 (부하 테스트 컨테이너 — scripts/load/env.sh up). 운영·개발(8200·8201)에는 걸지 않는다. LLM=1이 없으면 페르소나 B(Gemini 호출·리포트 DB 저장)는 빠진다.
 // k6 설치 없이: docker run --rm --network host -v "$PWD:/w" -w /w grafana/k6 run -e PROFILE=smoke scripts/load/load.js
 // 주의(testplan §7): k6는 대상 서버와 다른 머신에서 돌린다 · 개발 DB를 같이 쓰는 서버엔 smoke 말고 걸지 않는다 ·
@@ -28,7 +28,7 @@ const STAGES = {
   stress: [['2m', 100], ['3m', 100], ['2m', 200], ['3m', 200], ['2m', 400], ['3m', 400],
     ['2m', 700], ['3m', 700], ['2m', 1000], ['3m', 1000], ['2m', 0]],
   spike: [['1m', 5], ['10s', 500], ['1m', 500], ['10s', 5], ['2m', 5]],
-  soak: [['2m', 50], ['2h', 50], ['1m', 0]],
+  soak: [['2m', 50], ['110m', 50], ['1m', 0]],   // 실행 도구 2시간 제한 안에 끝나게 1시간 50분 유지
 };
 
 // B를 빼면 남은 페르소나끼리 비율을 다시 나눠 전체 동접을 목표에 맞춘다

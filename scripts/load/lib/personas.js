@@ -48,10 +48,14 @@ export function aiReport() {
   group('질문', () => post('/intent', { text: `${p.name}에서 ${p.label} 창업하려고 해요` }, 'intent', { timeout: '30s' }));
   sleep(think(3, 5));
   group('리포트', () => {
-    const created = post('/analysis', { region: p.region, industry: p.industry }, 'analysis_create');
+    // MODEL=gemini면 Gemini 단독(폴백 없음) — ⑦에서 한도에 걸리는 지점을 오퍼스 폴백 없이 본다
+    const body = __ENV.MODEL ? { region: p.region, industry: p.industry, model: __ENV.MODEL } : { region: p.region, industry: p.industry };
+    const created = post('/analysis', body, 'analysis_create');
     if (created.status !== 200) return;
     // k6 기본 http.get은 SSE가 끝날 때까지 기다린다 — 전체 완료 시간만 잰다(첫 글자는 xk6-sse 필요, §7-6)
-    get(`/analysis/${created.json('analysis_id')}/events`, 'analysis_stream', { timeout: '120s' });
+    const stream = get(`/analysis/${created.json('analysis_id')}/events`, 'analysis_stream', { timeout: '120s' });
+    // 해석 실패 시 코드 대체 문장("…해석을 만들지 못했습니다…") — 200이어도 LLM은 실패한 것
+    check(stream, { 'analysis LLM 해석 성공': (r) => r.status === 200 && !String(r.body).includes('해석을 만들지 못했습니다') });
   });
   sleep(think(30, 60));
 }
