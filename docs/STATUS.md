@@ -296,7 +296,7 @@ main이 전진하면 다시 낡는다 — 배포 전 재빌드가 규칙.
 | 백엔드 dev | uvicorn `--reload` **8201**, cwd `backend/`(메인 체크아웃). 워처가 편집을 놓친 적 2회 → 실호출 전 로그 확인 |
 | 프론트 dev | next **3200**, `NEXT_PUBLIC_API_BASE=/api/backend` → 8201 프록시. 브라우저는 노트북(원격 SSH) |
 | 도커 | 8200 조회 전용, **낡음**(§4-2) |
-| LLM | 리포트 `hybrid`(gemini-2.5-flash → gemma4:12b) · 관문 폴백 gemini-2.5-flash · RAG 임베딩 bge-m3(Ollama, 1024, 색인·질의 동일) · GPU RTX 5060 Ti 16GB 유휴 |
+| LLM | 리포트 해석 gemini-3.8-flash 일반 → claude-opus-5-5 → gemma4:12b(v0.75.0~) · 관문 폴백 gemini-3.8-flash 일반 모드(`thinking_budget=0`, 10/7 v0.88.0) · RAG 임베딩 bge-m3(Ollama, 1024, 색인·질의 동일) · GPU RTX 5060 Ti 16GB 유휴 |
 | 키 | `backend/.env`에 GEMINI·SGIS·VWORLD 등 설정됨(값은 열람하지 않음). **Anthropic 키는 미설정** |
 | git | `main` 단일. 원격 `origin/feature/analysis-api`(병합됨, 삭제는 사용자 결정), 로컬 `feature/frontend-mvp`(병합됨). 작업 트리엔 `docs/jekyll.md`(지킬 세션 산출물)만 |
 

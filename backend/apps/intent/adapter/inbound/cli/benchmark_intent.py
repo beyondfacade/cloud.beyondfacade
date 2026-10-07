@@ -40,6 +40,8 @@ _MODELS: dict[str, Callable] = {
     "qwen3.5:4b": lambda m: OllamaIntentLlmAdapter(m, model="qwen3.5:4b", think=False, timeout_s=30),
     "qwen3.5:2b-q4_K_M": lambda m: OllamaIntentLlmAdapter(m, model="qwen3.5:2b-q4_K_M", think=False, timeout_s=30),
     "gemini-2.5-flash": lambda m: GeminiIntentLlmAdapter(m),
+    "gemini-3.8-flash": lambda m: GeminiIntentLlmAdapter(m, model="gemini-3.8-flash"),
+    "gemini-3.8-flash-nothink": lambda m: GeminiIntentLlmAdapter(m, model="gemini-3.8-flash", thinking_off=True),
 }
 
 

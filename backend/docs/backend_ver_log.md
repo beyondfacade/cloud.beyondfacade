@@ -1,5 +1,14 @@
 # Backend Version Log
 
+## [v0.88.0] - 2026-10-07
+
+### Changed
+- 의도 관문 LLM을 gemini-2.5-flash에서 **gemini-3.8-flash 일반 모드**(사전 추론 끔, `thinking_budget=0`)로 바꿨다(사용자 결정). 같은 날 같은 조건(확정 80건 × 3회, 같은 지시문·스키마·온도 0) 비교: 동시 정답 3.8 일반 98.8% · 2.5 95.0%(차이 +3.7%p [−1.3, +10.0], 2.5는 익선동·광장시장·건대입구 랜드마크 변환과 헬스장 업종을 놓침), 지어내기 둘 다 0/26, p50 2.47초 대 1.70초 · p93 4.42초 대 2.37초. 결과 `data/eval/results/intent-gemini38-2026-10-07/`, 정본 `docs/model-evaluation.md` §13
+
+### Added
+- `GeminiIntentLlmAdapter(thinking_off=...)` — 사전 추론을 끄는 선택 인자(기본값 False = 이전 동작)
+- 관문 벤치 모델 키 `gemini-3.8-flash`(사전 추론 기본)·`gemini-3.8-flash-nothink`(일반 모드)
+
 ## [v0.87.0] - 2026-10-07
 
 ### Added

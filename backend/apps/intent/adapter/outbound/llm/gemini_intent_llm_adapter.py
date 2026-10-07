@@ -29,10 +29,15 @@ INTENT_SCHEMA = {
 
 class GeminiIntentLlmAdapter(IntentLlmPort):
     def __init__(
-        self, masters: MasterDictionaryPort, model: str = "gemini-2.5-flash", api_key: str | None = None
+        self,
+        masters: MasterDictionaryPort,
+        model: str = "gemini-2.5-flash",
+        api_key: str | None = None,
+        thinking_off: bool = False,
     ) -> None:
         self._masters = masters
         self._model = model
+        self._thinking_off = thinking_off  # 사전 추론 끔(thinking_budget=0) — 운영 관문은 3.8 일반 모드
         self._api_key = api_key if api_key is not None else get_settings().gemini_api_key
         self._client = None  # 키가 있을 때만, 첫 호출에서 만든다
 
@@ -56,6 +61,7 @@ class GeminiIntentLlmAdapter(IntentLlmPort):
                     response_mime_type="application/json",
                     response_schema=INTENT_SCHEMA,
                     temperature=0,
+                    thinking_config=types.ThinkingConfig(thinking_budget=0) if self._thinking_off else None,
                 ),
             )
             payload = json.loads(response.text or "{}")
