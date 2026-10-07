@@ -1,10 +1,10 @@
 // ② 엔드포인트 단독 계단 (testplan §4) — 초당 요청 수를 5→…→1,500으로 올리며 API별 한계 RPS를 찾는다.
 // 사람 수가 아니라 초당 요청 수를 직접 정하므로(arrival-rate) TPS 1,500까지 바로 걸 수 있다. 깨지면(에러 5%·p95 3초) 멈춘다.
 //   k6 run -e API=summary scripts/load/endpoint.js
-// API: geojson(백엔드 /regions/geojson — main 프론트가 /map 진입마다 받는다, H4) · summary · verdicts · verdict · stores · simulate
+// API: search(지원사업 질문 검색 — 임베딩) · geojson(백엔드 /regions/geojson — main 프론트가 /map 진입마다 받는다, H4) · summary · verdicts · verdict · stores · simulate
 import http from 'k6/http';
 import { check } from 'k6';
-import { BASE, pickPair } from './lib/data.js';
+import { BASE, pickPair, pickQuery } from './lib/data.js';
 
 const API = __ENV.API || 'summary';
 
@@ -22,6 +22,8 @@ const REQUESTS = {
   verdict: (p) => http.get(`${BASE}/verdicts/${p.region}?industry=${p.industry}`, { tags: { api: 'verdict' } }),
   stores: (p) => http.get(`${BASE}/stores?region=${p.region}&industry=${p.industry}&status=open`, { tags: { api: 'stores' } }),
   simulate: () => http.post(`${BASE}/finance/simulate`, SIM_INPUT, { headers: { 'Content-Type': 'application/json' }, tags: { api: 'simulate' } }),
+  // 지원사업 질문 검색 — 요청마다 임베딩 1회(Ollama bge-m3, 로컬 GPU). 실패·5초 초과면 200 + available=false
+  search: (p) => http.get(`${BASE}/funding/support?region=${p.region}&industry=${p.industry}&q=${encodeURIComponent(pickQuery())}`, { tags: { api: 'search' } }),
 };
 if (!REQUESTS[API]) throw new Error(`알 수 없는 API: ${API} (${Object.keys(REQUESTS).join(', ')})`);
 
@@ -46,5 +48,7 @@ export const options = {
 };
 
 export default function () {
-  check(REQUESTS[API](pickPair()), { '200': (r) => r.status === 200 });
+  const res = REQUESTS[API](pickPair());
+  check(res, { '200': (r) => r.status === 200 });
+  if (API === 'search') check(res, { '검색 가능(임베딩 성공)': (r) => r.status === 200 && r.json('search.available') === true });
 }

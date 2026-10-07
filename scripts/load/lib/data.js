@@ -23,3 +23,13 @@ export function pickPair() {
 
 // 화면을 보고 다음 클릭까지 쉬는 시간(초). 빼면 VU 10명이 사람 수백 명처럼 때린다.
 export const think = (min, max) => min + Math.random() * (max - min);
+
+// 지원사업 검색·분석 질문 (2차, 임베딩 경로) — 사용자가 적을 법한 표현. 관련 공고가 있는 것·없는 것을 섞었다.
+export const SEARCH_QUERIES = [
+  '인테리어 비용', '청년 창업 대출', '폐업 후 재창업', '임대료 부담', '온라인 판로 마케팅', '고용보험료 지원',
+  '카페 창업 자금', '수출 해외 진출', '정책자금 융자', '배달 앱 수수료', '간판 교체', '직원 인건비',
+  '상권 분석 컨설팅', '재난 피해 지원', '전기요금 부담', '디지털 전환 교육',
+];
+export const pickQuery = () => SEARCH_QUERIES[Math.floor(Math.random() * SEARCH_QUERIES.length)];
+// 임베딩을 쓰는 비율(가정, 실측 아님): 지원사업 방문의 절반이 검색, 분석의 절반이 질문 포함
+export const EMBED_SHARE = 0.5;

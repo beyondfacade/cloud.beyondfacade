@@ -76,6 +76,7 @@ const thresholds = {
   'http_req_duration{api:prefill}': GENERAL,
   'http_req_duration{api:candidates}': GENERAL,
   'http_req_duration{api:support}': GENERAL,
+  'http_req_duration{api:search}': GENERAL,   // 2차: 지원사업 질문 검색(임베딩)
   'http_req_duration{api:simulate}': ['p(95)<300'],
   'http_req_duration{api:intent}': [LLM_TARGET === 'fake' ? 'p(95)<3500' : 'p(95)<5000'],
   'http_req_duration{api:analysis_stream}': ['p(95)<60000'],

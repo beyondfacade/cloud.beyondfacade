@@ -2,13 +2,13 @@
 // 태그 api=…로 API별 p95를 따로 잰다(§5 합격 기준).
 import http from 'k6/http';
 import { check, group, sleep } from 'k6';
-import { BASE, pickPair, think } from './data.js';
+import { BASE, EMBED_SHARE, pickPair, pickQuery, think } from './data.js';
 
 const JSON_HEADERS = { 'Content-Type': 'application/json' };
 
-function get(path, api, params = {}) {
+function get(path, api, params = {}, ok = [200]) {
   const res = http.get(`${BASE}${path}`, { ...params, tags: { api } });
-  check(res, { [`${api} 200`]: (r) => r.status === 200 });
+  check(res, { [`${api} 200`]: (r) => ok.includes(r.status) });
   return res;
 }
 
@@ -32,7 +32,8 @@ export function mapExplorer() {
     const p = pickPair();
     group('동 클릭', () => {
       get(`/regions/${p.region}/summary?industry=${p.industry}`, 'summary');
-      get(`/profiles/${p.region}`, 'profile');
+      // 자료 없는 동(5곳)은 설계대로 404 '자료 없음' — 실패로 세지 않는다(1차 결과 (g)5)
+      get(`/profiles/${p.region}`, 'profile', { responseCallback: http.expectedStatuses(200, 404) }, [200, 404]);
       get(`/verdicts/${p.region}?industry=${p.industry}`, 'verdict');
       get(`/verdicts/${p.region}/alternatives?industry=${p.industry}`, 'alternatives');
       get(`/stores?region=${p.region}&industry=${p.industry}&status=open`, 'stores');
@@ -53,6 +54,8 @@ export function aiReport() {
   group('리포트', () => {
     // MODEL=gemini면 Gemini 단독(폴백 없음) — ⑦에서 한도에 걸리는 지점을 오퍼스 폴백 없이 본다
     const body = __ENV.MODEL ? { region: p.region, industry: p.industry, model: __ENV.MODEL } : { region: p.region, industry: p.industry };
+    // 질문이 있으면 지원사업 후보를 질문 유사도로 정렬한다 = 임베딩 1회 (2차)
+    if (Math.random() < EMBED_SHARE) body.question = `${p.label} 창업할 때 ${pickQuery()} 관련 지원을 받을 수 있을까요?`;
     const created = post('/analysis', body, 'analysis_create');
     if (created.status !== 200) return;
     // k6 기본 http.get은 SSE가 끝날 때까지 기다린다 — 전체 완료 시간만 잰다(첫 글자는 xk6-sse 필요, §7-6)
@@ -93,6 +96,11 @@ export function supportFinder() {
   const p = pickPair();
   group('지원사업', () => {
     get(`/funding/support?region=${p.region}&industry=${p.industry}`, 'support');
+    if (Math.random() < EMBED_SHARE) {
+      // 질문 검색 = 임베딩 1회. 임베딩 실패·5초 초과면 200이어도 available=false — 따로 센다
+      const found = get(`/funding/support?region=${p.region}&industry=${p.industry}&q=${encodeURIComponent(pickQuery())}`, 'search');
+      check(found, { '검색 가능(임베딩 성공)': (r) => r.status === 200 && r.json('search.available') === true });
+    }
     get(`/regions/${p.region}/summary?industry=${p.industry}`, 'summary');
   });
   sleep(think(10, 20));
