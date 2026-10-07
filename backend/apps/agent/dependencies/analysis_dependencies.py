@@ -18,6 +18,7 @@ from apps.agent.adapter.outbound.gateways.regional_events_gateway import Regiona
 from apps.agent.adapter.outbound.gateways.verdict_facts_gateway import VerdictFactsGateway
 from apps.agent.adapter.outbound.llm.anthropic_llm_adapter import AnthropicLLMAdapter
 from apps.agent.adapter.outbound.llm.fallback_llm_adapter import FallbackLLMAdapter
+from apps.agent.adapter.outbound.llm.fixed_delay_llm_adapter import FixedDelayLLMAdapter
 from apps.agent.adapter.outbound.llm.gemini_llm_adapter import GeminiLLMAdapter
 from apps.agent.adapter.outbound.llm.ollama_llm_adapter import OllamaLLMAdapter
 from apps.agent.adapter.outbound.repositories.analysis_repository import (
@@ -29,6 +30,7 @@ from apps.agent.app.ports.output.agent_port import LLMGatewayPort
 from apps.agent.app.use_cases.analysis_interactor import AnalysisInteractor
 from apps.agent.app.use_cases.report_facts import ReportFactsCollector
 from apps.agent.domain.services.report_sampling import REPORT_SEED, REPORT_TEMPERATURE
+from core.matrix.grid_keymaker_secret_manager import get_settings
 
 # 로컬 폴백 컨텍스트 길이 — num_ctx를 안 주면 Ollama 0.31.2 기본값이 입력을 약 2k 토큰에서 잘라 읽는다.
 # 해석 입력(사실 묶음 요약)은 약 2천 자지만 여유를 두어 32768로 올린다(벤치 2026-10-05, bge-m3와 동시 상주 9.8GB 실측).
@@ -80,7 +82,12 @@ _LLM_REGISTRY: dict[str, Callable[[], LLMGatewayPort]] = {
     "gemma3": _local,
     "gemini": _gemini,
     "opus": _opus,
+    # 부하 테스트 전용 — 고정 지연 가짜 LLM (testplan §7-4 (c))
+    "fake": FixedDelayLLMAdapter,
 }
+
+# LLM_MODE=fake면 요청 본문이 어떤 모델을 골랐든 가짜 LLM — 부하 테스트 컨테이너에서 요금이 나가지 않게 (live는 그대로)
+_MODE_OVERRIDE: dict[str, str] = {"fake": "fake"}
 
 # 해석이 가드에 걸리면(판정 모순·숫자만 남은 단락) 다음 모델 — 운영 hybrid만 오퍼스(실패 시 로컬)로 한 번 더 쓴다(설계서 §5).
 # 단일 모델 직접 지정(벤치·run_agent_eval)은 그 모델만 평가한다.
@@ -92,6 +99,7 @@ def build_analysis_use_case(model: str = "hybrid", budget: int | None = None) ->
 
     세션 예산(원)은 facts 수집기에 심는다 — `facts.budget`이다(그래도 한다면 절의 자금 계획 안내).
     """
+    model = _MODE_OVERRIDE.get(get_settings().llm_mode, model)
     try:
         llm_factory = _LLM_REGISTRY[model]
     except KeyError as error:
