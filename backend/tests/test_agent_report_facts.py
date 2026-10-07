@@ -102,8 +102,9 @@ class FakeFundingFacts(FundingFactsPort):
         external_funding_need: int | None,
         stage: str | None,
         region_code: str | None = None,
+        question: str | None = None,
     ) -> dict:
-        self.calls.append((industry_id, external_funding_need, stage, region_code))
+        self.calls.append((industry_id, external_funding_need, stage, region_code, question))
         return {
             "candidates": [
                 {"program_id": "P1", "title": "청년창업자금", "field_category": "금융"},
@@ -113,6 +114,7 @@ class FakeFundingFacts(FundingFactsPort):
             "external_funding_need": external_funding_need,
             "stage": stage,
             "disclaimer": "자격 확정이 아니다",
+            "order": "relevance" if question else "deadline",
         }
 
 
@@ -148,12 +150,12 @@ def _collector(region=None, verdict=None, funding=None, news=None, regional=None
     )
 
 
-def test_열다섯_키를_빠짐없이_모은다():
+def test_열여섯_키를_빠짐없이_모은다():
     """프론트 시각 자료가 키 하나에 하나씩 달린다 — 키가 빠지면 그림이 사라진다 (설계서 §5)."""
     facts = _collector().collect("1168064000", "korean_food", 50_000_000)
 
     assert list(facts) == list(FACTS_KEYS)
-    assert len(FACTS_KEYS) == 15 and FACTS_KEYS[-1] == "finance"
+    assert len(FACTS_KEYS) == 16 and FACTS_KEYS[-1] == "finance"
 
 
 class FakeFinanceFacts(FinanceFactsPort):
@@ -282,8 +284,19 @@ def test_지원사업_후보는_업종과_동으로_받는다():
 
     facts = _collector(funding=funding).collect("1168064000", "korean_food", None)
 
-    assert funding.calls == [("korean_food", None, None, "1168064000")]
+    assert funding.calls == [("korean_food", None, None, "1168064000", None)]
     assert facts["funding_candidates"][0]["title"] == "청년창업자금"
+    assert facts["funding_order"] == "deadline"
+
+
+def test_질문이_있으면_지원사업_후보를_질문으로_고르고_정렬_방식을_싣는다():
+    """하이브리드 검색 — 리포트 지원사업 절이 "질문과 가까운 순" 문장을 붙일지 이 키로 안다."""
+    funding = FakeFundingFacts()
+
+    facts = _collector(funding=funding).collect("1168064000", "korean_food", None, "인테리어 비용 지원")
+
+    assert funding.calls[0][-1] == "인테리어 비용 지원"
+    assert facts["funding_order"] == "relevance"
 
 
 def test_지원사업_후보는_공고_배열_그대로_싣는다():

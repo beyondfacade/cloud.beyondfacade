@@ -26,14 +26,17 @@ _PROGRAM = FundingProgramDto(
 
 class _FakeFundingUseCase:
     regions: list = []
+    questions: list = []
 
-    def list_candidates(self, industry_id, external_funding_need, stage, region_code=None):
+    def list_candidates(self, industry_id, external_funding_need, stage, region_code=None, question=None):
         self.regions.append(region_code)
+        self.questions.append(question)
         return FundingCandidateListDto(
             candidates=[FundingCandidateDto(program=_PROGRAM, why="서울 소재 미만료 공고")],
             industry_id=industry_id,
             external_funding_need=external_funding_need,
             stage=stage,
+            order="relevance" if question else "deadline",
         )
 
 
@@ -61,3 +64,15 @@ def test_공고_후보_조회에_동을_넘긴다(monkeypatch):
     FundingFactsGateway().candidates("korean_food", None, None, "1162052500")
 
     assert _FakeFundingUseCase.regions == ["1162052500"]
+
+
+def test_공고_후보_조회에_질문을_넘기고_정렬_방식을_되돌린다(monkeypatch):
+    _FakeFundingUseCase.questions = []
+    monkeypatch.setattr(
+        funding_facts_gateway, "get_funding_program_use_case", _FakeFundingUseCase
+    )
+
+    result = FundingFactsGateway().candidates("korean_food", None, None, "1162052500", "청년 대출")
+
+    assert _FakeFundingUseCase.questions == ["청년 대출"]
+    assert result["order"] == "relevance"

@@ -37,6 +37,7 @@ class FundingCandidateListResponse(BaseModel):
     industry_id: str | None = None
     external_funding_need: int | None = None
     stage: str | None = None
+    order: str = "deadline"  # relevance(q로 정렬 성공) | deadline(그 외)
 
 
 class SupportItemResponse(FundingCandidateResponse):
@@ -50,6 +51,14 @@ class RateResponse(BaseModel):
     rate_pct: float
 
 
+class SupportSearchResponse(BaseModel):
+    """질문 검색 — `available`이 false(임베딩 실패)면 `items`는 빈 배열이다."""
+
+    query: str
+    available: bool
+    items: list[SupportItemResponse]
+
+
 class SupportGuideResponse(BaseModel):
     """창업 지원 정보 — 대출·보증 / 우리 구 전용 / 창업·경영 + 금리 참고값. 자격 확정이 아니다."""
 
@@ -60,3 +69,4 @@ class SupportGuideResponse(BaseModel):
     district: list[SupportItemResponse]
     others: list[SupportItemResponse]
     rates: list[RateResponse]
+    search: SupportSearchResponse | None = None  # q가 없으면 null

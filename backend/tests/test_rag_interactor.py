@@ -35,6 +35,7 @@ class FakeRagRepository(RagRepositoryPort):
         self.stored: dict[str, RagChunk] = {}
         self._existing_ids = existing_ids or set()
         self.search_calls: list[tuple] = []
+        self.rank_calls: list[tuple] = []
 
     def upsert_chunks(self, chunks: list[RagChunk]) -> int:
         for chunk in chunks:
@@ -64,6 +65,10 @@ class FakeRagRepository(RagRepositoryPort):
                 published_at=None,
             )
         ]
+
+    def rank_within(self, embedding: list[float], chunk_ids: list[str]) -> list[str]:
+        self.rank_calls.append((embedding, chunk_ids))
+        return list(reversed(chunk_ids))
 
 
 class FakeRagSource(RagSourcePort):
@@ -174,3 +179,15 @@ def test_search_funding은_접지_않고_top_k_그대로_요청한다():
     interactor.search("소상공인 대출", top_k=5, source_type="funding")
 
     assert repository.search_calls[0][1] == 5
+
+
+def test_rank_within은_질문을_한_번_임베딩해_저장소_정렬에_넘긴다():
+    repository = FakeRagRepository()
+    embedder = FakeEmbeddingPort()
+    interactor = RagSearchInteractor(embedder=embedder, repository=repository)
+
+    ranked = interactor.rank_within("인테리어 비용", ["funding:a", "funding:b"])
+
+    assert embedder.embed_query_calls == ["인테리어 비용"]
+    assert repository.rank_calls == [([1.0, 0.0], ["funding:a", "funding:b"])]
+    assert ranked == ["funding:b", "funding:a"]

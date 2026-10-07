@@ -2,6 +2,9 @@
 
 from apps.funding.adapter.outbound.gateways.bizinfo_gateway import BizinfoGateway
 from apps.funding.adapter.outbound.gateways.latest_rates_gateway import LatestRatesGateway
+from apps.funding.adapter.outbound.gateways.rag_question_ranker_gateway import (
+    RagQuestionRankerGateway,
+)
 from apps.funding.adapter.outbound.gateways.seoul_district_gateway import (
     SeoulDistrictNamesGateway,
 )
@@ -22,4 +25,5 @@ def get_funding_program_use_case() -> FundingProgramUseCase:
         seoul_districts=districts,
         district_lookup=districts,
         rates=LatestRatesGateway(),
+        ranker=RagQuestionRankerGateway(),
     )

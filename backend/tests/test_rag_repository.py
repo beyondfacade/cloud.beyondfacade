@@ -164,3 +164,28 @@ def test_upsert_chunks_updates_existing_row_on_second_call():
             assert row.content == "changed"
     finally:
         _cleanup()
+
+
+def test_rank_within은_주어진_청크만_가까운_순으로_돌려주고_색인_없는_id는_뺀다():
+    """하이브리드 검색 — 규칙이 거른 후보만 질문과 가까운 순으로 (설계서 §4)."""
+    _cleanup()
+    repo = SqlAlchemyRagRepository()
+    try:
+        unindexed = _chunk("rank-none", "test_axis", "r0", _E0)
+        unindexed.embedding = None
+        repo.upsert_chunks(
+            [
+                _chunk("rank-far", "test_axis", "r1", _E1),
+                _chunk("rank-near", "test_axis", "r2", _E0),
+                _chunk("rank-outside", "test_axis", "r3", _E0),
+                unindexed,
+            ]
+        )
+
+        ranked = repo.rank_within(
+            _E0, [f"{_PREFIX}rank-far", f"{_PREFIX}rank-near", f"{_PREFIX}rank-none", f"{_PREFIX}missing"]
+        )
+
+        assert ranked == [f"{_PREFIX}rank-near", f"{_PREFIX}rank-far"]
+    finally:
+        _cleanup()

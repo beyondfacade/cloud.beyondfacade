@@ -18,9 +18,10 @@ class FundingFactsGateway(FundingFactsPort):
         external_funding_need: int | None,
         stage: str | None,
         region_code: str | None = None,
+        question: str | None = None,
     ) -> dict:
         result = get_funding_program_use_case().list_candidates(
-            industry_id, external_funding_need, stage, region_code
+            industry_id, external_funding_need, stage, region_code, question=question
         )
         return {
             "candidates": [
@@ -41,4 +42,5 @@ class FundingFactsGateway(FundingFactsPort):
             "external_funding_need": result.external_funding_need,
             "stage": result.stage,
             "disclaimer": _DISCLAIMER,
+            "order": result.order,
         }

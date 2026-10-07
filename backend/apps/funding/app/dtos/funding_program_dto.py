@@ -41,6 +41,7 @@ class FundingCandidateListDto:
     industry_id: str | None = None
     external_funding_need: int | None = None
     stage: str | None = None
+    order: str = "deadline"  # relevance(질문과 가까운 순) | deadline(규칙 순서)
 
 
 @dataclass
@@ -61,6 +62,15 @@ class SupportItemDto:
 
 
 @dataclass
+class SupportSearchDto:
+    """질문 검색 결과 — `available`이 False(임베딩 실패)면 `items`는 비어 있다(규칙 순서로 채우지 않는다)."""
+
+    query: str
+    available: bool
+    items: list[SupportItemDto]
+
+
+@dataclass
 class SupportGuideDto:
     """창업 지원 정보 — 대출·보증 / 우리 구 전용 / 창업·경영 세 묶음 + 금리 참고값."""
 
@@ -71,3 +81,4 @@ class SupportGuideDto:
     district: list[SupportItemDto]
     others: list[SupportItemDto]
     rates: list[RateDto]
+    search: SupportSearchDto | None = None  # 질문이 없으면 None

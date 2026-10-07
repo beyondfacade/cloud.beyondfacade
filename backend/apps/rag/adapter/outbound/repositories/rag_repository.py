@@ -77,3 +77,13 @@ class SqlAlchemyRagRepository(RagRepositoryPort):
                 )
                 for orm, row_score in rows
             ]
+
+    def rank_within(self, embedding: list[float], chunk_ids: list[str]) -> list[str]:
+        """만료 필터 없음 — 호출부(funding 규칙 필터)가 이미 자격을 걸렀다."""
+        stmt = (
+            select(RagChunkOrm.chunk_id)
+            .where(RagChunkOrm.chunk_id.in_(chunk_ids), RagChunkOrm.embedding.is_not(None))
+            .order_by(RagChunkOrm.embedding.cosine_distance(embedding))
+        )
+        with session_scope() as session:
+            return list(session.execute(stmt).scalars())

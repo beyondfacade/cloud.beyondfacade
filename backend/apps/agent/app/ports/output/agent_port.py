@@ -116,10 +116,12 @@ class FundingFactsPort(ABC):
         external_funding_need: int | None,
         stage: str | None,
         region_code: str | None = None,
+        question: str | None = None,
     ) -> dict:
         """서울/전국 미만료 공고 상위 8건 + 요청 값 되돌림. 자격 확정이 아니다.
 
-        `region_code`(동)를 주면 다른 구 전용 공고는 뺀다.
+        `region_code`(동)를 주면 다른 구 전용 공고는 뺀다. `question`이 있으면 규칙을 통과한 후보를
+        질문과 가까운 순으로 고른다 — 어느 순서인지는 `order`("relevance"|"deadline")로 돌려준다.
         """
 
 

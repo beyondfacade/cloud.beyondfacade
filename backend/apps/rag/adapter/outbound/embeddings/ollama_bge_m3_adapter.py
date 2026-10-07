@@ -15,9 +15,9 @@ class OllamaBgeM3EmbeddingAdapter(EmbeddingPort):
     OLLAMA_MODEL = "bge-m3"
     BATCH_SIZE = 50
 
-    def __init__(self, base_url: str | None = None, transport=None):
-        # 콜드스타트(모델 로드) 대비 — ollama_qwen3_adapter와 같은 120초
-        self.client = httpx.Client(base_url=base_url or get_settings().ollama_base_url, transport=transport, timeout=120.0)
+    def __init__(self, base_url: str | None = None, transport=None, timeout: float = 120.0):
+        # 색인은 콜드스타트(모델 로드) 대비 120초(ollama_qwen3_adapter와 같음). 화면이 기다리는 질의 경로는 짧게 준다
+        self.client = httpx.Client(base_url=base_url or get_settings().ollama_base_url, transport=transport, timeout=timeout)
 
     @property
     def model_name(self) -> str:

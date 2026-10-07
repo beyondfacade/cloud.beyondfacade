@@ -9,12 +9,14 @@ from apps.funding.adapter.inbound.api.schemas.funding_program_schema import (
     RateResponse,
     SupportGuideResponse,
     SupportItemResponse,
+    SupportSearchResponse,
 )
 from apps.funding.app.dtos.funding_program_dto import (
     FundingCandidateListDto,
     FundingProgramDto,
     SupportGuideDto,
     SupportItemDto,
+    SupportSearchDto,
 )
 
 
@@ -31,6 +33,7 @@ def to_candidate_list_response(dto: FundingCandidateListDto) -> FundingCandidate
         industry_id=dto.industry_id,
         external_funding_need=dto.external_funding_need,
         stage=dto.stage,
+        order=dto.order,
     )
 
 
@@ -52,4 +55,13 @@ def to_support_guide_response(dto: SupportGuideDto) -> SupportGuideResponse:
         district=[_to_support_item(item) for item in dto.district],
         others=[_to_support_item(item) for item in dto.others],
         rates=[RateResponse(**asdict(rate)) for rate in dto.rates],
+        search=_to_search(dto.search),
+    )
+
+
+def _to_search(dto: SupportSearchDto | None) -> SupportSearchResponse | None:
+    if dto is None:
+        return None
+    return SupportSearchResponse(
+        query=dto.query, available=dto.available, items=[_to_support_item(item) for item in dto.items]
     )

@@ -1,5 +1,24 @@
 # Backend Version Log
 
+## [v0.89.0] - 2026-10-07
+
+> v0.88.0은 미머지 브랜치 `feat/load-test`가 선점해 건너뛴다.
+
+### Added
+- 지원사업 공고 하이브리드 검색 — 규칙 필터(서울·전국 ∩ 소상공인·창업 대상 ∩ 미만료, 구 전용 제외)로 자격을 거른 뒤 그 후보 **전체**를 질문과의 코사인 거리로 정렬한다. 색인 없는 새 공고는 정렬된 것 뒤에 규칙 순서로 붙인다. 질문이 없으면 지금과 같다(마감 임박 순, 임베딩 호출 없음). 설계서 `docs/superpowers/specs/2026-10-07-funding-hybrid-design.md`
+  - 비교 실험(10/7, 평가셋 confirmed 175문항·상위 8건): 규칙만 Hit 0/6·자격 밖 노출 0% / RAG만 6/6·**97.3%** / 하이브리드 **6/6·0%** — 결정 근거는 자격 밖 노출(정답 표본은 6문항뿐). `scripts/compare_funding_hybrid.py`
+- rag BC `RagSearchUseCase.rank_within(query, chunk_ids)`·`RagRepositoryPort.rank_within(embedding, chunk_ids)` — 주어진 청크만 pgvector `<=>` 순, `embedding IS NOT NULL`(색인 없는 id는 결과에 없음)
+- funding BC 출력 포트 `QuestionRankerPort.rank(question, program_ids)`(실패 시 예외), 게이트웨이 `RagQuestionRankerGateway`(cross-BC ACL — `funding:{program_id}` 접두 변환, rag `get_rag_search_use_case("bge-m3")`), 도메인 순수 함수 `order_by_relevance`(`domain/services/relevance.py`). 배선은 `funding_program_dependencies`. 인터랙터의 `ranker`는 선택 인자 — 없으면 실패와 같이 처리(Null Object)
+- `GET /funding/candidates?q=` → 응답 `order`("relevance" = q가 있고 정렬 성공 | "deadline"). `GET /funding/support?q=` → 응답 `search`(q 없으면 null | `{query, available, items}` — 세 묶음 나누기 전 같은 자격 경계에서 질문과 가까운 순 최대 8건). 세 묶음은 그대로
+- 리포트 사실 묶음 키 `funding_order`(`funding_candidates` 다음) — 분석 질문으로 지원사업 후보를 고르고(`FundingFactsPort.candidates(..., question)`), 지원사업 절 첫 줄에 "질문과 가까운 순으로 골랐습니다." 한 문장. 키가 없으면 deadline로 취급(평가 facts 픽스처 그대로)
+
+### Changed
+- `q`는 앞뒤 공백을 자르고 비면 없는 것으로 본다. 200자를 넘으면 422가 아니라 200자에서 자른다
+- 임베딩 실패(Ollama 다운 등) 시 경고 로그 1줄 — 후보는 규칙 순서·`order: "deadline"`, 지원 정보 검색은 `available: false`·`items: []`(규칙 순서로 채우지 않는다)
+- `list_candidates`는 규칙 통과 전체를 받은 뒤(구 전용 제외·질문 정렬) 마지막에 8건으로 자른다 — 질문 없는 결과는 이전과 같다
+- `SupportGuide`에 나누기 전 전체 `items`, `SupportItem.program` 속성 추가
+- 질문 임베딩 대기를 짧게 — `OllamaBgeM3EmbeddingAdapter(timeout=)`·`get_rag_search_use_case(provider, timeout=)`, 게이트웨이는 **5초**(색인·CLI는 120초 그대로). Ollama가 연결만 받고 멈추면 화면·리포트가 최대 120초 기다리던 것(설계서 §2-4 위반) — 콜드 로드 실측 약 2초
+
 ## [v0.87.0] - 2026-10-07
 
 ### Added

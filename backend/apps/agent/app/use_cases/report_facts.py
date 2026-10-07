@@ -49,6 +49,7 @@ FACTS_KEYS = (
     "regional_events",
     "news",
     "funding_candidates",
+    "funding_order",  # relevance(질문과 가까운 순) | deadline — 지원사업 절 첫 문장이 읽는다
     "budget",
     "finance",
 )
@@ -65,12 +66,16 @@ _DONG_SUFFIX = re.compile(r"(?:제?\d+(?:\.\d+)*가?동|동)$")
 _MAX_WORKERS = 6
 
 
+def _failure(error: Exception) -> dict:
+    return {"available": False, "reason": f"{type(error).__name__}: {error}"}
+
+
 def _resolve(future: Future) -> object:
     """항목 1건 회수 — 실패는 값으로 바꾼다(전부 아니면 무, 가 아니다)."""
     try:
         return future.result()
     except Exception as error:
-        return {"available": False, "reason": f"{type(error).__name__}: {error}"}
+        return _failure(error)
 
 
 class ReportFactsCollector:
@@ -119,13 +124,15 @@ class ReportFactsCollector:
                 "shocks": pool.submit(self._shocks, industry),
                 "analogs": pool.submit(self._analogs, industry, question),
                 "regional_events": pool.submit(self._regional, region),
-                "funding_candidates": pool.submit(self._funding, industry, region),
+                # 후보 배열과 정렬 방식 두 키를 한 번의 조회로 채운다
+                "funding": pool.submit(self._funding, industry, region, question),
                 "finance": pool.submit(self._finance, region, industry),
                 # 뉴스 질의는 동 이름을 쓴다 — 워커가 region future를 기다리므로 **맨 뒤**에
                 # 넣는다. 앞선 항목이 워커를 다 채워도 region은 이미 실행 중이라 굶지 않는다.
                 "news": pool.submit(self._news, region_future),
             }
             values: dict[str, object] = {key: _resolve(f) for key, f in futures.items()}
+        values.update(values.pop("funding"))
         values["budget"] = budget if budget is not None else self._question_budget_of(question)
         return {key: values[key] for key in FACTS_KEYS}
 
@@ -161,15 +168,21 @@ class ReportFactsCollector:
             return {"available": False, "reason": "유사 사례 조회가 연결되지 않았습니다"}
         return with_sentences(self._analog_facts.analogs(industry, question))
 
-    def _funding(self, industry: str, region: str) -> list[dict]:
+    def _funding(self, industry: str, region: str, question: str | None) -> dict:
         """공고 목록만 남긴다 — 프론트 계약은 배열이다 (설계서 §3-1). 다른 구 전용 공고는 빠져 온다.
 
         되돌려받는 요청 값(`industry_id`·`stage`)과 `disclaimer`는 버린다 — 앞의 둘은 호출부가
         이미 알고, 면책 문구는 funding 절 프롬프트 계약이 이미 갖는다.
         `target`은 **넣지 않는다** — 원천의 분야(`field_category`)는 대상이 아니다("대상: 금융"은
         거짓말이다). 프론트는 `target`이 없으면 '대상' 줄을 지운다.
+        질문이 있으면 질문과 가까운 순으로 고르고, 어느 순서인지 `funding_order`로 싣는다.
+        조회가 실패하면 그 자리만 "자료 없음"이고 순서는 마감 임박 순(`deadline`)이다.
         """
-        return self._funding_facts.candidates(industry, None, None, region)["candidates"]
+        try:
+            result = self._funding_facts.candidates(industry, None, None, region, question)
+        except Exception as error:
+            return {"funding_candidates": _failure(error), "funding_order": "deadline"}
+        return {"funding_candidates": result["candidates"], "funding_order": result["order"]}
 
     def _finance(self, region: str, industry: str) -> dict:
         if self._finance_facts is None:
