@@ -180,6 +180,41 @@ it("검색을 쓸 수 없으면 안내하고 기존 목록을 보여 준다", as
   expect(screen.getByRole("region", { name: "대출·보증" })).toBeInTheDocument();
 });
 
+it("검색 결과는 처음 8건을 보여 주고 8건씩 더 펼치며 새 질문이면 초기화한다", async () => {
+  searchParams.set("q", "지원");
+  const items = Array.from({ length: 17 }, (_, index) => item(`s${index}`, `검색 공고 ${index + 1}`));
+  stubFetch({ ...GUIDE, search: { query: "지원", available: true, items } });
+  const { rerender } = renderPage();
+  const results = await screen.findByRole("region", { name: "질문과 가까운 공고" });
+  expect(within(results).getByText("관련 공고 17건")).toBeInTheDocument();
+  expect(within(results).getAllByRole("listitem")).toHaveLength(8);
+  expect(within(results).queryByRole("link", { name: "검색 공고 9" })).toBeNull();
+
+  fireEvent.click(within(results).getByRole("button", { name: "더보기 (9건 더)" }));
+  expect(within(results).getAllByRole("listitem")).toHaveLength(16);
+  expect(within(results).getByRole("link", { name: "검색 공고 9" })).toBeInTheDocument();
+  fireEvent.click(within(results).getByRole("button", { name: "더보기 (1건 더)" }));
+  expect(within(results).getAllByRole("listitem")).toHaveLength(17);
+  expect(within(results).queryByRole("button", { name: /더보기/ })).toBeNull();
+
+  searchParams.set("q", "창업");
+  stubFetch({ ...GUIDE, search: { query: "창업", available: true, items } });
+  rerender(<SupportPage />);
+  await waitFor(() => expect(within(screen.getByRole("region", { name: "질문과 가까운 공고" })).getAllByRole("listitem")).toHaveLength(8));
+  expect(screen.getByRole("button", { name: "더보기 (9건 더)" })).toBeInTheDocument();
+});
+
+it("검색 결과가 8건이면 모두 보여 주고 더보기 버튼을 숨긴다", async () => {
+  searchParams.set("q", "지원");
+  const items = Array.from({ length: 8 }, (_, index) => item(`s${index}`, `검색 공고 ${index + 1}`));
+  stubFetch({ ...GUIDE, search: { query: "지원", available: true, items } });
+  renderPage();
+  const results = await screen.findByRole("region", { name: "질문과 가까운 공고" });
+  expect(within(results).getByText("관련 공고 8건")).toBeInTheDocument();
+  expect(within(results).getAllByRole("listitem")).toHaveLength(8);
+  expect(within(results).queryByRole("button", { name: /더보기/ })).toBeNull();
+});
+
 it("검색 결과가 비면 다른 말로 찾도록 안내한다", async () => {
   searchParams.set("q", "인테리어");
   stubFetch({ ...GUIDE, search: { query: "인테리어", available: true, items: [] } });

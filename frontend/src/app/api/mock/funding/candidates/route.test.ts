@@ -30,6 +30,14 @@ it("공백뿐인 질문은 기존 후보 순서와 마감 순서 표시를 유�
   expect(body.candidates).toEqual((await (await call()).json()).candidates);
 });
 
+it("질문과 관련 있는 후보가 없으면 기존 후보와 마감 순서를 유지한다", async () => {
+  const res = await call(`?stage=pre&q=${encodeURIComponent("무관한질문")}`);
+  expect(res.status).toBe(200);
+  const body = await res.json();
+  expect(body.order).toBe("deadline");
+  expect(body.candidates).toEqual((await (await call("?stage=pre")).json()).candidates);
+});
+
 it("모든 후보에 원문 링크와 걸린 규칙이 붙는다", async () => {
   const { candidates } = await (await call("?stage=pre")).json();
   for (const c of candidates) {

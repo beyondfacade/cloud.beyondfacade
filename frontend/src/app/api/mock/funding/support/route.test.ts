@@ -20,13 +20,16 @@ it("세 묶음과 금리 참고값, 되돌아온 요청 값을 준다", async ()
   expect(body.rates.map((r: { rate_type: string }) => r.rate_type)).toEqual(["base", "loan_facility"]);
 });
 
-it("질문을 다듬어 검색 가능 여부와 가까운 공고를 최대 8건 준다", async () => {
+it("질문을 다듬어 점수가 있는 공고를 8건 상한 없이 가까운 순으로 준다", async () => {
   const query = `?region=1168064000&q=${encodeURIComponent("  소상공인 지원  ")}`;
   const res = await call(query);
   expect(res.status).toBe(200);
   const body: SupportGuide = await res.json();
   expect(body.search).toMatchObject({ query: "소상공인 지원", available: true });
-  expect(body.search!.items).toHaveLength(8);
+  expect(body.search!.items.length).toBeGreaterThan(8);
+  for (const item of body.search!.items) {
+    expect([item.title, item.summary, item.hashtags].join(" ")).toMatch(/소상공인|지원/);
+  }
   expect(body.search!.items[0].title).toContain("소상공인");
   expect(body.search!.items[0].title).toContain("지원");
   expect((await (await call(query)).json()).search).toEqual(body.search);

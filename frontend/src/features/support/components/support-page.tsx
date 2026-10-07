@@ -4,7 +4,7 @@ import { useState, type ReactNode } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
-import type { RateReference, SupportItem } from "@/shared/api/types";
+import type { RateReference, SupportItem, SupportSearch } from "@/shared/api/types";
 import { industryLabel } from "@/shared/industries";
 import { fetchSupportGuide, fetchSupportRegion } from "../api";
 import { SUPPORT_CHANNELS, formatPeriod, formatRate, rateLabel } from "../lib/support-content";
@@ -67,11 +67,7 @@ export function SupportPage() {
 
       {guide.data && <>
         {guide.data.search && (
-          <GuideSection title="질문과 가까운 공고" description="지원 자격(서울·소상공인·창업, 마감 전)으로 먼저 거른 뒤 질문과 가까운 순서예요">
-            {guide.data.search.available
-              ? <ProgramList items={guide.data.search.items} districtName={districtName} empty="맞는 공고를 찾지 못했어요. 다른 말로 찾아보세요." />
-              : <p className="text-sm text-[var(--text-secondary)]">지금은 검색을 쓸 수 없어요. 아래 목록을 확인해 주세요.</p>}
-          </GuideSection>
+          <SearchResults key={q} search={guide.data.search} districtName={districtName} />
         )}
         <GuideSection title="대출·보증" description="정책자금 융자와 보증 공고예요. 아래 금리는 공고의 융자 금리를 견줘 볼 기준으로 보세요.">
           <RateList rates={guide.data.rates} />
@@ -127,7 +123,27 @@ function SearchForm({ query, onSearch }: { query: string; onSearch: (question: s
   );
 }
 
-function GuideSection({ title, description, children }: { title: string; description: string; children: ReactNode }) {
+function SearchResults({ search, districtName }: { search: SupportSearch; districtName: string | null }) {
+  const [visibleCount, setVisibleCount] = useState(8);
+  const remaining = search.items.length - visibleCount;
+  return (
+    <GuideSection title="질문과 가까운 공고" description={<>
+      {search.available && <span className="mb-1 block">관련 공고 {search.items.length}건</span>}
+      지원 자격(서울·소상공인·창업, 마감 전)으로 먼저 거른 뒤 질문과 가까운 순서예요
+    </>}>
+      {search.available ? <>
+        <ProgramList items={search.items.slice(0, visibleCount)} districtName={districtName} empty="맞는 공고를 찾지 못했어요. 다른 말로 찾아보세요." />
+        {remaining > 0 && (
+          <button type="button" onClick={() => setVisibleCount((count) => count + 8)} className="max-w-full self-start rounded-md border border-[var(--border)] bg-[var(--bg-surface)] px-4 py-2 text-sm text-[var(--text-primary)] hover:bg-[var(--bg-raised)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]">
+            더보기 ({remaining}건 더)
+          </button>
+        )}
+      </> : <p className="text-sm text-[var(--text-secondary)]">지금은 검색을 쓸 수 없어요. 아래 목록을 확인해 주세요.</p>}
+    </GuideSection>
+  );
+}
+
+function GuideSection({ title, description, children }: { title: string; description: ReactNode; children: ReactNode }) {
   return (
     <section aria-label={title} className="flex flex-col gap-3">
       <div>

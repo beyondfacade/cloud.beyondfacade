@@ -9,11 +9,13 @@ export async function GET(request: Request) {
   const need = needRaw !== null && Number.isFinite(Number(needRaw)) ? Number(needRaw) : null;
   const q = searchParams.get("q")?.trim().slice(0, 200) ?? "";
   const candidates = fundingCandidatesOf(stage);
+  const ranked = q ? rankFundingByQuestion(candidates, q) : [];
+  const hasRelevant = ranked.some(({ score }) => score > 0);
 
   // 실 API와 같은 계약 — 셋 다 선택이고, industry·need는 필터에 쓰이지 않고 그대로 돌아간다.
   const response: FundingCandidateList = {
-    candidates: q ? rankFundingByQuestion(candidates, q).map(({ item }) => item) : candidates,
-    order: q ? "relevance" : "deadline",
+    candidates: hasRelevant ? ranked.map(({ item }) => item) : candidates,
+    order: hasRelevant ? "relevance" : "deadline",
     industry_id: industry,
     external_funding_need: need,
     stage,

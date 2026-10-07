@@ -826,7 +826,6 @@ export function supportGuideOf(regionCode: string | null, industryId: string | n
       available: true,
       items: rankFundingByQuestion([...loans, ...districtItems, ...others], question)
         .filter(({ score }) => score > 0)
-        .slice(0, 8)
         .map(({ item }) => item),
     } : null,
   };
