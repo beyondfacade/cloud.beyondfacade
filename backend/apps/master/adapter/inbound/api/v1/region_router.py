@@ -1,5 +1,9 @@
-from fastapi import APIRouter, Depends
-from fastapi.responses import JSONResponse
+import gzip
+import json
+from dataclasses import dataclass
+
+from fastapi import APIRouter, Depends, Request
+from fastapi.responses import JSONResponse, Response
 
 from apps.master.adapter.inbound.api.schemas.region_schema import (
     RegionResponse,
@@ -23,11 +27,43 @@ def myself(
     return to_response(use_case.myself())
 
 
+@dataclass(frozen=True)
+class _EncodedGeojson:
+    source_id: int
+    raw: bytes
+    gzip: bytes
+
+
+_ENCODED: _EncodedGeojson | None = None
+
+
+def _encoded(geojson: dict) -> _EncodedGeojson:
+    """경계 dict를 한 번만 직렬화·압축해 둔다 — 같은 dict(프로세스 캐시 Proxy가 주는 객체)면 재사용.
+
+    부하 테스트 7차 근거: 요청마다 약 450KB JSON 생성 + gzip 레벨 9(요청당 CPU 약 30ms, API CPU가 병목).
+    직렬화는 FastAPI JSONResponse와 같은 형식(ensure_ascii=False, 공백 없는 구분자)이라 본문이 바뀌지 않는다.
+    """
+    global _ENCODED
+    if _ENCODED is None or _ENCODED.source_id != id(geojson):
+        raw = json.dumps(geojson, ensure_ascii=False, allow_nan=False, separators=(",", ":")).encode("utf-8")
+        _ENCODED = _EncodedGeojson(source_id=id(geojson), raw=raw, gzip=gzip.compress(raw, compresslevel=9))
+    return _ENCODED
+
+
 @router.get("/geojson")
 def geojson(
+    request: Request,
     use_case: RegionUseCase = Depends(get_region_use_case),
-) -> dict:
-    return use_case.geojson()
+) -> Response:
+    encoded = _encoded(use_case.geojson())
+    # Content-Encoding이 붙은 응답은 GZipMiddleware가 다시 압축하지 않는다
+    if "gzip" in request.headers.get("accept-encoding", ""):
+        return Response(
+            encoded.gzip,
+            media_type="application/json",
+            headers={"Content-Encoding": "gzip", "Vary": "Accept-Encoding"},
+        )
+    return Response(encoded.raw, media_type="application/json", headers={"Vary": "Accept-Encoding"})
 
 
 @router.get("/{region_code}/summary", response_model=RegionSummaryResponse)

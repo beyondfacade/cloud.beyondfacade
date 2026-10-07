@@ -1,5 +1,10 @@
 # Backend Version Log
 
+## [v0.94.0] - 2026-10-07
+
+### Changed
+- `GET /regions/geojson`이 **미리 직렬화·압축한 본문**을 재사용한다 — 경계 dict(프로세스 캐시 Proxy)가 같으면 JSON(439KB)·gzip(81KB, 레벨 9)을 한 번만 만든다. gzip을 받는 클라이언트에는 `Content-Encoding: gzip` 본문을 그대로, 아니면 압축하지 않은 JSON(`Vary: Accept-Encoding`). `GZipMiddleware`는 이미 인코딩된 응답을 다시 압축하지 않는다. 본문 형식은 FastAPI JSONResponse와 같다(계약 불변). 근거: 부하 테스트 5·6차 병목이 API CPU(1,500명 390~400%), 실측 요청당 CPU 40.8ms → 0ms(혼합 요청의 약 4%가 geojson). 7차 부하 측정으로 천장 효과 확인 예정
+
 ## [v0.93.0] - 2026-10-07
 
 ### Added
