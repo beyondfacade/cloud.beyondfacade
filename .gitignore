@@ -3,6 +3,7 @@
 /data/
 __pycache__/
 logs/
+/results/
 스크린샷*.png
 .worktrees/
 /docs/plan/
