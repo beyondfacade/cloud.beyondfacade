@@ -12,6 +12,30 @@ it("후보 8건과 되돌아온 요청 값을 준다", async () => {
   expect(body.candidates).toHaveLength(8);
   expect(body.industry_id).toBe("cafe");
   expect(body.external_funding_need).toBe(31_600_000);
+  expect(body.order).toBe("deadline");
+});
+
+it("질문이 있으면 관련 후보부터 정렬하고 관련도 순서를 표시한다", async () => {
+  const res = await call(`?q=${encodeURIComponent("청년 창업")}`);
+  expect(res.status).toBe(200);
+  const body = await res.json();
+  expect(body.order).toBe("relevance");
+  expect(body.candidates[0].title).toContain("청년창업");
+  expect(body.candidates).toHaveLength(8);
+});
+
+it("공백뿐인 질문은 기존 후보 순서와 마감 순서 표시를 유지한다", async () => {
+  const body = await (await call("?q=%20%20")).json();
+  expect(body.order).toBe("deadline");
+  expect(body.candidates).toEqual((await (await call()).json()).candidates);
+});
+
+it("질문과 관련 있는 후보가 없으면 기존 후보와 마감 순서를 유지한다", async () => {
+  const res = await call(`?stage=pre&q=${encodeURIComponent("무관한질문")}`);
+  expect(res.status).toBe(200);
+  const body = await res.json();
+  expect(body.order).toBe("deadline");
+  expect(body.candidates).toEqual((await (await call("?stage=pre")).json()).candidates);
 });
 
 it("모든 후보에 원문 링크와 걸린 규칙이 붙는다", async () => {

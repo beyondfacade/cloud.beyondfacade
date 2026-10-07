@@ -2,10 +2,11 @@ import { apiGet } from "@/shared/api/client";
 import type { RegionSummary, SupportGuide } from "@/shared/api/types";
 
 /** 창업 지원 정보 — 대출·보증 / 우리 구 전용 / 창업·경영 + 금리 참고값. 둘 다 선택이고, 동이 없으면 구 묶음이 빈다. */
-export function fetchSupportGuide(regionCode: string | null, industryId: string | null): Promise<SupportGuide> {
+export function fetchSupportGuide(regionCode: string | null, industryId: string | null, q?: string): Promise<SupportGuide> {
   const params = new URLSearchParams();
   if (regionCode) params.set("region", regionCode);
   if (industryId) params.set("industry", industryId);
+  if (q) params.set("q", q);
   return apiGet<SupportGuide>(`/funding/support?${params.toString()}`);
 }
 

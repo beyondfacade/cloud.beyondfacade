@@ -56,3 +56,7 @@ class RagRepositoryPort(ABC):
         exclude_expired_funding: bool = True,
     ) -> list[RagHit]:
         """벡터 유사도 검색 — 상위 K개 결과 반환 (Task 5에서 구현)."""
+
+    @abstractmethod
+    def rank_within(self, embedding: list[float], chunk_ids: list[str]) -> list[tuple[str, float]]:
+        """주어진 청크만 벡터와 가까운 순 (chunk_id, 코사인 거리) — 임베딩이 없거나 없는 id는 결과에 없다."""

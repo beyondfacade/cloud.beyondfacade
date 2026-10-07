@@ -34,13 +34,20 @@ class FundingProgramUseCase(ABC):
         external_funding_need: int | None,
         stage: str | None,
         region_code: str | None = None,
+        question: str | None = None,
     ) -> FundingCandidateListDto:
         """서울 창업자에게 해당하는 미만료 공고 상위 8건 — 결정론 필터 (설계서 §3).
 
         자격 확정이 아니다. `industry_id`·`external_funding_need`는 되돌려주기만 한다.
         `region_code`(동)를 주면 다른 구 전용 공고를 빼고 8건을 채운다(구를 모르면 구 전용 모두 뺀다).
+        `question`이 있으면 규칙을 통과한 전체를 질문과 가까운 순으로 정렬해 8건을 고른다(`order`).
         """
 
     @abstractmethod
-    def support_guide(self, region_code: str | None, industry_id: str | None) -> SupportGuideDto:
-        """창업 지원 정보 — 동의 자치구·업종 기준 세 묶음 + 금리 참고값. 자격 확정이 아니다."""
+    def support_guide(
+        self, region_code: str | None, industry_id: str | None, question: str | None = None
+    ) -> SupportGuideDto:
+        """창업 지원 정보 — 동의 자치구·업종 기준 세 묶음 + 금리 참고값. 자격 확정이 아니다.
+
+        `question`이 있으면 `search`에 같은 자격 경계 안의 질문과 가까운 공고 8건을 싣는다.
+        """

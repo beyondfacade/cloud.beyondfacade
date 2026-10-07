@@ -20,3 +20,7 @@ class RagSearchUseCase(ABC):
         self, query: str, top_k: int = 5, source_type: str | None = None
     ) -> list[RagHit]:
         """쿼리를 임베딩해 유사도 검색 — 상위 top_k개 결과 반환."""
+
+    @abstractmethod
+    def rank_within(self, query: str, chunk_ids: list[str]) -> list[tuple[str, float]]:
+        """주어진 청크만 질문과 가까운 순 (chunk_id, 코사인 거리) — 색인 없는 id는 결과에 없다 (하이브리드 검색)."""

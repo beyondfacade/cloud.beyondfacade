@@ -23,11 +23,14 @@ _INDEX_EMBEDDER_REGISTRY = {
 INDEX_PROVIDERS = tuple(_INDEX_EMBEDDER_REGISTRY)
 
 
-def get_rag_search_use_case(provider: str = "bge-m3") -> RagSearchUseCase:
-    """검색 UseCase. 임베더는 색인과 같은 모델이어야 한다 — 레지스트리 재사용(어댑터 구성 중복 금지)."""
+def get_rag_search_use_case(provider: str = "bge-m3", timeout: float = 120.0) -> RagSearchUseCase:
+    """검색 UseCase. 임베더는 색인과 같은 모델이어야 한다 — 레지스트리 재사용(어댑터 구성 중복 금지).
+
+    `timeout`은 질의 임베딩 대기(초) — 사용자가 기다리는 경로는 짧게 넘긴다.
+    """
     embedder_cls = _INDEX_EMBEDDER_REGISTRY[provider]
     return RagSearchInteractor(
-        embedder=embedder_cls(),
+        embedder=embedder_cls(timeout=timeout),
         repository=SqlAlchemyRagRepository(),
     )
 

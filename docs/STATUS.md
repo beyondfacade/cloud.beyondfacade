@@ -121,6 +121,7 @@ git log --oneline -1 main; git status --short
 | 테이블 | 행 | 상태 | 비고 |
 |---|---:|---|---|
 | rag_chunk | 8,905 | ✅ | news 6,640 + funding 2,265. **전량 `bge-m3`**(vector(1024), 10/4 전량 재색인 — GPU 101초). `region_code` 컬럼은 0건(미사용) |
+| rag_chunk (10/7) | 2,312 | ✅ | **funding만**(뉴스는 10/6 네이버 특약으로 색인 제외). 요청 경로에서 읽는 곳: **지원사업 하이브리드 검색**(10/7 BE v0.89.0 — 규칙 필터 통과 후보를 질문 유사도로 정렬, `/funding/support?q=`·`/funding/candidates?q=`·질문 있는 리포트). 10/5 v0.68.0~10/7 사이에는 요청 경로에서 RAG를 읽는 곳이 없었다(리포트 도구 루프 제거) |
 | analysis_report / llm_usage | 21 / 21 | ✅ | 모델별 gemma3 1 · gemma4 18 · **gemini-2.5-flash 2**(v0.35.0 혼합 배선 이후) |
 
 ## 3. 파이프라인·크론 (전부 오늘 9/24 정상)
@@ -296,7 +297,7 @@ main이 전진하면 다시 낡는다 — 배포 전 재빌드가 규칙.
 | 백엔드 dev | uvicorn `--reload` **8201**, cwd `backend/`(메인 체크아웃). 워처가 편집을 놓친 적 2회 → 실호출 전 로그 확인 |
 | 프론트 dev | next **3200**, `NEXT_PUBLIC_API_BASE=/api/backend` → 8201 프록시. 브라우저는 노트북(원격 SSH) |
 | 도커 | 8200 조회 전용, **낡음**(§4-2) |
-| LLM | 리포트 해석 gemini-3.8-flash 일반 → claude-opus-5-5 → gemma4:12b(v0.75.0~) · 관문 폴백 gemini-3.8-flash 일반 모드(`thinking_budget=0`, 10/7 v0.88.0) · RAG 임베딩 bge-m3(Ollama, 1024, 색인·질의 동일) · GPU RTX 5060 Ti 16GB 유휴 |
+| LLM | 리포트 해석 gemini-3.8-flash 일반 → claude-opus-5-5 → gemma4:12b(v0.75.0~) · 관문 폴백 gemini-3.8-flash 일반 모드(`thinking_budget=0`, 10/7 v0.88.0) · RAG 임베딩 bge-m3(Ollama, 1024, 색인·질의 동일 — 10/7부터 지원사업 하이브리드 검색 질의, 5초 제한, v0.89.0) · GPU RTX 5060 Ti 16GB 유휴 |
 | 키 | `backend/.env`에 GEMINI·SGIS·VWORLD 등 설정됨(값은 열람하지 않음). **Anthropic 키는 미설정** |
 | git | `main` 단일. 원격 `origin/feature/analysis-api`(병합됨, 삭제는 사용자 결정), 로컬 `feature/frontend-mvp`(병합됨). 작업 트리엔 `docs/jekyll.md`(지킬 세션 산출물)만 |
 

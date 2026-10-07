@@ -1,10 +1,10 @@
 "use client";
 
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
-import type { RateReference, SupportItem } from "@/shared/api/types";
+import type { RateReference, SupportItem, SupportSearch } from "@/shared/api/types";
 import { industryLabel } from "@/shared/industries";
 import { fetchSupportGuide, fetchSupportRegion } from "../api";
 import { SUPPORT_CHANNELS, formatPeriod, formatRate, rateLabel } from "../lib/support-content";
@@ -13,15 +13,17 @@ const LINK_CLASS = "text-sm font-medium text-[var(--text-primary)] underline dec
 
 /** /support — 리포트 하단에서 넘어오는 창업 지원·대출 정보. 동·업종·예산은 되돌아갈 주소에 그대로 싣는다. */
 export function SupportPage() {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const region = searchParams.get("region");
   const industry = searchParams.get("industry");
   const budget = searchParams.get("budget");
+  const q = searchParams.get("q")?.trim().slice(0, 200) ?? "";
   const query = new URLSearchParams(Object.entries({ region, industry, budget }).filter((entry): entry is [string, string] => !!entry[1])).toString();
 
   const guide = useQuery({
-    queryKey: ["support-guide", region, industry],
-    queryFn: () => fetchSupportGuide(region, industry),
+    queryKey: ["support", region, industry, q],
+    queryFn: () => fetchSupportGuide(region, industry, q),
   });
   const regionInfo = useQuery({
     queryKey: ["support-region", region, industry],
@@ -30,6 +32,15 @@ export function SupportPage() {
     staleTime: 5 * 60 * 1000,
   });
   const districtName = guide.data?.district_name ?? null;
+
+  const submitSearch = (question: string) => {
+    const params = new URLSearchParams(searchParams.toString());
+    const nextQ = question.trim().slice(0, 200);
+    if (nextQ) params.set("q", nextQ);
+    else params.delete("q");
+    const nextQuery = params.toString();
+    router.push(`/support${nextQuery ? `?${nextQuery}` : ""}`, { scroll: false });
+  };
 
   return (
     <main aria-label="창업 지원·대출 정보" className="mx-auto flex max-w-4xl flex-col gap-10 px-4 py-10">
@@ -49,10 +60,15 @@ export function SupportPage() {
         </p>
       </header>
 
+      <SearchForm key={q} query={q} onSearch={submitSearch} />
+
       {guide.isPending && <div role="status" aria-label="지원 정보를 불러오는 중" className="h-32 animate-pulse rounded-lg bg-[var(--bg-raised)] motion-reduce:animate-none" />}
       {guide.isError && <p role="alert" className="text-sm text-[var(--danger)]">지원 공고를 불러오지 못했습니다. 아래 상담 창구에서 직접 확인해 보세요.</p>}
 
       {guide.data && <>
+        {guide.data.search && (
+          <SearchResults key={q} search={guide.data.search} districtName={districtName} />
+        )}
         <GuideSection title="대출·보증" description="정책자금 융자와 보증 공고예요. 아래 금리는 공고의 융자 금리를 견줘 볼 기준으로 보세요.">
           <RateList rates={guide.data.rates} />
           <ProgramList items={guide.data.loans} districtName={districtName} empty="지금 모집 중인 대출·보증 공고를 찾지 못했습니다." />
@@ -90,7 +106,44 @@ export function SupportPage() {
   );
 }
 
-function GuideSection({ title, description, children }: { title: string; description: string; children: ReactNode }) {
+function SearchForm({ query, onSearch }: { query: string; onSearch: (question: string) => void }) {
+  const [draft, setDraft] = useState(query);
+  const label = "찾는 지원을 적어 보세요 — 예: 인테리어 비용, 청년 대출";
+  return (
+    <form onSubmit={(event) => { event.preventDefault(); onSearch(draft); }} className="flex flex-col gap-2">
+      <label htmlFor="support-question" className="text-sm text-[var(--text-primary)]">{label}</label>
+      <div className="flex flex-col gap-2 sm:flex-row">
+        <input id="support-question" name="q" type="text" value={draft} onChange={(event) => setDraft(event.target.value)} placeholder={label} className="min-w-0 flex-1 rounded-md border border-[var(--border)] bg-[var(--bg-surface)] px-3 py-2 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-secondary)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]" />
+        <div className="flex shrink-0 gap-2">
+          <button type="submit" className="flex-1 rounded-md bg-[var(--accent)] px-4 py-2 text-sm font-medium text-[var(--accent-fg)] hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]">찾기</button>
+          <button type="button" onClick={() => { setDraft(""); onSearch(""); }} className="flex-1 rounded-md border border-[var(--border)] bg-[var(--bg-surface)] px-4 py-2 text-sm text-[var(--text-primary)] hover:bg-[var(--bg-raised)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]">지우기</button>
+        </div>
+      </div>
+    </form>
+  );
+}
+
+function SearchResults({ search, districtName }: { search: SupportSearch; districtName: string | null }) {
+  const [visibleCount, setVisibleCount] = useState(8);
+  const remaining = search.items.length - visibleCount;
+  return (
+    <GuideSection title="질문과 가까운 공고" description={<>
+      {search.available && <span className="mb-1 block">관련 공고 {search.items.length}건</span>}
+      지원 자격(서울·소상공인·창업, 마감 전)으로 먼저 거른 뒤 질문과 가까운 순서예요
+    </>}>
+      {search.available ? <>
+        <ProgramList items={search.items.slice(0, visibleCount)} districtName={districtName} empty="맞는 공고를 찾지 못했어요. 다른 말로 찾아보세요." />
+        {remaining > 0 && (
+          <button type="button" onClick={() => setVisibleCount((count) => count + 8)} className="max-w-full self-start rounded-md border border-[var(--border)] bg-[var(--bg-surface)] px-4 py-2 text-sm text-[var(--text-primary)] hover:bg-[var(--bg-raised)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]">
+            더보기 ({remaining}건 더)
+          </button>
+        )}
+      </> : <p className="text-sm text-[var(--text-secondary)]">지금은 검색을 쓸 수 없어요. 아래 목록을 확인해 주세요.</p>}
+    </GuideSection>
+  );
+}
+
+function GuideSection({ title, description, children }: { title: string; description: ReactNode; children: ReactNode }) {
   return (
     <section aria-label={title} className="flex flex-col gap-3">
       <div>

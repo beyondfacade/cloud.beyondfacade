@@ -381,6 +381,10 @@ def _due(candidate: dict) -> str:
     return period if period.startswith("상시") else f"접수 {period}"
 
 
+# 정렬 방식 → 첫 줄에 덧붙일 문장 (마감 임박 순·키 없음은 덧붙이지 않는다)
+_FUNDING_ORDER_NOTES = {"relevance": " 질문과 가까운 순으로 골랐습니다."}
+
+
 def _funding(facts: dict) -> str:
     region, industry = subject_names(facts)
     candidates = facts.get("funding_candidates")
@@ -394,7 +398,7 @@ def _funding(facts: dict) -> str:
     head = (
         f"{FACT} {region} {industry} 조건으로 찾은 공고 후보입니다 — 자격 확정이 아니라 해당 가능성이며, "
         "지원 대상은 공고 원문에서 확인해야 합니다."
-    )
+    ) + _FUNDING_ORDER_NOTES.get(facts.get("funding_order"), "")
     return "\n\n".join([head, "\n".join(lines), FUNDING_DISCLAIMER])
 
 

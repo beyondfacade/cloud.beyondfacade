@@ -57,9 +57,16 @@ class SupportItem:
     def why(self) -> str:
         return self.candidate.why
 
+    @property
+    def program(self) -> FundingProgram:
+        return self.candidate.program
+
 
 @dataclass(frozen=True)
 class SupportGuide:
+    """`items`는 세 묶음으로 나누기 전 전체(규칙 순서) — 질문 검색이 이 경계 안에서만 정렬한다."""
+
+    items: list[SupportItem] = field(default_factory=list)
     loans: list[SupportItem] = field(default_factory=list)
     district: list[SupportItem] = field(default_factory=list)
     others: list[SupportItem] = field(default_factory=list)
@@ -131,6 +138,7 @@ def build_support_guide(
     rest = [item for item in items if item.candidate.program.field_category != LOAN_FIELD]
     by_industry = lambda item: not item.industry_match  # noqa: E731
     return SupportGuide(
+        items=items,
         loans=sorted(loans, key=lambda item: not item.district_match)[:LOANS_LIMIT],
         district=sorted((i for i in rest if i.district_match), key=by_industry)[:DISTRICT_LIMIT],
         others=sorted((i for i in rest if not i.district_match), key=by_industry)[:OTHERS_LIMIT],

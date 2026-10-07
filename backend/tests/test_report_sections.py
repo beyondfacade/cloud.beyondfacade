@@ -231,6 +231,16 @@ def test_지원사업은_공고_제목_원문과_해당_가능성과_예상치_�
     assert "http" not in body and "PBLN_" not in body
 
 
+def test_지원사업이_질문으로_정렬됐으면_첫_줄에_그_사실을_한_문장_붙인다():
+    candidates = [{"title": "창업기업 모집 공고", "org": "중소벤처기업부", "deadline": "2026-10-06"}]
+
+    relevance = _body("funding", funding_candidates=candidates, funding_order="relevance")
+    deadline = _body("funding", funding_candidates=candidates, funding_order="deadline")
+
+    assert relevance.split("\n\n")[0].endswith("확인해야 합니다. 질문과 가까운 순으로 골랐습니다.")
+    assert "질문과 가까운 순" not in deadline
+
+
 def test_시간대_자료_부족_이유에서_내부_코드를_뺀다():
     body = _body("conditions", hour_gap={"available": False, "reason": "시간대 어긋남 자료가 없다: 1120072000 × korean_food"})
 

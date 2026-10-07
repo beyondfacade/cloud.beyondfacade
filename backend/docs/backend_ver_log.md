@@ -1,5 +1,28 @@
 # Backend Version Log
 
+## [v0.89.0] - 2026-10-07
+
+> v0.88.0은 의도 관문 모델 교체(main 436aaae). 부하 테스트 환경(처음 v0.88.0으로 기록)은 v0.90.0으로 재번호.
+
+### Added
+- 지원사업 공고 하이브리드 검색 — 규칙 필터(서울·전국 ∩ 소상공인·창업 대상 ∩ 미만료, 구 전용 제외)로 자격을 거른 뒤 그 후보 **전체**를 질문과의 코사인 거리로 정렬한다. 색인 없는 새 공고는 정렬된 것 뒤에 규칙 순서로 붙인다. 질문이 없으면 지금과 같다(마감 임박 순, 임베딩 호출 없음). 설계서 `docs/superpowers/specs/2026-10-07-funding-hybrid-design.md`
+  - 비교 실험(10/7, 평가셋 confirmed 175문항·상위 8건): 규칙만 Hit 0/6·자격 밖 노출 0% / RAG만 6/6·**97.3%** / 하이브리드 **6/6·0%** — 결정 근거는 자격 밖 노출(정답 표본은 6문항뿐). `scripts/compare_funding_hybrid.py`
+- rag BC `RagSearchUseCase.rank_within(query, chunk_ids)`·`RagRepositoryPort.rank_within(embedding, chunk_ids)` — 주어진 청크만 pgvector `<=>` 순, `embedding IS NOT NULL`(색인 없는 id는 결과에 없음)
+- funding BC 출력 포트 `QuestionRankerPort.rank(question, program_ids)`(실패 시 예외), 게이트웨이 `RagQuestionRankerGateway`(cross-BC ACL — `funding:{program_id}` 접두 변환, rag `get_rag_search_use_case("bge-m3")`), 도메인 순수 함수 `order_by_relevance`(`domain/services/relevance.py`). 배선은 `funding_program_dependencies`. 인터랙터의 `ranker`는 선택 인자 — 없으면 실패와 같이 처리(Null Object)
+- `GET /funding/candidates?q=` → 응답 `order`("relevance" = q가 있고 정렬 성공 | "deadline"). `GET /funding/support?q=` → 응답 `search`(q 없으면 null | `{query, available, items}` — 세 묶음 나누기 전 같은 자격 경계에서 질문과 가까운 순 최대 8건). 세 묶음은 그대로
+- 리포트 사실 묶음 키 `funding_order`(`funding_candidates` 다음) — 분석 질문으로 지원사업 후보를 고르고(`FundingFactsPort.candidates(..., question)`), 지원사업 절 첫 줄에 "질문과 가까운 순으로 골랐습니다." 한 문장. 키가 없으면 deadline로 취급(평가 facts 픽스처 그대로)
+
+### Changed
+- `q`는 앞뒤 공백을 자르고 비면 없는 것으로 본다. 200자를 넘으면 422가 아니라 200자에서 자른다
+- 임베딩 실패(Ollama 다운 등) 시 경고 로그 1줄 — 후보는 규칙 순서·`order: "deadline"`, 지원 정보 검색은 `available: false`·`items: []`(규칙 순서로 채우지 않는다)
+- `list_candidates`는 규칙 통과 전체를 받은 뒤(구 전용 제외·질문 정렬) 마지막에 8건으로 자른다 — 질문 없는 결과는 이전과 같다
+- `SupportGuide`에 나누기 전 전체 `items`, `SupportItem.program` 속성 추가
+- 유사도 기준선(설계서 §7 개정 1) — 코사인 거리 `d ≤ min(0.54, 1등 거리 + 0.08)`인 공고만 "질문과 관련 있음"(도메인 순수 함수 `relevant_ids`). 포트는 거리까지 돌려준다: `QuestionRankerPort.rank`·rag `rank_within` → `(id, 거리)` 가까운 순. 10/7 실측(질문 8개 × 자격 통과 74건): 고용보험료 지원 1건·인테리어 비용 1건·임대료 부담 1건·온라인 판로 2건, 평가셋 자격 정답 6/6 기준 안
+- 지원 정보 검색 `search.items`는 8건 상한을 없애고 기준선 통과 공고 **전부**(가까운 순, `SEARCH_LIMIT` 제거). 색인 없는 공고는 넣지 않는다. 통과 공고가 없으면 `available: true, items: []`
+- 후보 `/funding/candidates?q=`는 기준선 통과 공고를 앞에, 나머지는 규칙 순서로 8건 그대로. 통과 공고가 하나도 없으면 `order: "deadline"`(리포트 "질문과 가까운 순" 문장이 붙지 않는다)
+- 질문 임베딩 대기를 짧게 — `OllamaBgeM3EmbeddingAdapter(timeout=)`·`get_rag_search_use_case(provider, timeout=)`, 게이트웨이는 **5초**(색인·CLI는 120초 그대로). Ollama가 연결만 받고 멈추면 화면·리포트가 최대 120초 기다리던 것(설계서 §2-4 위반) — 콜드 로드 실측 약 2초
+- 다른 지역 이름 공고는 뒤로(제외 아님, 개수·자격 경계 불변) — 도메인 순수 함수 `names_other_region`(제목에 서울 외 시도 약칭 또는 해시태그에 서울 외 시도 정식 명칭, 제목의 "창업대전" 같은 행사 이름 "대전"은 제외). 규칙 순서 정렬 키 맨 앞, 질문 정렬·`search.items`는 기준선 통과 공고 안에서만 맨 뒤(무관 공고보다는 앞). 10/7 실측 자격 통과 74건 중 13건(소담스퀘어 5·지역 창조경제혁신센터 창업BuS 등 8). 설계서 §7 사용자 결정
+
 ## [v0.88.0] - 2026-10-07
 
 ### Changed
