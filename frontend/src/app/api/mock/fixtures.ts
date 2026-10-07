@@ -787,26 +787,48 @@ export function fundingCandidatesOf(stage: string | null): FundingCandidate[] {
     }));
 }
 
+/** 질문 단어가 제목·요약·해시태그에 포함된 개수로 정렬하고, 동률은 기존 FNV-1a 해시로 푼다. */
+export function rankFundingByQuestion<T extends FundingCandidate>(items: T[], question: string) {
+  const words = question.toLowerCase().split(/\s+/);
+  return items.map((item) => {
+    const text = [item.title, item.summary, item.hashtags].join(" ").toLowerCase();
+    return {
+      item,
+      score: words.filter((word) => text.includes(word)).length,
+      tie: hashSeed(question, item.program_id),
+    };
+  }).sort((a, b) => b.score - a.score || a.tie - b.tie);
+}
+
 /** 창업 지원 정보 — 실 API처럼 금융은 대출 묶음, 구 이름이 든 공고는 구 묶음, 나머지는 창업·경영 묶음. */
-export function supportGuideOf(regionCode: string | null, industryId: string | null): SupportGuide {
+export function supportGuideOf(regionCode: string | null, industryId: string | null, question = ""): SupportGuide {
   const districtName = regionCode ? SEOUL_DISTRICTS[districtOf(regionCode)] ?? null : null;
   const items: SupportItem[] = fundingCandidatesOf(null).map((c) => ({ ...c, district_match: false, industry_match: false }));
   const districtItems: SupportItem[] = districtName ? [
     { ...items[1], program_id: "mock-district-1", title: `[서울] ${districtName} 2026년 소상공인 원스톱 지원사업`, why: "서울 · 소상공인 · 경영", district_match: true },
     { ...items[1], program_id: "mock-district-2", title: `[서울] ${districtName} 2026년 소규모 자영업자 간판 설치 지원`, why: "서울 · 소상공인 · 경영", district_match: true },
   ] : [];
+  const loans = items.filter((c) => c.field_category === "금융");
   const others = items.filter((c) => c.field_category !== "금융").map((c, i) => (i === 0 && industryId ? { ...c, industry_match: true } : c));
   return {
     region_code: regionCode,
     district_name: districtName,
     industry_id: industryId,
-    loans: items.filter((c) => c.field_category === "금융"),
+    loans,
     district: districtItems,
     others,
     rates: [
       { rate_type: "base", period: "202608", rate_pct: 3.0 },
       { rate_type: "loan_facility", period: "202608", rate_pct: 4.05 },
     ],
+    search: question ? {
+      query: question,
+      available: true,
+      items: rankFundingByQuestion([...loans, ...districtItems, ...others], question)
+        .filter(({ score }) => score > 0)
+        .slice(0, 8)
+        .map(({ item }) => item),
+    } : null,
   };
 }
 

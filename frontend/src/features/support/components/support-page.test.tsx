@@ -1,11 +1,16 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { render, screen, within } from "@testing-library/react";
+import { fireEvent, render, screen, within, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import type { SupportGuide, SupportItem } from "@/shared/api/types";
 import { SupportPage } from "./support-page";
 
 let searchParams = new URLSearchParams();
-vi.mock("next/navigation", () => ({ useSearchParams: () => searchParams }));
+const navigation = vi.hoisted(() => ({ push: vi.fn() }));
+vi.mock("next/navigation", () => ({
+  useSearchParams: () => searchParams,
+  useRouter: () => ({ push: navigation.push }),
+}));
 
 function item(id: string, title: string, extra: Partial<SupportItem> = {}): SupportItem {
   return {
@@ -27,6 +32,7 @@ const GUIDE: SupportGuide = {
     { rate_type: "base", period: "202608", rate_pct: 3 },
     { rate_type: "loan_facility", period: "202608", rate_pct: 4.05 },
   ],
+  search: null,
 };
 
 let fetchMock: ReturnType<typeof vi.fn>;
@@ -40,13 +46,19 @@ function stubFetch(guide: SupportGuide | null) {
 
 beforeEach(() => {
   searchParams = new URLSearchParams("region=1168064000&industry=korean_food&budget=50000000");
+  navigation.push.mockReset();
+  navigation.push.mockImplementation((href: string) => {
+    searchParams = new URLSearchParams(href.split("?")[1]);
+  });
   stubFetch(GUIDE);
 });
 afterEach(() => vi.unstubAllGlobals());
 
 function renderPage() {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
-  return render(<QueryClientProvider client={client}><SupportPage /></QueryClientProvider>);
+  return render(<SupportPage />, {
+    wrapper: ({ children }) => <QueryClientProvider client={client}>{children}</QueryClientProvider>,
+  });
 }
 
 it("동·업종으로 지원 정보를 불러와 동네 이름과 업종을 제목 옆에 보여 준다", async () => {
@@ -124,4 +136,53 @@ it("지원 정보를 불러오지 못하면 알리고 상담 창구는 그대로
 it("자격 확정이 아니라는 안내를 상단에 고정한다", async () => {
   renderPage();
   expect(await screen.findByText(/자격 확정이 아니라/)).toBeInTheDocument();
+});
+
+it("질문을 Enter로 제출하면 URL과 조회에 싣고 지우면 검색을 해제한다", async () => {
+  const user = userEvent.setup();
+  const { rerender } = renderPage();
+  await screen.findByRole("region", { name: "대출·보증" });
+  const input = screen.getByRole("textbox", { name: /찾는 지원을 적어 보세요/ });
+  await user.type(input, "  인테리어 비용  ");
+  expect(fetchMock.mock.calls.filter(([url]) => url.includes("/funding/support"))).toHaveLength(1);
+  await user.keyboard("{Enter}");
+  expect(navigation.push).toHaveBeenCalledWith(
+    `/support?region=1168064000&industry=korean_food&budget=50000000&q=${encodeURIComponent("인테리어 비용").replaceAll("%20", "+")}`,
+    { scroll: false },
+  );
+  rerender(<SupportPage />);
+  await waitFor(() => expect(fetchMock).toHaveBeenCalledWith(expect.stringContaining("q=" + encodeURIComponent("인테리어 비용").replaceAll("%20", "+")), undefined));
+  expect(screen.getByRole("textbox")).toHaveValue("인테리어 비용");
+  await user.click(screen.getByRole("button", { name: "지우기" }));
+  rerender(<SupportPage />);
+  expect(searchParams.has("q")).toBe(false);
+  expect(screen.getByRole("textbox")).toHaveValue("");
+});
+
+it("찾기 버튼으로 제출한 질문의 결과 절에 기존 카드와 출처를 보여 준다", async () => {
+  const { rerender } = renderPage();
+  fireEvent.change(screen.getByRole("textbox"), { target: { value: "인테리어" } });
+  fireEvent.click(screen.getByRole("button", { name: "찾기" }));
+  stubFetch({ ...GUIDE, search: { query: "인테리어", available: true, items: [item("s1", "인테리어 비용 지원")] } });
+  rerender(<SupportPage />);
+  const results = await screen.findByRole("region", { name: "질문과 가까운 공고" });
+  expect(within(results).getByText("지원 자격(서울·소상공인·창업, 마감 전)으로 먼저 거른 뒤 질문과 가까운 순서예요")).toBeInTheDocument();
+  expect(within(results).getByRole("link", { name: "인테리어 비용 지원" })).toHaveAttribute("href", "https://www.bizinfo.go.kr/s1");
+  expect(within(results).getByText(/출처: 기업마당/)).toBeInTheDocument();
+  expect(screen.getByRole("region", { name: "대출·보증" })).toBeInTheDocument();
+});
+
+it("검색을 쓸 수 없으면 안내하고 기존 목록을 보여 준다", async () => {
+  searchParams.set("q", "청년 대출");
+  stubFetch({ ...GUIDE, search: { query: "청년 대출", available: false, items: [] } });
+  renderPage();
+  expect(await screen.findByText("지금은 검색을 쓸 수 없어요. 아래 목록을 확인해 주세요.")).toBeInTheDocument();
+  expect(screen.getByRole("region", { name: "대출·보증" })).toBeInTheDocument();
+});
+
+it("검색 결과가 비면 다른 말로 찾도록 안내한다", async () => {
+  searchParams.set("q", "인테리어");
+  stubFetch({ ...GUIDE, search: { query: "인테리어", available: true, items: [] } });
+  renderPage();
+  expect(await screen.findByText("맞는 공고를 찾지 못했어요. 다른 말로 찾아보세요.")).toBeInTheDocument();
 });

@@ -453,6 +453,7 @@ export interface FundingCandidate {
 
 export interface FundingCandidateList {
   candidates: FundingCandidate[];
+  order: "relevance" | "deadline";
   /** 필터에 쓰이지 않고 되돌아온 값 — 화면이 문장에 쓴다(공고에 업종·한도가 구조화돼 있지 않다). */
   industry_id: string | null;
   external_funding_need: number | null;
@@ -463,6 +464,12 @@ export interface FundingCandidateList {
 export interface SupportItem extends FundingCandidate {
   district_match: boolean;
   industry_match: boolean;
+}
+
+export interface SupportSearch {
+  query: string;
+  available: boolean;
+  items: SupportItem[];
 }
 
 /** 금리 참고값 — `rate_type`은 base(기준금리) · loan_facility(시설자금대출), `period`는 YYYYMM. */
@@ -481,6 +488,7 @@ export interface SupportGuide {
   district: SupportItem[];
   others: SupportItem[];
   rates: RateReference[];
+  search: SupportSearch | null;
 }
 
 /** 확인할 질문 초안 (POST /finance/questions). 서버는 초안을 줄 뿐 — 사용자가 편집·삭제·추가한다. */
