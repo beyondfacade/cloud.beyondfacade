@@ -42,10 +42,12 @@ function scenarios() {
   }
   if (PROFILE === 'llm') {
     if (!WITH_LLM) throw new Error('PROFILE=llm은 LLM=1과 함께 쓴다 (Gemini 요금·한도 발생)');
-    const steps = [4, 8, 16, 35].flatMap((n) => [{ duration: '1m', target: n }, { duration: '4m', target: n }]);
+    // NO_THINK=1(⑦ 보강)은 VU = 동시 분석이라 Gemini 호출이 많다 — 계단을 20초 상승 + 60초 유지로 줄여 요금을 묶는다
+    const [ramp, hold] = __ENV.NO_THINK === '1' ? ['20s', '1m'] : ['1m', '4m'];
+    const steps = [4, 8, 16, 35].flatMap((n) => [{ duration: ramp, target: n }, { duration: hold, target: n }]);
     return {
       aiReport: { executor: 'ramping-vus', exec: 'aiReport', startVUs: 0, stages: steps },
-      mapExplorer: { executor: 'constant-vus', exec: 'mapExplorer', vus: 10, duration: '20m' },
+      mapExplorer: { executor: 'constant-vus', exec: 'mapExplorer', vus: 10, duration: __ENV.NO_THINK === '1' ? '5m20s' : '20m' },
     };
   }
   const stages = STAGES[PROFILE];

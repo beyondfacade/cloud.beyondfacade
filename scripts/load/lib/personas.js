@@ -43,10 +43,13 @@ export function mapExplorer() {
 
 // B. 질문 → AI 리포트 (10%, 가장 비쌈) — LLM=1일 때만 돈다. 가짜 LLM 컨테이너(LLM_MODE=fake)면 요금 없음,
 //    실제 Gemini 컨테이너면 요금·한도 발생(testplan §7-4 (c) — ⑦ 트랙만).
+// NO_THINK=1이면 생각·읽기 시간 없이 바로 다음 분석 — VU 수 = 동시 분석 수 (⑦ 보강: 동시 35건까지 실제로 올린다)
+const AI_THINK = __ENV.NO_THINK === '1' ? 0 : 1;
+
 export function aiReport() {
   const p = pickPair();
   group('질문', () => post('/intent', { text: `${p.name}에서 ${p.label} 창업하려고 해요` }, 'intent', { timeout: '30s' }));
-  sleep(think(3, 5));
+  sleep(AI_THINK * think(3, 5));
   group('리포트', () => {
     // MODEL=gemini면 Gemini 단독(폴백 없음) — ⑦에서 한도에 걸리는 지점을 오퍼스 폴백 없이 본다
     const body = __ENV.MODEL ? { region: p.region, industry: p.industry, model: __ENV.MODEL } : { region: p.region, industry: p.industry };
@@ -57,7 +60,7 @@ export function aiReport() {
     // 해석 실패 시 코드 대체 문장("…해석을 만들지 못했습니다…") — 200이어도 LLM은 실패한 것
     check(stream, { 'analysis LLM 해석 성공': (r) => r.status === 200 && !String(r.body).includes('해석을 만들지 못했습니다') });
   });
-  sleep(think(30, 60));
+  sleep(AI_THINK * think(30, 60));
 }
 
 const PLAN_INPUT = {
