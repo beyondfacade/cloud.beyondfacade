@@ -1,5 +1,11 @@
 # Backend Version Log
 
+## [v0.91.0] - 2026-10-07
+
+### Changed
+- 지원사업 공고 목록 캐시(TTL 10분) — `FundingProgramRepositoryPort.list_open_all()`을 캐싱 Proxy(`CachingFundingProgramRepositoryProxy`, adapter/outbound/repositories)로 감쌌다. 다른 메서드는 그대로 위임. 프로세스당 1개(`@lru_cache`)를 API 라우터와 agent `FundingFactsGateway`(리포트)가 공유하고, 수집 CLI는 캐시 없이 쓴다. 크론(05:10, 별도 프로세스)이 갱신해도 API 캐시는 지울 수 없어 TTL로 따라간다(최대 10분 늦게 반영). 마감 판정은 요청 시각 기준이라 날짜가 바뀌면 캐시된 공고도 맞게 빠진다
+- 근거(10/7 부하 테스트 2차): `GET /funding/support?q=` 단독 계단이 20 RPS p95 417ms → 40 RPS에서 깨짐, API CPU 1코어가 병목. `support_guide` CPU 약 23ms 중 `list_open_all()`(마감 전 1,521건 전 컬럼 읽기·엔티티 변환)이 13ms
+
 ## [v0.90.0] - 2026-10-07
 
 > 처음 v0.88.0으로 기록했으나 main의 관문 모델 교체(v0.88.0)·지원사업 하이브리드 검색(v0.89.0)이 먼저 들어가 머지 때 v0.90.0으로 재번호.
