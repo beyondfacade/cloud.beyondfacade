@@ -15,7 +15,7 @@ _QUERY_TIMEOUT_SECONDS = 5.0
 
 
 class RagQuestionRankerGateway(QuestionRankerPort):
-    def rank(self, question: str, program_ids: list[str]) -> list[str]:
+    def rank(self, question: str, program_ids: list[str]) -> list[tuple[str, float]]:
         chunk_ids = [f"{_CHUNK_PREFIX}{program_id}" for program_id in program_ids]
         ranked = get_rag_search_use_case(_PROVIDER, timeout=_QUERY_TIMEOUT_SECONDS).rank_within(question, chunk_ids)
-        return [chunk_id.removeprefix(_CHUNK_PREFIX) for chunk_id in ranked]
+        return [(chunk_id.removeprefix(_CHUNK_PREFIX), distance) for chunk_id, distance in ranked]

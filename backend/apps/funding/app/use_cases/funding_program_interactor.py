@@ -29,9 +29,9 @@ from apps.funding.domain.services.relevance import (
     ORDER_DEADLINE,
     ORDER_RELEVANCE,
     order_by_relevance,
+    relevant_ids,
 )
 from apps.funding.domain.services.support_guide import (
-    SEARCH_LIMIT,
     SupportItem,
     build_support_guide,
     open_to_district,
@@ -51,7 +51,7 @@ def _normalize_question(question: str | None) -> str | None:
 class _UnavailableRanker(QuestionRankerPort):
     """랭커가 배선되지 않은 인터랙터 — 랭킹 실패와 똑같이 다뤄진다 (Null Object)."""
 
-    def rank(self, question: str, program_ids: list[str]) -> list[str]:
+    def rank(self, question: str, program_ids: list[str]) -> list[tuple[str, float]]:
         raise RuntimeError("질문 정렬이 연결되지 않았습니다")
 
 
@@ -158,18 +158,18 @@ class FundingProgramInteractor(FundingProgramUseCase):
     def _ordered(
         self, candidates: list[FundingCandidate], question: str | None
     ) -> tuple[list[FundingCandidate], str]:
-        """질문이 있고 정렬에 성공하면 질문과 가까운 순, 아니면 규칙 순서 그대로."""
+        """질문이 있고 기준선을 통과한 공고가 있으면 그 공고를 앞에, 아니면 규칙 순서 그대로."""
         if question is None:
             return candidates, ORDER_DEADLINE
-        ranked = self._rank(question, candidates)
-        if ranked is None:
+        relevant = self._relevant(question, candidates)
+        if not relevant:
             return candidates, ORDER_DEADLINE
-        return order_by_relevance(candidates, ranked), ORDER_RELEVANCE
+        return order_by_relevance(candidates, relevant), ORDER_RELEVANCE
 
-    def _rank(self, question: str, candidates: list) -> list[str] | None:
-        """질문과 가까운 순 program_id — 실패하면 경고 한 줄을 남기고 None (화면·리포트는 멈추지 않는다)."""
+    def _relevant(self, question: str, candidates: list) -> list[str] | None:
+        """기준선을 통과한 program_id(가까운 순) — 실패하면 경고 한 줄을 남기고 None (화면·리포트는 멈추지 않는다)."""
         try:
-            return self._ranker.rank(question, [c.program.program_id for c in candidates])
+            return relevant_ids(self._ranker.rank(question, [c.program.program_id for c in candidates]))
         except Exception as error:
             LOGGER.warning("질문 정렬 실패 — 규칙 순서로 돌려준다: %s: %s", type(error).__name__, error)
             return None
@@ -204,15 +204,16 @@ class FundingProgramInteractor(FundingProgramUseCase):
         )
 
     def _search(self, items: list[SupportItem], question: str | None) -> SupportSearchDto | None:
-        """묶음 구분 없이 질문과 가까운 순 8건. 정렬에 실패하면 규칙 순서로 채우지 **않는다** —
-        "검색 결과"라면서 마감 순을 내면 거짓이다."""
+        """묶음 구분 없이 기준선을 통과한 공고 전부(가까운 순). 색인 없는 공고는 관련도를 몰라 넣지 않는다.
+        정렬에 실패하면 규칙 순서로 채우지 **않는다** — "검색 결과"라면서 마감 순을 내면 거짓이다."""
         if question is None:
             return None
-        ranked = self._rank(question, items)
-        if ranked is None:
+        relevant = self._relevant(question, items)
+        if relevant is None:
             return SupportSearchDto(query=question, available=False, items=[])
+        by_id = {item.program.program_id: item for item in items}
         return SupportSearchDto(
             query=question,
             available=True,
-            items=[_to_support_dto(item) for item in order_by_relevance(items, ranked)[:SEARCH_LIMIT]],
+            items=[_to_support_dto(by_id[program_id]) for program_id in relevant],
         )

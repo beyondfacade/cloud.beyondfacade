@@ -43,7 +43,6 @@ INDUSTRY_KEYWORDS: dict[str, tuple[str, ...]] = {
 LOANS_LIMIT = 6
 DISTRICT_LIMIT = 6
 OTHERS_LIMIT = 8
-SEARCH_LIMIT = 8  # 질문 검색 결과 — 묶음 구분 없이
 
 
 @dataclass(frozen=True)

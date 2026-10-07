@@ -59,5 +59,5 @@ class QuestionRankerPort(ABC):
     """질문 유사도 정렬 — 규칙 필터를 통과한 공고만 질문과 가까운 순으로 (하이브리드 검색)."""
 
     @abstractmethod
-    def rank(self, question: str, program_ids: list[str]) -> list[str]:
-        """질문과 가까운 순 program_id. 색인이 없는 공고는 빠진다. 임베딩 실패 등은 예외로 알린다."""
+    def rank(self, question: str, program_ids: list[str]) -> list[tuple[str, float]]:
+        """질문과 가까운 순 (program_id, 코사인 거리). 색인이 없는 공고는 빠진다. 임베딩 실패 등은 예외로 알린다."""

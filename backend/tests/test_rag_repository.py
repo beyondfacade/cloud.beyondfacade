@@ -2,6 +2,7 @@
 
 from datetime import date, datetime
 
+import pytest
 from sqlalchemy import delete
 
 from apps.funding.adapter.outbound.orms.funding_program_orm import FundingProgramOrm
@@ -166,7 +167,7 @@ def test_upsert_chunks_updates_existing_row_on_second_call():
         _cleanup()
 
 
-def test_rank_within은_주어진_청크만_가까운_순으로_돌려주고_색인_없는_id는_뺀다():
+def test_rank_within은_주어진_청크만_가까운_순으로_코사인_거리와_돌려주고_색인_없는_id는_뺀다():
     """하이브리드 검색 — 규칙이 거른 후보만 질문과 가까운 순으로 (설계서 §4)."""
     _cleanup()
     repo = SqlAlchemyRagRepository()
@@ -186,6 +187,9 @@ def test_rank_within은_주어진_청크만_가까운_순으로_돌려주고_색
             _E0, [f"{_PREFIX}rank-far", f"{_PREFIX}rank-near", f"{_PREFIX}rank-none", f"{_PREFIX}missing"]
         )
 
-        assert ranked == [f"{_PREFIX}rank-near", f"{_PREFIX}rank-far"]
+        assert ranked == [
+            (f"{_PREFIX}rank-near", pytest.approx(0.0)),
+            (f"{_PREFIX}rank-far", pytest.approx(1.0)),
+        ]
     finally:
         _cleanup()

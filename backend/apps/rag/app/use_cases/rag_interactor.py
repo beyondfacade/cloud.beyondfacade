@@ -62,5 +62,5 @@ class RagSearchInteractor(RagSearchUseCase):
         hits = self._repository.search(embedding, top_k * _COLLAPSE_FETCH_FACTOR, source_type)
         return collapser(hits)[:top_k]
 
-    def rank_within(self, query: str, chunk_ids: list[str]) -> list[str]:
+    def rank_within(self, query: str, chunk_ids: list[str]) -> list[tuple[str, float]]:
         return self._repository.rank_within(self._embedder.embed_query(query), chunk_ids)

@@ -24,7 +24,7 @@ from apps.funding.dependencies.funding_program_dependencies import (
 )
 from apps.funding.domain.entities.funding_program_entity import FundingProgram
 from apps.funding.domain.services.candidates import select_candidates
-from apps.funding.domain.services.relevance import order_by_relevance
+from apps.funding.domain.services.relevance import order_by_relevance, relevant_ids
 from main import app
 
 _SEOUL_GU = frozenset({"강남구", "관악구"})
@@ -63,6 +63,14 @@ def test_질문과_가까운_것을_앞에_두고_색인_없는_공고는_규칙
     assert _ids(ordered) == ["p04", "p02", "p01", "p03", "p05"]
 
 
+def test_기준선은_절대_상한_안이면서_1등과_차이가_작은_것만_가까운_순으로_남긴다():
+    # 1등 0.30 → 0.38까지(1등 차이) / 1등 0.50 → 0.54까지(절대 상한)
+    assert relevant_ids([("a", 0.30), ("b", 0.38), ("c", 0.39)]) == ["a", "b"]
+    assert relevant_ids([("a", 0.50), ("b", 0.54), ("c", 0.55)]) == ["a", "b"]
+    assert relevant_ids([("a", 0.60)]) == []
+    assert relevant_ids([]) == []
+
+
 # --- 인터랙터: 질문 없음 / 있음 / 랭커 실패 ---
 
 
@@ -97,14 +105,24 @@ class _Districts(SeoulDistrictNamesPort, DistrictNameLookupPort):
 
 
 class _Ranker(QuestionRankerPort):
-    """id 내림차순을 "질문과 가까운 순"으로 본다 — 규칙 순서(오름차순)와 반대라 정렬 여부가 드러난다."""
+    """id 내림차순을 "질문과 가까운 순"으로 본다 — 규칙 순서(오름차순)와 반대라 정렬 여부가 드러난다.
 
-    def __init__(self):
+    기본 거리 0.30(기준선 안). `far`는 0.90(기준선 밖), `unindexed`는 결과에서 빠진다(색인 없음).
+    """
+
+    def __init__(self, far=(), unindexed=()):
         self.calls: list[tuple[str, list[str]]] = []
+        self._far = set(far)
+        self._unindexed = set(unindexed)
 
     def rank(self, question, program_ids):
         self.calls.append((question, program_ids))
-        return sorted(program_ids, reverse=True)
+        scored = [
+            (program_id, 0.90 if program_id in self._far else 0.30)
+            for program_id in sorted(program_ids, reverse=True)
+            if program_id not in self._unindexed
+        ]
+        return sorted(scored, key=lambda pair: pair[1])
 
 
 class _DownRanker(QuestionRankerPort):
@@ -158,6 +176,15 @@ def test_랭커가_실패하면_규칙_순서로_돌려주고_경고를_한_줄_
     assert len([r for r in caplog.records if r.levelno == logging.WARNING]) == 1
 
 
+def test_기준선을_통과한_공고가_없으면_재정렬하지_않고_deadline이다():
+    ranker = _Ranker(far=[program.program_id for program in _TWELVE])
+
+    result = _interactor(_TWELVE, ranker).list_candidates(None, None, None, question="인테리어 비용")
+
+    assert result.order == "deadline"
+    assert _ids(result.candidates) == [f"p{n:02d}" for n in range(1, 9)]
+
+
 def test_지원_정보는_질문이_없으면_검색_결과가_없다():
     ranker = _Ranker()
 
@@ -167,16 +194,26 @@ def test_지원_정보는_질문이_없으면_검색_결과가_없다():
     assert ranker.calls == []
 
 
-def test_지원_정보_검색은_묶음_구분_없이_질문과_가까운_순으로_8건이고_다른_구_전용은_뺀다():
+def test_지원_정보_검색은_묶음_구분_없이_기준선을_통과한_공고_전부를_가까운_순으로_내고_다른_구_전용은_뺀다():
     programs = [*_TWELVE, _program(13, title="관악구 소상공인 지원"), _program(14, field_category="금융")]
-    ranker = _Ranker()
+    ranker = _Ranker(far=["p12"], unindexed=["p11"])
 
     guide = _interactor(programs, ranker).support_guide("1168064000", None, question="인테리어 비용")
 
     assert "p13" not in ranker.calls[0][1]
     assert guide.search.query == "인테리어 비용"
     assert guide.search.available is True
-    assert _ids(guide.search.items) == ["p14", *[f"p{n:02d}" for n in range(12, 5, -1)]]
+    # 8건 상한 없음 · 기준선 밖(p12)과 색인 없는 공고(p11)는 넣지 않는다
+    assert _ids(guide.search.items) == ["p14", *[f"p{n:02d}" for n in range(10, 0, -1)]]
+
+
+def test_지원_정보_검색은_기준선을_통과한_공고가_없으면_빈_결과다():
+    ranker = _Ranker(far=[program.program_id for program in _TWELVE])
+
+    guide = _interactor(_TWELVE, ranker).support_guide(None, None, question="인테리어 비용")
+
+    assert guide.search.available is True
+    assert guide.search.items == []
 
 
 def test_지원_정보_검색은_랭커가_실패하면_쓸_수_없다고_하고_규칙_순서로_채우지_않는다():
@@ -225,7 +262,7 @@ def test_지원_정보_API는_q로_찾은_공고를_search에_싣는다():
 
     assert search["query"] == "인테리어 비용"
     assert search["available"] is True
-    assert len(search["items"]) == 8
+    assert len(search["items"]) == 12
     assert {"program_id", "title", "why", "district_match", "industry_match"} <= set(search["items"][0])
 
 
@@ -244,7 +281,7 @@ def test_랭커_게이트웨이는_funding_접두로_rag를_부르고_program_id
     class _RagSearch:
         def rank_within(self, query, chunk_ids):
             calls.append((query, chunk_ids))
-            return ["funding:p02"]  # 색인 없는 p01은 빠져 온다
+            return [("funding:p02", 0.31)]  # 색인 없는 p01은 빠져 온다
 
     timeouts = []
 
@@ -257,6 +294,6 @@ def test_랭커_게이트웨이는_funding_접두로_rag를_부르고_program_id
     ranked = RagQuestionRankerGateway().rank("청년 대출", ["p01", "p02"])
 
     assert calls == [("청년 대출", ["funding:p01", "funding:p02"])]
-    assert ranked == ["p02"]
+    assert ranked == [("p02", 0.31)]
     # 화면·리포트가 기다리는 경로 — 색인용 120초가 아니라 짧게 끊고 규칙 순서로 돌아간다(설계서 §2-4)
     assert timeouts == [5.0]

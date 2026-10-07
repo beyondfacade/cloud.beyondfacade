@@ -66,9 +66,9 @@ class FakeRagRepository(RagRepositoryPort):
             )
         ]
 
-    def rank_within(self, embedding: list[float], chunk_ids: list[str]) -> list[str]:
+    def rank_within(self, embedding: list[float], chunk_ids: list[str]) -> list[tuple[str, float]]:
         self.rank_calls.append((embedding, chunk_ids))
-        return list(reversed(chunk_ids))
+        return [(chunk_id, 0.1 * n) for n, chunk_id in enumerate(reversed(chunk_ids))]
 
 
 class FakeRagSource(RagSourcePort):
@@ -190,4 +190,4 @@ def test_rank_within은_질문을_한_번_임베딩해_저장소_정렬에_넘�
 
     assert embedder.embed_query_calls == ["인테리어 비용"]
     assert repository.rank_calls == [([1.0, 0.0], ["funding:a", "funding:b"])]
-    assert ranked == ["funding:b", "funding:a"]
+    assert ranked == [("funding:b", 0.0), ("funding:a", 0.1)]
