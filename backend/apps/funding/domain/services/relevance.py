@@ -6,6 +6,8 @@
 from collections.abc import Sequence
 from typing import TypeVar
 
+from apps.funding.domain.services.region_filter import names_other_region
+
 ORDER_RELEVANCE = "relevance"  # 질문과 가까운 순
 ORDER_DEADLINE = "deadline"  # 규칙 순서(마감 임박 순)
 
@@ -33,8 +35,13 @@ def relevant_ids(
 def order_by_relevance(candidates: Sequence[T], ranked_ids: Sequence[str]) -> list[T]:
     """질문과 가까운 순(`ranked_ids`)으로 앞에 두고, 기준선 밖·색인 없는 공고는 규칙 순서대로 뒤에 붙인다.
 
+    앞쪽 안에서는 다른 지역 이름 공고를 맨 뒤로 보낸다 — 그래도 기준선 밖 공고보다는 앞이다.
     `ranked_ids`에만 있는 id(후보 밖)는 무시한다. 정렬이 안정적이라 뒤에 붙는 공고는 규칙 순서를 지킨다.
     """
     position = {program_id: n for n, program_id in enumerate(ranked_ids)}
-    unranked = len(position)
-    return sorted(candidates, key=lambda c: position.get(c.program.program_id, unranked))
+    ranked = sorted(
+        (c for c in candidates if c.program.program_id in position),
+        key=lambda c: (names_other_region(c.program), position[c.program.program_id]),
+    )
+    rest = [c for c in candidates if c.program.program_id not in position]
+    return ranked + rest

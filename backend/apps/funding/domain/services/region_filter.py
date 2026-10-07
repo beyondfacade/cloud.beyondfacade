@@ -18,7 +18,10 @@
 오탐이 나오면 아래 사전과 접미사 목록만 고친다.
 """
 
+import re
 from collections.abc import Iterable
+
+from apps.funding.domain.entities.funding_program_entity import FundingProgram
 
 SIDO_NAMES: tuple[str, ...] = (
     "서울", "부산", "대구", "인천", "광주", "대전", "울산", "세종",
@@ -31,6 +34,19 @@ NATIONWIDE_TAG = "전국"
 _TAG_ALIASES: dict[str, tuple[str, ...]] = {
     "전남광주": ("전남", "광주"),
 }
+
+# 시도 정식 명칭(서울특별시 제외) — 전국 공고도 약칭 17개는 다 달지만 정식 명칭은 그 지역 공고만 단다.
+# "소담스퀘어 in 전주"는 제목에 약칭이 없고 태그에 `전북특별자치도`만 있다 (설계서 2026-10-07 §7)
+OTHER_SIDO_FULL_NAMES: frozenset[str] = frozenset({
+    "부산광역시", "대구광역시", "인천광역시", "광주광역시", "대전광역시", "울산광역시",
+    "세종특별자치시", "경기도", "강원특별자치도", "충청북도", "충청남도", "전북특별자치도",
+    "전라남도", "경상북도", "경상남도", "제주특별자치도",
+})
+
+_OTHER_SIDO_NAMES: tuple[str, ...] = tuple(sido for sido in SIDO_NAMES if sido != "서울")
+
+# 제목에서 지역이 아닌 같은 글자 — "창업대전"·"산업디자인대전"(행사 이름). 10/7 실측 오탐
+_NOT_PLACE_IN_TITLE = re.compile(r"(?<=[가-힣])대전")
 
 REGION_SEOUL = "seoul"
 REGION_NATIONWIDE = "nationwide"
@@ -78,3 +94,14 @@ def classify_region(
     if "서울" in covered:
         return REGION_SEOUL
     return None
+
+
+def names_other_region(program: FundingProgram) -> bool:
+    """서울이 아닌 지역 이름이 붙은 공고인가 — 제외가 아니라 순서만 뒤로 보낼 때 쓴다.
+
+    원천이 17개 시도 태그를 다 달아 '전국'으로 통과하지만 실제 지원 시설은 그 지역에 있는 공고다.
+    """
+    title = _NOT_PLACE_IN_TITLE.sub("", program.title)
+    return any(sido in title for sido in _OTHER_SIDO_NAMES) or bool(
+        _tags(program.hashtags) & OTHER_SIDO_FULL_NAMES
+    )

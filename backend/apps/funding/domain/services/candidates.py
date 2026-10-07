@@ -18,6 +18,7 @@ from apps.funding.domain.services.region_filter import (
     REGION_NATIONWIDE,
     REGION_SEOUL,
     classify_region,
+    names_other_region,
 )
 
 # 긴 것부터 — "예비창업"이 "창업"보다 먼저 잡혀야 라벨이 정확하다
@@ -66,6 +67,7 @@ def _sort_key(candidate: FundingCandidate, stage: str | None) -> tuple:
     bonus = _STAGE_BONUS.get(stage or "", {}).get(candidate.audience, 0)
     program = candidate.program
     return (
+        names_other_region(program),  # 다른 지역 이름 공고는 뒤
         _REGION_ORDER[candidate.region],  # 서울 전용 → 전국
         0 if candidate.field_priority else 1,  # 금융·창업·경영 우선
         -bonus,  # 창업 단계 가점

@@ -63,6 +63,18 @@ def test_질문과_가까운_것을_앞에_두고_색인_없는_공고는_규칙
     assert _ids(ordered) == ["p04", "p02", "p01", "p03", "p05"]
 
 
+def test_다른_지역_이름_공고는_기준선_통과_공고_안에서만_뒤로_간다():
+    candidates = select_candidates(
+        [_program(1, title="소담스퀘어 in 전남 모집"), _program(2), _program(3)],
+        seoul_district_names=_SEOUL_GU,
+        today=_TODAY,
+    )  # 규칙 순서 p02, p03, p01
+
+    ordered = order_by_relevance(candidates, ["p01", "p02"])
+
+    assert _ids(ordered) == ["p02", "p01", "p03"]
+
+
 def test_기준선은_절대_상한_안이면서_1등과_차이가_작은_것만_가까운_순으로_남긴다():
     # 1등 0.30 → 0.38까지(1등 차이) / 1등 0.50 → 0.54까지(절대 상한)
     assert relevant_ids([("a", 0.30), ("b", 0.38), ("c", 0.39)]) == ["a", "b"]

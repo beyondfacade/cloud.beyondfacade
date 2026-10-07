@@ -211,9 +211,9 @@ class FundingProgramInteractor(FundingProgramUseCase):
         relevant = self._relevant(question, items)
         if relevant is None:
             return SupportSearchDto(query=question, available=False, items=[])
-        by_id = {item.program.program_id: item for item in items}
+        # 통과 공고는 전부 `items` 안의 id라 앞 len(relevant)건이 곧 통과 공고(다른 지역 이름 공고는 그 맨 뒤)
         return SupportSearchDto(
             query=question,
             available=True,
-            items=[_to_support_dto(by_id[program_id]) for program_id in relevant],
+            items=[_to_support_dto(item) for item in order_by_relevance(items, relevant)[: len(relevant)]],
         )

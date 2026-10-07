@@ -12,6 +12,7 @@ from apps.funding.domain.services.region_filter import (
     SIDO_NAMES,
     classify_region,
     is_outside_seoul_local_gov,
+    names_other_region,
 )
 
 _SEOUL_GU = frozenset({"종로구", "중구", "강남구", "관악구", "은평구"})
@@ -125,6 +126,39 @@ def test_서울_전용이_전국보다_앞선다():
     서울 = _program(2, hashtags="금융,서울", deadline=date(2026, 12, 1))
 
     assert [c.region for c in _select([전국, 서울])] == [REGION_SEOUL, REGION_NATIONWIDE]
+
+
+# --- 다른 지역 이름 공고 (설계서 §7 소담스퀘어 지역 공고 — 제외가 아니라 뒤로) ---
+
+
+def test_제목에_서울이_아닌_시도_약칭이_있으면_다른_지역_공고다():
+    assert names_other_region(_program(1, title="디지털커머스 전문기관(소담스퀘어 in 전남) 공고"))
+
+
+def test_해시태그에_서울이_아닌_시도_정식_명칭이_있으면_다른_지역_공고다():
+    전주 = _program(
+        1,
+        title="디지털커머스 전문기관(소담스퀘어 in 전주) 모집 공고",
+        hashtags=f"내수,{_ALL_SIDO},전북특별자치도,소상공인",
+    )
+
+    assert names_other_region(전주)
+
+
+def test_시도_약칭_태그만_다_단_전국_공고와_서울_공고는_다른_지역_공고가_아니다():
+    assert not names_other_region(_program(1, hashtags=f"금융,{_ALL_SIDO}"))
+    assert not names_other_region(
+        _program(2, title="서울 소상공인 지원", hashtags="금융,서울,서울특별시")
+    )
+    # "창업대전"의 대전은 행사 이름이다 (10/7 실데이터 오탐)
+    assert not names_other_region(_program(3, title="대한민국 물산업 혁신 창업대전 참가자 모집"))
+
+
+def test_다른_지역_이름_공고는_규칙_순서에서_뒤로_간다():
+    다른지역 = _program(1, title="소담스퀘어 in 광주 모집", deadline=date(2026, 10, 1))
+    일반 = _program(2, field_category="수출", deadline=date(2026, 12, 31))
+
+    assert [c.program.program_id for c in _select([다른지역, 일반])] == ["p02", "p01"]
 
 
 def test_같은_지역이면_우선_분야가_앞서고_그다음_마감_임박순이다():
