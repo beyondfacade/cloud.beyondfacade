@@ -1,5 +1,10 @@
 # Backend Version Log
 
+## [v0.93.0] - 2026-10-07
+
+### Added
+- `store` 부분 인덱스 `ix_store_region_industry_open` (`region_code, industry_id, store_id` WHERE `close_date IS NULL AND lat IS NOT NULL AND lng IS NOT NULL`, 마이그레이션 `d7b3e5a9c214`) — 동·업종 점포 목록(`list_open`) 전용. 부하 테스트 5차(원격 k6)에서 이 쿼리가 DB 시간의 약 66%(6.8만 회, 평균 27.5ms)였다(H8). 기존 인덱스가 업종·구 기준이라 업종 전체(카페 약 14.8만 행)를 읽고 동으로 걸렀다. 부하 DB 실측(서교동 카페): 읽은 행 14.75만 → 463, 페이지 4,395 → 188, 실행 35.7ms → 1.7ms. 인덱스 21MB. 6차 부하 측정으로 천장 효과 확인 예정
+
 ## [v0.92.0] - 2026-10-07
 
 ### Added

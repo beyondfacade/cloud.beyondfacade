@@ -1,6 +1,6 @@
 from datetime import date, datetime
 
-from sqlalchemy import ForeignKey, Index
+from sqlalchemy import ForeignKey, Index, text
 from sqlalchemy.orm import Mapped, mapped_column
 
 # FK 대상(마스터 허브) 테이블이 메타데이터에 항상 존재하도록 보장
@@ -17,6 +17,14 @@ class StoreOrm(OrmBase):
     __tablename__ = "store"
     __table_args__ = (
         Index("ix_store_industry_district_updated", "industry_id", "district_code", "source_updated_at"),
+        # list_open(동·업종 영업 중 점포) 전용 — 부하 테스트 H8, 마이그레이션 d7b3e5a9c214
+        Index(
+            "ix_store_region_industry_open",
+            "region_code",
+            "industry_id",
+            "store_id",
+            postgresql_where=text("close_date IS NULL AND lat IS NOT NULL AND lng IS NOT NULL"),
+        ),
     )
 
     store_id: Mapped[str] = mapped_column(primary_key=True)  # 인허가 관리번호(MNG_NO)
