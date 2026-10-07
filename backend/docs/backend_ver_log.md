@@ -1,6 +1,8 @@
 # Backend Version Log
 
-## [v0.88.0] - 2026-10-07
+## [v0.90.0] - 2026-10-07
+
+> 처음 v0.88.0으로 기록했으나 main의 관문 모델 교체(v0.88.0)·지원사업 하이브리드 검색(v0.89.0)이 먼저 들어가 머지 때 v0.90.0으로 재번호.
 
 ### Added
 - 부하 테스트용 가짜 LLM — `LLM_MODE=fake`(기본 live)면 분석 해석(`FixedDelayLLMAdapter`)·의도 폴백(`FixedDelayIntentLlmAdapter`)이 고정 3초만 쉬고 고정 값을 낸다. 분석은 요청 본문이 어떤 모델을 골랐든 가짜로 바뀐다(`_MODE_OVERRIDE`) — 부하 테스트 컨테이너에서 Gemini 요금·한도가 나가지 않게. 운영 배선(live)은 그대로 (testplan §7-4 (c))
