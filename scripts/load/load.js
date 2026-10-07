@@ -28,7 +28,10 @@ const STAGES = {
   stress: [['2m', 100], ['3m', 100], ['2m', 200], ['3m', 200], ['2m', 400], ['3m', 400],
     ['2m', 700], ['3m', 700], ['2m', 1000], ['3m', 1000], ['2m', 0]],
   spike: [['1m', 5], ['10s', 500], ['1m', 500], ['10s', 5], ['2m', 5]],
-  soak: [['2m', 50], ['110m', 50], ['1m', 0]],   // 실행 도구 2시간 제한 안에 끝나게 1시간 50분 유지
+  soak: [['2m', 50], ['110m', 50], ['1m', 0]],
+  // 천장 측정(원격 k6, 4차 이후): 1,000명에서도 포화하지 않아 1,500·2,000명까지 — stress와 같은 깨짐 기준으로 멈춘다
+  ceiling: [['2m', 200], ['3m', 200], ['2m', 500], ['3m', 500], ['2m', 1000], ['3m', 1000],
+    ['2m', 1500], ['3m', 1500], ['2m', 2000], ['3m', 2000], ['2m', 0]],   // 실행 도구 2시간 제한 안에 끝나게 1시간 50분 유지
 };
 
 // B를 빼면 남은 페르소나끼리 비율을 다시 나눠 전체 동접을 목표에 맞춘다
@@ -81,7 +84,7 @@ const thresholds = {
   'http_req_duration{api:intent}': [LLM_TARGET === 'fake' ? 'p(95)<3500' : 'p(95)<5000'],
   'http_req_duration{api:analysis_stream}': ['p(95)<60000'],
 };
-if (PROFILE === 'stress') {
+if (PROFILE === 'stress' || PROFILE === 'ceiling') {
   // Breakpoint: 깨지는 지점을 기록하고 멈춘다
   thresholds.http_req_failed = [{ threshold: 'rate<0.05', abortOnFail: true, delayAbortEval: '1m' }];
   thresholds.http_req_duration = [{ threshold: 'p(95)<3000', abortOnFail: true, delayAbortEval: '1m' }];
