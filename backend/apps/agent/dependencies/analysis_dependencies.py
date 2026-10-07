@@ -21,12 +21,16 @@ from apps.agent.adapter.outbound.llm.fallback_llm_adapter import FallbackLLMAdap
 from apps.agent.adapter.outbound.llm.fixed_delay_llm_adapter import FixedDelayLLMAdapter
 from apps.agent.adapter.outbound.llm.gemini_llm_adapter import GeminiLLMAdapter
 from apps.agent.adapter.outbound.llm.ollama_llm_adapter import OllamaLLMAdapter
+from apps.agent.adapter.outbound.repositories.analysis_pending_repository import (
+    SqlAlchemyPendingAnalysisRepository,
+)
 from apps.agent.adapter.outbound.repositories.analysis_repository import (
     SqlAlchemyAnalysisRepository,
 )
 from apps.agent.adapter.outbound.repositories.llm_call_repository import SqlAlchemyLlmCallRecorder
 from apps.agent.app.ports.input.analysis_use_case import AnalysisUseCase
 from apps.agent.app.ports.output.agent_port import LLMGatewayPort
+from apps.agent.app.ports.output.analysis_pending_port import PendingAnalysisPort
 from apps.agent.app.use_cases.analysis_interactor import AnalysisInteractor
 from apps.agent.app.use_cases.report_facts import ReportFactsCollector
 from apps.agent.domain.services.report_sampling import REPORT_SEED, REPORT_TEMPERATURE
@@ -127,3 +131,8 @@ def get_analysis_use_case() -> AnalysisUseCase:
 
 def get_analysis_repository() -> SqlAlchemyAnalysisRepository:
     return SqlAlchemyAnalysisRepository()
+
+
+def get_pending_analysis_port() -> PendingAnalysisPort:
+    """대기 분석 장부 — Postgres라 워커가 여럿이어도 POST와 SSE가 같은 장부를 본다."""
+    return SqlAlchemyPendingAnalysisRepository()

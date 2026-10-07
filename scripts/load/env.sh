@@ -7,6 +7,7 @@
 #   scripts/load/env.sh down     테스트 컨테이너 둘 다 지우기
 # 실제 Gemini를 쓰는 ⑦ 트랙만 LLM_MODE=live scripts/load/env.sh api 로 바꿔 띄운다(요금 발생).
 # NOFILE=65536 이면 API 컨테이너의 열린 파일(소켓) 한도를 올린다 — 기본은 도커 기본값 1,024(운영 8200과 같음).
+# WORKERS=4 이면 API를 uvicorn 워커 4개로 띄운다(WEB_CONCURRENCY) — 기본 1 = 1~3차와 같은 조건.
 # CPU 나누기(12코어): API 0-3 · 테스트 DB 4-7 · k6 8-11 — 서로 CPU를 뺏어 결과가 흔들리지 않게.
 set -euo pipefail
 
@@ -52,12 +53,13 @@ api_up() {
     -e DATABASE_URL="postgresql+psycopg://$PG_USER:$PG_USER@$DB:5432/$PG_DB" \
     -e OLLAMA_BASE_URL=http://host.docker.internal:11434 \
     -e LLM_MODE="${LLM_MODE:-fake}" \
+    -e WEB_CONCURRENCY="${WORKERS:-1}" \
     ${NOFILE:+--ulimit nofile=$NOFILE:$NOFILE} \
     --add-host host.docker.internal:host-gateway \
     -v "$(readlink -f "$ROOT/data/geojson")":/data/geojson:ro \
     -p 127.0.0.1:8202:8000 "$IMAGE" >/dev/null
   until curl -sf http://127.0.0.1:8202/health >/dev/null; do sleep 1; done
-  echo "테스트 API: http://127.0.0.1:8202 (LLM_MODE=${LLM_MODE:-fake}, 열린 파일 한도 $(docker exec "$API" sh -c 'ulimit -Sn'))"
+  echo "테스트 API: http://127.0.0.1:8202 (LLM_MODE=${LLM_MODE:-fake}, 워커 ${WORKERS:-1}개, 열린 파일 한도 $(docker exec "$API" sh -c 'ulimit -Sn'))"
 }
 
 monitor() {

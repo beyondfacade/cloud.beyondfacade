@@ -4,6 +4,7 @@ import json
 import time
 import uuid
 from collections.abc import Iterator
+from datetime import UTC, datetime
 
 from fastapi import APIRouter, Depends, Request
 from fastapi.responses import JSONResponse, StreamingResponse
@@ -17,18 +18,27 @@ from apps.agent.adapter.outbound.repositories.analysis_repository import (
     SqlAlchemyAnalysisRepository,
 )
 from apps.agent.app.ports.input.analysis_use_case import AnalysisUseCase
+from apps.agent.app.ports.output.analysis_pending_port import (
+    AnalysisTargetNotFound,
+    PendingAnalysisPort,
+)
 from apps.agent.dependencies.analysis_dependencies import (
     build_analysis_use_case,
     get_analysis_repository,
     get_analysis_use_case,
+    get_pending_analysis_port,
 )
 from apps.agent.domain.entities.agent_event_entity import AgentEvent
+from apps.agent.domain.entities.analysis_pending_entity import PendingAnalysis
 from apps.agent.domain.services.section_stream import concat_sections
 
 router = APIRouter(prefix="/analysis", tags=["analysis"])
 
-# 프로세스 수명 pending — mock 대칭 (analysis_id → 요청 파라미터)
-_PENDING: dict[str, dict] = {}
+# 장부 FK가 거절한 필드 → 404 에러 코드·문구 (intent·finance 라우터와 같은 코드)
+_TARGET_NOT_FOUND = {
+    "region": ("REGION_NOT_FOUND", "알 수 없는 region_code"),
+    "industry": ("INDUSTRY_NOT_FOUND", "지원하지 않는 industry"),
+}
 
 
 @router.get("/myself", response_model=AnalysisMyselfResponse)
@@ -39,15 +49,28 @@ def myself(
 
 
 @router.post("", response_model=AnalysisCreateResponse)
-def create_analysis(body: AnalysisCreateRequest) -> AnalysisCreateResponse:
+def create_analysis(
+    body: AnalysisCreateRequest,
+    pendings: PendingAnalysisPort = Depends(get_pending_analysis_port),
+) -> AnalysisCreateResponse | JSONResponse:
     analysis_id = uuid.uuid4().hex
-    _PENDING[analysis_id] = {
-        "region": body.region,
-        "industry": body.industry,
-        "question": body.question,
-        "model": body.model,
-        "budget": body.budget,
-    }
+    try:
+        pendings.save(
+            PendingAnalysis(
+                analysis_id=analysis_id,
+                region_code=body.region,
+                industry_id=body.industry,
+                question=body.question,
+                model=body.model,
+                budget=body.budget,
+                created_at=datetime.now(UTC),
+            )
+        )
+    except AnalysisTargetNotFound as error:
+        code, label = _TARGET_NOT_FOUND[error.field]
+        return JSONResponse(
+            status_code=404, content={"error": {"code": code, "message": f"{label}: {error.value}"}}
+        )
     return AnalysisCreateResponse(analysis_id=analysis_id)
 
 
@@ -56,8 +79,9 @@ def stream_events(
     analysis_id: str,
     request: Request,
     repository: SqlAlchemyAnalysisRepository = Depends(get_analysis_repository),
+    pendings: PendingAnalysisPort = Depends(get_pending_analysis_port),
 ) -> StreamingResponse | JSONResponse:
-    pending = _PENDING.get(analysis_id)
+    pending = pendings.find(analysis_id)
     if pending is None:
         return JSONResponse(
             status_code=404,
@@ -72,14 +96,14 @@ def stream_events(
     def event_stream() -> Iterator[bytes]:
         override = request.app.dependency_overrides.get(get_analysis_use_case)
         use_case = override() if override is not None else build_analysis_use_case(
-            pending["model"], pending["budget"]
+            pending.model, pending.budget
         )
         # report_delta는 이제 조각 단위다 — 섹션별로 이어 붙여야 저장본이 글이 된다 (설계서 §3-3⑤)
         chunks: list[tuple[str, str]] = []
         started = time.monotonic()
         try:
             for event in use_case.run(
-                pending["region"], pending["industry"], pending["question"]
+                pending.region_code, pending.industry_id, pending.question
             ):
                 frame_event = _with_stable_report_id(event, analysis_id)
                 if frame_event.type == "report_delta":
@@ -97,16 +121,16 @@ def stream_events(
                 usage = getattr(use_case, "last_usage", None)
                 input_tokens = getattr(usage, "input_tokens", 0) if usage else 0
                 output_tokens = getattr(usage, "output_tokens", 0) if usage else 0
-                model_name = pending["model"]
+                model_name = pending.model
                 llm = getattr(use_case, "_llm", None)
                 if llm is not None and getattr(llm, "model_name", None):
                     model_name = llm.model_name
                 try:
                     repository.save_report(
                         analysis_id=analysis_id,
-                        region_code=pending["region"],
-                        industry=pending["industry"],
-                        question=pending["question"],
+                        region_code=pending.region_code,
+                        industry=pending.industry_id,
+                        question=pending.question,
                         report_md=concat_sections(chunks),
                         citations=[],  # 인용은 네이버 검색 결과 링크뿐이라 저장하지 않는다(검색 API 특약 2.4)
                         model=model_name,
@@ -117,7 +141,7 @@ def stream_events(
                 except Exception:
                     # 영속화 실패로 SSE 클라이언트를 끊지 않는다 — 스트림은 이미 전송됨
                     pass
-            _PENDING.pop(analysis_id, None)
+            pendings.delete(analysis_id)
 
     return StreamingResponse(event_stream(), media_type="text/event-stream")
 

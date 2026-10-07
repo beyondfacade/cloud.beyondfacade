@@ -1,5 +1,17 @@
 # Backend Version Log
 
+## [v0.92.0] - 2026-10-07
+
+### Added
+- 분석 대기 장부 Postgres 테이블 `analysis_pending`(마이그레이션 `c4e8a2f6b913`) — `analysis_id` PK(32자), `region_code`→`region`·`industry_id`→`industry` FK(ERD 엣지), `question`·`model`·`budget`(bigint)·`created_at`(timestamptz, 인덱스). agent BC에 엔티티 `PendingAnalysis`, 출력 포트 `PendingAnalysisPort`(save·find·delete), `SqlAlchemyPendingAnalysisRepository`, 배선 `get_pending_analysis_port`
+- 만료 30분(`PENDING_TTL`) — `find`는 30분 지난 행을 없는 것으로 보고, `save`가 같은 트랜잭션에서 30분 지난 행을 함께 지운다(크론 없음, created_at 인덱스)
+
+### Changed
+- `POST /analysis`·`GET /analysis/{id}/events`가 프로세스 메모리 dict `_PENDING` 대신 장부를 쓴다. 이유: 워커를 늘리면 POST와 GET이 다른 워커로 가 404가 난다(부하 테스트 H5). 시작 시 조회·스트림 끝나면 삭제·없으면 404 `ANALYSIS_NOT_FOUND`는 그대로
+- `POST /analysis`가 마스터에 없는 지역·업종을 404 `REGION_NOT_FOUND`·`INDUSTRY_NOT_FOUND`로 거절한다(장부 FK — 전에는 받아서 자료 부족 리포트를 냈다)
+- 8200 백엔드 워커 4개 — docker-compose `WEB_CONCURRENCY: ${WEB_CONCURRENCY:-4}`(워커 4 × DB 풀 5+10 = 60 ≤ max_connections 100). 부하 테스트 `scripts/load/env.sh`는 `WORKERS`(기본 1 = 1~3차와 같은 조건)
+- Redis가 아니라 Postgres인 이유: 장부는 수명 몇 초이고 분석은 전체 요청의 약 0.6%라 DB 부담이 작다 — 새 장애 지점·관리형 서비스를 늘리지 않는다. Gemini 동시 상한처럼 파드 간 공용 카운터가 필요해지면 Redis를 검토한다
+
 ## [v0.91.0] - 2026-10-07
 
 ### Changed

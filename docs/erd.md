@@ -448,6 +448,8 @@ erDiagram
     %% ── 에이전트 계층 ──
     analysis_report ||--o{ llm_usage : "턴별 토큰"
     region |o..o{ analysis_report : "region_code (FK 없음)"
+    region ||--o{ analysis_pending : "대기 분석(FK)"
+    industry ||--o{ analysis_pending : "대기 분석(FK)"
 
     %% ── 판정 계층 (verdict, 새벽 배치 재생성) ──
     region ||--o{ region_industry_verdict : ""
@@ -834,6 +836,15 @@ erDiagram
         string error_kind "nullable"
         int latency_ms
     }
+    analysis_pending {
+        string analysis_id PK "uuid4 hex(32)"
+        string region_code FK
+        string industry_id FK
+        text question "nullable"
+        string model
+        bigint budget "nullable"
+        datetime created_at "IX, default now()"
+    }
     region_industry_verdict {
         string region_code PK, FK
         string industry_id PK, FK "IX"
@@ -949,6 +960,7 @@ erDiagram
 |---|---|
 | **추가** | `rag_chunk` — RAG 검색 청크(pgvector 1024차원). §2 초안에 없던 검색 계층 |
 | **추가** | `region_industry_verdict`(판정) · `apt_trade_count`(주택 보조) · admin 7테이블 · `host_metric_sample` · `llm_call_event` — §2 초안에 없던 판정·관리자·운영 계층 (2026-10-01 반영) |
+| **추가** | `analysis_pending` — POST /analysis와 SSE 사이의 대기 분석 장부. 프로세스 메모리 dict를 옮겨 워커가 여럿이어도 같은 장부를 본다. 30분 지난 행은 없는 것으로 보고 저장 때 함께 지운다(BE v0.92.0, 2026-10-07) |
 | **미구현** | `funding_program_industry`(공고↔업종 M:N) — 테이블 없음. `sales_estimate`(추정매출)는 `region_commerce_sales`로 구현됨(2026-09-23) |
 | **스키마 변경** | `region_industry_metric` — 대리키 `id`·`subcategory_id`·`survival_rate_3y` 없음, `period`(YYYYQ) → `year`(int), PK = (region_code, industry_id, year) 복합키 |
 | **스키마 변경** | `district.opn_authority_code`(UK) 추가, `industry_source_code.id`는 int + UK(industry_id, source_system, code) |

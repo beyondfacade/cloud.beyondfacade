@@ -5,8 +5,12 @@ from collections.abc import Iterator
 from datetime import datetime
 from uuid import UUID
 
+import pytest
 from fastapi.testclient import TestClient
 
+from apps.agent.adapter.outbound.repositories.analysis_pending_repository import (
+    SqlAlchemyPendingAnalysisRepository,
+)
 from apps.agent.app.ports.input.analysis_use_case import AnalysisUseCase
 from apps.agent.dependencies.analysis_dependencies import get_analysis_use_case
 from apps.agent.domain.entities.agent_event_entity import AgentEvent
@@ -56,10 +60,6 @@ def setup_function() -> None:
 
 def teardown_function() -> None:
     app.dependency_overrides.clear()
-    # 프로세스 수명 pending 잔여 제거
-    from apps.agent.adapter.inbound.api.v1 import analysis_router
-
-    analysis_router._PENDING.clear()
 
 
 def test_analysis_myself_wiring_returns_200():
@@ -140,29 +140,60 @@ def test_unknown_analysis_id_returns_404_body():
     assert body["error"]["message"]
 
 
-def test_예산을_받으면_pending에_실린다():
-    """budget은 finance 도구 기본값으로 배선에 넘어간다 (설계서 §5-2)."""
+def test_POST한_주문은_프로세스_메모리가_아니라_DB_장부에_실린다():
+    """워커가 여럿이면 GET이 다른 워커로 간다 — 새 저장소 인스턴스로도 찾아져야 한다 (부하 테스트 H5).
+    budget은 finance 도구 기본값으로 배선에 넘어간다 (설계서 §5-2)."""
     from apps.agent.adapter.inbound.api.v1 import analysis_router
 
     analysis_id = TestClient(app).post(
         "/analysis",
-        json={"region": "1168064000", "industry": "cafe", "budget": 50_000_000},
+        json={"region": "1168064000", "industry": "cafe", "question": "괜찮을까요?", "budget": 50_000_000},
     ).json()["analysis_id"]
 
-    assert analysis_router._PENDING[analysis_id]["budget"] == 50_000_000
+    assert not hasattr(analysis_router, "_PENDING")
+    pending = SqlAlchemyPendingAnalysisRepository().find(analysis_id)
+    assert (pending.region_code, pending.industry_id, pending.question, pending.model, pending.budget) == (
+        "1168064000",
+        "cafe",
+        "괜찮을까요?",
+        "hybrid",
+        50_000_000,
+    )
 
 
 def test_예산_없는_기존_요청도_그대로_받는다():
     """FE 컷오버 전 요청 호환 — budget은 선택이고 없으면 None이다."""
-    from apps.agent.adapter.inbound.api.v1 import analysis_router
-
     response = TestClient(app).post(
         "/analysis",
         json={"region": "1168064000", "industry": "cafe"},
     )
 
     assert response.status_code == 200
-    assert analysis_router._PENDING[response.json()["analysis_id"]]["budget"] is None
+    assert SqlAlchemyPendingAnalysisRepository().find(response.json()["analysis_id"]).budget is None
+
+
+def test_스트림이_끝나면_대기_주문을_지운다():
+    client = TestClient(app)
+    analysis_id = client.post("/analysis", json={"region": "1168064000", "industry": "cafe"}).json()["analysis_id"]
+
+    client.get(f"/analysis/{analysis_id}/events")
+
+    assert SqlAlchemyPendingAnalysisRepository().find(analysis_id) is None
+
+
+@pytest.mark.parametrize(
+    ("body", "code"),
+    [
+        ({"region": "0000000000", "industry": "cafe"}, "REGION_NOT_FOUND"),
+        ({"region": "1168064000", "industry": "no_such_industry"}, "INDUSTRY_NOT_FOUND"),
+    ],
+)
+def test_마스터에_없는_지역_업종은_404로_거절된다(body, code):
+    """장부가 region·industry 마스터를 FK로 참조한다 — 무결성 오류를 500으로 흘리지 않는다."""
+    response = TestClient(app).post("/analysis", json=body)
+
+    assert response.status_code == 404
+    assert response.json()["error"]["code"] == code
 
 
 def test_음수_예산은_422로_거절된다():

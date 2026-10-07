@@ -52,6 +52,9 @@ services:
       NEO4J_AUTH: ${NEO4J_AUTH:-neo4j/beyondfacade}
       REDIS_URL: redis://redis:6379/0
       OLLAMA_BASE_URL: http://host.docker.internal:11434  # 호스트 Ollama
+      # uvicorn은 WEB_CONCURRENCY를 --workers 기본값으로 읽는다. 워커 4 × DB 풀(5+10) = 60 ≤ Postgres max_connections 100
+      # — 개발 8201·크론 몫이 남는다. 분석 대기 장부가 Postgres라 POST·SSE가 다른 워커로 가도 된다(BE v0.92.0)
+      WEB_CONCURRENCY: ${WEB_CONCURRENCY:-4}
     extra_hosts:
       - "host.docker.internal:host-gateway"
     ports:

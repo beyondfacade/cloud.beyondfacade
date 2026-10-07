@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # 혼합 부하 한 단계를 같은 조건으로 실행 (testplan §4 ③~⑦) — 결과는 logs/load/<profile>-<시각>/ 한 폴더에
 #   scripts/load/run_stage.sh <PROFILE> [k6 -e 인자...]      LLM_MODE=live|fake(기본 fake)로 API 모드, NOFILE=65536으로 파일 한도 선택
-# 조건 고정: API 컨테이너 재시작(메모리·_PENDING 비움) → pg_stat_statements 초기화 → 30초 안정화 → monitor + k6
+# 조건 고정: API 컨테이너 재시작(메모리 비움) → pg_stat_statements 초기화 → 30초 안정화 → monitor + k6
 # 끝나면 느린 쿼리 상위 20·API 로그를 같은 폴더에 남긴다.
 set -uo pipefail
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
