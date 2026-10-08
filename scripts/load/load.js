@@ -32,6 +32,10 @@ const STAGES = {
   // 천장 측정(원격 k6, 4차 이후): 1,000명에서도 포화하지 않아 1,500·2,000명까지 — stress와 같은 깨짐 기준으로 멈춘다
   ceiling: [['2m', 200], ['3m', 200], ['2m', 500], ['3m', 500], ['2m', 1000], ['3m', 1000],
     ['2m', 1500], ['3m', 1500], ['2m', 2000], ['3m', 2000], ['2m', 0]],   // 실행 도구 2시간 제한 안에 끝나게 1시간 50분 유지
+  // 8차(판정 캐시)에서 2,000명도 포화하지 않아 2,500·3,000명까지 — 2,000명까지는 ceiling과 같은 계단
+  ceiling3k: [['2m', 200], ['3m', 200], ['2m', 500], ['3m', 500], ['2m', 1000], ['3m', 1000],
+    ['2m', 1500], ['3m', 1500], ['2m', 2000], ['3m', 2000], ['2m', 2500], ['3m', 2500],
+    ['2m', 3000], ['3m', 3000], ['2m', 0]],
 };
 
 // B를 빼면 남은 페르소나끼리 비율을 다시 나눠 전체 동접을 목표에 맞춘다
@@ -84,7 +88,7 @@ const thresholds = {
   'http_req_duration{api:intent}': [LLM_TARGET === 'fake' ? 'p(95)<3500' : 'p(95)<5000'],
   'http_req_duration{api:analysis_stream}': ['p(95)<60000'],
 };
-if (PROFILE === 'stress' || PROFILE === 'ceiling') {
+if (PROFILE === 'stress' || PROFILE.startsWith('ceiling')) {
   // Breakpoint: 깨지는 지점을 기록하고 멈춘다
   thresholds.http_req_failed = [{ threshold: 'rate<0.05', abortOnFail: true, delayAbortEval: '1m' }];
   thresholds.http_req_duration = [{ threshold: 'p(95)<3000', abortOnFail: true, delayAbortEval: '1m' }];
