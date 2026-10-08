@@ -1,5 +1,13 @@
 # Backend Version Log
 
+## [v0.95.0] - 2026-10-08
+
+### Changed
+- 판정 저장소 캐싱 Proxy `CachingRegionIndustryVerdictRepositoryProxy` — 업종별 전 행정동 판정(`list_by_industry`)을 **업종마다 10분 TTL**로 프로세스 메모리에 둔다. `list_by_region`·`find`는 그대로 위임. 쓰기(`upsert`·`delete_other_industries`)는 위임한 뒤 캐시를 모두 비운다 — 배치·백테스트 CLI도 같은 배선(`get_region_industry_verdict_use_case`)을 쓰기 때문. 별도 프로세스인 새벽 배치의 갱신은 최대 10분 늦게 API에 반영된다
+- 동 목록 캐싱 Proxy `CachingRegionCatalogGatewayProxy` — `RegionCatalogPort.regions()`(동 이름 + 최신 분기 동네 유형)를 10분 TTL 캐시
+- 배선: 두 Proxy를 `@lru_cache` 팩토리로 프로세스당 1개 만들어 인터랙터에 주입(funding 선례와 같은 방식). API 라우터와 agent `VerdictFactsGateway`가 공유한다
+- 근거: 부하 테스트 7차(원격 k6, 워커 4)에서 병목은 API CPU(2,000명 389%), DB 시간 1위가 `list_by_industry`(9.9만 회, 총 218초) — 지도 색칠(`GET /verdicts?industry=`, 427행)과 동 클릭마다 부르는 대안 추천(`GET /verdicts/{code}/alternatives`)이 같이 쓴다. `regions()`는 6차 DB 시간 1위(7만 회 × 3.5ms). 개발 DB 실측(서교동·카페, 30회 평균 CPU): `alternatives` 7.11ms → 1.04ms, `list_verdict_values` 4.90ms → 0.27ms. 응답은 캐시 전과 같다
+
 ## [v0.94.0] - 2026-10-07
 
 ### Changed
