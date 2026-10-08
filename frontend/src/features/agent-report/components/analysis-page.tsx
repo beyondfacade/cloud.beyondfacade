@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { industryLabel } from "@/shared/industries";
@@ -26,6 +27,8 @@ export function AnalysisPage() {
 function AnalysisWorkspace({ region, industry, budget }: { region: string; industry: string; budget?: number }) {
   const { state, start, loading } = useAgentReport();
   const autoStart = !!region && !!industry;
+  const query = new URLSearchParams({ region, industry });
+  if (budget !== undefined) query.set("budget", String(budget));
   const started = useRef(false);
   const summary = useQuery({
     queryKey: ["region-summary", region, industry],
@@ -47,7 +50,18 @@ function AnalysisWorkspace({ region, industry, budget }: { region: string; indus
           <h1>판정의 근거를,<br className={styles.mobileBreak} /> 한 장으로.</h1>
           <p className={`${styles.pageDescription} text-[var(--text-secondary)]`}>동네와 업종을 정하면 판정 근거, 그래도 한다면 지킬 조건, 대안을 차례로 정리합니다.</p>
         </div>
-        <span className={`${styles.pageEdition} text-[var(--text-secondary)]`}>창업 경고 리포트<span aria-hidden="true">↘</span></span>
+        {autoStart ? (
+          <nav aria-label="다음 단계" className={styles.nextSteps}>
+            <Link href={`/support?${query}`} className="inline-flex items-center rounded-lg bg-[var(--accent)] px-3 py-2 text-sm font-semibold text-[var(--accent-fg)] hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]">
+              창업 지원·대출 정보 보기 →
+            </Link>
+            <Link href={`/map?${query}`} className="inline-flex items-center rounded-lg border border-[var(--border)] bg-[var(--bg-surface)] px-3 py-2 text-sm font-semibold text-[var(--text-primary)] hover:border-[var(--accent)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]">
+              ← 다른 창업 알아보기
+            </Link>
+          </nav>
+        ) : (
+          <span className={`${styles.pageEdition} text-[var(--text-secondary)]`}>창업 경고 리포트<span aria-hidden="true">↘</span></span>
+        )}
       </header>
       <div className={styles.workspaceGrid}>
         <aside className={styles.sidebar} aria-label="분석 설정과 진행 상황">

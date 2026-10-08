@@ -1,6 +1,6 @@
 import { StrictMode } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { AnalysisPage } from "./analysis-page";
 
@@ -40,6 +40,20 @@ function renderPage() {
 function postBodies() {
   return fetchMock.mock.calls.filter(([, init]) => init?.method === "POST").map(([, init]) => JSON.parse(init.body));
 }
+
+it.each([
+  ["", "region=1168064000&industry=korean_food"],
+  ["&budget=50000000", "region=1168064000&industry=korean_food&budget=50000000"],
+])("URL 조건이 있으면 완료 전부터 헤더에 다음 단계 링크를 표시한다 (%s)", async (budgetParam, query) => {
+  searchParams = new URLSearchParams(`region=1168064000&industry=korean_food${budgetParam}`);
+  renderPage();
+  const header = screen.getByRole("heading", { level: 1 }).closest("header")!;
+  const nav = within(header).getByRole("navigation", { name: "다음 단계" });
+  expect(within(nav).getByRole("link", { name: "창업 지원·대출 정보 보기 →" })).toHaveAttribute("href", `/support?${query}`);
+  expect(within(nav).getByRole("link", { name: "← 다른 창업 알아보기" })).toHaveAttribute("href", `/map?${query}`);
+  expect(within(header).queryByText(/창업 경고 리포트/)).not.toBeInTheDocument();
+  await screen.findByText(/역삼1동 · 한식/);
+});
 
 it("URL의 동·업종·원 단위 예산으로 StrictMode에서도 분석을 한 번만 자동 시작한다", async () => {
   searchParams = new URLSearchParams("region=1168064000&industry=korean_food&budget=50000000");
@@ -85,6 +99,9 @@ it.each(["", "region=1168064000", "industry=korean_food"])("파라미터가 불�
   expect(postBodies()).toEqual([]);
   expect(screen.getByRole("textbox", { name: "지역 코드" })).toHaveValue(searchParams.get("region") ?? "");
   expect(screen.getByRole("combobox", { name: "업종" })).toBeInTheDocument();
+  expect(screen.queryByRole("navigation", { name: "다음 단계" })).not.toBeInTheDocument();
+  const header = screen.getByRole("heading", { level: 1 }).closest("header")!;
+  expect(within(header).getByText(/창업 경고 리포트/)).toBeInTheDocument();
 });
 
 it("직접 방문 폼에서 동·업종을 고르면 수동 분석을 시작한다", async () => {

@@ -1,7 +1,6 @@
-import Link from "next/link";
 import ReactMarkdown, { type Options } from "react-markdown";
 import remarkGfm from "remark-gfm";
-import type { FactSection, ReportFacts } from "@/shared/api/types";
+import type { FactSection } from "@/shared/api/types";
 import type { AgentState } from "../lib/agent-events";
 import { analogAnchors, gradedParagraphs } from "../lib/graded-paragraphs";
 import { ReportVisuals } from "./report-visuals";
@@ -35,24 +34,6 @@ function sectionBody(state: AgentState, section: FactSection): string {
 
 interface ReportViewProps {
   state: AgentState;
-}
-
-/** 리포트를 다 읽은 뒤 갈 곳 — 지원·대출 정보, 또는 지도로 돌아가 동네·업종을 바꿔 보기. 동·업종·예산은 주소에 싣는다. */
-function NextSteps({ facts }: { facts: ReportFacts }) {
-  const query = new URLSearchParams({ region: facts.region.code, industry: facts.region.industry_id });
-  if (facts.budget != null) query.set("budget", String(facts.budget));
-  return (
-    <nav aria-label="다음 단계" className="mt-10 grid gap-3 sm:grid-cols-2">
-      <Link href={`/support?${query}`} className="flex flex-col gap-1 rounded-lg bg-[var(--accent)] p-4 text-[var(--accent-fg)] hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]">
-        <span className="text-base font-semibold">창업 지원·대출 정보 보기 →</span>
-        <span className="text-xs opacity-90">정책자금·보증, 우리 구 전용 지원, 업종 관련 공고와 상담 창구</span>
-      </Link>
-      <Link href={`/map?${query}`} className="flex flex-col gap-1 rounded-lg border border-[var(--border)] bg-[var(--bg-surface)] p-4 text-[var(--text-primary)] hover:border-[var(--accent)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]">
-        <span className="text-base font-semibold">← 다른 창업 알아보기</span>
-        <span className="text-xs text-[var(--text-secondary)]">지도로 돌아가 동네나 업종을 바꿔 다시 비교해 보세요</span>
-      </Link>
-    </nav>
-  );
 }
 
 export function ReportView({ state }: ReportViewProps) {
@@ -157,7 +138,16 @@ export function ReportView({ state }: ReportViewProps) {
             <p className="mt-3 text-xs text-[var(--text-secondary)]">네이버 뉴스 검색 결과입니다. 기사 내용은 원문에서 확인하세요.</p>
           </div>
         )}
-        {state.done && state.facts?.region && <NextSteps facts={state.facts} />}
+        {state.done && state.facts?.region && (
+          <div className="mt-10 flex justify-end">
+            <button type="button" onClick={() => window.scrollTo({
+              top: 0,
+              behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
+            })} className="cursor-pointer rounded-lg border border-[var(--border)] bg-[var(--bg-surface)] px-3 py-2 text-sm font-semibold text-[var(--text-primary)] hover:border-[var(--accent)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]">
+              ↑ 맨 위로
+            </button>
+          </div>
+        )}
       </div>
     </article>
   );

@@ -6,7 +6,9 @@
   color: var(--text-primary);
 }
 
-.pageHeader { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; margin-bottom: 36px; }
+.pageHeader { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 24px; margin-bottom: 36px; }
+.pageHeader > div { flex: 1; min-width: 0; }
+.nextSteps { display: flex; flex-wrap: wrap; gap: 8px; flex-shrink: 0; max-width: 100%; }
 .eyebrow { font-size: 9px; font-weight: 650; line-height: 1.7; letter-spacing: 1.65px; }
 .pageHeader h1 { margin-top: 15px; font-size: clamp(27px, 3vw, 39px); line-height: 1.35; letter-spacing: -.06em; font-weight: 730; word-break: keep-all; }
 .pageDescription { margin-top: 13px; font-size: 13px; line-height: 1.8; word-break: keep-all; }
@@ -69,6 +71,7 @@
   .workspaceGrid { grid-template-columns: 290px minmax(0, 1fr); gap: 22px; }
   .contextPanel { padding: 23px 20px; }
   .pageEdition { display: none; }
+  .pageHeader > div { flex-basis: 100%; }
   .reportMasthead, .reportFooter { margin-inline: 25px; }
   .reportBody { padding-inline: 25px; }
   .reportOutline { column-gap: 18px; }

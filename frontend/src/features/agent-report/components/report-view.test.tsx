@@ -1,7 +1,12 @@
-import { expect, it } from "vitest";
-import { render, screen, within } from "@testing-library/react";
+import { afterEach, expect, it, vi } from "vitest";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import { ReportView } from "./report-view";
 import { applyAgentEvent, initialAgentState } from "../lib/agent-events";
+
+afterEach(() => {
+  vi.restoreAllMocks();
+  vi.unstubAllGlobals();
+});
 
 it("일부 리포트 수신 후 오류가 나면 내용을 유지하며 작성 중단을 표시한다", () => {
   const state = applyAgentEvent(initialAgentState(), {
@@ -107,25 +112,25 @@ it("사실 조회 실패와 필드 누락을 각 그림 자리의 자료 없음�
   expect(screen.getAllByText("자료 없음")).toHaveLength(11);
 });
 
-it("리포트가 끝나면 하단에 창업 지원 정보와 다른 창업 알아보기 버튼을 동네·업종·예산과 함께 보여 준다", () => {
-  const facts = { ...reportFacts(), budget: 50_000_000 };
-  render(<ReportView state={{ ...initialAgentState(), facts, done: true }} />);
-  const nav = screen.getByRole("navigation", { name: "다음 단계" });
-  expect(nav).toBeInTheDocument();
-  expect(screen.getByRole("link", { name: /창업 지원·대출 정보 보기/ })).toHaveAttribute("href", "/support?region=1168064000&industry=cafe&budget=50000000");
-  expect(screen.getByRole("link", { name: /다른 창업 알아보기/ })).toHaveAttribute("href", "/map?region=1168064000&industry=cafe&budget=50000000");
-});
-
-it("예산이 없으면 버튼 주소에서 예산을 뺀다", () => {
+it.each([
+  [false, "smooth"],
+  [true, "auto"],
+] as const)("완료된 리포트 하단은 다음 단계 대신 맨 위로 버튼으로 스크롤한다 (동작 줄이기: %s)", (reducedMotion, behavior) => {
+  const scrollTo = vi.spyOn(window, "scrollTo").mockImplementation(() => {});
+  const matchMedia = vi.fn(() => ({ matches: reducedMotion }));
+  vi.stubGlobal("matchMedia", matchMedia);
   render(<ReportView state={{ ...initialAgentState(), facts: reportFacts(), done: true }} />);
-  expect(screen.getByRole("link", { name: /창업 지원·대출 정보 보기/ })).toHaveAttribute("href", "/support?region=1168064000&industry=cafe");
+  expect(screen.queryByRole("navigation", { name: "다음 단계" })).not.toBeInTheDocument();
+  fireEvent.click(screen.getByRole("button", { name: "↑ 맨 위로" }));
+  expect(matchMedia).toHaveBeenCalledWith("(prefers-reduced-motion: reduce)");
+  expect(scrollTo).toHaveBeenCalledWith({ top: 0, behavior });
 });
 
 it("리포트가 끝나기 전이나 사실이 없으면 하단 버튼을 보여 주지 않는다", () => {
   const { rerender } = render(<ReportView state={{ ...initialAgentState(), facts: reportFacts() }} />);
-  expect(screen.queryByRole("navigation", { name: "다음 단계" })).toBeNull();
+  expect(screen.queryByRole("button", { name: "↑ 맨 위로" })).not.toBeInTheDocument();
   rerender(<ReportView state={{ ...initialAgentState(), done: true, sections: { verdict: "판정" } }} />);
-  expect(screen.queryByRole("navigation", { name: "다음 단계" })).toBeNull();
+  expect(screen.queryByRole("button", { name: "↑ 맨 위로" })).not.toBeInTheDocument();
 });
 
 it("사실 섹션 제목과 같은 마크다운 제목은 중복하지 않고 본문을 유지한다", () => {
