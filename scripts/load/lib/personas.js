@@ -4,10 +4,12 @@ import http from 'k6/http';
 import { check, group, sleep } from 'k6';
 import { BASE, EMBED_SHARE, pickPair, pickQuery, think } from './data.js';
 
-const JSON_HEADERS = { 'Content-Type': 'application/json' };
+// GZIP=1이면 모든 요청에 Accept-Encoding: gzip — 실제 브라우저와 같게 (10차). 없으면 1~9차처럼 geojson만.
+const ENCODING = __ENV.GZIP === '1' ? { 'Accept-Encoding': 'gzip' } : {};
+const JSON_HEADERS = { 'Content-Type': 'application/json', ...ENCODING };
 
 function get(path, api, params = {}, ok = [200]) {
-  const res = http.get(`${BASE}${path}`, { ...params, tags: { api } });
+  const res = http.get(`${BASE}${path}`, { ...params, headers: { ...ENCODING, ...params.headers }, tags: { api } });
   check(res, { [`${api} 200`]: (r) => ok.includes(r.status) });
   return res;
 }
