@@ -11,10 +11,12 @@ resource "aws_security_group" "db" {
   vpc_id = module.vpc.vpc_id
 }
 
-# 파드는 노드 보안 그룹을 그대로 쓴다(VPC CNI 기본) — ALB → 파드 → RDS 한 방향만
+# 파드는 노드의 보안 그룹을 그대로 쓴다(VPC CNI 기본) — ALB → 파드 → RDS 한 방향만.
+# 노드 그룹이 기본 런치 템플릿(use_custom_launch_template = false)이라 노드에는 모듈의 node SG가 아니라
+# EKS 클러스터 기본 SG만 붙는다(10/12 첫 접속 실패로 확인) — 그 SG를 허용한다
 resource "aws_vpc_security_group_ingress_rule" "db_from_nodes" {
   security_group_id            = aws_security_group.db.id
-  referenced_security_group_id = module.eks.node_security_group_id
+  referenced_security_group_id = module.eks.cluster_primary_security_group_id
   ip_protocol                  = "tcp"
   from_port                    = 5432
   to_port                      = 5432

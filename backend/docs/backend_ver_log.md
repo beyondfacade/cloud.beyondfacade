@@ -1,5 +1,10 @@
 # Backend Version Log
 
+## [v0.105.3] - 2026-10-12
+
+### Fixed
+- `infra/terraform` RDS 보안 그룹: 허용 출처를 모듈의 node SG에서 **EKS 클러스터 기본 SG**로 — 노드 그룹이 기본 런치 템플릿(`use_custom_launch_template = false`)이라 노드에는 클러스터 기본 SG만 붙어, 파드 → RDS 연결이 TCP에서 막혔다(첫 접속 시험에서 발견). 규칙 1개 제자리 수정, 파드에서 접속 확인(PostgreSQL 17.9, SSL on, pgvector 0.8.1 사용 가능 — 로컬 0.8.5)
+
 ## [v0.105.2] - 2026-10-12
 
 ### Fixed
