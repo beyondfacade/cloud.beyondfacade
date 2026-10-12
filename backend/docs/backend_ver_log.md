@@ -1,5 +1,10 @@
 # Backend Version Log
 
+## [v0.102.1] - 2026-10-12
+
+### Fixed
+- `deploy/k8s/cronjobs.yaml`에 `regional-event-collector`(매주 월 06:00, `apps.shock.adapter.inbound.cli.load_regional_events`) 추가 — 10/6 매니페스트 작성 뒤 호스트 crontab에 생긴 수집기(v0.86.0)가 빠져 있어 AWS 전환 뒤엔 돌지 않을 뻔했다. CronJob 9개 일정이 호스트 crontab(주석 줄 제외)과 모두 같음 확인, 호스트에만 남는 것은 의도한 제외 2개(jekyll-devlog·host-metrics-sampler). kustomize build + kubeconform 통과
+
 ## [v0.102.0] - 2026-10-12
 
 ### Added

@@ -217,3 +217,30 @@ spec:
               resources:
                 requests: {cpu: 250m, memory: 512Mi}
                 limits: {memory: 1Gi}
+---
+# 지역 이벤트 — 서울 정비사업·대규모점포·아파트 입주 → shock_event_region (주 1회, 서울 API 6회·SGIS 지오코딩 약 120회)
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: regional-event-collector
+spec:
+  schedule: "0 6 * * 1"
+  timeZone: Asia/Seoul
+  concurrencyPolicy: Forbid  # 겹쳐 돌면 같은 데이터를 두 번 쓴다
+  jobTemplate:
+    spec:
+      backoffLimit: 0  # 호스트 크론처럼 재시도하지 않는다 — 다음 일정에 증분으로 따라잡는다
+      template:
+        spec:
+          restartPolicy: Never
+          securityContext: {runAsNonRoot: true, runAsUser: 10001}
+          containers:
+            - name: regional-event-collector
+              image: beyondfacade-api
+              command: ["sh", "-c", "python -m apps.shock.adapter.inbound.cli.load_regional_events"]
+              envFrom:
+                - configMapRef: {name: backend-config}
+                - secretRef: {name: backend-env}
+              resources:
+                requests: {cpu: 250m, memory: 512Mi}
+                limits: {memory: 1Gi}
