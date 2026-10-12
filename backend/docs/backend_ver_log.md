@@ -1,5 +1,12 @@
 # Backend Version Log
 
+## [v0.101.0] - 2026-10-12
+
+### Added
+- `.github/workflows/backend-deploy.yml` — main에 `backend/`·`data/geojson/`이 바뀌면 arm64 러너(`ubuntu-24.04-arm`, 에뮬레이션 없음)에서 이미지 빌드(태그 = git SHA) → ECR 푸시 → EKS의 API·CronJob 8개 이미지 교체(`kubectl set image`), 롤아웃 실패 시 `rollout undo`. AWS 접근은 OIDC 역할(main 브랜치만)이며 저장소 변수 `AWS_DEPLOY_ROLE_ARN`이 비어 있으면 건너뛴다. 같은 커밋 재실행은 ECR에 이미지가 있으면 푸시를 건너뛴다(태그 불변). actionlint 통과
+- `scripts/k8s-apply.sh` — 관리자가 `deploy/k8s` 전체를 적용할 때 지금 돌고 있는 이미지를 유지한다(임시 복사본에 `kustomize edit set image`). CI 역할은 네임스페이스 범위 Edit 권한이라 Namespace·ExternalSecret 등은 사람이 적용한다. 렌더링으로 API 1·CronJob 8개 이미지 치환 확인
+- `data/geojson/`(서울 행정동 경계 427개, 1.8MB)을 저장소에 넣음 — CI에서 이미지를 빌드하려면 필요하다(Dockerfile `--build-context geojson`). SGIS 공공누리 제1유형 · vuski/admdongkor CC BY 4.0, 출처는 `data/geojson/README.md`
+
 ## [v0.100.1] - 2026-10-12
 
 ### Fixed

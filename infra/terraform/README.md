@@ -52,11 +52,23 @@ apply가 끝나면 사람이 할 일:
    비밀번호는 `terraform output rds_master_secret_arn`의 비밀에 있다. 특수문자가 있으면 URL 인코딩한다
 4. **kubectl 연결** — `$(terraform output -raw kubeconfig_command)` → `kubectl get nodes`에 노드 2대
 
+## 앱 배포 (serverplan §13-1)
+
+| 누가 | 언제 | 무엇을 |
+|---|---|---|
+| GitHub Actions `backend-deploy` | main에 `backend/`·`data/geojson/`이 바뀔 때(또는 Actions 탭에서 수동 실행) | arm64 이미지 빌드(태그 = git SHA) → ECR 푸시 → API·CronJob **이미지만** 교체, 실패하면 이전 버전으로 되돌림 |
+| 관리자(Terraform apply한 사람) | 첫 배포, `deploy/k8s` 매니페스트가 바뀔 때 | `scripts/k8s-apply.sh` — 매니페스트 전체 적용, 이미지는 지금 것을 유지 |
+
+CI 역할은 `beyondfacade` 네임스페이스 안 Edit 권한뿐이라 매니페스트 전체(Namespace·ExternalSecret 등)는 사람이 적용한다.
+
+처음 한 번:
+1. GitHub 저장소 → Settings → Secrets and variables → Actions → **Variables**에 `AWS_DEPLOY_ROLE_ARN` = `terraform output -raw github_actions_role_arn` (비어 있으면 워크플로가 건너뛴다 — 정리 뒤엔 지운다)
+2. Actions → backend-deploy → Run workflow → 이미지가 올라간다(아직 API가 없어 교체 단계는 안내만 남기고 끝난다). 로그의 이미지 주소를 복사
+3. `scripts/k8s-apply.sh <이미지 주소>` → `kubectl get pods -n beyondfacade`
+
 ## 이 코드 밖에서 남은 일 (serverplan §15 Phase 2~4)
 
-- 이미지: 노드가 arm64라 `docker buildx build --platform linux/arm64 --build-context geojson=data/geojson backend` → ECR 푸시
 - DB 복원: `pg_dump -Fc` → S3 → 클러스터 안 일회성 Job에서 `pg_restore`, `CREATE EXTENSION vector`, 행수 비교
-- 앱 네임스페이스는 관리자가 처음 한 번 만든다(GitHub Actions 역할은 `beyondfacade` 네임스페이스 안만 바꿀 수 있다)
 - 집 Ollama 연결(Tailscale), ALB 5xx·지연 알람(ALB가 생긴 뒤)
 
 ## 바꾸기 — 부하 테스트 단계 (serverplan §20-4)
