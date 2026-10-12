@@ -1,6 +1,9 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
+from fastapi.responses import JSONResponse
+from sqlalchemy import text
+from sqlalchemy.exc import SQLAlchemyError
 
 from apps.admin.adapter.inbound.api.error_handlers import admin_error_handler
 from apps.admin.adapter.inbound.api.v1.access_event_router import router as access_event_router
@@ -37,6 +40,7 @@ from apps.store.adapter.inbound.api.v1.store_router import router as store_route
 from apps.verdict.adapter.inbound.api.v1.region_industry_verdict_router import (
     router as verdict_router,
 )
+from core.matrix.grid_oracle_database_manager import session_scope
 
 app = FastAPI(title="beyondfacade backend")
 app.add_exception_handler(AdminError, admin_error_handler)
@@ -73,4 +77,19 @@ app.include_router(verdict_router)
 
 @app.get("/health")
 def health() -> dict:
+    """liveness — 프로세스가 살아 있는지만 본다 (DB가 죽어도 200, 재시작 대상이 아니다)."""
     return {"status": "ok"}
+
+
+@app.get("/health/ready", response_model=None)
+def ready() -> dict | JSONResponse:
+    """readiness — DB에 붙을 수 있을 때만 트래픽을 받는다 (k8s 롤링 배포·로드밸런서 헬스체크)."""
+    try:
+        with session_scope() as session:
+            session.execute(text("SELECT 1"))
+    except SQLAlchemyError:
+        return JSONResponse(
+            status_code=503,
+            content={"error": {"code": "DB_UNAVAILABLE", "message": "데이터베이스에 연결할 수 없습니다."}},
+        )
+    return {"status": "ready"}

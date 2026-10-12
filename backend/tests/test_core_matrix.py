@@ -26,3 +26,19 @@ def test_pgvector_extension_available():
             text("SELECT count(*) FROM pg_extension WHERE extname = 'vector'")
         ).scalar()
     assert installed == 1
+
+
+def test_DB_풀_크기는_환경변수로_정한다(monkeypatch):
+    from core.matrix.grid_oracle_database_manager import get_engine
+
+    monkeypatch.setenv("DB_POOL_SIZE", "3")
+    monkeypatch.setenv("DB_MAX_OVERFLOW", "2")
+    get_settings.cache_clear()
+    get_engine.cache_clear()
+    try:
+        pool = get_engine().pool
+        assert (pool.size(), pool._max_overflow) == (3, 2)
+    finally:
+        monkeypatch.undo()
+        get_settings.cache_clear()
+        get_engine.cache_clear()

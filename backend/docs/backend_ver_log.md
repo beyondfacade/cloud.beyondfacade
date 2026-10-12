@@ -1,5 +1,16 @@
 # Backend Version Log
 
+## [v0.96.0] - 2026-10-12
+
+> 10/6 `feat/k8s-phase0`의 v0.80.0를 main에 다시 얹음(버전 재부여)
+
+### Added
+- `GET /health/ready` — readiness. DB에 `SELECT 1`이 되면 200 `{"status":"ready"}`, 안 되면 503 `DB_UNAVAILABLE`. `/health`는 liveness로 그대로 둔다(k8s 롤링 배포·ALB 헬스체크용, serverplan K6)
+- DB 풀 크기 env `DB_POOL_SIZE`(기본 5)·`DB_MAX_OVERFLOW`(기본 10) — 기본값은 지금과 같다. 파드 수 × (풀 + 오버플로)를 DB `max_connections` 안에 맞추려는 것(serverplan K5)
+
+### Changed
+- Dockerfile: 비루트 사용자(`app`, uid 10001)로 실행. `.dockerignore`에 `tests/`·`logs/`·`.pytest_cache/` 추가(serverplan K12). 테스트 이미지에서 `/health`·`/health/ready`·`/regions/geojson` 200 확인, 이미지 594MB → 586MB
+
 ## [v0.95.0] - 2026-10-08
 
 ### Changed

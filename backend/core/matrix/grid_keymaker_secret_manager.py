@@ -19,6 +19,8 @@ class Settings(BaseSettings):
     )
 
     database_url: str
+    db_pool_size: int = 5  # SQLAlchemy 기본값 — k8s에선 파드 수 × (풀 + 오버플로)가 DB max_connections를 넘지 않게 env로 조절
+    db_max_overflow: int = 10
     naver_ncp_api_key_id: str = ""
     naver_ncp_api_key: str = ""
     data_go_kr_api_key: str = ""
