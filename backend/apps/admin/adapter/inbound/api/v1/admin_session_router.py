@@ -29,6 +29,8 @@ from apps.admin.app.errors import AdminError
 from apps.admin.app.ports.input.admin_session_use_case import AdminSessionUseCase
 from apps.admin.dependencies.admin_dependencies import get_admin_session_use_case
 from apps.admin.dependencies.admin_guard import require_admin
+from apps.chat.app.ports.input.chat_message_use_case import ChatMessageUseCase
+from apps.chat.dependencies.chat_dependencies import get_chat_message_use_case
 from core.matrix.grid_keymaker_secret_manager import get_settings
 
 router = APIRouter(prefix="/admin/auth", tags=["admin"])
@@ -125,10 +127,14 @@ def logout(
     request: Request,
     response: Response,
     use_case: AdminSessionUseCase = Depends(get_admin_session_use_case),
+    chat: ChatMessageUseCase = Depends(get_chat_message_use_case),
 ) -> None:
     token = request.cookies.get(SESSION_COOKIE)
     if token:
+        principal = use_case.authenticate(token)
         use_case.logout(token)
+        if principal:
+            chat.reset_demo_consultations(principal.username)
     clear_session_cookie(response)
 
 

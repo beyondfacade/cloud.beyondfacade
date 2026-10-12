@@ -55,6 +55,11 @@ from apps.chat.domain.value_objects.chat_room import (
 PAGE_SIZE = 50
 CATCH_UP_LIMIT = 200
 MEMBER_SEARCH_LIMIT = 50
+# 로컬 시연 계정 — 001이 로그아웃하면 002·003·004의 상담을 지우고 '001이 003을 1시간 산 상태'로 되돌린다
+DEMO_VIEWER = "001"
+DEMO_EXPERTS = ("002", "003", "004")
+DEMO_BUSY_EXPERT = "003"
+DEMO_HOURS = 1
 
 
 def _reply_dto(message: ChatMessage) -> ChatReplyDto:
@@ -212,6 +217,28 @@ class ChatMessageInteractor(ChatMessageUseCase):
             )
         )
         return self.open_direct(member, expert.id)
+
+    def reset_demo_consultations(self, username: str) -> None:
+        if username != DEMO_VIEWER:
+            return
+        viewers = self._members.search(DEMO_VIEWER, 0, MEMBER_SEARCH_LIMIT, DIRECT_OPENER_ROLE)
+        viewer = next((peer for peer in viewers if peer.username == DEMO_VIEWER), None)
+        experts = {
+            peer.username: peer
+            for peer in self._members.search("", 0, MEMBER_SEARCH_LIMIT, DIRECT_PARTNER_ROLE)
+            if peer.username in DEMO_EXPERTS
+        }
+        self._consultations.delete_for_experts([peer.id for peer in experts.values()])
+        busy = experts.get(DEMO_BUSY_EXPERT)
+        if viewer is None or busy is None or busy.hourly_rate is None:
+            return
+        now = self._clock()
+        self._consultations.add(
+            ChatConsultation(
+                viewer_id=viewer.id, expert_id=busy.id, hours=DEMO_HOURS, price=busy.hourly_rate * DEMO_HOURS,
+                started_at=now, ends_at=now + timedelta(hours=DEMO_HOURS),
+            )
+        )
 
     def latest_id(self) -> int:
         return self._messages.latest_id()

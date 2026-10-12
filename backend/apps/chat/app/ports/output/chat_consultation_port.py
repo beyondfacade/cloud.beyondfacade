@@ -11,5 +11,8 @@ class ChatConsultationRepositoryPort(ABC):
     def add(self, consultation: ChatConsultation) -> ChatConsultation: ...
 
     @abstractmethod
+    def delete_for_experts(self, expert_ids: list[int]) -> None: ...
+
+    @abstractmethod
     def holders(self, now: datetime) -> dict[int, int]:
         """지금 상담 중인 전문가 id → 그 상담을 산 회원 id."""

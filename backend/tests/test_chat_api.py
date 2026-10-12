@@ -22,7 +22,10 @@ from core.matrix.grid_oracle_database_manager import session_scope
 from main import app
 
 PASSWORD = "correct-horse-battery"
-IPS = {"ops": "198.51.100.40", "viewer": "198.51.100.41", "guest2": "198.51.100.42", "guest4": "198.51.100.44"}
+IPS = {
+    "ops": "198.51.100.40", "viewer": "198.51.100.41", "guest2": "198.51.100.42", "guest4": "198.51.100.44",
+    "001": "198.51.100.51",
+}
 
 
 class _FakeSubscription(ChatSubscription):
@@ -254,6 +257,23 @@ def test_상담을_사면_그_전문가는_다른_회원에게_대화_중이라_
         session.execute(text("update chat_consultation set ends_at = now() - interval '1 minute'"))
     assert [e["status"] for e in other.get("/chat/members").json()] == ["available"]
     assert other.post("/chat/direct", json={"user_id": 3}).status_code == 200
+
+
+def test_시연_계정_001이_로그아웃하면_시연_전문가_상담이_처음_상태로_돌아간다():
+    use_case = get_admin_user_use_case()
+    for username in ("001", "002", "003"):
+        use_case.upsert(username, PASSWORD, "viewer")  # id 4 · 5 · 6
+    _make_expert("002", 30000)
+    _make_expert("003", 20000)
+    demo, viewer = _client("001"), _client("viewer")
+    assert demo.post("/chat/consultations", json={"expert_id": 5, "hours": 3}).status_code == 201
+    statuses = lambda client: {e["username"]: e["status"] for e in client.get("/chat/members").json()}  # noqa: E731
+    assert statuses(viewer) == {"002": "busy", "003": "available"}
+    assert viewer.post("/admin/auth/logout").status_code == 204  # 다른 계정 로그아웃은 그대로
+    assert statuses(_client("viewer")) == {"002": "busy", "003": "available"}
+    assert demo.post("/admin/auth/logout").status_code == 204
+    assert statuses(_client("viewer")) == {"002": "available", "003": "busy"}
+    assert statuses(_client("001")) == {"002": "available", "003": "mine"}
 
 
 def test_안_읽은_개수는_남이_보낸_것만_세고_읽음_표시는_앞으로만_간다():

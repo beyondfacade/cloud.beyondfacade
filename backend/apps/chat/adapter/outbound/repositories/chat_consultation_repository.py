@@ -1,7 +1,7 @@
 from dataclasses import replace
 from datetime import datetime
 
-from sqlalchemy import select
+from sqlalchemy import delete, select
 
 from apps.chat.adapter.outbound.orms.chat_consultation_orm import ChatConsultationOrm
 from apps.chat.app.ports.output.chat_consultation_port import ChatConsultationRepositoryPort
@@ -23,6 +23,12 @@ class SqlAlchemyChatConsultationRepository(ChatConsultationRepositoryPort):
             session.add(orm)
             session.flush()
             return replace(consultation, id=orm.id)
+
+    def delete_for_experts(self, expert_ids: list[int]) -> None:
+        if not expert_ids:
+            return
+        with session_scope() as session:
+            session.execute(delete(ChatConsultationOrm).where(ChatConsultationOrm.expert_id.in_(expert_ids)))
 
     def holders(self, now: datetime) -> dict[int, int]:
         query = (

@@ -53,6 +53,10 @@ class ChatMessageUseCase(ABC):
         일반 회원만(ChatRoomForbidden) · 1~3시간(InvalidConsultation) · 이미 상담 중이면 ChatExpertBusy."""
 
     @abstractmethod
+    def reset_demo_consultations(self, username: str) -> None:
+        """로컬 시연 계정(001)이 로그아웃하면 시연 전문가(002·003·004) 상담을 초기 상태로 — 그 밖의 계정은 아무 일도 없다."""
+
+    @abstractmethod
     def latest_id(self) -> int: ...
 
     @abstractmethod

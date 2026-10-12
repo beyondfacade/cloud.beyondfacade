@@ -1,5 +1,12 @@
 # Backend Version Log
 
+## [v0.112.0] - 2026-10-12
+
+### Added
+- **시연 계정 로그아웃 시 상담 초기화** — `POST /admin/auth/logout`이 로컬 시연 계정 `001`의 로그아웃이면 시연 전문가(`002`·`003`·`004`)의 상담 기록을 지우고 "`001`이 `003`을 1시간 산 상태"(002·004 대화 가능, 003 대화 중)로 되돌린다. 다른 계정은 아무 일도 없고, 시연 계정이 없는 DB(운영)에서는 지울 대상도 넣을 대상도 없다.
+  - chat `ChatMessageUseCase.reset_demo_consultations(username)`, `ChatConsultationRepositoryPort.delete_for_experts`. 로그아웃 라우터가 세션을 지우기 전에 누구인지 확인해 chat 쪽을 부른다
+- 테스트: API 1개(다른 계정 로그아웃은 그대로, 001 로그아웃 뒤 002 available·003 busy, 001에게는 mine)
+
 ## [v0.111.0] - 2026-10-12
 
 ### Added
