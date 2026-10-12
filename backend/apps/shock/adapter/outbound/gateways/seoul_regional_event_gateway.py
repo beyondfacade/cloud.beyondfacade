@@ -69,7 +69,13 @@ class SeoulOpenDataGateway(RegionalEventSourcePort):
             self.call_count += 1
             if response.is_error:  # 예외 메시지에 키가 든 URL이 찍히지 않게 상태 코드만 남긴다
                 raise RuntimeError(f"{self.service} HTTP {response.status_code}")
-            payload = response.json().get(self.service)
+            try:
+                body = response.json()
+            except ValueError:  # 200에 점검 안내 등 JSON 아닌 본문이 올 때가 있다(2026-10-12 크론) — 무엇이 왔는지 남긴다
+                raise RuntimeError(
+                    f"{self.service} JSON 아닌 응답 (HTTP {response.status_code}): {response.text[:300]!r}"
+                ) from None
+            payload = body.get(self.service)
             if payload is None:  # 인증 실패·요청 오류는 서비스 키 없이 RESULT만 옴
                 raise RuntimeError(f"{self.service} API 오류: {response.text[:300]}")
             rows = payload.get("row") or []

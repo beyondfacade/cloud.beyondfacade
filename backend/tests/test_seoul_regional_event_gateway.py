@@ -4,6 +4,7 @@
 """
 
 import httpx
+import pytest
 
 from apps.shock.adapter.outbound.gateways.seoul_regional_event_gateway import (
     ApartmentGateway,
@@ -51,6 +52,15 @@ def test_apartment_gateway_pages_until_total_count():
         ("regional-apt-movein-A10025638", 37.609757966, 127.027970717),
         ("regional-apt-movein-A2", None, None),
     ]
+
+
+def test_JSON이_아닌_200_응답은_서비스명과_본문_앞부분을_담은_오류로_멈춘다():
+    # 2026-10-12 06:00 크론: OpenAptInfo가 200에 JSON이 아닌 본문을 보내 JSONDecodeError만 남고 원인을 알 수 없었다
+    client = httpx.Client(transport=httpx.MockTransport(
+        lambda request: httpx.Response(200, text="<html>서비스 점검 중</html>")))
+    gateway = ApartmentGateway(client=client)
+    with pytest.raises(RuntimeError, match=r"OpenAptInfo JSON 아닌 응답 \(HTTP 200\): .*서비스 점검 중"):
+        gateway.fetch_located_events()
 
 
 class FakeGeocoder(GeocodingGatewayPort):
