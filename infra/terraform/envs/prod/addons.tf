@@ -4,6 +4,8 @@
 #   metrics-server:               HPA가 파드 CPU를 본다
 #   Cluster Autoscaler:           파드가 못 뜨면 노드를 늘린다 (max = var.node_max_size)
 # 애드온의 AWS 권한은 Pod Identity로 준다 — 키를 파드에 넣지 않는다.
+# LB Controller가 먼저다: 모든 Service 생성을 webhook으로 가로채서, 그 파드가 뜨기 전에 다른 차트가 Service를 만들면
+# "no endpoints available for service aws-load-balancer-webhook-service"로 실패한다(10/12 첫 apply에서 external-secrets).
 
 module "lb_controller_identity" {
   source  = "terraform-aws-modules/eks-pod-identity/aws"
@@ -82,7 +84,7 @@ resource "helm_release" "external_secrets" {
     serviceAccount = { name = "external-secrets" }
   })]
 
-  depends_on = [module.eks, module.external_secrets_identity]
+  depends_on = [module.eks, module.external_secrets_identity, helm_release.aws_load_balancer_controller]
 }
 
 resource "helm_release" "metrics_server" {
@@ -92,7 +94,7 @@ resource "helm_release" "metrics_server" {
   version    = "3.14.0"
   namespace  = "kube-system"
 
-  depends_on = [module.eks]
+  depends_on = [module.eks, helm_release.aws_load_balancer_controller]
 }
 
 resource "helm_release" "cluster_autoscaler" {
@@ -109,5 +111,5 @@ resource "helm_release" "cluster_autoscaler" {
     extraArgs     = { "balance-similar-node-groups" = true, "scale-down-unneeded-time" = "5m" }
   })]
 
-  depends_on = [module.eks, module.cluster_autoscaler_identity]
+  depends_on = [module.eks, module.cluster_autoscaler_identity, helm_release.aws_load_balancer_controller]
 }

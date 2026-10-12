@@ -1,5 +1,10 @@
 # Backend Version Log
 
+## [v0.105.2] - 2026-10-12
+
+### Fixed
+- `infra/terraform` 애드온 설치 순서: External Secrets·metrics-server·Cluster Autoscaler가 AWS Load Balancer Controller 다음에 설치되게 `depends_on` 추가 — LB Controller가 모든 Service 생성을 webhook으로 가로채는데, 첫 apply(10/12)에서 그 파드가 뜨기 전에 external-secrets 차트가 Service를 만들다 `no endpoints available for service "aws-load-balancer-webhook-service"`로 실패했다. 실패한 릴리스를 지우고 다시 apply해 애드온 4개 모두 deployed, `terraform plan` 변경 없음. 재구축 리허설에서 같은 경합이 나지 않게 한다
+
 ## [v0.105.1] - 2026-10-12
 
 ### Changed
