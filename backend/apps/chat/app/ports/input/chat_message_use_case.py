@@ -1,0 +1,54 @@
+"""Driving Port — 글로벌 채팅 (전체 · 관리자 · 1:1). 로그인한 회원만 쓴다."""
+
+from abc import ABC, abstractmethod
+
+from apps.chat.app.dtos.chat_message_dto import (
+    ChatEventDto,
+    ChatMessageDto,
+    ChatPageDto,
+    ChatPeerDto,
+    ChatRoomDto,
+)
+from apps.chat.app.ports.output.chat_message_port import ChatSubscription
+from apps.chat.domain.value_objects.chat_room import ChatMember
+
+
+class ChatMessageUseCase(ABC):
+    @abstractmethod
+    def myself(self) -> ChatMessageDto:
+        """배선 검증용 — 하드코딩 데이터 왕복 (CLAUDE.md §12)."""
+
+    @abstractmethod
+    def rooms(self, member: ChatMember) -> list[ChatRoomDto]:
+        """전체 → 관리자(관리자만) → 1:1(최근 대화순)."""
+
+    @abstractmethod
+    def messages(self, member: ChatMember, room_key: str, before_id: int | None) -> ChatPageDto: ...
+
+    @abstractmethod
+    def send(self, member: ChatMember, room_key: str, body: str, reply_to_id: int | None) -> ChatMessageDto:
+        """InvalidChatMessage(1~500자) · ChatTooFast(10초에 5개) · ChatMessageNotFound(답장 대상)."""
+
+    @abstractmethod
+    def delete(self, member: ChatMember, message_id: int) -> None:
+        """관리자 전용(라우터 가드) — 본문은 지우고 자리만 남긴다."""
+
+    @abstractmethod
+    def open_direct(self, member: ChatMember, user_id: int) -> ChatRoomDto:
+        """1:1 대화방 — 메시지가 오가기 전에는 방 목록에 없다."""
+
+    @abstractmethod
+    def search_members(self, member: ChatMember, q: str) -> list[ChatPeerDto]: ...
+
+    @abstractmethod
+    def latest_id(self) -> int: ...
+
+    @abstractmethod
+    def catch_up(self, member: ChatMember, after_id: int) -> list[ChatEventDto]:
+        """재접속 사이에 놓친, 볼 수 있는 방의 메시지."""
+
+    @abstractmethod
+    def subscribe(self) -> ChatSubscription: ...
+
+    @abstractmethod
+    def visible(self, member: ChatMember, event: ChatEventDto) -> bool: ...

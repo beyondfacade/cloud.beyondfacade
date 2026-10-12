@@ -24,6 +24,18 @@ class AdminUserUseCase(ABC):
         """q는 계정명·이메일 부분 일치(대소문자 무시), status는 all | active | suspended."""
 
     @abstractmethod
+    def search_members(self, q: str, exclude_id: int, limit: int) -> list[AdminPrincipalDto]:
+        """채팅 상대 찾기 — 활성 계정만, 계정명 부분 일치(대소문자 무시), 계정명순."""
+
+    @abstractmethod
+    def active_member(self, user_id: int) -> AdminPrincipalDto | None:
+        """활성 계정만 — 정지·없는 계정은 None."""
+
+    @abstractmethod
+    def members_by_ids(self, user_ids: list[int]) -> dict[int, AdminPrincipalDto]:
+        """정지 계정도 포함 — 지난 대화의 상대 이름을 보여 줄 때."""
+
+    @abstractmethod
     def set_active(self, actor: AdminPrincipalDto, username: str, active: bool, ip: str | None) -> AdminUserDto:
         """정지하면 그 계정의 세션을 모두 끊는다. 자기 자신은 SelfChange, 활성 관리자가 0명이 되면 LastOperator."""
 

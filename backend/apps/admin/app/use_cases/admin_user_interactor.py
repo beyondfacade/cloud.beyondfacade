@@ -83,6 +83,23 @@ class AdminUserInteractor(AdminUserUseCase):
             and (wanted_role is None or user.role is wanted_role)
         ]
 
+    def search_members(self, q: str, exclude_id: int, limit: int) -> list[AdminPrincipalDto]:
+        needle = q.strip().lower()
+        found = [
+            to_principal(user)
+            for user in self._users.list_all()
+            if user.is_active and user.id != exclude_id and needle in user.username.lower()
+        ]
+        return found[:limit]
+
+    def active_member(self, user_id: int) -> AdminPrincipalDto | None:
+        user = self._users.get_by_id(user_id)
+        return to_principal(user) if user and user.is_active else None
+
+    def members_by_ids(self, user_ids: list[int]) -> dict[int, AdminPrincipalDto]:
+        wanted = set(user_ids)
+        return {user.id: to_principal(user) for user in self._users.list_all() if user.id in wanted}
+
     def set_active(self, actor: AdminPrincipalDto, username: str, active: bool, ip: str | None) -> AdminUserDto:
         user = self._target(actor, username)
         if leaves_no_active_operator(self._users.list_all(), username, user.role, active):

@@ -1,5 +1,19 @@
 # Backend Version Log
 
+## [v0.107.0] - 2026-10-12
+
+### Added
+- **글로벌 채팅** 새 BC `apps/chat` — 로그인한 회원만 읽고 쓴다(`require_admin` 가드, 비로그인 401 `UNAUTHENTICATED`).
+  - 방은 테이블 없이 이름으로 구분: `global`(전체) · `operators`(관리자만) · `dm:{작은 id}:{큰 id}`(1:1). 누가 들어갈 수 있는지는 방 객체가 판단(Strategy, `domain/value_objects/chat_room.py`).
+  - 규칙(`domain/services/chat_policy.py`): 본문 1~500자(앞뒤 공백 제거), 10초에 5개 넘기면 429 `CHAT_TOO_FAST`, 답장 미리보기는 원문 첫 줄 80자.
+  - API `/chat`: 방 목록(안 읽은 개수·마지막 메시지), 메시지 50개씩 거꾸로 넘기기(`before_id`), 보내기·답장(`reply_to_id`, 다른 방 메시지면 404), 삭제(관리자만, 본문만 지우고 자리는 남김 — 답장 미리보기도 가려짐), 1:1 열기(`POST /chat/direct`), 회원 찾기(활성 계정, 나 제외, 10명), 읽음 표시 `PUT /chat/reads/{room}`(앞으로만 간다).
+  - 실시간 `GET /chat/stream`(SSE): 연결 하나로 볼 수 있는 모든 방의 `message`·`deleted`. 첫 프레임 `ready`(id = 최신 메시지 번호), 15초마다 핑, 50초에 끊어 배포 때 빨리 빠지고 정지·로그아웃이 재접속 때 다시 검사된다. 다시 붙으면 `Last-Event-ID` 다음 메시지(최대 200개)부터 따라잡는다.
+  - 서버가 여러 대여도 받도록 Postgres `NOTIFY chat_event`로 발행하고, 프로세스마다 `LISTEN` 연결 하나(psycopg 비동기, 끊기면 1→30초 백오프 재연결)가 접속자별 큐로 나눠 준다. 못 따라오는 접속자 큐는 넘치면 버린다(재접속 때 따라잡음).
+  - 오류 코드: `CHAT_ROOM_NOT_FOUND` 404 · `CHAT_ROOM_FORBIDDEN` 403 · `INVALID_CHAT_MESSAGE` 400 · `CHAT_TOO_FAST` 429 · `CHAT_MESSAGE_NOT_FOUND` 404 · `CHAT_MEMBER_NOT_FOUND` 404.
+- 테이블 `chat_message`(보낸 사람 이름·등급은 보낸 때 값 그대로 — 알림 본문만으로 화면을 그린다), `chat_read`(회원·방별 마지막 읽은 번호). 마이그레이션 `b8c2d4e6f1a3`.
+- admin `AdminUserUseCase`에 채팅 상대 조회 3종(`search_members`·`active_member`·`members_by_ids`) — chat BC는 게이트웨이(`admin_member_gateway.py`)로만 부른다.
+- 테스트: 도메인 15개, API 16개(실제 테스트 DB, 실시간은 가짜 발행기 + 실제 NOTIFY→LISTEN 왕복 1개). 개발 서버에서 두 계정으로 실시간 전달·1:1·안 읽은 개수·재접속 따라잡기 확인
+
 ## [v0.105.4] - 2026-10-12
 
 ### Fixed

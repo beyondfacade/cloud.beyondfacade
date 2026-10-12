@@ -15,6 +15,10 @@ from apps.admin.adapter.inbound.api.v1.ip_block_router import router as ip_block
 from apps.admin.adapter.inbound.api.v1.security_setting_router import router as security_setting_router
 from apps.admin.adapter.inbound.middleware.security_middleware import SecurityMiddleware
 from apps.admin.app.errors import AdminError
+from apps.chat.adapter.inbound.api.error_handlers import chat_error_handler
+from apps.chat.adapter.inbound.api.v1.chat_message_router import router as chat_message_router
+from apps.chat.adapter.inbound.api.v1.chat_read_router import router as chat_read_router
+from apps.chat.app.errors import ChatError
 from apps.childcare.adapter.inbound.api.v1.childcare_center_router import (
     router as childcare_center_router,
 )
@@ -46,6 +50,7 @@ from core.matrix.grid_oracle_database_manager import session_scope
 app = FastAPI(title="beyondfacade backend")
 app.add_exception_handler(AdminError, admin_error_handler)
 app.add_exception_handler(OpsError, ops_error_handler)
+app.add_exception_handler(ChatError, chat_error_handler)
 app.add_middleware(SecurityMiddleware)
 app.add_middleware(
     CORSMiddleware,
@@ -64,6 +69,8 @@ app.include_router(access_rule_router)
 app.include_router(admin_user_router)
 app.include_router(healthcare_router)
 app.include_router(facility_router)
+app.include_router(chat_message_router)
+app.include_router(chat_read_router)
 app.include_router(analysis_router)
 app.include_router(childcare_center_router)
 app.include_router(convenience_store_router)

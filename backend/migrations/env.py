@@ -26,6 +26,8 @@ import apps.admin.adapter.outbound.orms.admin_user_orm  # noqa: F401
 import apps.admin.adapter.outbound.orms.ip_block_orm  # noqa: F401
 import apps.admin.adapter.outbound.orms.security_setting_orm  # noqa: F401
 import apps.admin.adapter.outbound.orms.access_rule_orm  # noqa: F401
+import apps.chat.adapter.outbound.orms.chat_message_orm  # noqa: F401
+import apps.chat.adapter.outbound.orms.chat_read_orm  # noqa: F401
 import apps.childcare.adapter.outbound.orms.childcare_center_orm  # noqa: F401
 import apps.childcare.adapter.outbound.orms.childcare_center_stat_orm  # noqa: F401
 import apps.commerce.adapter.outbound.orms.region_commerce_sales_breakdown_orm  # noqa: F401
