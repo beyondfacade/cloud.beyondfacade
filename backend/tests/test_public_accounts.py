@@ -186,6 +186,13 @@ def test_일반_회원을_CLI로_관리자로_올리면_쓰기가_열린다():
     assert client.get("/admin/auth/me").json() == {"username": "kim", "role": "operator", "can_operate": True}
 
 
+def test_전문가로_올려도_쓰기는_열리지_않는다():
+    client = TestClient(app, client=IP)
+    _signup(client)
+    get_admin_user_use_case().set_role("kim", "expert")
+    assert client.get("/admin/auth/me").json() == {"username": "kim", "role": "expert", "can_operate": False}
+
+
 def test_인사팀_목록은_이메일과_가입_방식을_담고_이메일로도_찾는다(google):
     _signup(TestClient(app, client=IP))
     _google_login(TestClient(app, client=IP), google, _identity())

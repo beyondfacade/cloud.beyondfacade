@@ -600,7 +600,7 @@ export interface VerdictAlternatives {
 
 // ── 관리자 (/admin/*) — 세션 쿠키 인증. 시각은 ISO 문자열 ──
 
-export type AdminRole = "viewer" | "operator";
+export type AdminRole = "viewer" | "expert" | "operator";
 
 export interface AdminMe {
   username: string;

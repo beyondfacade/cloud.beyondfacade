@@ -46,6 +46,11 @@ it("관리자는 관리자 등급으로 표시된다", async () => {
   expect(await screen.findByText("관리자")).toHaveAttribute("data-role", "operator");
 });
 
+it("전문가는 전문가 등급으로 표시된다", async () => {
+  renderMenu({ username: "lee", role: "expert", can_operate: false });
+  expect(await screen.findByText("전문가")).toHaveAttribute("data-role", "expert");
+});
+
 it("로그아웃하면 서버 세션을 끊고 로그인 링크로 바뀐다", async () => {
   const fetch = renderMenu({ username: "kim", role: "viewer", can_operate: false });
   await userEvent.click(await screen.findByRole("button", { name: "로그아웃" }));

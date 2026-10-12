@@ -7,7 +7,7 @@ import type { AdminMe, AdminRole } from "@/shared/api/types";
 export const SESSION_QUERY_KEY = ["session", "me"] as const;
 export const SIGNUP_PATH = "/signup";
 
-export const GRADE_LABEL: Record<AdminRole, string> = { viewer: "일반", operator: "관리자" };
+export const GRADE_LABEL: Record<AdminRole, string> = { viewer: "일반", expert: "전문가", operator: "관리자" };
 
 /** 비로그인(401)은 오류가 아니라 null. */
 export async function fetchSession(): Promise<AdminMe | null> {

@@ -150,6 +150,7 @@ export const COLLECTOR_STATUS: Record<CollectorStatus, { label: string; tone: To
 
 export const ROLE: Record<AdminRole, { label: string; tone: Tone }> = {
   viewer: { label: GRADE_LABEL.viewer, tone: "neutral" },
+  expert: { label: GRADE_LABEL.expert, tone: "neutral" },
   operator: { label: GRADE_LABEL.operator, tone: "ok" },
 };
 

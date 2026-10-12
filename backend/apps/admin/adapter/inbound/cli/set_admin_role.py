@@ -2,7 +2,7 @@
 
     python -m apps.admin.adapter.inbound.cli.set_admin_role --username kim --role operator
 
-operator = 관리자(쓰기), viewer = 일반(읽기). 이후 등급 변경은 인사팀 화면에서 관리자가 한다.
+operator = 관리자(쓰기), expert = 전문가(읽기), viewer = 일반(읽기). 이후 등급 변경은 인사팀 화면에서 관리자가 한다.
 """
 
 import argparse

@@ -4,9 +4,11 @@ from enum import StrEnum
 
 
 class AdminRole(StrEnum):
-    """일반(viewer)은 관리자 페이지 읽기까지, 관리자(operator)는 차단·프로브·계정 변경 같은 쓰기까지."""
+    """관리자 > 전문가 > 일반. 일반(viewer)·전문가(expert)는 관리자 페이지 읽기까지,
+    관리자(operator)는 차단·프로브·계정 변경 같은 쓰기까지."""
 
     VIEWER = "viewer"
+    EXPERT = "expert"
     OPERATOR = "operator"
 
     @property

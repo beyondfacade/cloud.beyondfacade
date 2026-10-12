@@ -14,7 +14,7 @@ class AdminUserOrm(OrmBase):
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     username: Mapped[str] = mapped_column(unique=True)
     password_hash: Mapped[str | None]  # 구글로만 가입한 계정은 NULL
-    role: Mapped[str]  # viewer | operator
+    role: Mapped[str]  # viewer | expert | operator
     is_active: Mapped[bool] = mapped_column(default=True)
     email: Mapped[str | None] = mapped_column(unique=True)  # 소문자
     google_sub: Mapped[str | None] = mapped_column(unique=True)
