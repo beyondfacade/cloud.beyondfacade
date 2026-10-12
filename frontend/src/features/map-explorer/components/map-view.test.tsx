@@ -39,7 +39,7 @@ beforeEach(() => {
   geojsonData = { type: "FeatureCollection", features: [] };
   verdictRows = [];
   fetchMock.mockReset().mockImplementation(async (url: string) => {
-    if (url.includes("/regions/geojson")) return new Response(JSON.stringify(geojsonData));
+    if (url.includes("/geojson/seoul-regions.geojson")) return new Response(JSON.stringify(geojsonData));
     if (url.includes("/verdicts?")) return rowsError
       ? new Response(JSON.stringify({ error: { code: "SERVER_ERROR", message: "조회 실패" } }), { status: 500 })
       : new Response(JSON.stringify(verdictRows));
@@ -185,7 +185,7 @@ it("업종만으로 최신 판정을 조회하고 지도와 범례에 같은 판
   map.emit("load", {});
   expect(await screen.findByText("비추천")).toBeInTheDocument();
   expect(fetchMock.mock.calls.map(([url]) => url)).toEqual(expect.arrayContaining([
-    "/api/mock/regions/geojson", "/api/mock/verdicts?industry=korean_food",
+    "/geojson/seoul-regions.geojson", "/api/mock/verdicts?industry=korean_food",
   ]));
   const swatch = screen.getByText("비추천").closest("li")!.querySelector("span")!;
   const paint = map.setPaintProperty.mock.calls.filter(([, property]) => property === "fill-color").at(-1)![2];
@@ -201,7 +201,7 @@ it("판정 제외 업종은 조회를 생략하고 준비 중 안내와 무색 �
   renderMap("convenience_store");
   map.emit("load", {});
   expect(await screen.findByRole("status")).toHaveTextContent("판정 준비 중인 업종");
-  expect(fetchMock.mock.calls.map(([url]) => url)).toEqual(["/api/mock/regions/geojson"]);
+  expect(fetchMock.mock.calls.map(([url]) => url)).toEqual(["/geojson/seoul-regions.geojson"]);
   expect(screen.queryByText("창업 경고")).toBeNull();
   expect(map.setPaintProperty).toHaveBeenCalledWith("regions-fill", "fill-color", "#cccccc");
 });

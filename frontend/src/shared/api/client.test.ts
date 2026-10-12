@@ -1,7 +1,21 @@
 import { afterEach, expect, it, vi } from "vitest";
-import { apiDelete, apiGet, apiPatch, apiPost, apiPut, ApiError } from "./client";
+import { apiDelete, apiGet, apiPatch, apiPost, apiPut, staticGet, ApiError } from "./client";
 
 afterEach(() => vi.restoreAllMocks());
+
+it("정적 파일은 apiBase 없이 지정한 경로로 요청한다", async () => {
+  const fetchMock = vi.fn().mockResolvedValue(new Response(JSON.stringify({ ok: 1 })));
+  vi.stubGlobal("fetch", fetchMock);
+  await staticGet("/geojson/seoul-regions.geojson");
+  expect(fetchMock).toHaveBeenCalledWith("/geojson/seoul-regions.geojson", undefined);
+});
+
+it("정적 파일의 404 응답은 HTTP_404 코드의 ApiError를 던진다", async () => {
+  vi.stubGlobal("fetch", vi.fn().mockImplementation(() => Promise.resolve(
+    new Response("Not Found", { status: 404 }))));
+  await expect(staticGet("/geojson/seoul-regions.geojson")).rejects.toBeInstanceOf(ApiError);
+  await expect(staticGet("/geojson/seoul-regions.geojson")).rejects.toMatchObject({ code: "HTTP_404" });
+});
 
 it("정상 응답은 JSON을 반환한다", async () => {
   vi.stubGlobal("fetch", vi.fn().mockResolvedValue(

@@ -1,5 +1,6 @@
-import { apiGet, apiPost } from "@/shared/api/client";
+import { apiPost, staticGet } from "@/shared/api/client";
 import type { IntentResult } from "@/shared/api/types";
+import { config } from "@/shared/config";
 
 /** 경계 GeoJSON 중 관문이 쓰는 최소 형태 — map-explorer의 타입을 import하지 않는다 (§14 feature 간 직접 import 금지). */
 interface RegionListGeoJSON {
@@ -18,5 +19,5 @@ export function diagnoseIntent(regionCode: string, industryId: string, signal?: 
 
 /** 구 → 동 칩에 쓸 행정동 목록. 경계 GeoJSON을 한 번만 받아 이름·코드만 남긴다. */
 export function fetchRegionList(signal?: AbortSignal): Promise<{ region_code: string; name: string }[]> {
-  return apiGet<RegionListGeoJSON>("/regions/geojson", { signal }).then((gj) => gj.features.map((f) => f.properties));
+  return staticGet<RegionListGeoJSON>(config.regionsGeoJsonPath, { signal }).then((gj) => gj.features.map((f) => f.properties));
 }

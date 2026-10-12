@@ -17,6 +17,9 @@ async function handle<T>(res: Response): Promise<T> {
 export const apiGet = <T>(path: string, options?: { signal?: AbortSignal }) =>
   fetch(`${config.apiBase}${path}`, options).then((r) => handle<T>(r));
 
+export const staticGet = <T>(path: string, options?: { signal?: AbortSignal }) =>
+  fetch(path, options).then((r) => handle<T>(r));
+
 export const apiPost = <T>(path: string, body: unknown, base: string = config.apiBase, options?: { signal?: AbortSignal }) =>
   fetch(`${base}${path}`, {
     method: "POST",

@@ -1,5 +1,6 @@
 import type { FeatureCollection, MultiPolygon, Polygon } from "geojson";
-import { apiGet } from "@/shared/api/client";
+import { apiGet, staticGet } from "@/shared/api/client";
+import { config } from "@/shared/config";
 import type {
   CategoryRow,
   ChildcareCenter,
@@ -17,7 +18,7 @@ export type RegionProperties = { region_code: string; name: string };
 export type RegionGeoJSON = FeatureCollection<Polygon | MultiPolygon, RegionProperties>;
 
 export function fetchRegionsGeoJson(): Promise<RegionGeoJSON> {
-  return apiGet<RegionGeoJSON>("/regions/geojson");
+  return staticGet<RegionGeoJSON>(config.regionsGeoJsonPath);
 }
 
 export function fetchRegionSummary(regionCode: string, industry: string): Promise<RegionSummary> {
