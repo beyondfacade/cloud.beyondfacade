@@ -40,7 +40,10 @@ services:
       - redisdata:/data
 
   backend:
-    build: ./backend
+    build:
+      context: ./backend
+      additional_contexts:
+        geojson: ./data/geojson  # 경계 파일을 이미지에 넣는다(Dockerfile 참고). 로컬에선 아래 ./data 볼륨이 같은 파일로 덮는다
     container_name: beyondfacade-api
     # 외부 API 키(Gemini·OAuth·공공데이터)는 backend/.env 단일 원천 — 아래 environment가 접속 주소를 컨테이너용으로 덮어쓴다
     env_file:

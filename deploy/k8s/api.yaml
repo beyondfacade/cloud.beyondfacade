@@ -1,5 +1,5 @@
 # API — 파드 1개 = uvicorn 워커 1개, 확장은 파드 수로 (serverplan K4·§7)
-# 주의: /regions/geojson은 실행 중에 /data/geojson 파일을 읽는다(이 파드엔 없다 → 500). K3(정적화) 전에는 배포 불가.
+# 경계 파일(/data/geojson)은 이미지에 들어 있다 — 빌드는 `docker build --build-context geojson=data/geojson backend` (backend/Dockerfile).
 apiVersion: apps/v1
 kind: Deployment
 metadata:

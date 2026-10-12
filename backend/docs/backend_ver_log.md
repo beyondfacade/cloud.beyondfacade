@@ -1,5 +1,12 @@
 # Backend Version Log
 
+## [v0.97.1] - 2026-10-12
+
+> 10/6 `feat/k8s-phase0`의 v0.81.1를 main에 다시 얹음(버전 재부여)
+
+### Fixed
+- 이미지에 행정동 경계 파일(`data/geojson`, 427개·8MB)을 넣음 — `/regions/geojson`과 크론 `assign_regions`(store-collector 5단계)·`childcare_collector`가 실행 중에 이 파일을 읽어, `/data` 볼륨이 없는 k8s 파드에선 500·실패였다(serverplan K3 1단계). 빌드 컨텍스트(`backend/`) 밖이라 이름 붙은 컨텍스트(`--build-context geojson=data/geojson`, compose `additional_contexts`)로 받는다. `/data` 볼륨 없이 띄운 컨테이너에서 geojson 200·두 크론의 경계 색인 427개 생성 확인. 이미지 586MB → 596MB
+
 ## [v0.97.0] - 2026-10-12
 
 > 10/6 `feat/k8s-phase0`의 v0.81.0를 main에 다시 얹음(버전 재부여)
