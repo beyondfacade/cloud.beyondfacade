@@ -66,7 +66,10 @@ function ExpertRow({ expert, pending, onChat, onBuy }: RowProps) {
     <li className={styles.expertRow} data-status={expert.status}>
       <span className={styles.avatar} aria-hidden="true">{initial(expert.username)}</span>
       <span className={styles.rowText}>
-        <span className={styles.rowTitle}>{expert.username}</span>
+        <span className={styles.rowTitle}>
+          {expert.username}
+          {expert.specialty && <span className={styles.specialty}>{expert.specialty} 전문</span>}
+        </span>
         <span className={styles.rowSub}>
           {rate === null ? "요금 미정" : `시간당 ${won(rate)}`} · <span className={styles.status}>{STATUS_LABEL[expert.status]}</span>
         </span>

@@ -39,11 +39,6 @@ class ChatMessageUseCase(ABC):
         다른 회원이 산 상담 중인 전문가면 ChatExpertBusy. 메시지가 오가기 전에는 방 목록에 없다."""
 
     @abstractmethod
-    def open_expert(self, member: ChatMember) -> ChatRoomDto:
-        """전문가와의 1:1 대화방 — 내가 산 상담 중인 전문가 먼저, 아니면 대화 가능한 첫 전문가.
-        연결할 전문가가 없으면 ChatMemberNotFound."""
-
-    @abstractmethod
     def search_members(self, member: ChatMember, q: str) -> list[ChatExpertDto]:
         """일반 회원에게만 전문가 목록(q가 비면 전체, 계정명순 50명)과 요금·상담 상태 — 그 밖의 등급은 빈 목록."""
 

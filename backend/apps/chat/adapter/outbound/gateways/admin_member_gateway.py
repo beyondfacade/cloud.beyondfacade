@@ -8,7 +8,11 @@ from apps.chat.app.ports.output.chat_message_port import ChatMemberPort
 
 def _peer(principal: AdminPrincipalDto) -> ChatPeerDto:
     return ChatPeerDto(
-        id=principal.id, username=principal.username, role=principal.role, hourly_rate=principal.hourly_rate
+        id=principal.id,
+        username=principal.username,
+        role=principal.role,
+        hourly_rate=principal.hourly_rate,
+        specialty=principal.specialty,
     )
 
 

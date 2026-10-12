@@ -55,13 +55,12 @@ function setup(me: AdminMe | null, rooms: ChatRoom[] = [room("global")], items: 
     }
     if (url.endsWith("/chat/members")) {
       return Promise.resolve(json(200, [
-        { id: 5, username: "park.expert", hourly_rate: 30_000, status: "available" },
-        { id: 6, username: "choi.expert", hourly_rate: 20_000, status: "busy" },
+        { id: 5, username: "park.expert", specialty: "카페", hourly_rate: 30_000, status: "available" },
+        { id: 6, username: "choi.expert", specialty: "부동산", hourly_rate: 20_000, status: "busy" },
       ]));
     }
     if (url.endsWith("/chat/consultations")) return Promise.resolve(json(201, room("dm:2:5", { title: "park.expert", partner_id: 5 })));
     if (url.endsWith("/chat/direct")) return Promise.resolve(json(200, room("dm:2:5", { title: "park.expert", partner_id: 5 })));
-    if (url.endsWith("/chat/expert")) return Promise.resolve(json(200, room("dm:2:5", { title: "park.expert", partner_id: 5 })));
     if (url.includes("/chat/reads/")) return Promise.resolve(json(200, { room: "global", last_read_id: 1 }));
     if (method === "DELETE") return Promise.resolve(json(204, null));
     return Promise.resolve(json(404, { error: { code: "NOT_FOUND", message: "없음" } }));
@@ -95,13 +94,15 @@ it("비로그인도 채팅 버튼은 보이고, 열면 지금 화면으로 돌�
   expect(calls("/chat/rooms")).toHaveLength(0);
 });
 
-it("전문가와 연결하기 이벤트가 오면 창이 열리고 전문가와의 1:1 방으로 들어간다", async () => {
+it("전문가와 연결하기 이벤트가 오면 창이 열리고 DM의 전문가 목록(전문 업종 포함)을 보여 준다", async () => {
   setup(VIEWER);
   await screen.findByRole("button", { name: "채팅 열기" });
   act(() => openExpertChat());
-  expect(await screen.findByText("park.expert")).toBeInTheDocument();
+  const list = await screen.findByRole("list", { name: "전문가 목록" });
+  expect(within(list).getByText("카페 전문")).toBeInTheDocument();
   expect(screen.getByRole("tab", { name: "DM" })).toHaveAttribute("aria-selected", "true");
-  expect(calls("/chat/expert", "POST")).toHaveLength(1);
+  expect(screen.getByRole("combobox", { name: "DM 보기" })).toHaveValue("experts");
+  expect(calls("/chat/direct", "POST")).toHaveLength(0);
 });
 
 it("일반 회원의 DM은 드롭다운으로 대화한 전문가와 전문가 목록을 오가고, 목록에서 상담을 사면 그 방이 열린다", async () => {

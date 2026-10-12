@@ -65,6 +65,7 @@ def to_principal(user: AdminUser) -> AdminPrincipalDto:
         role=user.role.value,
         can_operate=user.role.can_operate,
         hourly_rate=user.hourly_rate,
+        specialty=user.specialty,
     )
 
 

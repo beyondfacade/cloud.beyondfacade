@@ -185,7 +185,7 @@ def test_삭제는_관리자만_하고_본문은_지워진_채_자리만_남는�
 def test_일반_회원은_전문가를_찾아_1대1_대화를_열고_전문가는_그_방에서_답한다():
     get_admin_user_use_case().set_role("guest2", "expert")
     viewer = _client("viewer")
-    guest2 = {"id": 3, "username": "guest2", "hourly_rate": None, "status": "available"}
+    guest2 = {"id": 3, "username": "guest2", "specialty": None, "hourly_rate": None, "status": "available"}
     assert viewer.get("/chat/members", params={"q": "e"}).json() == [guest2]  # 관리자 ops는 안 나온다
     assert viewer.get("/chat/members").json() == [guest2]  # q 없이 = 전문가 목록
     room = viewer.post("/chat/direct", json={"user_id": 3}).json()
@@ -220,28 +220,20 @@ def test_나_자신이나_없는_회원과는_대화를_열_수_없다():
     assert viewer.post("/chat/direct", json={"user_id": 999}).status_code == 404
 
 
-def test_전문가와_연결하기는_활성_전문가와의_1대1_방을_연다():
-    viewer = _client("viewer")
-    response = viewer.post("/chat/expert")
-    assert (response.status_code, response.json()["error"]["code"]) == (404, "CHAT_MEMBER_NOT_FOUND")
-    get_admin_user_use_case().set_role("guest2", "expert")
-    room = viewer.post("/chat/expert").json()
-    assert (room["key"], room["kind"], room["title"], room["partner_id"]) == ("dm:2:3", "direct", "guest2", 3)
-
-
-def _make_expert(username: str, hourly_rate: int) -> None:
+def _make_expert(username: str, hourly_rate: int, specialty: str | None = None) -> None:
     get_admin_user_use_case().set_role(username, "expert")
     with session_scope() as session:
         session.execute(
-            text("update admin_user set hourly_rate = :rate where username = :username"),
-            {"rate": hourly_rate, "username": username},
+            text("update admin_user set hourly_rate = :rate, specialty = :specialty where username = :username"),
+            {"rate": hourly_rate, "specialty": specialty, "username": username},
         )
 
 
 def test_상담을_사면_그_전문가는_다른_회원에게_대화_중이라_1대1을_걸_수_없고_끝나면_다시_가능하다():
-    _make_expert("guest2", 30000)
+    _make_expert("guest2", 30000, "카페")
     get_admin_user_use_case().upsert("guest4", PASSWORD, "viewer")  # id 4
     viewer, other = _client("viewer"), _client("guest4")
+    assert viewer.get("/chat/members").json()[0]["specialty"] == "카페"
     assert viewer.post("/chat/consultations", json={"expert_id": 3, "hours": 4}).status_code == 400
     bought = viewer.post("/chat/consultations", json={"expert_id": 3, "hours": 2})
     assert (bought.status_code, bought.json()["key"]) == (201, "dm:2:3")
@@ -250,7 +242,6 @@ def test_상담을_사면_그_전문가는_다른_회원에게_대화_중이라_
     busy = other.post("/chat/direct", json={"user_id": 3})
     assert (busy.status_code, busy.json()["error"]["code"]) == (409, "CHAT_EXPERT_BUSY")
     assert other.post("/chat/consultations", json={"expert_id": 3, "hours": 1}).status_code == 409
-    assert other.post("/chat/expert").status_code == 404  # 대화 가능한 전문가가 없다
     assert viewer.post("/chat/direct", json={"user_id": 3}).status_code == 200  # 산 사람은 그대로 대화
     assert _client("guest2").post("/chat/consultations", json={"expert_id": 3, "hours": 1}).status_code == 403
     with session_scope() as session:

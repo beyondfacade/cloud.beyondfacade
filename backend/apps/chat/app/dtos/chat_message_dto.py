@@ -45,12 +45,14 @@ class ChatPeerDto:
     username: str
     role: str
     hourly_rate: int | None
+    specialty: str | None
 
 
 @dataclass(frozen=True)
 class ChatExpertDto:
     id: int
     username: str
+    specialty: str | None
     hourly_rate: int | None
     status: str  # available | busy | mine
 

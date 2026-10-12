@@ -174,15 +174,6 @@ class ChatMessageInteractor(ChatMessageUseCase):
         room = direct_room(member.id, peer.id)
         return self._summary(member, room, peer.username, peer.id, self._reads.last_read_ids(member.id))
 
-    def open_expert(self, member: ChatMember) -> ChatRoomDto:
-        if member.role != DIRECT_OPENER_ROLE:
-            raise ChatRoomForbidden("1:1 대화는 일반 회원이 전문가에게만 걸 수 있습니다.")
-        candidates = [expert for expert in self.search_members(member, "") if expert.status != "busy"]
-        if not candidates:
-            raise ChatMemberNotFound("지금 연결할 수 있는 전문가가 없습니다.")
-        mine_first = min(candidates, key=lambda expert: expert.status != "mine")
-        return self.open_direct(member, mine_first.id)
-
     def search_members(self, member: ChatMember, q: str) -> list[ChatExpertDto]:
         if member.role != DIRECT_OPENER_ROLE:
             return []
@@ -191,6 +182,7 @@ class ChatMessageInteractor(ChatMessageUseCase):
             ChatExpertDto(
                 id=peer.id,
                 username=peer.username,
+                specialty=peer.specialty,
                 hourly_rate=peer.hourly_rate,
                 status=expert_status(peer.id, member.id, holders),
             )

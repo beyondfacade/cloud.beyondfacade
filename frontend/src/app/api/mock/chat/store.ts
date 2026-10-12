@@ -27,6 +27,8 @@ export const messages: ChatMessage[] = [
 export const reads = new Map<string, number>();
 /** 전문가 상담 시간당 요금(원) — 실 API는 admin_user.hourly_rate */
 const HOURLY_RATES = new Map([["park.expert", 30_000]]);
+/** 전문가 전문 업종 — 실 API는 admin_user.specialty */
+const SPECIALTIES = new Map([["park.expert", "카페"]]);
 const CONSULTATION_HOURS = [1, 2, 3];
 /** 산 상담 — 끝나기 전까지 그 전문가는 '대화 중' */
 export const consultations: { viewerId: number; expertId: number; endsAt: number }[] = [];
@@ -120,15 +122,6 @@ function expertStatus(expertId: number, myId: number): ChatExpertStatus {
   return holder.viewerId === myId ? "mine" : "busy";
 }
 
-/** 내가 산 상담 중인 전문가 먼저, 아니면 대화 가능한 첫 전문가와의 1:1 방. */
-export function expertRoom(me: AdminMe): ChatRoom | Response {
-  if (me.role !== "viewer") return adminError(403, "CHAT_ROOM_FORBIDDEN", "1:1 대화는 일반 회원이 전문가에게만 걸 수 있습니다.");
-  const candidates = searchMembers(me, "").filter((expert) => expert.status !== "busy");
-  const expert = candidates.find((e) => e.status === "mine") ?? candidates[0];
-  if (!expert) return adminError(404, "CHAT_MEMBER_NOT_FOUND", "지금 연결할 수 있는 전문가가 없습니다.");
-  return directRoom(me, expert.id);
-}
-
 export function searchMembers(me: AdminMe, q: string): ChatExpert[] {
   const needle = q.trim().toLowerCase();
   const myId = memberId(me.username);
@@ -139,7 +132,10 @@ export function searchMembers(me: AdminMe, q: string): ChatExpert[] {
     .slice(0, 50)
     .map((user) => {
       const id = memberId(user.username);
-      return { id, username: user.username, hourly_rate: HOURLY_RATES.get(user.username) ?? null, status: expertStatus(id, myId) };
+      return {
+        id, username: user.username, specialty: SPECIALTIES.get(user.username) ?? null,
+        hourly_rate: HOURLY_RATES.get(user.username) ?? null, status: expertStatus(id, myId),
+      };
     });
 }
 

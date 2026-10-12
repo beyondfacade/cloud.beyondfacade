@@ -54,6 +54,7 @@ class ChatRoomResponse(BaseModel):
 class ChatExpertResponse(BaseModel):
     id: int
     username: str
+    specialty: str | None
     hourly_rate: int | None
     status: Literal["available", "busy", "mine"]
 

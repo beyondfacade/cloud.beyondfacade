@@ -87,14 +87,6 @@ def open_direct(
     return to_room_response(use_case.open_direct(to_member(principal), body.user_id))
 
 
-@router.post("/expert", response_model=ChatRoomResponse)
-def open_expert(
-    principal: AdminPrincipalDto = Depends(require_admin),
-    use_case: ChatMessageUseCase = Depends(get_chat_message_use_case),
-) -> ChatRoomResponse:
-    return to_room_response(use_case.open_expert(to_member(principal)))
-
-
 @router.get("/members", response_model=list[ChatExpertResponse])
 def members(
     q: str = Query(default="", max_length=50),

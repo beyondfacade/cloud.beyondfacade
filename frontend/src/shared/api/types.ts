@@ -957,6 +957,7 @@ export type ChatExpertStatus = "available" | "busy" | "mine";
 export interface ChatExpert {
   id: number;
   username: string;
+  specialty: string | null; // 전문 업종(예: 카페)
   hourly_rate: number | null; // 원
   status: ChatExpertStatus;
 }

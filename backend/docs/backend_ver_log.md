@@ -1,5 +1,14 @@
 # Backend Version Log
 
+## [v0.113.0] - 2026-10-12
+
+### Added
+- **전문가 전문 업종** — 마이그레이션 `d4e6f8a1b3c5`: `admin_user.specialty`(문자열, 비면 NULL). `GET /chat/members` 응답에 `specialty`. `AdminPrincipalDto`·chat `ChatPeerDto`·`ChatExpertDto`에 같은 필드
+- 테스트: 전문가 목록 응답에 `specialty`(없으면 null, 있으면 그 값)
+
+### Removed
+- `POST /chat/expert`(전문가와 연결하기 자동 연결) — 버튼이 이제 채팅 창의 전문가 목록을 열어 회원이 직접 고른다(프론트 v0.75.0). use case `open_expert`와 그 테스트 제거
+
 ## [v0.112.0] - 2026-10-12
 
 ### Added
