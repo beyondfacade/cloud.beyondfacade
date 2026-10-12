@@ -113,3 +113,18 @@
   .markdown { font-size: 13px; }
   .markdown h1, .markdown h2 { font-size: 21px; }
 }
+
+/* PDF 저장(인쇄)에는 리포트 한 장만 싣는다 */
+@media print {
+  .workspace { max-width: none; padding: 0; }
+  .pageHeader, .sidebar { display: none; }
+  .workspaceGrid { display: block; }
+  .reportSheet { border: 0; border-radius: 0; overflow: visible; }
+  .reportMasthead { margin-inline: 0; }
+  .reportBody { padding-inline: 0; }
+  .markdown table { display: table; overflow: visible; }
+  /* 제목만 페이지 끝에 남거나 그래프·사례 카드가 두 장에 걸쳐 잘리지 않게 한다 */
+  .sectionNumber, .reportSection h2, .reportSection h3 { break-after: avoid; }
+  .reportSection svg, .reportSection table, .reportSection article { break-inside: avoid; }
+  .reportSection svg { max-height: 260px; }
+}

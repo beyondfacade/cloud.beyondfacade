@@ -19,7 +19,7 @@ export function TopBar() {
   if (pathname === "/" || OWN_HEADER.some((prefix) => pathname.startsWith(prefix))) return null;
 
   return (
-    <header className={`${styles.header} relative`}>
+    <header className={`${styles.header} relative print:hidden`}>
       <div className={styles.inner}>
         <Link href="/" className={styles.brand} aria-label="Metabole">
           <span className={styles.mark} aria-hidden="true">m.</span>

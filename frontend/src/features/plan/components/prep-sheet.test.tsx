@@ -33,12 +33,25 @@ describe("상담 준비자료", () => {
     expect(screen.getByText("상담할 안을 고르면 준비자료가 만들어집니다.")).toBeInTheDocument();
   });
 
-  it("헤드라인과 단서가 본문에 실린다", () => {
-    render(<PrepSheet draft={draftWithPlan()} regionName="역삼1동" industryLabel="카페" candidates={[]} caveats={["월세는 권역 평균입니다."]} />);
+  it("마크다운 기호 대신 제목·표가 있는 문서로 보여 주고 헤드라인과 단서를 싣는다", () => {
+    const { container } = render(<PrepSheet draft={draftWithPlan()} regionName="역삼1동" industryLabel="카페" candidates={[]} caveats={["월세는 권역 평균입니다."]} />);
 
-    const body = screen.getByText(/창업자금 상담 준비자료/).textContent ?? "";
+    expect(screen.getByRole("heading", { level: 1, name: "창업자금 상담 준비자료" })).toBeInTheDocument();
+    expect(screen.getByRole("table")).toBeInTheDocument();
+    const body = container.querySelector("[data-prep-markdown]")?.textContent ?? "";
     expect(body).toContain("자기자본 외 조달 필요: 3,160만 원");
     expect(body).toContain("월세는 권역 평균입니다.");
+    expect(body).not.toContain("# 창업자금");
+  });
+
+  it("PDF로 저장은 동·업종을 파일 이름으로 인쇄 창을 연다", async () => {
+    let fileName = "";
+    vi.spyOn(window, "print").mockImplementation(() => { fileName = document.title; });
+    render(<PrepSheet draft={draftWithPlan()} regionName="역삼1동" industryLabel="카페" candidates={[]} caveats={[]} />);
+
+    await userEvent.click(screen.getByRole("button", { name: "PDF로 저장" }));
+
+    expect(fileName).toBe("창업자금 상담 준비자료_역삼1동_카페");
   });
 
   it("복사 버튼은 Markdown 전체를 클립보드에 넣는다", async () => {

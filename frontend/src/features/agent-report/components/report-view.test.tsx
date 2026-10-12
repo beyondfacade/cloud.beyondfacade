@@ -133,6 +133,17 @@ it("리포트가 끝나기 전이나 사실이 없으면 하단 버튼을 보여
   expect(screen.queryByRole("button", { name: "↑ 맨 위로" })).not.toBeInTheDocument();
 });
 
+it("완료된 리포트는 동·업종을 파일 이름으로 PDF 저장(인쇄 창)을 연다", () => {
+  let fileName = "";
+  vi.spyOn(window, "print").mockImplementation(() => { fileName = document.title; });
+  const { rerender } = render(<ReportView state={{ ...initialAgentState(), facts: reportFacts() }} />);
+  expect(screen.queryByRole("button", { name: "PDF로 저장" })).not.toBeInTheDocument();
+
+  rerender(<ReportView state={{ ...initialAgentState(), facts: reportFacts(), done: true }} />);
+  fireEvent.click(screen.getByRole("button", { name: "PDF로 저장" }));
+  expect(fileName).toBe("창업 경고 리포트_역삼1동_카페");
+});
+
 it("사실 섹션 제목과 같은 마크다운 제목은 중복하지 않고 본문을 유지한다", () => {
   render(<ReportView state={{ ...initialAgentState(), facts: reportFacts(), sections: { verdict: "## 판정\n\n첫 해석입니다." } }} />);
   expect(screen.getAllByRole("heading", { name: "판정", exact: true })).toHaveLength(1);

@@ -1,6 +1,7 @@
 import ReactMarkdown, { type Options } from "react-markdown";
 import remarkGfm from "remark-gfm";
 import type { FactSection } from "@/shared/api/types";
+import { saveAsPdf } from "@/shared/lib/save-as-pdf";
 import type { AgentState } from "../lib/agent-events";
 import { analogAnchors, gradedParagraphs } from "../lib/graded-paragraphs";
 import { ReportVisuals } from "./report-visuals";
@@ -62,11 +63,23 @@ export function ReportView({ state }: ReportViewProps) {
   }
 
   const citations = state.citations;
+  const region = state.facts?.region;
+  const finished = state.done && region;
 
   return (
     <article className={`${styles.reportSheet} border-[var(--border)] bg-[var(--bg-surface)]`} aria-label="창업 경고 리포트">
       <header className={`${styles.reportMasthead} border-[var(--border)] text-[var(--text-secondary)]`}>
-        <span>WARNING REPORT</span><span>{state.error ? "작성 중단" : state.done ? "작성 완료" : "리포트 작성 중"}</span>
+        <span>WARNING REPORT</span>
+        {region && <span className="hidden print:inline">{region.name} · {region.industry_name}</span>}
+        <span className="flex items-center gap-3">
+          <span>{state.error ? "작성 중단" : state.done ? "작성 완료" : "리포트 작성 중"}</span>
+          {finished && (
+            <button type="button" onClick={() => saveAsPdf(`창업 경고 리포트_${region.name}_${region.industry_name}`)}
+              className="cursor-pointer rounded-md border border-[var(--border)] bg-[var(--bg-surface)] px-2.5 py-1.5 text-xs font-semibold text-[var(--text-primary)] hover:border-[var(--accent)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)] print:hidden">
+              PDF로 저장
+            </button>
+          )}
+        </span>
       </header>
       <div className={styles.reportBody}>
         {state.sections.answer_lead ? (
@@ -138,8 +151,8 @@ export function ReportView({ state }: ReportViewProps) {
             <p className="mt-3 text-xs text-[var(--text-secondary)]">네이버 뉴스 검색 결과입니다. 기사 내용은 원문에서 확인하세요.</p>
           </div>
         )}
-        {state.done && state.facts?.region && (
-          <div className="mt-10 flex justify-end">
+        {finished && (
+          <div className="mt-10 flex justify-end print:hidden">
             <button type="button" onClick={() => window.scrollTo({
               top: 0,
               behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",

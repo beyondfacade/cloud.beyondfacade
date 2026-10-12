@@ -13,11 +13,14 @@
   --landing-border: var(--border);     --landing-panel: var(--bg-raised);
   --landing-halo: #e0e9dc;      --landing-shadow: #26483a12;
 }
-[data-theme="dark"] {
-  --bg-base: #17221f;      --bg-surface: #25362f;   --bg-raised: #1d2c25;
-  --text-primary: #e8eee4; --text-secondary: #adbbb1;
-  --border: #34473d;
-  --accent: #8cceb8;       --accent-fg: #16392e;
-  --ok: #4ade80;           --warn: #fbbf24;         --danger: #f87171;
-  --landing-halo: #314b3e;      --landing-shadow: #00000024;
+/* 인쇄(PDF 저장)는 다크 모드여도 밝은 팔레트로 찍는다 */
+@media screen {
+  [data-theme="dark"] {
+    --bg-base: #17221f;      --bg-surface: #25362f;   --bg-raised: #1d2c25;
+    --text-primary: #e8eee4; --text-secondary: #adbbb1;
+    --border: #34473d;
+    --accent: #8cceb8;       --accent-fg: #16392e;
+    --ok: #4ade80;           --warn: #fbbf24;         --danger: #f87171;
+    --landing-halo: #314b3e;      --landing-shadow: #00000024;
+  }
 }
