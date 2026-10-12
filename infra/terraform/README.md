@@ -59,19 +59,27 @@ apply가 끝나면 사람이 할 일:
    비밀번호는 `terraform output rds_master_secret_arn`의 비밀에 있다. 특수문자가 있으면 URL 인코딩한다
 4. **kubectl 연결** — `$(terraform output -raw kubeconfig_command)` → `kubectl get nodes`에 노드 2대
 
-## 앱 배포 (serverplan §13-1)
+## 앱 배포 (serverplan §13-1) — Argo CD(GitOps)
 
 | 누가 | 언제 | 무엇을 |
 |---|---|---|
-| GitHub Actions `backend-deploy` | main에 `backend/`·`data/geojson/`이 바뀔 때(또는 Actions 탭에서 수동 실행) | arm64 이미지 빌드(태그 = git SHA) → ECR 푸시 → (03:30~06:10 KST 수집 시간이면 끝날 때까지 대기) → **DB 마이그레이션**(새 이미지로 Job `alembic upgrade head`, 실패하면 여기서 멈춤) → API·CronJob **이미지만** 교체, 실패하면 이전 버전으로 되돌림 |
-| 관리자(Terraform apply한 사람) | 첫 배포, `deploy/k8s` 매니페스트가 바뀔 때 | `scripts/k8s-apply.sh` — 매니페스트 전체 적용, 이미지는 지금 것을 유지 |
+| GitHub Actions `backend-deploy` | main에 `backend/`·`data/geojson/`이 바뀔 때(또는 Actions 탭에서 수동 실행) | arm64 이미지 빌드(태그 = git SHA) → ECR 푸시 → `deploy/k8s/kustomization.yaml`의 `newTag`를 그 SHA로 **커밋** |
+| Argo CD(클러스터 안) | main의 `deploy/k8s`가 바뀔 때(약 3분마다 확인) | **DB 마이그레이션**(PreSync 훅 Job `alembic upgrade head`, 실패하면 여기서 멈춤) → 매니페스트 전체 적용(API·CronJob 이미지 포함). 03:30~06:10 KST 수집 시간엔 동기화하지 않고 06:10 뒤에 맞춘다 |
 
-CI 역할은 `beyondfacade` 네임스페이스 안 Edit 권한뿐이라 매니페스트 전체(Namespace·ExternalSecret 등)는 사람이 적용한다.
+- CI는 클러스터에 접속하지 않는다 — EKS API는 `admin_cidrs`에만 열려 있고, CI 역할엔 ECR 푸시 권한뿐이다.
+- 매니페스트를 바꾸려면 `deploy/k8s`를 고쳐 main에 푸시하면 된다. **kubectl로 직접 바꾸면 Argo CD가 Git 상태로 되돌린다**(selfHeal). 파드 수만은 HPA 몫이라 비교에서 뺀다.
+- 태그 커밋이 main에 생기므로 **로컬에서 푸시 전엔 `git pull --rebase`**.
+- 되돌리기: `deploy/k8s/kustomization.yaml`의 `newTag`를 이전 SHA로 고쳐 푸시(또는 `git revert` 태그 커밋). DB 마이그레이션은 되돌아가지 않으니 새 마이그레이션은 이전 코드와 같이 돌 수 있게(컬럼 추가 → 사용 → 나중에 삭제) 만든다.
 
 처음 한 번:
 1. GitHub 저장소 → Settings → Secrets and variables → Actions → **Variables**에 `AWS_DEPLOY_ROLE_ARN` = `terraform output -raw github_actions_role_arn` (비어 있으면 워크플로가 건너뛴다 — 정리 뒤엔 지운다)
-2. Actions → backend-deploy → Run workflow → 이미지가 올라간다(아직 API가 없어 교체 단계는 안내만 남기고 끝난다). 로그의 이미지 주소를 복사
-3. `scripts/k8s-apply.sh <이미지 주소>` → `kubectl get pods -n beyondfacade`
+2. `terraform apply`가 Argo CD와 앱(`beyondfacade`)을 만들면, Argo CD가 main의 태그로 바로 맞춘다 → `kubectl get application -n argocd`가 `Synced`·`Healthy`
+
+Argo CD 화면 보기(외부에 열지 않는다):
+```bash
+kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath='{.data.password}' | base64 -d; echo  # admin 비밀번호
+kubectl -n argocd port-forward svc/argocd-server 8080:443  # → https://localhost:8080 (원격 개발이면 VS Code 포트 전달)
+```
 
 ## DB 옮기기 (serverplan §15 Phase 2, 전환 때 한 번 더)
 
@@ -95,7 +103,8 @@ scripts/db-restore.sh
 ## 지우기 (serverplan §20-7) — 순서가 중요하다
 
 ```bash
-kubectl delete ingress api -n beyondfacade  # ① ALB부터 — 클러스터를 먼저 지우면 ALB가 고아로 남아 계속 과금
+kubectl delete application beyondfacade -n argocd  # ① 앱부터 — Ingress(→ ALB)까지 지운다. 클러스터를 먼저 지우면 ALB가 고아로 남아 계속 과금
+kubectl get ingress -A  # 비어 있어야 다음으로 (Ingress만 지우면 Argo CD가 다시 만든다)
 # ② pg_dump를 받아 로컬에서 복원 확인 (§20-7 2단계)
 # ③ terraform.tfvars에 db_deletion_protection = false → terraform apply
 # ④ S3 데이터 버킷 비우기(버전 포함): 콘솔 → 버킷 → 비우기

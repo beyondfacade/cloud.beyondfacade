@@ -1,6 +1,7 @@
-# main에 백엔드가 바뀌면: arm64 이미지 빌드 → ECR 푸시 → DB 마이그레이션(새 이미지 Job) → EKS의 API·CronJob 이미지 교체 (serverplan §13-1)
-# - CI 역할은 beyondfacade 네임스페이스 안 Edit 권한뿐이라 이미지만 바꾼다.
-#   매니페스트(deploy/k8s)가 바뀌면 관리자가 scripts/k8s-apply.sh로 적용한다(지금 이미지를 유지).
+# main에 백엔드가 바뀌면: arm64 이미지 빌드 → ECR 푸시 → deploy/k8s/kustomization.yaml의 태그를 그 SHA로 커밋 (serverplan §13-1)
+# - 클러스터 반영은 Argo CD가 한다(GitOps, infra/terraform addons.tf): main을 보고 DB 마이그레이션(PreSync 훅) → API·CronJob 교체.
+#   CI는 클러스터에 접속하지 않는다 — EKS 엔드포인트를 열지 않고, CI 역할엔 EKS 권한이 없다.
+# - 태그 커밋이 main에 하나 생기므로, 로컬에서 푸시 전엔 git pull --rebase.
 # - 테스트는 로컬에서 돌린 뒤 머지한다 — pytest가 실 DB·data/raw를 써서 CI에서 못 돈다.
 # - AWS가 없는 동안(10/14 전, 10/29 정리 뒤)엔 저장소 변수 AWS_DEPLOY_ROLE_ARN을 비워 두면 건너뛴다.
 name: backend-deploy
@@ -16,7 +17,7 @@ on:
 
 concurrency:
   group: backend-deploy
-  cancel-in-progress: false # 배포 중간에 끊지 않는다
+  cancel-in-progress: false # 차례대로 — 옛 커밋의 태그가 새 태그를 덮지 않게
 
 permissions:
   id-token: write # AWS OIDC — 키 없이 역할을 받는다 (infra/terraform github_actions.tf)
@@ -24,8 +25,6 @@ permissions:
 
 env:
   AWS_REGION: ap-northeast-2
-  CLUSTER: beyondfacade
-  NAMESPACE: beyondfacade
 
 jobs:
   build:
@@ -58,55 +57,31 @@ jobs:
 
   deploy:
     needs: build
-    runs-on: ubuntu-24.04 # aws CLI·kubectl이 깔려 있다
-    timeout-minutes: 200 # 수집 시간 대기(최대 약 2시간 40분) + 배포
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: write # 태그 커밋 푸시
     steps:
-      - name: 수집 시간(03:30~06:10 KST)이면 끝날 때까지 기다린다
-        # 크론 03:30 admin-housekeeping ~ 06:00(월) regional-event — 수집기가 DB에 쓰는 동안 마이그레이션이 잠그거나 구조를 바꾸지 않게.
-        # 돌고 있는 CronJob 파드는 이미지 교체에 영향받지 않는다. 기다리는 동안 새 푸시가 오면 concurrency가 대기분을 최신으로 바꾼다
-        run: |
-          while now=$(TZ=Asia/Seoul date +%H%M); (( 10#$now >= 330 && 10#$now < 610 )); do
-            echo "수집 시간($now KST) — 06:10 이후 배포. 1분 뒤 다시 본다"
-            sleep 60
-          done
       - uses: actions/checkout@v7
-      - uses: aws-actions/configure-aws-credentials@v6
         with:
-          role-to-assume: ${{ vars.AWS_DEPLOY_ROLE_ARN }}
-          aws-region: ${{ env.AWS_REGION }}
-      - name: API·CronJob 이미지 교체
-        env:
-          IMAGE: ${{ needs.build.outputs.image }}
+          ref: main
+      - name: 배포 태그 커밋 — Argo CD가 이 커밋을 보고 맞춘다
+        # 수집 시간(03:30~06:10 KST)엔 Argo CD 동기화 창이 막혀 있어 06:10 뒤에 반영된다
         run: |
-          aws eks update-kubeconfig --name "$CLUSTER" --region "$AWS_REGION"
-          # "없음"과 "접속 못 함"을 가른다 — 접속 오류를 첫 배포로 여기고 성공 처리하면 배포가 조용히 빠진다(10/12)
-          if ! found=$(kubectl get deployment/api -n "$NAMESPACE" -o name 2>&1); then
-            if grep -q "NotFound" <<< "$found"; then
-              echo "::notice::아직 배포된 API가 없다 — 첫 배포는 관리자가: scripts/k8s-apply.sh $IMAGE"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          for _ in 1 2 3; do  # 그 사이 누가 푸시했으면 최신 main 위에서 다시
+            git fetch -q origin main && git reset -q --hard origin/main
+            sed -i -E "s/^(    newTag: )[0-9a-f]{40}/\1${GITHUB_SHA}/" deploy/k8s/kustomization.yaml
+            if git diff --quiet; then
+              echo "이미 ${GITHUB_SHA} — 커밋할 것 없음"
               exit 0
             fi
-            echo "::error::클러스터에 접속하지 못했다: $found"
-            exit 1
-          fi
-          # 마이그레이션 먼저 — 새 코드가 아직 없는 컬럼을 찾지 않게. 실패하면 이미지를 바꾸지 않는다
-          job="db-migrate-${GITHUB_SHA::12}"
-          kubectl delete job "$job" -n "$NAMESPACE" --ignore-not-found
-          sed -e "s|name: db-migrate|name: $job|" -e "s|image: beyondfacade-api|image: $IMAGE|" deploy/k8s-jobs/db-migrate.yaml | kubectl apply -f -
-          for _ in $(seq 60); do  # 최대 5분
-            status=$(kubectl get job "$job" -n "$NAMESPACE" -o jsonpath='{.status.succeeded}{.status.failed}')
-            [ -n "$status" ] && break
+            git commit -q -am "deploy: backend ${GITHUB_SHA::12}"
+            if git push -q origin HEAD:main; then
+              echo "::notice::태그 커밋 완료 — Argo CD가 3분 안에 마이그레이션·교체한다"
+              exit 0
+            fi
             sleep 5
           done
-          # Actions 로그는 공개다 — 적용한 리비전 줄만 남긴다(오류 메시지엔 접속 정보가 섞일 수 있다. 전체는 kubectl logs로)
-          kubectl logs "job/$job" -n "$NAMESPACE" 2>&1 | grep -E "Running upgrade" || true
-          if [ "$(kubectl get job "$job" -n "$NAMESPACE" -o jsonpath='{.status.succeeded}')" != "1" ]; then
-            echo "::error::DB 마이그레이션 실패 또는 5분 초과 — 이미지를 바꾸지 않았다"
-            exit 1
-          fi
-          kubectl set image deployment/api "api=$IMAGE" -n "$NAMESPACE"
-          kubectl set image cronjob --all "*=$IMAGE" -n "$NAMESPACE"
-          # 새 파드가 ready가 안 되면 이전 버전으로 되돌리고 실패로 끝낸다
-          if ! kubectl rollout status deployment/api -n "$NAMESPACE" --timeout=5m; then
-            kubectl rollout undo deployment/api -n "$NAMESPACE"
-            exit 1
-          fi
+          exit 1

@@ -1,8 +1,9 @@
-# 클러스터 애드온 4개 — Helm으로 클러스터와 함께 설치 (serverplan §10-1, §20-5·§20-6)
+# 클러스터 애드온 5개 — Helm으로 클러스터와 함께 설치 (serverplan §10-1, §20-5·§20-6)
 #   AWS Load Balancer Controller: Ingress(deploy/k8s/api.yaml) → ALB 생성
 #   External Secrets:             Secrets Manager → k8s Secret `backend-env`
 #   metrics-server:               HPA가 파드 CPU를 본다
 #   Cluster Autoscaler:           파드가 못 뜨면 노드를 늘린다 (max = var.node_max_size)
+#   Argo CD:                      main의 deploy/k8s를 클러스터에 맞춘다(GitOps) — CI는 클러스터에 접속하지 않는다
 # 애드온의 AWS 권한은 Pod Identity로 준다 — 키를 파드에 넣지 않는다.
 # LB Controller가 먼저다: 모든 Service 생성을 webhook으로 가로채서, 그 파드가 뜨기 전에 다른 차트가 Service를 만들면
 # "no endpoints available for service aws-load-balancer-webhook-service"로 실패한다(10/12 첫 apply에서 external-secrets).
@@ -112,4 +113,74 @@ resource "helm_release" "cluster_autoscaler" {
   })]
 
   depends_on = [module.eks, module.cluster_autoscaler_identity, helm_release.aws_load_balancer_controller]
+}
+
+resource "helm_release" "argocd" {
+  name             = "argocd"
+  repository       = "https://argoproj.github.io/argo-helm"
+  chart            = "argo-cd"
+  version          = "10.10.2" # 앱 v3.5.4
+  namespace        = "argocd"
+  create_namespace = true
+
+  # 화면은 외부에 열지 않는다 — kubectl port-forward로만 (README "앱 배포")
+  values = [yamlencode({
+    dex           = { enabled = false } # 로그인은 admin 계정 하나
+    notifications = { enabled = false }
+  })]
+
+  depends_on = [module.eks, helm_release.aws_load_balancer_controller]
+}
+
+# 앱 정의는 별도 차트로 — Application CRD가 argocd 차트로 생긴 뒤에 만들어져야 한다
+resource "helm_release" "argocd_apps" {
+  name       = "argocd-apps"
+  repository = "https://argoproj.github.io/argo-helm"
+  chart      = "argocd-apps"
+  version    = "2.0.6"
+  namespace  = "argocd"
+
+  values = [yamlencode({
+    projects = {
+      beyondfacade = {
+        namespace                = "argocd"
+        sourceRepos              = [local.gitops_repo]
+        destinations             = [{ server = "https://kubernetes.default.svc", namespace = local.app_namespace }]
+        clusterResourceWhitelist = [{ group = "", kind = "Namespace" }]
+        # 수집 시간(03:30 admin-housekeeping ~ 06:00 월요일 regional-event)엔 자동 동기화를 막는다 —
+        # 수집기가 DB에 쓰는 동안 마이그레이션이 잠그거나 구조를 바꾸지 않게. 06:10 이후 밀린 커밋을 맞춘다
+        syncWindows = [{
+          kind         = "deny"
+          schedule     = "30 3 * * *"
+          duration     = "2h40m"
+          timeZone     = "Asia/Seoul"
+          applications = ["*"]
+          manualSync   = true # 급할 땐 사람이 화면에서 동기화할 수 있다
+        }]
+      }
+    }
+    applications = {
+      beyondfacade = {
+        namespace  = "argocd"
+        project    = "beyondfacade"
+        finalizers = ["resources-finalizer.argocd.argoproj.io"] # 앱을 지우면 리소스(Ingress → ALB 포함)도 지운다
+        source = {
+          repoURL        = local.gitops_repo
+          targetRevision = "main"
+          path           = "deploy/k8s"
+          # 저장소엔 태그만 있다 — ECR 주소(계정 ID)는 여기서 붙인다. ":*"는 저장소의 태그를 그대로 둔다
+          kustomize = { images = ["beyondfacade-api=${aws_ecr_repository.api.repository_url}:*"] }
+        }
+        destination = { server = "https://kubernetes.default.svc", namespace = local.app_namespace }
+        syncPolicy = {
+          automated   = { prune = true, selfHeal = true }
+          syncOptions = ["RespectIgnoreDifferences=true"]
+        }
+        # 파드 수는 HPA가 정한다 — 매니페스트의 replicas: 2로 되돌리지 않게
+        ignoreDifferences = [{ group = "apps", kind = "Deployment", jsonPointers = ["/spec/replicas"] }]
+      }
+    }
+  })]
+
+  depends_on = [helm_release.argocd]
 }

@@ -1,5 +1,5 @@
-# EKS 운영 매니페스트 (serverplan §4·§6·§7). 적용: kubectl apply -k deploy/k8s
-# 계정 ID·ECR 주소·인증서 ARN은 저장소(public)에 넣지 않는다 — 배포 때 `kustomize edit set image`로 이미지만 바꾼다.
+# EKS 운영 매니페스트 (serverplan §4·§6·§7). Argo CD가 main의 이 폴더를 클러스터에 맞춘다(infra/terraform addons.tf)
+# 계정 ID·ECR 주소·인증서 ARN은 저장소(public)에 넣지 않는다 — ECR 주소는 Argo CD Application이 이미지 이름에 붙인다.
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 namespace: beyondfacade
@@ -9,6 +9,7 @@ resources:
   - external-secret.yaml
   - api.yaml
   - cronjobs.yaml
+  - db-migrate.yaml
 images:
   - name: beyondfacade-api
-    newTag: latest  # CI가 git SHA로 덮어쓴다
+    newTag: 1a390130bf946b07289dbd9ebff5bef47e0754a7  # backend-deploy가 새 이미지를 올린 뒤 그 git SHA로 커밋한다 — 지금 운영 버전

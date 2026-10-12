@@ -1,4 +1,5 @@
-# GitHub Actions → ECR 푸시·EKS 배포. 저장소가 public이라 키 대신 OIDC 역할로만 (serverplan §6-3)
+# GitHub Actions → ECR 푸시만. 클러스터 반영은 Argo CD가 한다(addons.tf) — CI 역할엔 EKS 권한이 없다.
+# 저장소가 public이라 키 대신 OIDC 역할로만 (serverplan §6-3)
 # main 브랜치에서 돈 워크플로만 이 역할을 받는다
 
 resource "aws_iam_openid_connect_provider" "github" {
@@ -38,7 +39,6 @@ resource "aws_iam_role_policy" "github_actions" {
         ]
         Resource = aws_ecr_repository.api.arn
       },
-      { Effect = "Allow", Action = "eks:DescribeCluster", Resource = module.eks.cluster_arn },
     ]
   })
 }

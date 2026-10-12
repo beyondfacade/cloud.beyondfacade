@@ -3,6 +3,7 @@
 locals {
   cluster_name  = "beyondfacade"
   app_namespace = "beyondfacade"
+  gitops_repo   = "https://github.com/beyondfacade/cloud.beyondfacade.git" # public — Argo CD가 인증 없이 읽는다
 }
 
 module "eks" {
@@ -39,19 +40,6 @@ module "eks" {
 
       use_custom_launch_template = false
       disk_size                  = 20
-    }
-  }
-
-  # GitHub Actions 배포 역할은 앱 네임스페이스 안에서만 바꿀 수 있다
-  access_entries = {
-    github_actions = {
-      principal_arn = aws_iam_role.github_actions.arn
-      policy_associations = {
-        app = {
-          policy_arn   = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSEditPolicy"
-          access_scope = { type = "namespace", namespaces = [local.app_namespace] }
-        }
-      }
     }
   }
 }

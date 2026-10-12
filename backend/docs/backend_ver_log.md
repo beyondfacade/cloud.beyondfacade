@@ -1,5 +1,21 @@
 # Backend Version Log
 
+## [v0.114.0] - 2026-10-12
+
+### Added
+- Argo CD(GitOps) — Terraform `helm_release` argo-cd 10.10.2 + argocd-apps 2.0.6(`infra/terraform/envs/prod/addons.tf`). 앱 `beyondfacade`가 main의 `deploy/k8s`를 자동 동기화(prune·selfHeal), ECR 주소는 Application의 kustomize 이미지(`이름=주소:*`)로 붙여 저장소엔 계정 ID 없이 태그만
+- 수집 시간 동기화 금지 창(AppProject syncWindow deny 03:30 KST부터 2h40m, 수동 동기화는 허용) — 워크플로의 대기 반복문을 대신
+- DB 마이그레이션 Job을 `deploy/k8s/db-migrate.yaml` PreSync 훅으로(실패하면 동기화가 멈춰 이미지가 안 바뀐다)
+
+### Changed
+- `backend-deploy` 워크플로: 빌드·ECR 푸시 뒤 클러스터에 접속하지 않고 `deploy/k8s/kustomization.yaml`의 `newTag`를 그 SHA로 커밋(github-actions[bot]). 태그 고정값은 지금 운영 버전 1a39013
+- Deployment `/spec/replicas`는 Argo CD 비교에서 뺀다 — HPA가 늘린 파드 수를 매니페스트 값으로 되돌리지 않게
+- 정리 순서 첫 단계: Ingress 대신 Argo CD 앱 삭제(Ingress만 지우면 Argo CD가 다시 만든다)
+
+### Removed
+- CI 역할의 EKS 접근(access entry·`eks:DescribeCluster`) — EKS 엔드포인트를 CI에 열 필요가 없어졌다
+- `scripts/k8s-apply.sh`(관리자 수동 적용) — Argo CD가 대신
+
 ## [v0.113.2] - 2026-10-12
 
 ### Changed
