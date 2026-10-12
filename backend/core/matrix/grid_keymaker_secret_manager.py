@@ -37,11 +37,19 @@ class Settings(BaseSettings):
     sgis_service_id: str = ""  # SGIS consumer_key (토큰 4h)
     sgis_security_key: str = ""  # SGIS consumer_secret
     admin_cookie_secure: bool = False  # 관리자 세션 쿠키 Secure — HTTPS 배포에서는 true
+    # 운영은 프론트(www.)와 API(api.)가 다른 호스트다 (serverplan Phase 6-4). 기본값은 로컬(같은 origin 프록시) 동작
+    cors_allow_origins: str = "http://localhost:3200,http://127.0.0.1:3200"  # 쉼표 구분 — 운영 https://www.beyondfacade.cloud
+    cookie_domain: str = ""  # 관리자 쿠키 Domain — 운영 beyondfacade.cloud(www 미들웨어가 api가 준 쿠키를 본다). 비우면 요청 호스트만
+    frontend_origin: str = ""  # 구글 로그인 왕복 뒤 돌아갈 프론트 — 운영 https://www.beyondfacade.cloud. 비우면 상대 경로
     google_client_id: str = ""  # 구글 로그인 OAuth 클라이언트 — 둘 중 하나라도 비면 구글 버튼을 숨긴다
     google_client_secret: str = ""
     # 구글 콘솔 '승인된 리디렉션 URI'와 글자 하나까지 같아야 한다 — 프론트 origin의 /api/backend 프록시 경유
     google_redirect_uri: str = "http://localhost:3200/api/backend/admin/auth/google/callback"
     llm_mode: str = "live"  # live | fake — fake는 부하 테스트 컨테이너 전용(고정 지연 가짜 LLM, testplan §7-4)
+
+    @property
+    def cors_origin_list(self) -> list[str]:
+        return [origin.strip() for origin in self.cors_allow_origins.split(",") if origin.strip()]
 
 
 @lru_cache

@@ -41,6 +41,7 @@ def device_cookie_header(device_id: str) -> tuple[bytes, bytes]:
         samesite="lax",
         secure=get_settings().admin_cookie_secure,
         path="/",
+        domain=get_settings().cookie_domain or None,
     )
     return next((k, v) for k, v in response.raw_headers if k == b"set-cookie")
 

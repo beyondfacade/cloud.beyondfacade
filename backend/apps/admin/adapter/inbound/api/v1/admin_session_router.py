@@ -29,6 +29,7 @@ from apps.admin.app.errors import AdminError
 from apps.admin.app.ports.input.admin_session_use_case import AdminSessionUseCase
 from apps.admin.dependencies.admin_dependencies import get_admin_session_use_case
 from apps.admin.dependencies.admin_guard import require_admin
+from core.matrix.grid_keymaker_secret_manager import get_settings
 
 router = APIRouter(prefix="/admin/auth", tags=["admin"])
 
@@ -36,8 +37,13 @@ router = APIRouter(prefix="/admin/auth", tags=["admin"])
 _LOGIN_PAGE = "/login"
 
 
+def _to_frontend(path: str) -> str:
+    """콜백은 API 호스트가 받는다 — 운영(프론트가 다른 호스트)에선 프론트 주소를 붙인다. 비어 있으면 상대 경로."""
+    return f"{get_settings().frontend_origin.rstrip('/')}{path}"
+
+
 def _login_error(error: AdminError) -> RedirectResponse:
-    response = RedirectResponse(f"{_LOGIN_PAGE}?error={error.code}", status_code=302)
+    response = RedirectResponse(_to_frontend(f"{_LOGIN_PAGE}?error={error.code}"), status_code=302)
     clear_oauth_cookie(response)
     return response
 
@@ -108,7 +114,7 @@ def google_callback(
         )
     except AdminError as error:
         return _login_error(error)
-    response = RedirectResponse(handshake.next_path, status_code=302)
+    response = RedirectResponse(_to_frontend(handshake.next_path), status_code=302)
     clear_oauth_cookie(response)
     set_session_cookie(response, result.token, result.expires_at)
     return response

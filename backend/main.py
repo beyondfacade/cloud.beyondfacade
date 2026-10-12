@@ -40,6 +40,7 @@ from apps.store.adapter.inbound.api.v1.store_router import router as store_route
 from apps.verdict.adapter.inbound.api.v1.region_industry_verdict_router import (
     router as verdict_router,
 )
+from core.matrix.grid_keymaker_secret_manager import get_settings
 from core.matrix.grid_oracle_database_manager import session_scope
 
 app = FastAPI(title="beyondfacade backend")
@@ -48,7 +49,8 @@ app.add_exception_handler(OpsError, ops_error_handler)
 app.add_middleware(SecurityMiddleware)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3200", "http://127.0.0.1:3200"],
+    allow_origins=get_settings().cors_origin_list,
+    allow_credentials=True,  # 프론트(www.)가 관리자 쿠키를 실어 API(api.)를 부른다
     allow_methods=["*"],
     allow_headers=["*"],
 )

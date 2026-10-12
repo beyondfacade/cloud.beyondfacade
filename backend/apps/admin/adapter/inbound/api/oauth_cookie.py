@@ -38,6 +38,7 @@ def set_oauth_cookie(response: Response, handshake: OAuthHandshake) -> None:
         samesite="lax",
         secure=get_settings().admin_cookie_secure,
         path="/",
+        domain=get_settings().cookie_domain or None,
     )
 
 
@@ -50,4 +51,4 @@ def read_oauth_cookie(request: Request) -> OAuthHandshake | None:
 
 
 def clear_oauth_cookie(response: Response) -> None:
-    response.delete_cookie(OAUTH_COOKIE, path="/")
+    response.delete_cookie(OAUTH_COOKIE, path="/", domain=get_settings().cookie_domain or None)

@@ -9,3 +9,10 @@ data:
   DB_MAX_OVERFLOW: "5"
   # serverplan §5 결정(A: 집 서버 사설 터널 / C: 클러스터 안 임베딩 파드)에 따라 바꾼다
   OLLAMA_BASE_URL: "http://ollama.invalid:11434"
+  # 프론트 https://www.beyondfacade.cloud(Vercel) ↔ API https://api.beyondfacade.cloud — 다른 호스트라 필요 (serverplan Phase 6-4)
+  CORS_ALLOW_ORIGINS: "https://www.beyondfacade.cloud"
+  COOKIE_DOMAIN: "beyondfacade.cloud"  # www의 관리자 미들웨어가 api가 준 세션 쿠키를 본다
+  FRONTEND_ORIGIN: "https://www.beyondfacade.cloud"  # 구글 로그인 뒤 돌아갈 곳
+  ADMIN_COOKIE_SECURE: "true"
+  # 구글 콘솔 '승인된 리디렉션 URI'에도 같은 값을 등록한다 — 콜백은 API가 직접 받는다
+  GOOGLE_REDIRECT_URI: "https://api.beyondfacade.cloud/admin/auth/google/callback"

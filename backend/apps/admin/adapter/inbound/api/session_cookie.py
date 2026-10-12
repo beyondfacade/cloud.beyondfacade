@@ -16,8 +16,9 @@ def set_session_cookie(response: Response, token: str, expires_at: datetime) -> 
         samesite="lax",
         secure=get_settings().admin_cookie_secure,
         path="/",
+        domain=get_settings().cookie_domain or None,
     )
 
 
 def clear_session_cookie(response: Response) -> None:
-    response.delete_cookie(SESSION_COOKIE, path="/")
+    response.delete_cookie(SESSION_COOKIE, path="/", domain=get_settings().cookie_domain or None)

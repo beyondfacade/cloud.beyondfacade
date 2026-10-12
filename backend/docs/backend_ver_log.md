@@ -1,5 +1,18 @@
 # Backend Version Log
 
+## [v0.103.0] - 2026-10-12
+
+### Added
+- 프론트·API 분리 호스트 설정(운영: 프론트 `https://www.beyondfacade.cloud` Vercel ↔ API `https://api.beyondfacade.cloud`, serverplan Phase 6-4) — 기본값은 지금 동작(로컬 같은 origin 프록시) 그대로
+  - `CORS_ALLOW_ORIGINS`(쉼표 구분, 기본 `localhost:3200`·`127.0.0.1:3200`) + `allow_credentials` — 지금까지 `main.py`에 고정돼 있어 운영 프론트의 요청을 브라우저가 전부 막았을 것
+  - `COOKIE_DOMAIN`(기본 비움) — 관리자 쿠키 3종(세션·디바이스·OAuth)의 설정·삭제에 Domain. 프론트 `src/proxy.ts`가 www에서 세션 쿠키 유무로 `/admin`을 막는데, api가 준 호스트 전용 쿠키는 www에서 안 보여 로그인 뒤에도 로그인 화면으로 돌아갔을 것
+  - `FRONTEND_ORIGIN`(기본 비움) — 구글 로그인 콜백(API가 받음) 뒤 이동·오류 이동에 프론트 주소를 붙인다. 상대 경로면 API 호스트의 `/admin`으로 가 404
+- `deploy/k8s/config.yaml`에 운영 값(위 3개 + `ADMIN_COOKIE_SECURE`·`GOOGLE_REDIRECT_URI` — 비밀 아님)
+- 테스트 4개(CORS 파싱·사전 요청 credentials·쿠키 3종 Domain 설정/삭제·구글 콜백 프론트 주소), 전체 1312 통과
+
+### Changed
+- `infra/terraform/README.md`: 인증서 CNAME은 가비아 DNS에(네임서버 확인 — Cloudflare 아님), Secrets Manager에 넣을 키 목록(새 값 1·복사 13·제외)
+
 ## [v0.102.2] - 2026-10-12
 
 ### Fixed

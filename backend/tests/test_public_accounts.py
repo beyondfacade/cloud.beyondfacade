@@ -233,6 +233,23 @@ def test_처음_보는_구글_계정은_일반_회원으로_가입되고_next로
     assert _count("select count(*) from access_event where kind = 'signup'") == 1
 
 
+def test_프론트_주소를_정하면_구글_로그인_뒤_그_주소로_돌아간다(google, monkeypatch):
+    # 운영은 콜백을 API(api.)가 받는다 — 상대 경로로 돌려보내면 API 호스트의 /admin으로 가서 404
+    from core.matrix.grid_keymaker_secret_manager import get_settings
+
+    monkeypatch.setenv("FRONTEND_ORIGIN", "https://www.beyondfacade.cloud")
+    get_settings.cache_clear()
+    try:
+        callback = _google_login(TestClient(app, client=IP), google, _identity(), next_path="/admin/security")
+        google.configured = False
+        start = TestClient(app, client=IP).get("/admin/auth/google/start", follow_redirects=False)
+    finally:
+        monkeypatch.undo()
+        get_settings.cache_clear()
+    assert callback.headers["location"] == "https://www.beyondfacade.cloud/admin/security"
+    assert start.headers["location"] == "https://www.beyondfacade.cloud/login?error=GOOGLE_NOT_CONFIGURED"
+
+
 def test_구글_토큰_교환에는_시작할_때_만든_PKCE_verifier가_쓰인다(google):
     client = TestClient(app, client=IP)
     start = client.get("/admin/auth/google/start", follow_redirects=False)

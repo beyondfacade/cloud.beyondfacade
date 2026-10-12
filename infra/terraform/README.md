@@ -44,8 +44,15 @@ terraform apply                             # 20~30분 (EKS·Multi-AZ RDS가 오
 apply가 끝나면 사람이 할 일:
 
 1. **메일 확인** — SNS 구독 확인 링크를 누른다(안 누르면 알람이 안 온다)
-2. **인증서 검증** — `terraform output acm_validation_records`의 CNAME을 Cloudflare DNS에 넣는다(프록시 끔, 회색 구름). 몇 분 뒤 ACM 콘솔에서 "발급됨"
-3. **비밀값 넣기** — `deploy/k8s/external-secret.yaml`이 이 값을 Secret `backend-env`로 옮긴다. Secrets Manager 콘솔 → `beyondfacade/prod/backend-env` → 값 편집 → 키/값으로 `backend/.env` 항목을 하나씩 입력(파일 업로드 금지). `DATABASE_URL`만 새로 만든다:
+2. **인증서 검증** — `terraform output acm_validation_records`의 CNAME을 **가비아 DNS**(beyondfacade.cloud 네임서버)에 넣는다. 몇 분 뒤 ACM 콘솔에서 "발급됨"
+3. **비밀값 넣기** — `deploy/k8s/external-secret.yaml`이 이 값을 Secret `backend-env`로 옮긴다. Secrets Manager 콘솔 → `beyondfacade/prod/backend-env` → 값 편집 → 키/값으로 하나씩 입력(파일 업로드 금지)
+   | 넣는 것 | 키 |
+   |---|---|
+   | 새 값 | `DATABASE_URL` (아래) |
+   | `backend/.env`에서 그대로 (13개) | `GEMINI_API_KEY` `GOOGLE_CLIENT_ID` `GOOGLE_CLIENT_SECRET` `DATA_GO_KR_API_KEY` `SEOUL_OPEN_DATA_API_KEY` `ECOS_API_KEY` `RONE_API_KEY` `VWORLD_API_KEY` `CHILDCARE_API_KEY` `SGIS_SERVICE_ID` `SGIS_SECURITY_KEY` `NAVER_NCP_API_KEY_ID` `NAVER_NCP_API_KEY` |
+   | 넣지 않음 | `NEO4J_*`·`REDIS_URL`(코드 미사용), `ANTHROPIC_API_KEY`(평가 전용), `KOSIS_API_KEY`·`BIZINFO_API_KEY`·`YOUTHCENTER_API_KEY`(코드가 안 읽음), `ADMIN_COOKIE_SECURE`·`GOOGLE_REDIRECT_URI`(비밀 아님 — ConfigMap `deploy/k8s/config.yaml`) |
+
+   `DATABASE_URL`:
    ```
    postgresql+psycopg://beyondfacade:<비밀번호>@<rds_endpoint>:5432/beyondfacade
    ```
