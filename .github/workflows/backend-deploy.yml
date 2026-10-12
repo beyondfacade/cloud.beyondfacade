@@ -59,8 +59,16 @@ jobs:
   deploy:
     needs: build
     runs-on: ubuntu-24.04 # aws CLI·kubectl이 깔려 있다
-    timeout-minutes: 15
+    timeout-minutes: 200 # 수집 시간 대기(최대 약 2시간 40분) + 배포
     steps:
+      - name: 수집 시간(03:30~06:10 KST)이면 끝날 때까지 기다린다
+        # 크론 03:30 admin-housekeeping ~ 06:00(월) regional-event — 수집기가 DB에 쓰는 동안 마이그레이션이 잠그거나 구조를 바꾸지 않게.
+        # 돌고 있는 CronJob 파드는 이미지 교체에 영향받지 않는다. 기다리는 동안 새 푸시가 오면 concurrency가 대기분을 최신으로 바꾼다
+        run: |
+          while now=$(TZ=Asia/Seoul date +%H%M); (( 10#$now >= 330 && 10#$now < 610 )); do
+            echo "수집 시간($now KST) — 06:10 이후 배포. 1분 뒤 다시 본다"
+            sleep 60
+          done
       - uses: actions/checkout@v7
       - uses: aws-actions/configure-aws-credentials@v6
         with:
