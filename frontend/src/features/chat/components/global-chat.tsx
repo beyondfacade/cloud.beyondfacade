@@ -14,26 +14,45 @@ import { applyChatEvent } from "../hooks/chat-cache";
 import { useChatStream } from "../hooks/use-chat-stream";
 import { badgeLabel, totalUnread } from "../lib/chat-state";
 import { ChatDirectList } from "./chat-direct-list";
+import { ChatExpertList } from "./chat-expert-list";
 import { ChatRoomView } from "./chat-room-view";
 import styles from "./global-chat.module.css";
 
-type Tab = "global" | "operators" | "direct";
+type Mode = "global" | "direct";
+type GlobalRoom = "global" | "operators";
+type DirectView = "experts" | "rooms";
 
 interface View {
   open: boolean;
-  tab: Tab;
+  mode: Mode;
+  room: GlobalRoom;
+  directView: DirectView;
   /** owner — 로그아웃 뒤 다른 계정이 이전 사람의 대화방을 이어 열지 않게 */
   dm: { key: string; title: string; owner: string } | null;
 }
 
-const STORAGE_KEY = "metabole-chat";
-const INITIAL: View = { open: false, tab: "global", dm: null };
+const STORAGE_KEY = "metabole-chat-v2";
+const INITIAL: View = { open: false, mode: "global", room: "global", directView: "rooms", dm: null };
 // 로그인·가입 화면은 그 자체가 채팅에 들어가는 길이라 띄우지 않는다
 const HIDDEN_PATHS = ["/login", "/signup"];
-const EMPTY_TEXT: Record<Exclude<Tab, "direct">, string> = {
+const MODES: { key: Mode; label: string }[] = [
+  { key: "global", label: "글로벌 채팅" },
+  { key: "direct", label: "DM" },
+];
+const GLOBAL_ROOMS: { key: GlobalRoom; label: string }[] = [
+  { key: "global", label: "전체" },
+  { key: "operators", label: "관리자" },
+];
+const DIRECT_VIEWS: { key: DirectView; label: string }[] = [
+  { key: "experts", label: "전문가 목록" },
+  { key: "rooms", label: "대화한 전문가" },
+];
+const EMPTY_TEXT: Record<GlobalRoom, string> = {
   global: "아직 대화가 없어요. 첫 인사를 남겨 보세요.",
   operators: "관리자끼리만 보는 방이에요.",
 };
+
+const withUnread = (label: string, unread: number) => (unread > 0 ? `${label} (${badgeLabel(unread)})` : label);
 
 /** 탭을 옮겨도(같은 브라우저 탭 안) 창 열림·보던 방을 유지한다. */
 function useView() {
@@ -96,9 +115,11 @@ export function GlobalChat() {
   const launcherRef = useRef<HTMLButtonElement>(null);
   const rooms = useQuery({ queryKey: chatRoomsKey, queryFn: fetchChatRooms, enabled: me !== null });
 
-  const tab: Tab = view.tab === "operators" && !me?.can_operate ? "global" : view.tab;
+  const room: GlobalRoom = view.room === "operators" && !me?.can_operate ? "global" : view.room;
+  const canStart = me?.role === "viewer";
+  const directView: DirectView = canStart ? view.directView : "rooms";
   const dm = view.dm && view.dm.owner === me?.username ? view.dm : null;
-  const activeRoom = view.open && me ? (tab === "direct" ? (dm?.key ?? null) : tab) : null;
+  const activeRoom = view.open && me ? (view.mode === "direct" ? (dm?.key ?? null) : room) : null;
 
   useChatStream(me !== null, {
     onEvent: (event) => {
@@ -109,8 +130,8 @@ export function GlobalChat() {
 
   const expert = useMutation({
     mutationFn: (_owner: string) => openExpertRoom(),
-    onSuccess: (room, owner) =>
-      setView({ open: true, tab: "direct", dm: { key: room.key, title: room.title, owner } }),
+    onSuccess: (opened, owner) =>
+      setView((v) => ({ ...v, open: true, mode: "direct", dm: { key: opened.key, title: opened.title, owner } })),
   });
   const { mutate: connectExpert, reset: resetExpert } = expert;
   const username = me?.username ?? null;
@@ -128,13 +149,12 @@ export function GlobalChat() {
 
   const list = rooms.data ?? [];
   const unreadOf = (match: (room: ChatRoom) => boolean) => totalUnread(list.filter(match));
-  const tabs: { key: Tab; label: string; unread: number }[] = [
-    { key: "global", label: "전체", unread: unreadOf((r) => r.kind === "global") },
-    ...(me?.can_operate ? [{ key: "operators" as const, label: "관리자", unread: unreadOf((r) => r.kind === "operators") }] : []),
-    { key: "direct", label: "대화", unread: unreadOf((r) => r.kind === "direct") },
-  ];
+  const directRooms = list.filter((r) => r.kind === "direct");
+  const modeUnread: Record<Mode, number> = { global: unreadOf((r) => r.kind !== "direct"), direct: totalUnread(directRooms) };
   const badge = badgeLabel(totalUnread(rooms.data));
   const dmTitle = dm && (list.find((r) => r.key === dm.key)?.title ?? dm.title);
+  const openDm = (opened: ChatRoom) =>
+    setView((v) => ({ ...v, dm: { key: opened.key, title: opened.title, owner: me!.username } }));
 
   const close = () => {
     resetExpert();
@@ -170,20 +190,46 @@ export function GlobalChat() {
               </button>
             </div>
             {me && (
-              <div role="tablist" aria-label="채팅방" className={styles.tabs}>
-                {tabs.map((t) => (
-                  <button
-                    key={t.key}
-                    type="button"
-                    role="tab"
-                    aria-selected={tab === t.key}
-                    className={styles.tab}
-                    onClick={() => setView((v) => ({ ...v, tab: t.key, dm: t.key === "direct" && v.tab === "direct" ? null : v.dm }))}
+              <div className={styles.modeRow}>
+                <div role="tablist" aria-label="채팅 종류" className={styles.toggle}>
+                  {MODES.map((m) => (
+                    <button
+                      key={m.key}
+                      type="button"
+                      role="tab"
+                      aria-selected={view.mode === m.key}
+                      className={styles.toggleButton}
+                      onClick={() => setView((v) => ({ ...v, mode: m.key, dm: m.key === "direct" && v.mode === "direct" ? null : v.dm }))}
+                    >
+                      {m.label}
+                      {badgeLabel(modeUnread[m.key]) && <span className={styles.count}>{badgeLabel(modeUnread[m.key])}</span>}
+                    </button>
+                  ))}
+                </div>
+                {view.mode === "global" && me.can_operate && (
+                  <select
+                    className={styles.select}
+                    aria-label="글로벌 채팅방"
+                    value={room}
+                    onChange={(e) => setView((v) => ({ ...v, room: e.target.value as GlobalRoom }))}
                   >
-                    {t.label}
-                    {badgeLabel(t.unread) && <span className={styles.count}>{badgeLabel(t.unread)}</span>}
-                  </button>
-                ))}
+                    {GLOBAL_ROOMS.map((r) => (
+                      <option key={r.key} value={r.key}>{withUnread(r.label, unreadOf((x) => x.kind === r.key))}</option>
+                    ))}
+                  </select>
+                )}
+                {view.mode === "direct" && canStart && !dm && (
+                  <select
+                    className={styles.select}
+                    aria-label="DM 보기"
+                    value={directView}
+                    onChange={(e) => setView((v) => ({ ...v, directView: e.target.value as DirectView }))}
+                  >
+                    {DIRECT_VIEWS.map((d) => (
+                      <option key={d.key} value={d.key}>{withUnread(d.label, d.key === "rooms" ? modeUnread.direct : 0)}</option>
+                    ))}
+                  </select>
+                )}
               </div>
             )}
           </header>
@@ -194,8 +240,8 @@ export function GlobalChat() {
               </p>
             )}
             {!me && <Guest next={pathname} />}
-            {me && tab !== "direct" && <ChatRoomView key={tab} room={tab} me={me} emptyText={EMPTY_TEXT[tab]} />}
-            {me && tab === "direct" && dm && (
+            {me && view.mode === "global" && <ChatRoomView key={room} room={room} me={me} emptyText={EMPTY_TEXT[room]} />}
+            {me && view.mode === "direct" && dm && (
               <>
                 <div className={styles.subHead}>
                   <button type="button" className={styles.iconButton} aria-label="대화 목록으로" onClick={() => setView((v) => ({ ...v, dm: null }))}>
@@ -206,12 +252,9 @@ export function GlobalChat() {
                 <ChatRoomView key={dm.key} room={dm.key} me={me} emptyText={`${dmTitle}님에게 첫 메시지를 보내 보세요.`} />
               </>
             )}
-            {me && tab === "direct" && !dm && (
-              <ChatDirectList
-                rooms={list.filter((r) => r.kind === "direct")}
-                canStart={me.role === "viewer"}
-                onOpen={(room) => setView((v) => ({ ...v, dm: { key: room.key, title: room.title, owner: me.username } }))}
-              />
+            {me && view.mode === "direct" && !dm && directView === "experts" && <ChatExpertList onOpen={openDm} />}
+            {me && view.mode === "direct" && !dm && directView === "rooms" && (
+              <ChatDirectList rooms={directRooms} canStart={canStart} onOpen={openDm} />
             )}
           </div>
         </section>

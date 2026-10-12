@@ -118,12 +118,11 @@ export function expertRoom(me: AdminMe): ChatRoom | Response {
 
 export function searchMembers(me: AdminMe, q: string): ChatPeer[] {
   const needle = q.trim().toLowerCase();
-  if (!needle) return [];
   return [...accounts.values()]
     .map((account) => account.user)
     .filter((user) => canOpenDirect(me.role, user.role) && user.is_active && user.username.toLowerCase().includes(needle))
     .sort((a, b) => a.username.localeCompare(b.username))
-    .slice(0, 10)
+    .slice(0, 50)
     .map((user) => ({ id: memberId(user.username), username: user.username }));
 }
 

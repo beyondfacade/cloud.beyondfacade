@@ -183,7 +183,7 @@ def test_일반_회원은_전문가를_찾아_1대1_대화를_열고_전문가�
     get_admin_user_use_case().set_role("guest2", "expert")
     viewer = _client("viewer")
     assert viewer.get("/chat/members", params={"q": "e"}).json() == [{"id": 3, "username": "guest2"}]  # 관리자 ops는 안 나온다
-    assert viewer.get("/chat/members", params={"q": " "}).json() == []
+    assert viewer.get("/chat/members").json() == [{"id": 3, "username": "guest2"}]  # q 없이 = 전문가 목록
     room = viewer.post("/chat/direct", json={"user_id": 3}).json()
     assert (room["key"], room["kind"], room["title"], room["partner_id"]) == ("dm:2:3", "direct", "guest2", 3)
     assert [r["key"] for r in viewer.get("/chat/rooms").json()] == ["global"]  # 메시지가 오가기 전엔 목록에 없다

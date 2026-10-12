@@ -48,7 +48,7 @@ from apps.chat.domain.value_objects.chat_room import (
 
 PAGE_SIZE = 50
 CATCH_UP_LIMIT = 200
-MEMBER_SEARCH_LIMIT = 10
+MEMBER_SEARCH_LIMIT = 50
 
 
 def _reply_dto(message: ChatMessage) -> ChatReplyDto:
@@ -166,10 +166,9 @@ class ChatMessageInteractor(ChatMessageUseCase):
         return self.open_direct(member, expert.id)
 
     def search_members(self, member: ChatMember, q: str) -> list[ChatPeerDto]:
-        needle = q.strip()
-        if not needle or member.role != DIRECT_OPENER_ROLE:
+        if member.role != DIRECT_OPENER_ROLE:
             return []
-        return self._members.search(needle, member.id, MEMBER_SEARCH_LIMIT, DIRECT_PARTNER_ROLE)
+        return self._members.search(q.strip(), member.id, MEMBER_SEARCH_LIMIT, DIRECT_PARTNER_ROLE)
 
     def latest_id(self) -> int:
         return self._messages.latest_id()

@@ -53,6 +53,8 @@ function setup(me: AdminMe | null, rooms: ChatRoom[] = [room("global")], items: 
       const body = JSON.parse(String(init?.body));
       return Promise.resolve(json(201, message(99, { sender_username: me!.username, body: body.body })));
     }
+    if (url.endsWith("/chat/members")) return Promise.resolve(json(200, [{ id: 5, username: "park.expert" }]));
+    if (url.endsWith("/chat/direct")) return Promise.resolve(json(200, room("dm:2:5", { title: "park.expert", partner_id: 5 })));
     if (url.endsWith("/chat/expert")) return Promise.resolve(json(200, room("dm:2:5", { title: "park.expert", partner_id: 5 })));
     if (url.includes("/chat/reads/")) return Promise.resolve(json(200, { room: "global", last_read_id: 1 }));
     if (method === "DELETE") return Promise.resolve(json(204, null));
@@ -92,22 +94,29 @@ it("전문가와 연결하기 이벤트가 오면 창이 열리고 전문가와�
   await screen.findByRole("button", { name: "채팅 열기" });
   act(() => openExpertChat());
   expect(await screen.findByText("park.expert")).toBeInTheDocument();
-  expect(screen.getByRole("tab", { name: "대화" })).toHaveAttribute("aria-selected", "true");
+  expect(screen.getByRole("tab", { name: "DM" })).toHaveAttribute("aria-selected", "true");
   expect(calls("/chat/expert", "POST")).toHaveLength(1);
 });
 
-it("1:1 탭의 전문가 찾기는 일반 회원에게만 보인다", async () => {
+it("일반 회원의 DM은 드롭다운으로 대화한 전문가와 전문가 목록을 오가고, 목록에서 고르면 그 방이 열린다", async () => {
   setup(VIEWER);
   await userEvent.click(await screen.findByRole("button", { name: "채팅 열기" }));
-  await userEvent.click(screen.getByRole("tab", { name: "대화" }));
-  expect(screen.getByRole("searchbox", { name: "대화할 전문가 찾기" })).toBeInTheDocument();
+  await userEvent.click(screen.getByRole("tab", { name: "DM" }));
+  const view = screen.getByRole("combobox", { name: "DM 보기" });
+  expect([...view.querySelectorAll("option")].map((o) => o.textContent)).toEqual(["전문가 목록", "대화한 전문가"]);
+  expect(screen.getByText(/아직 대화한 전문가가 없어요/)).toBeInTheDocument();
+  await userEvent.selectOptions(view, "experts");
+  await userEvent.click(await screen.findByRole("button", { name: /park\.expert/ }));
+  await waitFor(() => expect(calls("/chat/direct", "POST")).toHaveLength(1));
+  expect(JSON.parse(String(calls("/chat/direct", "POST")[0][1].body))).toEqual({ user_id: 5 });
+  expect(await screen.findByRole("button", { name: "대화 목록으로" })).toBeInTheDocument();
 });
 
-it("전문가는 1:1을 먼저 걸 수 없어 찾기 칸 대신 안내를 본다", async () => {
+it("전문가는 1:1을 먼저 걸 수 없어 DM에 드롭다운 없이 받은 대화만 본다", async () => {
   setup({ username: "park.expert", role: "expert", can_operate: false });
   await userEvent.click(await screen.findByRole("button", { name: "채팅 열기" }));
-  await userEvent.click(screen.getByRole("tab", { name: "대화" }));
-  expect(screen.queryByRole("searchbox")).not.toBeInTheDocument();
+  await userEvent.click(screen.getByRole("tab", { name: "DM" }));
+  expect(screen.queryByRole("combobox")).not.toBeInTheDocument();
   expect(screen.getByText(/일반 회원이 전문가에게 걸면 생겨요/)).toBeInTheDocument();
 });
 
@@ -123,18 +132,23 @@ it("안 읽은 메시지 합계를 버튼 배지로 보여 주고 99를 넘으�
   expect(await screen.findByLabelText("안 읽은 메시지 123개")).toHaveTextContent("99+");
 });
 
-it("일반 회원은 전체·대화 탭만, 관리자는 관리자 탭까지 본다", async () => {
+it("글로벌 채팅/DM 토글이 있고, 일반 회원에게는 글로벌 채팅방 드롭다운이 없다", async () => {
   setup(VIEWER);
   await userEvent.click(await screen.findByRole("button", { name: "채팅 열기" }));
-  expect(screen.getAllByRole("tab").map((tab) => tab.textContent)).toEqual(["전체", "대화"]);
+  expect(screen.getAllByRole("tab").map((tab) => tab.textContent)).toEqual(["글로벌 채팅", "DM"]);
+  expect(screen.queryByRole("combobox", { name: "글로벌 채팅방" })).not.toBeInTheDocument();
   expect(await screen.findByText("메시지 1")).toBeInTheDocument();
 });
 
-it("관리자 탭이 보이고 남의 메시지에 삭제 버튼이 있다", async () => {
+it("관리자는 글로벌 채팅 드롭다운으로 전체·관리자 방을 고르고, 남의 메시지에 삭제 버튼이 있다", async () => {
   vi.stubGlobal("confirm", () => true);
-  setup(OPS, [room("global"), room("operators")]);
+  setup(OPS, [room("global"), room("operators", { unread: 2 })]);
   await userEvent.click(await screen.findByRole("button", { name: "채팅 열기" }));
-  expect(screen.getAllByRole("tab").map((tab) => tab.textContent)).toEqual(["전체", "관리자", "대화"]);
+  const select = screen.getByRole("combobox", { name: "글로벌 채팅방" });
+  expect([...select.querySelectorAll("option")].map((o) => o.textContent)).toEqual(["전체", "관리자 (2)"]);
+  await userEvent.selectOptions(select, "operators");
+  await waitFor(() => expect(calls("/chat/rooms/operators/messages")).toHaveLength(1));
+  await userEvent.selectOptions(select, "global");
   await screen.findByText("메시지 1");
   await userEvent.click(screen.getByRole("button", { name: "삭제" }));
   await waitFor(() => expect(calls("/chat/messages/1", "DELETE")).toHaveLength(1));

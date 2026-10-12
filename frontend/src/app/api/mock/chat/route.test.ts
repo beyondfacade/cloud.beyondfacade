@@ -94,7 +94,7 @@ describe("채팅 mock 계약", () => {
   it("일반 회원은 전문가만 찾아 1:1을 열고, 메시지가 오가면 전문가의 방 목록에 안 읽음과 함께 생긴다", async () => {
     const found = await (await members(new Request(`${base}/members?q=E`, { headers: as("viewer") }))).json();
     expect(found).toEqual([{ id: 5, username: "park.expert" }]);
-    expect(await (await members(new Request(`${base}/members?q=%20`, { headers: as("viewer") }))).json()).toEqual([]);
+    expect(await (await members(new Request(`${base}/members`, { headers: as("viewer") }))).json()).toEqual([{ id: 5, username: "park.expert" }]);
     const room: ChatRoom = await (await openDirect(new Request(`${base}/direct`, json("POST", { user_id: 5 }, "viewer")))).json();
     expect([room.key, room.kind, room.title, room.partner_id]).toEqual(["dm:2:5", "direct", "park.expert", 5]);
     expect(await errorCode(await openDirect(new Request(`${base}/direct`, json("POST", { user_id: 2 }, "viewer"))))).toBe("CHAT_MEMBER_NOT_FOUND");

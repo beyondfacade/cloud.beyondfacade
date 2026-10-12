@@ -43,7 +43,7 @@ class ChatMessageUseCase(ABC):
 
     @abstractmethod
     def search_members(self, member: ChatMember, q: str) -> list[ChatPeerDto]:
-        """일반 회원에게만 전문가를 찾아 준다 — 그 밖의 등급은 빈 목록."""
+        """일반 회원에게만 전문가 목록(q가 비면 전체, 계정명순 50명) — 그 밖의 등급은 빈 목록."""
 
     @abstractmethod
     def latest_id(self) -> int: ...

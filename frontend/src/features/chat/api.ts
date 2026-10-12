@@ -23,7 +23,8 @@ export const openDirectRoom = (userId: number) => apiPost<ChatRoom>("/chat/direc
 
 export const openExpertRoom = () => apiPost<ChatRoom>("/chat/expert", {});
 
-export const searchChatMembers = (q: string) => apiGet<ChatPeer[]>(`/chat/members?q=${encodeURIComponent(q)}`);
+/** 일반 회원에게 보이는 전문가 목록 — 다른 등급은 빈 목록. */
+export const fetchChatExperts = () => apiGet<ChatPeer[]>("/chat/members");
 
 export const markChatRead = (room: string, lastReadId: number) =>
   apiPut<ChatRead>(`/chat/reads/${encodeURIComponent(room)}`, { last_read_id: lastReadId });
