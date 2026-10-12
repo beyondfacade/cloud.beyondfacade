@@ -15,4 +15,5 @@ COPY --from=geojson . /data/geojson/
 USER app
 
 EXPOSE 8000
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+# SIGTERM 뒤 새 요청은 받지 않고 진행 중 요청(SSE 리포트 최대 60초)만 마친다 — k8s 종료 유예 90초 = preStop 10 + 75 + 여유
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--timeout-graceful-shutdown", "75"]

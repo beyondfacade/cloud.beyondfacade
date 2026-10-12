@@ -1,5 +1,12 @@
 # Backend Version Log
 
+## [v0.98.1] - 2026-10-12
+
+> 10/6 `feat/k8s-phase0` 워크트리에 커밋되지 않고 남아 있던 v0.82.1을 다시 얹음(버전 재부여)
+
+### Changed
+- uvicorn `--timeout-graceful-shutdown 75` (Dockerfile CMD) — SIGTERM 뒤 새 요청은 받지 않고 진행 중 요청만 마친 뒤 내려간다(k8s 종료 유예 90초 = preStop 10 + 75 + 여유). 요청 처리 중 `docker stop`을 보내 그 요청이 200으로 끝난 뒤 종료되는 것 확인(10/6)
+
 ## [v0.98.0] - 2026-10-12
 
 > 10/6 `feat/k8s-phase0`의 v0.82.0를 main에 다시 얹음(버전 재부여)
