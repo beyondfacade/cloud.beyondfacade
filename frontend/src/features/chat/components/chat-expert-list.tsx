@@ -15,6 +15,16 @@ const STATUS_LABEL: Record<ChatExpertStatus, string> = { available: "대화 가�
 
 const won = (amount: number) => `${amount.toLocaleString("ko-KR")}원`;
 
+/** 기본 순서는 무작위 — 받아 올 때 한 번만 섞어, 보고 있는 동안 줄이 움직이지 않게 한다. */
+async function fetchShuffledExperts(): Promise<ChatExpert[]> {
+  const experts = [...(await fetchChatExperts())];
+  for (let i = experts.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [experts[i], experts[j]] = [experts[j], experts[i]];
+  }
+  return experts;
+}
+
 /** 리포트에서 고른 업종의 전문가를 맨 위로 — 업종 이름이 전문 업종을 품으면 같은 업종(부동산중개업 ⊃ 부동산). */
 function industryFirst(experts: ChatExpert[], industry: string | null): ChatExpert[] {
   if (!industry) return experts;
@@ -25,7 +35,7 @@ function industryFirst(experts: ChatExpert[], industry: string | null): ChatExpe
 /** 대화할 수 있는 전문가 전체와 요금·상담 상태 — 상담을 사면 그 전문가와의 1:1 방을 연다(일반 회원 전용). */
 export function ChatExpertList({ onOpen }: { onOpen: (room: ChatRoom) => void }) {
   const queryClient = useQueryClient();
-  const experts = useQuery({ queryKey: EXPERTS_KEY, queryFn: fetchChatExperts, staleTime: 0 });
+  const experts = useQuery({ queryKey: EXPERTS_KEY, queryFn: fetchShuffledExperts, staleTime: 0 });
   const done = (room: ChatRoom) => {
     void queryClient.invalidateQueries({ queryKey: EXPERTS_KEY });
     onOpen(room);

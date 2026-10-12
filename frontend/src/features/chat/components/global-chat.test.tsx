@@ -105,14 +105,26 @@ it("전문가와 연결하기 이벤트가 오면 창이 열리고 DM의 전문�
   expect(calls("/chat/direct", "POST")).toHaveLength(0);
 });
 
+it("전문가 목록 기본 순서는 무작위로 섞인다", async () => {
+  vi.spyOn(Math, "random").mockReturnValue(0); // 섞기 결과 = 응답(park → choi)의 역순
+  setup(VIEWER);
+  await screen.findByRole("button", { name: "채팅 열기" });
+  act(() => openExpertChat());
+  const text = (await screen.findByRole("list", { name: "전문가 목록" })).textContent ?? "";
+  expect(text.indexOf("choi.expert")).toBeLessThan(text.indexOf("park.expert"));
+  vi.mocked(Math.random).mockRestore();
+});
+
 it("리포트로 고른 업종이 있으면 그 업종 전문가가 전문가 목록 맨 위에 온다", async () => {
+  vi.spyOn(Math, "random").mockReturnValue(0.99); // 섞어도 응답 순서(park → choi) 그대로
   rememberExpertIndustry("부동산중개업");
   setup(VIEWER);
   await screen.findByRole("button", { name: "채팅 열기" });
   act(() => openExpertChat());
   const list = await screen.findByRole("list", { name: "전문가 목록" });
   const text = list.textContent ?? "";
-  expect(text.indexOf("choi.expert")).toBeLessThan(text.indexOf("park.expert")); // 응답 순서는 park → choi
+  expect(text.indexOf("choi.expert")).toBeLessThan(text.indexOf("park.expert"));
+  vi.mocked(Math.random).mockRestore();
 });
 
 it("일반 회원의 DM은 드롭다운으로 대화한 전문가와 전문가 목록을 오가고, 목록에서 상담을 사면 그 방이 열린다", async () => {
