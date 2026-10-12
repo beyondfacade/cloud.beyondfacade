@@ -1,0 +1,40 @@
+# 일회성 DB 복원 — S3의 pg_dump(-Fc)를 RDS에 복원하고 행수·벡터 표본을 찍는다 (serverplan §15 Phase 2·Phase 6)
+# 직접 적용하지 않는다: scripts/db-restore.sh가 Secret db-restore-source(DUMP_URL = S3 미리 서명 URL, 1시간)와
+# ConfigMap db-restore-scripts(scripts/db-restore-job.sh·db-report.sh)를 만든 뒤 적용한다.
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: db-restore
+  namespace: beyondfacade
+spec:
+  backoffLimit: 0  # 복원은 다시 돌리면 덮어쓴다 — 자동 재시도보다 로그를 보고 사람이 다시 돌린다
+  ttlSecondsAfterFinished: 86400
+  template:
+    spec:
+      restartPolicy: Never
+      securityContext: {runAsNonRoot: true, runAsUser: 999}  # postgres 이미지의 postgres 사용자
+      volumes:
+        - name: work
+          emptyDir: {sizeLimit: 5Gi}  # 덤프 파일 (노드 디스크 20GB)
+        - name: scripts
+          configMap: {name: db-restore-scripts}
+      initContainers:
+        - name: download
+          image: curlimages/curl:8.22.0
+          command: ["sh", "-c", "curl -fsS -o /work/db.dump \"$DUMP_URL\" && ls -l /work/db.dump"]
+          envFrom:
+            - secretRef: {name: db-restore-source}
+          volumeMounts:
+            - {name: work, mountPath: /work}
+      containers:
+        - name: restore
+          image: postgres:17  # 로컬 pg_dump 17과 같은 메이저
+          command: ["bash", "/scripts/db-restore-job.sh"]
+          envFrom:
+            - secretRef: {name: backend-env}  # DATABASE_URL(RDS)
+          volumeMounts:
+            - {name: work, mountPath: /work}
+            - {name: scripts, mountPath: /scripts}
+          resources:
+            requests: {cpu: 500m, memory: 1Gi}
+            limits: {memory: 2Gi}

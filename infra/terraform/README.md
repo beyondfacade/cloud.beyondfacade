@@ -66,9 +66,19 @@ CI 역할은 `beyondfacade` 네임스페이스 안 Edit 권한뿐이라 매니�
 2. Actions → backend-deploy → Run workflow → 이미지가 올라간다(아직 API가 없어 교체 단계는 안내만 남기고 끝난다). 로그의 이미지 주소를 복사
 3. `scripts/k8s-apply.sh <이미지 주소>` → `kubectl get pods -n beyondfacade`
 
+## DB 옮기기 (serverplan §15 Phase 2, 전환 때 한 번 더)
+
+비밀값 입력(위 3번)과 kubectl 연결(4번) 뒤, 저장소 루트에서:
+
+```bash
+scripts/db-restore.sh
+```
+
+로컬 `pg_dump -Fc`(약 160MB) → S3 `dumps/` → 일회성 Job `db-restore`(`deploy/k8s-jobs/`)가 RDS에 `pg_restore --clean --if-exists` → `ANALYZE` → 테이블별 행수·벡터 검색 표본을 로컬과 diff. "일치"가 나오면 끝이다. 다시 돌려도 덮어쓴다(10/12 로컬 리허설: 복원 20초, 49개 테이블 일치, 재복원도 일치).
+덤프에는 관리자 기록 등 운영 데이터가 들어 있다 — `data/backups/`(gitignore)와 비공개 S3에만 둔다.
+
 ## 이 코드 밖에서 남은 일 (serverplan §15 Phase 2~4)
 
-- DB 복원: `pg_dump -Fc` → S3 → 클러스터 안 일회성 Job에서 `pg_restore`, `CREATE EXTENSION vector`, 행수 비교
 - 집 Ollama 연결(Tailscale), ALB 5xx·지연 알람(ALB가 생긴 뒤)
 
 ## 바꾸기 — 부하 테스트 단계 (serverplan §20-4)

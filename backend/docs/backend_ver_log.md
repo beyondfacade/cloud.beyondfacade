@@ -1,5 +1,10 @@
 # Backend Version Log
 
+## [v0.102.0] - 2026-10-12
+
+### Added
+- DB 이전 도구(serverplan §15 Phase 2·Phase 6) — `scripts/db-restore.sh`(로컬 `pg_dump -Fc` → S3 데이터 버킷 `dumps/` → 미리 서명 URL(1시간)을 Secret으로 → 복원 Job → 로컬·RDS 보고 diff, 끝나면 Secret 삭제, 최대 60분 대기), `deploy/k8s-jobs/db-restore.yaml`(일회성 Job: curl initContainer가 덤프를 받고 `postgres:17`이 복원, 비루트 uid 999, `backend-env`의 `DATABASE_URL` 재사용), `scripts/db-restore-job.sh`(`pg_restore --no-owner --no-privileges --clean --if-exists --jobs 2` → `ANALYZE` → pgvector 버전), `scripts/db-report.sh`(테이블별 행수 + 인덱스를 끈 정확 벡터 검색 top-5 — 로컬·RDS에서 같은 파일). 로컬 리허설(임시 pgvector 컨테이너를 RDS 대신, Job과 같은 이미지·스크립트): 덤프 159MB·13초, 복원 20초, 49개 테이블 행수·벡터 표본 일치, 이미 데이터가 있는 DB에 재복원도 일치. 확장 생성 권한이 없는 사용자로는 `vector` 생성이 실패해 종료 코드 1(RDS 마스터는 rds_superuser라 생성 가능). kubeconform 통과
+
 ## [v0.101.0] - 2026-10-12
 
 ### Added
