@@ -1,5 +1,10 @@
 # Backend Version Log
 
+## [v0.99.0] - 2026-10-12
+
+### Added
+- `infra/terraform/` — AWS 인프라 코드(serverplan §10·§20-3 안 1). `bootstrap/`(state S3 버킷), `envs/prod/`(VPC 2 AZ·NAT 1, EKS 1.35 표준 지원 고정·c7g.large arm64 × 2~3, 애드온 4개 LB Controller·External Secrets·metrics-server·Cluster Autoscaler + Pod Identity, RDS PostgreSQL 17 db.m7g.large Multi-AZ·마스터 비밀번호 RDS 관리, ECR(태그 불변), S3 데이터 버킷, Secrets Manager `beyondfacade/prod/backend-env` 빈 껍데기, ACM `api.beyondfacade.cloud`, GitHub Actions OIDC 역할(main만), RDS 알람·월 예산 경보(크레딧 차감 전)). 계정 ID·메일·IP는 저장소에 넣지 않는다(backend 버킷은 `-backend-config`, 변수는 gitignore된 tfvars). `terraform validate` 통과, `plan`·`apply`는 아직 안 함(AWS 자격 증명 없음). 실행 순서·정리 순서는 `infra/terraform/README.md`
+
 ## [v0.98.1] - 2026-10-12
 
 > 10/6 `feat/k8s-phase0` 워크트리에 커밋되지 않고 남아 있던 v0.82.1을 다시 얹음(버전 재부여)

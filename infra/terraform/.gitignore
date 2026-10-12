@@ -1,0 +1,7 @@
+# 저장소가 public이다 — state(비밀값이 섞일 수 있음)·변수 파일(메일·IP)은 커밋하지 않는다
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfvars
+!*.tfvars.example
+crash.log
