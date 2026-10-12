@@ -1,5 +1,12 @@
 # Backend Version Log
 
+## [v0.98.0] - 2026-10-12
+
+> 10/6 `feat/k8s-phase0`의 v0.82.0를 main에 다시 얹음(버전 재부여)
+
+### Added
+- CLI `apps.master.adapter.inbound.cli.export_region_geojson` — `/regions/geojson`과 같은 FeatureCollection을 `frontend/public/geojson/seoul-regions.geojson`(압축 JSON)으로 쓴다. 프론트가 API 대신 정적 파일을 받게 되면서(serverplan K3) 경계를 다시 적재하면 이 명령으로 정적 파일을 갱신한다. 개발 DB로 실행한 결과가 기존 정적 파일과 바이트 단위로 같음 확인(md5 일치). `/regions/geojson`은 그대로 둔다
+
 ## [v0.97.1] - 2026-10-12
 
 > 10/6 `feat/k8s-phase0`의 v0.81.1를 main에 다시 얹음(버전 재부여)

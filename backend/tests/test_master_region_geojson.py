@@ -4,6 +4,8 @@
 name은 경계 파일 properties(adm_nm/emd_kor_nm 혼재)가 아니라 DB region.name에서 온다.
 """
 
+import json
+
 from apps.master.app.use_cases.region_interactor import RegionInteractor
 from apps.master.app.use_cases.region_use_case_proxy import CachingRegionUseCaseProxy
 from apps.master.app.ports.output.region_port import (
@@ -92,3 +94,12 @@ def test_caching_proxy_reads_files_only_once():
     second = proxy.geojson()
     assert first is second
     assert reader.read_count == 1
+
+
+def test_내보내기_CLI는_프론트_정적_파일과_같은_압축_JSON을_쓴다(tmp_path):
+    from apps.master.adapter.inbound.cli.export_region_geojson import export
+
+    interactor, _ = _interactor()
+    out = tmp_path / "seoul-regions.geojson"
+    export(interactor, out)
+    assert out.read_text(encoding="utf-8") == json.dumps(interactor.geojson(), ensure_ascii=False, separators=(",", ":"))
