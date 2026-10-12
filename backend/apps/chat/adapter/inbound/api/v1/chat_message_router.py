@@ -8,19 +8,20 @@ from starlette.concurrency import run_in_threadpool
 from apps.admin.app.dtos.admin_session_dto import AdminPrincipalDto
 from apps.admin.dependencies.admin_guard import require_admin, require_operator
 from apps.chat.adapter.inbound.api.schemas.chat_message_schema import (
+    ChatConsultationRequest,
     ChatDirectRequest,
+    ChatExpertResponse,
     ChatMessageResponse,
     ChatPageResponse,
-    ChatPeerResponse,
     ChatRoomResponse,
     ChatSendRequest,
 )
 from apps.chat.adapter.inbound.mappers.chat_message_mapper import (
     to_event_response,
+    to_expert_response,
     to_member,
     to_message_response,
     to_page_response,
-    to_peer_response,
     to_room_response,
 )
 from apps.chat.app.dtos.chat_message_dto import ChatEventDto
@@ -94,13 +95,22 @@ def open_expert(
     return to_room_response(use_case.open_expert(to_member(principal)))
 
 
-@router.get("/members", response_model=list[ChatPeerResponse])
+@router.get("/members", response_model=list[ChatExpertResponse])
 def members(
     q: str = Query(default="", max_length=50),
     principal: AdminPrincipalDto = Depends(require_admin),
     use_case: ChatMessageUseCase = Depends(get_chat_message_use_case),
-) -> list[ChatPeerResponse]:
-    return [to_peer_response(peer) for peer in use_case.search_members(to_member(principal), q)]
+) -> list[ChatExpertResponse]:
+    return [to_expert_response(expert) for expert in use_case.search_members(to_member(principal), q)]
+
+
+@router.post("/consultations", response_model=ChatRoomResponse, status_code=201)
+def buy_consultation(
+    body: ChatConsultationRequest,
+    principal: AdminPrincipalDto = Depends(require_admin),
+    use_case: ChatMessageUseCase = Depends(get_chat_message_use_case),
+) -> ChatRoomResponse:
+    return to_room_response(use_case.buy_consultation(to_member(principal), body.expert_id, body.hours))
 
 
 @router.get("/stream", response_model=None)

@@ -1,5 +1,5 @@
 /** 채팅 mock — 개발 서버 프로세스 동안만 유지. 회원 id는 mock 회원 목록 순서(ops=1, viewer=2, …). */
-import type { AdminMe, AdminRole, ChatMessage, ChatPeer, ChatReply, ChatRoom } from "@/shared/api/types";
+import type { AdminMe, AdminRole, ChatExpert, ChatExpertStatus, ChatMessage, ChatReply, ChatRoom } from "@/shared/api/types";
 import { adminError } from "../admin-fixtures";
 import { accounts } from "../admin/users/store";
 
@@ -25,6 +25,11 @@ export const messages: ChatMessage[] = [
 ];
 /** "회원id:방" → 마지막으로 읽은 메시지 id */
 export const reads = new Map<string, number>();
+/** 전문가 상담 시간당 요금(원) — 실 API는 admin_user.hourly_rate */
+const HOURLY_RATES = new Map([["park.expert", 30_000]]);
+const CONSULTATION_HOURS = [1, 2, 3];
+/** 산 상담 — 끝나기 전까지 그 전문가는 '대화 중' */
+export const consultations: { viewerId: number; expertId: number; endsAt: number }[] = [];
 
 export function memberId(username: string): number {
   return [...accounts.keys()].indexOf(username) + 1;
@@ -103,27 +108,53 @@ export function directRoom(me: AdminMe, userId: number): ChatRoom | Response {
   if (!canOpenDirect(me.role, account.user.role)) {
     return adminError(403, "CHAT_ROOM_FORBIDDEN", "1:1 대화는 일반 회원이 전문가에게만 걸 수 있습니다.");
   }
+  if (expertStatus(userId, myId) === "busy") {
+    return adminError(409, "CHAT_EXPERT_BUSY", "이 전문가는 지금 다른 회원과 상담 중입니다.");
+  }
   return summary(me, `dm:${Math.min(myId, userId)}:${Math.max(myId, userId)}`, "direct", peer, userId);
 }
 
-/** 활성 전문가 중 계정명순 첫 명(나 제외)과의 1:1 방. */
-export function expertRoom(me: AdminMe): ChatRoom | Response {
-  const expert = [...accounts.values()]
-    .map((account) => account.user)
-    .filter((user) => user.is_active && user.role === "expert" && user.username !== me.username)
-    .sort((a, b) => a.username.localeCompare(b.username))[0];
-  if (!expert) return adminError(404, "CHAT_MEMBER_NOT_FOUND", "지금 연결할 수 있는 전문가가 없습니다.");
-  return directRoom(me, memberId(expert.username));
+function expertStatus(expertId: number, myId: number): ChatExpertStatus {
+  const holder = consultations.find((c) => c.expertId === expertId && c.endsAt > Date.now());
+  if (!holder) return "available";
+  return holder.viewerId === myId ? "mine" : "busy";
 }
 
-export function searchMembers(me: AdminMe, q: string): ChatPeer[] {
+/** 내가 산 상담 중인 전문가 먼저, 아니면 대화 가능한 첫 전문가와의 1:1 방. */
+export function expertRoom(me: AdminMe): ChatRoom | Response {
+  if (me.role !== "viewer") return adminError(403, "CHAT_ROOM_FORBIDDEN", "1:1 대화는 일반 회원이 전문가에게만 걸 수 있습니다.");
+  const candidates = searchMembers(me, "").filter((expert) => expert.status !== "busy");
+  const expert = candidates.find((e) => e.status === "mine") ?? candidates[0];
+  if (!expert) return adminError(404, "CHAT_MEMBER_NOT_FOUND", "지금 연결할 수 있는 전문가가 없습니다.");
+  return directRoom(me, expert.id);
+}
+
+export function searchMembers(me: AdminMe, q: string): ChatExpert[] {
   const needle = q.trim().toLowerCase();
+  const myId = memberId(me.username);
   return [...accounts.values()]
     .map((account) => account.user)
     .filter((user) => canOpenDirect(me.role, user.role) && user.is_active && user.username.toLowerCase().includes(needle))
     .sort((a, b) => a.username.localeCompare(b.username))
     .slice(0, 50)
-    .map((user) => ({ id: memberId(user.username), username: user.username }));
+    .map((user) => {
+      const id = memberId(user.username);
+      return { id, username: user.username, hourly_rate: HOURLY_RATES.get(user.username) ?? null, status: expertStatus(id, myId) };
+    });
+}
+
+/** 더미 구매(결제 없음) — 산 뒤 1:1 방. */
+export function buyConsultation(me: AdminMe, expertId: number, hours: number): ChatRoom | Response {
+  if (me.role !== "viewer") return adminError(403, "CHAT_ROOM_FORBIDDEN", "상담은 일반 회원만 살 수 있습니다.");
+  if (!CONSULTATION_HOURS.includes(hours)) return adminError(400, "INVALID_CONSULTATION", "상담 시간은 1~3시간 중에서 골라 주세요.");
+  const expert = accounts.get(usernameOf(expertId) ?? "")?.user;
+  if (!expert?.is_active || expert.role !== "expert") return adminError(404, "CHAT_MEMBER_NOT_FOUND", "전문가를 찾을 수 없습니다.");
+  if (!HOURLY_RATES.has(expert.username)) return adminError(400, "INVALID_CONSULTATION", "요금이 정해지지 않은 전문가입니다.");
+  if (expertStatus(expertId, memberId(me.username)) !== "available") {
+    return adminError(409, "CHAT_EXPERT_BUSY", "이 전문가는 지금 상담 중입니다.");
+  }
+  consultations.push({ viewerId: memberId(me.username), expertId, endsAt: Date.now() + hours * 3_600_000 });
+  return directRoom(me, expertId);
 }
 
 export function send(me: AdminMe, room: string, body: string, replyToId: number | null): ChatMessage | Response {

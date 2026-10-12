@@ -31,3 +31,11 @@ class ChatMessageNotFound(ChatError):
 
 class ChatMemberNotFound(ChatError):
     code = "CHAT_MEMBER_NOT_FOUND"
+
+
+class ChatExpertBusy(ChatError):
+    code = "CHAT_EXPERT_BUSY"
+
+
+class InvalidConsultation(ChatError):
+    code = "INVALID_CONSULTATION"

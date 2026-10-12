@@ -7,7 +7,9 @@ from apps.chat.app.ports.output.chat_message_port import ChatMemberPort
 
 
 def _peer(principal: AdminPrincipalDto) -> ChatPeerDto:
-    return ChatPeerDto(id=principal.id, username=principal.username, role=principal.role)
+    return ChatPeerDto(
+        id=principal.id, username=principal.username, role=principal.role, hourly_rate=principal.hourly_rate
+    )
 
 
 class AdminMemberGateway(ChatMemberPort):
@@ -23,7 +25,3 @@ class AdminMemberGateway(ChatMemberPort):
 
     def usernames(self, user_ids: list[int]) -> dict[int, str]:
         return {user_id: p.username for user_id, p in self._users.members_by_ids(user_ids).items()}
-
-    def expert(self, exclude_id: int) -> ChatPeerDto | None:
-        principal = self._users.first_active_expert(exclude_id)
-        return _peer(principal) if principal else None

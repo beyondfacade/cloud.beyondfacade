@@ -9,6 +9,7 @@ from apps.admin.dependencies.admin_dependencies import get_admin_user_use_case
 from apps.chat.adapter.outbound.gateways.admin_member_gateway import AdminMemberGateway
 from apps.chat.adapter.outbound.gateways.pg_listen_chat_feed import PgListenChatFeed
 from apps.chat.adapter.outbound.gateways.pg_notify_chat_publisher import PgNotifyChatPublisher
+from apps.chat.adapter.outbound.repositories.chat_consultation_repository import SqlAlchemyChatConsultationRepository
 from apps.chat.adapter.outbound.repositories.chat_message_repository import SqlAlchemyChatMessageRepository
 from apps.chat.adapter.outbound.repositories.chat_read_repository import SqlAlchemyChatReadRepository
 from apps.chat.app.ports.input.chat_message_use_case import ChatMessageUseCase
@@ -38,6 +39,7 @@ def get_chat_message_use_case(
         messages=SqlAlchemyChatMessageRepository(),
         reads=SqlAlchemyChatReadRepository(),
         members=AdminMemberGateway(get_admin_user_use_case()),
+        consultations=SqlAlchemyChatConsultationRepository(),
         publisher=publisher,
         feed=feed,
     )

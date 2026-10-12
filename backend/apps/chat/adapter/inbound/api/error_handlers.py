@@ -3,20 +3,24 @@ from fastapi.responses import JSONResponse
 
 from apps.chat.app.errors import (
     ChatError,
+    ChatExpertBusy,
     ChatMemberNotFound,
     ChatMessageNotFound,
     ChatRoomForbidden,
     ChatRoomNotFound,
     ChatTooFast,
     InvalidChatMessage,
+    InvalidConsultation,
 )
 
 _STATUS: dict[type[ChatError], int] = {
     InvalidChatMessage: 400,
+    InvalidConsultation: 400,
     ChatRoomForbidden: 403,
     ChatRoomNotFound: 404,
     ChatMessageNotFound: 404,
     ChatMemberNotFound: 404,
+    ChatExpertBusy: 409,
     ChatTooFast: 429,
 }
 

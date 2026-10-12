@@ -20,3 +20,4 @@ class AdminUserOrm(OrmBase):
     google_sub: Mapped[str | None] = mapped_column(unique=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     last_login_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    hourly_rate: Mapped[int | None]  # 전문가 상담 시간당 요금(원)

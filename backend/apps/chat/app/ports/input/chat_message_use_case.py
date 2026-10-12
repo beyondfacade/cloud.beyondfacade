@@ -6,7 +6,7 @@ from apps.chat.app.dtos.chat_message_dto import (
     ChatEventDto,
     ChatMessageDto,
     ChatPageDto,
-    ChatPeerDto,
+    ChatExpertDto,
     ChatRoomDto,
 )
 from apps.chat.app.ports.output.chat_message_port import ChatSubscription
@@ -35,15 +35,22 @@ class ChatMessageUseCase(ABC):
 
     @abstractmethod
     def open_direct(self, member: ChatMember, user_id: int) -> ChatRoomDto:
-        """1:1 대화방 — 일반 회원이 전문가에게만 건다(아니면 ChatRoomForbidden). 메시지가 오가기 전에는 방 목록에 없다."""
+        """1:1 대화방 — 일반 회원이 전문가에게만 건다(아니면 ChatRoomForbidden).
+        다른 회원이 산 상담 중인 전문가면 ChatExpertBusy. 메시지가 오가기 전에는 방 목록에 없다."""
 
     @abstractmethod
     def open_expert(self, member: ChatMember) -> ChatRoomDto:
-        """전문가와의 1:1 대화방 — 연결할 전문가가 없으면 ChatMemberNotFound."""
+        """전문가와의 1:1 대화방 — 내가 산 상담 중인 전문가 먼저, 아니면 대화 가능한 첫 전문가.
+        연결할 전문가가 없으면 ChatMemberNotFound."""
 
     @abstractmethod
-    def search_members(self, member: ChatMember, q: str) -> list[ChatPeerDto]:
-        """일반 회원에게만 전문가 목록(q가 비면 전체, 계정명순 50명) — 그 밖의 등급은 빈 목록."""
+    def search_members(self, member: ChatMember, q: str) -> list[ChatExpertDto]:
+        """일반 회원에게만 전문가 목록(q가 비면 전체, 계정명순 50명)과 요금·상담 상태 — 그 밖의 등급은 빈 목록."""
+
+    @abstractmethod
+    def buy_consultation(self, member: ChatMember, expert_id: int, hours: int) -> ChatRoomDto:
+        """더미 구매(결제 없음) — 지금부터 hours시간 그 전문가는 '대화 중'. 산 뒤 1:1 방을 돌려준다.
+        일반 회원만(ChatRoomForbidden) · 1~3시간(InvalidConsultation) · 이미 상담 중이면 ChatExpertBusy."""
 
     @abstractmethod
     def latest_id(self) -> int: ...

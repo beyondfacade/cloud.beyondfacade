@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import Literal
 
 from pydantic import BaseModel, Field
 
@@ -10,6 +11,11 @@ class ChatSendRequest(BaseModel):
 
 class ChatDirectRequest(BaseModel):
     user_id: int
+
+
+class ChatConsultationRequest(BaseModel):
+    expert_id: int
+    hours: int
 
 
 class ChatReplyResponse(BaseModel):
@@ -45,9 +51,11 @@ class ChatRoomResponse(BaseModel):
     last_message: ChatMessageResponse | None
 
 
-class ChatPeerResponse(BaseModel):
+class ChatExpertResponse(BaseModel):
     id: int
     username: str
+    hourly_rate: int | None
+    status: Literal["available", "busy", "mine"]
 
 
 class ChatEventResponse(BaseModel):

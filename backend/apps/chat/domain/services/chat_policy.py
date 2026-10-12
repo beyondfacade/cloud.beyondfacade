@@ -1,4 +1,4 @@
-"""채팅 메시지 규칙 — 본문 길이, 도배 방지, 답장 미리보기, 1:1 상대."""
+"""채팅 메시지 규칙 — 본문 길이, 도배 방지, 답장 미리보기, 1:1 상대, 전문가 상담 상태."""
 
 from datetime import datetime, timedelta
 
@@ -8,6 +8,15 @@ RATE_LIMIT_WINDOW = timedelta(seconds=10)
 _PREVIEW_LENGTH = 80
 DIRECT_OPENER_ROLE = "viewer"
 DIRECT_PARTNER_ROLE = "expert"
+CONSULTATION_HOURS = (1, 2, 3)
+
+
+def expert_status(expert_id: int, member_id: int, holders: dict[int, int]) -> str:
+    """available(대화 가능) · busy(다른 회원이 산 상담 중) · mine(내가 산 상담 중)."""
+    holder = holders.get(expert_id)
+    if holder is None:
+        return "available"
+    return "mine" if holder == member_id else "busy"
 
 
 def can_open_direct(opener_role: str, peer_role: str) -> bool:

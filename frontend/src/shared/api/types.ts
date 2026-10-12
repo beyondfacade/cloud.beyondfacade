@@ -951,9 +951,14 @@ export interface ChatRoom {
   last_message: ChatMessage | null;
 }
 
-export interface ChatPeer {
+/** available 대화 가능 · busy 다른 회원이 산 상담 중 · mine 내가 산 상담 중 */
+export type ChatExpertStatus = "available" | "busy" | "mine";
+
+export interface ChatExpert {
   id: number;
   username: string;
+  hourly_rate: number | null; // 원
+  status: ChatExpertStatus;
 }
 
 export type ChatEvent =

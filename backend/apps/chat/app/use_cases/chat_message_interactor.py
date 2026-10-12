@@ -1,22 +1,25 @@
 from collections.abc import Callable
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 
 from apps.chat.app.dtos.chat_message_dto import (
     ChatEventDto,
+    ChatExpertDto,
     ChatMessageDto,
     ChatPageDto,
-    ChatPeerDto,
     ChatReplyDto,
     ChatRoomDto,
 )
 from apps.chat.app.errors import (
+    ChatExpertBusy,
     ChatMemberNotFound,
     ChatMessageNotFound,
     ChatRoomForbidden,
     ChatTooFast,
     InvalidChatMessage,
+    InvalidConsultation,
 )
 from apps.chat.app.ports.input.chat_message_use_case import ChatMessageUseCase
+from apps.chat.app.ports.output.chat_consultation_port import ChatConsultationRepositoryPort
 from apps.chat.app.ports.output.chat_message_port import (
     ChatEventFeedPort,
     ChatEventPublisherPort,
@@ -26,14 +29,17 @@ from apps.chat.app.ports.output.chat_message_port import (
 )
 from apps.chat.app.ports.output.chat_read_port import ChatReadRepositoryPort
 from apps.chat.app.use_cases.room_access import admitted_room
+from apps.chat.domain.entities.chat_consultation_entity import ChatConsultation
 from apps.chat.domain.entities.chat_message_entity import ChatMessage
 from apps.chat.domain.services.chat_policy import (
+    CONSULTATION_HOURS,
     DIRECT_OPENER_ROLE,
     DIRECT_PARTNER_ROLE,
     RATE_LIMIT_COUNT,
     can_open_direct,
     can_talk_direct,
     clean_body,
+    expert_status,
     rate_window_start,
     reply_preview,
 )
@@ -81,6 +87,7 @@ class ChatMessageInteractor(ChatMessageUseCase):
         messages: ChatMessageRepositoryPort,
         reads: ChatReadRepositoryPort,
         members: ChatMemberPort,
+        consultations: ChatConsultationRepositoryPort,
         publisher: ChatEventPublisherPort,
         feed: ChatEventFeedPort,
         clock: Callable[[], datetime] = lambda: datetime.now(UTC),
@@ -88,6 +95,7 @@ class ChatMessageInteractor(ChatMessageUseCase):
         self._messages = messages
         self._reads = reads
         self._members = members
+        self._consultations = consultations
         self._publisher = publisher
         self._feed = feed
         self._clock = clock
@@ -156,19 +164,54 @@ class ChatMessageInteractor(ChatMessageUseCase):
             raise ChatMemberNotFound("대화 상대를 찾을 수 없습니다.")
         if not can_open_direct(member.role, peer.role):
             raise ChatRoomForbidden("1:1 대화는 일반 회원이 전문가에게만 걸 수 있습니다.")
+        if expert_status(peer.id, member.id, self._consultations.holders(self._clock())) == "busy":
+            raise ChatExpertBusy("이 전문가는 지금 다른 회원과 상담 중입니다.")
         room = direct_room(member.id, peer.id)
         return self._summary(member, room, peer.username, peer.id, self._reads.last_read_ids(member.id))
 
     def open_expert(self, member: ChatMember) -> ChatRoomDto:
-        expert = self._members.expert(member.id)
-        if expert is None:
+        if member.role != DIRECT_OPENER_ROLE:
+            raise ChatRoomForbidden("1:1 대화는 일반 회원이 전문가에게만 걸 수 있습니다.")
+        candidates = [expert for expert in self.search_members(member, "") if expert.status != "busy"]
+        if not candidates:
             raise ChatMemberNotFound("지금 연결할 수 있는 전문가가 없습니다.")
-        return self.open_direct(member, expert.id)
+        mine_first = min(candidates, key=lambda expert: expert.status != "mine")
+        return self.open_direct(member, mine_first.id)
 
-    def search_members(self, member: ChatMember, q: str) -> list[ChatPeerDto]:
+    def search_members(self, member: ChatMember, q: str) -> list[ChatExpertDto]:
         if member.role != DIRECT_OPENER_ROLE:
             return []
-        return self._members.search(q.strip(), member.id, MEMBER_SEARCH_LIMIT, DIRECT_PARTNER_ROLE)
+        holders = self._consultations.holders(self._clock())
+        return [
+            ChatExpertDto(
+                id=peer.id,
+                username=peer.username,
+                hourly_rate=peer.hourly_rate,
+                status=expert_status(peer.id, member.id, holders),
+            )
+            for peer in self._members.search(q.strip(), member.id, MEMBER_SEARCH_LIMIT, DIRECT_PARTNER_ROLE)
+        ]
+
+    def buy_consultation(self, member: ChatMember, expert_id: int, hours: int) -> ChatRoomDto:
+        if member.role != DIRECT_OPENER_ROLE:
+            raise ChatRoomForbidden("상담은 일반 회원만 살 수 있습니다.")
+        if hours not in CONSULTATION_HOURS:
+            raise InvalidConsultation("상담 시간은 1~3시간 중에서 골라 주세요.")
+        expert = self._members.active(expert_id)
+        if expert is None or expert.role != DIRECT_PARTNER_ROLE:
+            raise ChatMemberNotFound("전문가를 찾을 수 없습니다.")
+        if expert.hourly_rate is None:
+            raise InvalidConsultation("요금이 정해지지 않은 전문가입니다.")
+        now = self._clock()
+        if expert.id in self._consultations.holders(now):
+            raise ChatExpertBusy("이 전문가는 지금 상담 중입니다.")
+        self._consultations.add(
+            ChatConsultation(
+                viewer_id=member.id, expert_id=expert.id, hours=hours, price=expert.hourly_rate * hours,
+                started_at=now, ends_at=now + timedelta(hours=hours),
+            )
+        )
+        return self.open_direct(member, expert.id)
 
     def latest_id(self) -> int:
         return self._messages.latest_id()

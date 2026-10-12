@@ -1,5 +1,20 @@
 # Backend Version Log
 
+## [v0.111.0] - 2026-10-12
+
+### Added
+- **전문가 상담 구매(더미 — 결제 없음)와 상담 상태**
+  - 마이그레이션 `c9d3e5f7a2b4`: `admin_user.hourly_rate`(전문가 시간당 요금, 원) 추가, `chat_consultation`(산 회원·전문가·시간·금액·시작·끝) 테이블 신설
+  - `POST /chat/consultations` `{expert_id, hours}` → 201 + 그 전문가와의 1:1 방 요약. 일반 회원만(403), 1~3시간(400 `INVALID_CONSULTATION`), 요금 없는 전문가 400, 이미 상담 중이면 409 `CHAT_EXPERT_BUSY`
+  - 상태는 저장하지 않고 산 상담이 끝났는지로 계산(`chat_policy.expert_status`): `available` 대화 가능 · `busy` 다른 회원이 산 상담 중 · `mine` 내가 산 상담 중
+- 테스트: API 1개(구매 → 나는 mine·남은 busy → 남은 1:1·구매·연결하기 막힘 → 끝나면 다시 available)
+
+### Changed
+- `GET /chat/members` 응답에 `hourly_rate`·`status` 추가
+- `POST /chat/direct`: 다른 회원이 산 상담 중인 전문가에게는 409 `CHAT_EXPERT_BUSY`. 이미 열린 방에서 보내기는 막지 않는다
+- `POST /chat/expert`: 내가 산 상담 중인 전문가 먼저, 아니면 대화 가능한 첫 전문가. 일반 회원이 아니면 403(전에는 전문가를 고른 뒤 403)
+- `AdminPrincipalDto`·chat `ChatPeerDto`에 `hourly_rate`. 안 쓰게 된 admin `first_active_expert`·chat `ChatMemberPort.expert` 제거
+
 ## [v0.110.0] - 2026-10-12
 
 ### Changed

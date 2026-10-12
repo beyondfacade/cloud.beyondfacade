@@ -8,6 +8,7 @@ class AdminPrincipalDto:
     username: str
     role: str
     can_operate: bool
+    hourly_rate: int | None = None  # 전문가 상담 시간당 요금(원)
 
 
 @dataclass(frozen=True)

@@ -53,7 +53,13 @@ function setup(me: AdminMe | null, rooms: ChatRoom[] = [room("global")], items: 
       const body = JSON.parse(String(init?.body));
       return Promise.resolve(json(201, message(99, { sender_username: me!.username, body: body.body })));
     }
-    if (url.endsWith("/chat/members")) return Promise.resolve(json(200, [{ id: 5, username: "park.expert" }]));
+    if (url.endsWith("/chat/members")) {
+      return Promise.resolve(json(200, [
+        { id: 5, username: "park.expert", hourly_rate: 30_000, status: "available" },
+        { id: 6, username: "choi.expert", hourly_rate: 20_000, status: "busy" },
+      ]));
+    }
+    if (url.endsWith("/chat/consultations")) return Promise.resolve(json(201, room("dm:2:5", { title: "park.expert", partner_id: 5 })));
     if (url.endsWith("/chat/direct")) return Promise.resolve(json(200, room("dm:2:5", { title: "park.expert", partner_id: 5 })));
     if (url.endsWith("/chat/expert")) return Promise.resolve(json(200, room("dm:2:5", { title: "park.expert", partner_id: 5 })));
     if (url.includes("/chat/reads/")) return Promise.resolve(json(200, { room: "global", last_read_id: 1 }));
@@ -98,7 +104,7 @@ it("전문가와 연결하기 이벤트가 오면 창이 열리고 전문가와�
   expect(calls("/chat/expert", "POST")).toHaveLength(1);
 });
 
-it("일반 회원의 DM은 드롭다운으로 대화한 전문가와 전문가 목록을 오가고, 목록에서 고르면 그 방이 열린다", async () => {
+it("일반 회원의 DM은 드롭다운으로 대화한 전문가와 전문가 목록을 오가고, 목록에서 상담을 사면 그 방이 열린다", async () => {
   setup(VIEWER);
   await userEvent.click(await screen.findByRole("button", { name: "채팅 열기" }));
   await userEvent.click(screen.getByRole("tab", { name: "DM" }));
@@ -106,9 +112,13 @@ it("일반 회원의 DM은 드롭다운으로 대화한 전문가와 전문가 �
   expect([...view.querySelectorAll("option")].map((o) => o.textContent)).toEqual(["전문가 목록", "대화한 전문가"]);
   expect(screen.getByText(/아직 대화한 전문가가 없어요/)).toBeInTheDocument();
   await userEvent.selectOptions(view, "experts");
-  await userEvent.click(await screen.findByRole("button", { name: /park\.expert/ }));
-  await waitFor(() => expect(calls("/chat/direct", "POST")).toHaveLength(1));
-  expect(JSON.parse(String(calls("/chat/direct", "POST")[0][1].body))).toEqual({ user_id: 5 });
+  const list = await screen.findByRole("list", { name: "전문가 목록" });
+  expect(within(list).getByText("시간당 30,000원", { exact: false })).toBeInTheDocument();
+  expect(within(list).getByRole("button", { name: "대화 중" })).toBeDisabled();
+  await userEvent.selectOptions(within(list).getByRole("combobox", { name: "park.expert 상담 시간" }), "2");
+  await userEvent.click(within(list).getByRole("button", { name: "구매" }));
+  await waitFor(() => expect(calls("/chat/consultations", "POST")).toHaveLength(1));
+  expect(JSON.parse(String(calls("/chat/consultations", "POST")[0][1].body))).toEqual({ expert_id: 5, hours: 2 });
   expect(await screen.findByRole("button", { name: "대화 목록으로" })).toBeInTheDocument();
 });
 

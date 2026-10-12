@@ -15,6 +15,7 @@ def to_entity(orm: AdminUserOrm) -> AdminUser:
         google_sub=orm.google_sub,
         created_at=orm.created_at,
         last_login_at=orm.last_login_at,
+        hourly_rate=orm.hourly_rate,
     )
 
 
@@ -25,3 +26,4 @@ def apply_to_orm(entity: AdminUser, orm: AdminUserOrm) -> None:
     orm.is_active = entity.is_active
     orm.email = entity.email
     orm.google_sub = entity.google_sub
+    orm.hourly_rate = entity.hourly_rate

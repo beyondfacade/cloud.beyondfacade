@@ -7,10 +7,10 @@ from apps.chat.adapter.inbound.api.schemas.chat_message_schema import (
     ChatEventResponse,
     ChatMessageResponse,
     ChatPageResponse,
-    ChatPeerResponse,
+    ChatExpertResponse,
     ChatRoomResponse,
 )
-from apps.chat.app.dtos.chat_message_dto import ChatEventDto, ChatMessageDto, ChatPageDto, ChatPeerDto, ChatRoomDto
+from apps.chat.app.dtos.chat_message_dto import ChatEventDto, ChatExpertDto, ChatMessageDto, ChatPageDto, ChatRoomDto
 from apps.chat.domain.value_objects.chat_room import ChatMember
 
 
@@ -32,8 +32,8 @@ def to_room_response(dto: ChatRoomDto) -> ChatRoomResponse:
     return ChatRoomResponse(**asdict(dto))
 
 
-def to_peer_response(dto: ChatPeerDto) -> ChatPeerResponse:
-    return ChatPeerResponse(id=dto.id, username=dto.username)
+def to_expert_response(dto: ChatExpertDto) -> ChatExpertResponse:
+    return ChatExpertResponse(**asdict(dto))
 
 
 def to_event_response(dto: ChatEventDto) -> ChatEventResponse:

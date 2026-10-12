@@ -1,5 +1,5 @@
 import { apiDelete, apiGet, apiPost, apiPut } from "@/shared/api/client";
-import type { ChatMessage, ChatPage, ChatPeer, ChatRead, ChatRoom } from "@/shared/api/types";
+import type { ChatExpert, ChatMessage, ChatPage, ChatRead, ChatRoom } from "@/shared/api/types";
 import { config } from "@/shared/config";
 
 /** 로그인·로그아웃 때 이 접두어 아래 캐시를 통째로 버린다 (replaceSession). */
@@ -23,8 +23,12 @@ export const openDirectRoom = (userId: number) => apiPost<ChatRoom>("/chat/direc
 
 export const openExpertRoom = () => apiPost<ChatRoom>("/chat/expert", {});
 
-/** 일반 회원에게 보이는 전문가 목록 — 다른 등급은 빈 목록. */
-export const fetchChatExperts = () => apiGet<ChatPeer[]>("/chat/members");
+/** 일반 회원에게 보이는 전문가 목록(요금·상담 상태) — 다른 등급은 빈 목록. */
+export const fetchChatExperts = () => apiGet<ChatExpert[]>("/chat/members");
+
+/** 더미 구매(결제 없음) — 산 뒤 그 전문가와의 1:1 방을 돌려준다. */
+export const buyConsultation = (expertId: number, hours: number) =>
+  apiPost<ChatRoom>("/chat/consultations", { expert_id: expertId, hours });
 
 export const markChatRead = (room: string, lastReadId: number) =>
   apiPut<ChatRead>(`/chat/reads/${encodeURIComponent(room)}`, { last_read_id: lastReadId });

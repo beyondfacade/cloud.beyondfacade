@@ -27,3 +27,4 @@ class AdminUser:
     id: int | None = None
     created_at: datetime | None = None
     last_login_at: datetime | None = None
+    hourly_rate: int | None = None  # 전문가 상담 시간당 요금(원) — 그 밖의 등급은 None

@@ -1,5 +1,19 @@
 # Frontend Version Log
 
+## [v0.74.0] - 2026-10-12
+
+### Added
+- **DM 전문가 목록: 요금·상담 상태·더미 구매** (백엔드 v0.111.0)
+  - 줄마다 "시간당 30,000원 · 대화 가능/대화 중/내 상담 중"
+  - 대화 가능: 시간(1~3시간, 금액 표시) 고르고 "구매" → `POST /chat/consultations` 후 그 전문가와의 방이 열린다(결제 없음)
+  - 대화 중(다른 회원이 산 상담 중): "대화 중" 버튼이 꺼져 있어 걸 수 없다. 내 상담 중: "대화하기"
+  - 목록은 열 때마다 다시 받는다(`staleTime: 0`) — 상담이 끝나면 상태가 바뀌므로
+- mock: `/chat/consultations` 라우트, 요금·구매 기록, `/chat/direct`·`/chat/expert`의 상담 중 규칙(실 API와 같은 409)
+- 테스트: 채팅 창 1개를 구매 흐름으로 바꿈, mock 계약 1개 추가
+
+### Changed
+- 타입 `ChatPeer` → `ChatExpert`(`hourly_rate`·`status`)
+
 ## [v0.73.0] - 2026-10-12
 
 ### Changed

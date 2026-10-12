@@ -59,7 +59,13 @@ def _dummy_hash() -> str:
 
 
 def to_principal(user: AdminUser) -> AdminPrincipalDto:
-    return AdminPrincipalDto(id=user.id, username=user.username, role=user.role.value, can_operate=user.role.can_operate)
+    return AdminPrincipalDto(
+        id=user.id,
+        username=user.username,
+        role=user.role.value,
+        can_operate=user.role.can_operate,
+        hourly_rate=user.hourly_rate,
+    )
 
 
 class AdminSessionInteractor(AdminSessionUseCase):

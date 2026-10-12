@@ -1,5 +1,6 @@
 import { afterAll, beforeEach, describe, expect, it, vi } from "vitest";
 import type { ChatMessage, ChatRoom } from "@/shared/api/types";
+import { POST as buyConsultation } from "./consultations/route";
 import { POST as openDirect } from "./direct/route";
 import { POST as openExpert } from "./expert/route";
 import { GET as members } from "./members/route";
@@ -7,6 +8,7 @@ import { DELETE as remove } from "./messages/[id]/route";
 import { PUT as markRead } from "./reads/[room]/route";
 import { GET as listMessages, POST as postMessage } from "./rooms/[room]/messages/route";
 import { GET as listRooms } from "./rooms/route";
+import { consultations } from "./store";
 import { GET as stream } from "./stream/route";
 
 const as = (username: string | null): Record<string, string> => (username ? { cookie: `metabole_admin=${username}` } : {});
@@ -92,9 +94,10 @@ describe("채팅 mock 계약", () => {
   });
 
   it("일반 회원은 전문가만 찾아 1:1을 열고, 메시지가 오가면 전문가의 방 목록에 안 읽음과 함께 생긴다", async () => {
+    const expert = { id: 5, username: "park.expert", hourly_rate: 30_000, status: "available" };
     const found = await (await members(new Request(`${base}/members?q=E`, { headers: as("viewer") }))).json();
-    expect(found).toEqual([{ id: 5, username: "park.expert" }]);
-    expect(await (await members(new Request(`${base}/members`, { headers: as("viewer") }))).json()).toEqual([{ id: 5, username: "park.expert" }]);
+    expect(found).toEqual([expert]);
+    expect(await (await members(new Request(`${base}/members`, { headers: as("viewer") }))).json()).toEqual([expert]);
     const room: ChatRoom = await (await openDirect(new Request(`${base}/direct`, json("POST", { user_id: 5 }, "viewer")))).json();
     expect([room.key, room.kind, room.title, room.partner_id]).toEqual(["dm:2:5", "direct", "park.expert", 5]);
     expect(await errorCode(await openDirect(new Request(`${base}/direct`, json("POST", { user_id: 2 }, "viewer"))))).toBe("CHAT_MEMBER_NOT_FOUND");
@@ -116,6 +119,24 @@ describe("채팅 mock 계약", () => {
     const room: ChatRoom = await (await openExpert(new Request(`${base}/expert`, json("POST", {}, "viewer")))).json();
     expect([room.key, room.kind, room.title, room.partner_id]).toEqual(["dm:2:5", "direct", "park.expert", 5]);
     expect((await openExpert(new Request(`${base}/expert`, { method: "POST" }))).status).toBe(401);
+  });
+
+  it("상담을 사면 201로 1:1 방이 오고, 다른 회원이 산 상담 중인 전문가에게는 409 — 끝나면 다시 대화 가능", async () => {
+    const buy = (user: string, hours: number) =>
+      buyConsultation(new Request(`${base}/consultations`, json("POST", { expert_id: 5, hours }, user)));
+    const status = async () => (await (await members(new Request(`${base}/members`, { headers: as("viewer") }))).json())[0].status;
+    expect(await errorCode(await buy("viewer", 4))).toBe("INVALID_CONSULTATION");
+    expect((await buy("park.expert", 1)).status).toBe(403);
+    const bought = await buy("viewer", 1);
+    expect([bought.status, ((await bought.json()) as ChatRoom).key]).toEqual([201, "dm:2:5"]);
+    expect(await status()).toBe("mine");
+    consultations.splice(0, consultations.length, { viewerId: 4, expertId: 5, endsAt: Date.now() + 60_000 });
+    expect(await status()).toBe("busy");
+    expect(await errorCode(await openDirect(new Request(`${base}/direct`, json("POST", { user_id: 5 }, "viewer"))))).toBe("CHAT_EXPERT_BUSY");
+    expect((await buy("viewer", 1)).status).toBe(409);
+    vi.setSystemTime(Date.now() + 60_000);
+    expect(await status()).toBe("available");
+    consultations.length = 0;
   });
 
   it("읽음 표시는 앞으로만 가고, 읽으면 안 읽은 개수가 0이 된다", async () => {

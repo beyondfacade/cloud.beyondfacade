@@ -101,14 +101,6 @@ class AdminUserInteractor(AdminUserUseCase):
         wanted = set(user_ids)
         return {user.id: to_principal(user) for user in self._users.list_all() if user.id in wanted}
 
-    def first_active_expert(self, exclude_id: int) -> AdminPrincipalDto | None:
-        experts = (
-            user
-            for user in self._users.list_all()
-            if user.is_active and user.role is AdminRole.EXPERT and user.id != exclude_id
-        )
-        return next((to_principal(user) for user in experts), None)
-
     def set_active(self, actor: AdminPrincipalDto, username: str, active: bool, ip: str | None) -> AdminUserDto:
         user = self._target(actor, username)
         if leaves_no_active_operator(self._users.list_all(), username, user.role, active):
