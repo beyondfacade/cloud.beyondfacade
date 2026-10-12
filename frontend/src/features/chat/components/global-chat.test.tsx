@@ -2,7 +2,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
-import type { AdminMe, ChatMessage, ChatRoom } from "@/shared/api/types";
+import type { AdminMe, ChatExpert, ChatMessage, ChatRoom } from "@/shared/api/types";
 import { openExpertChat, rememberExpertIndustry } from "@/shared/lib/open-expert-chat";
 import { GlobalChat } from "./global-chat";
 
@@ -41,7 +41,12 @@ const json = (status: number, body: unknown) => new Response(status === 204 ? nu
 
 let fetchMock: ReturnType<typeof vi.fn>;
 
-function setup(me: AdminMe | null, rooms: ChatRoom[] = [room("global")], items: ChatMessage[] = [message(1)]) {
+const EXPERTS: ChatExpert[] = [
+  { id: 5, username: "park.expert", specialty: "카페", hourly_rate: 30_000, status: "available" },
+  { id: 6, username: "choi.expert", specialty: "부동산", hourly_rate: 20_000, status: "busy" },
+];
+
+function setup(me: AdminMe | null, rooms: ChatRoom[] = [room("global")], items: ChatMessage[] = [message(1)], experts = EXPERTS) {
   fetchMock = vi.fn((url: string, init?: RequestInit) => {
     const method = init?.method ?? "GET";
     if (url.endsWith("/admin/auth/me")) {
@@ -53,12 +58,7 @@ function setup(me: AdminMe | null, rooms: ChatRoom[] = [room("global")], items: 
       const body = JSON.parse(String(init?.body));
       return Promise.resolve(json(201, message(99, { sender_username: me!.username, body: body.body })));
     }
-    if (url.endsWith("/chat/members")) {
-      return Promise.resolve(json(200, [
-        { id: 5, username: "park.expert", specialty: "카페", hourly_rate: 30_000, status: "available" },
-        { id: 6, username: "choi.expert", specialty: "부동산", hourly_rate: 20_000, status: "busy" },
-      ]));
-    }
+    if (url.endsWith("/chat/members")) return Promise.resolve(json(200, experts));
     if (url.endsWith("/chat/consultations")) return Promise.resolve(json(201, room("dm:2:5", { title: "park.expert", partner_id: 5 })));
     if (url.endsWith("/chat/direct")) return Promise.resolve(json(200, room("dm:2:5", { title: "park.expert", partner_id: 5 })));
     if (url.includes("/chat/reads/")) return Promise.resolve(json(200, { room: "global", last_read_id: 1 }));
@@ -128,12 +128,14 @@ it("리포트로 고른 업종이 있으면 그 업종 전문가가 전문가 �
   vi.mocked(Math.random).mockRestore();
 });
 
-it("일반 회원의 DM은 드롭다운으로 대화한 전문가와 전문가 목록을 오가고, 목록에서 상담을 사면 그 방이 열린다", async () => {
+it("대화한 전문가가 없으면 DM을 누를 때 전문가 목록이 열리고, 드롭다운으로 오가며 상담을 사면 그 방이 열린다", async () => {
   setup(VIEWER);
   await userEvent.click(await screen.findByRole("button", { name: "채팅 열기" }));
   await userEvent.click(screen.getByRole("tab", { name: "DM" }));
-  const view = screen.getByRole("combobox", { name: "DM 보기" });
+  const view = await screen.findByRole("combobox", { name: "DM 보기" });
   expect([...view.querySelectorAll("option")].map((o) => o.textContent)).toEqual(["전문가 목록", "대화한 전문가"]);
+  expect(view).toHaveValue("experts");
+  await userEvent.selectOptions(view, "rooms");
   expect(screen.getByText(/아직 대화한 전문가가 없어요/)).toBeInTheDocument();
   await userEvent.selectOptions(view, "experts");
   const list = await screen.findByRole("list", { name: "전문가 목록" });
@@ -144,6 +146,24 @@ it("일반 회원의 DM은 드롭다운으로 대화한 전문가와 전문가 �
   await waitFor(() => expect(calls("/chat/consultations", "POST")).toHaveLength(1));
   expect(JSON.parse(String(calls("/chat/consultations", "POST")[0][1].body))).toEqual({ expert_id: 5, hours: 2 });
   expect(await screen.findByRole("button", { name: "대화 목록으로" })).toBeInTheDocument();
+});
+
+it("DM을 누를 때 대화한 방이 있어도 지금 시간을 산 전문가가 있어야 대화한 전문가가 열린다", async () => {
+  const rooms = [room("global"), room("dm:2:5", { title: "park.expert", partner_id: 5, unread: 1, last_message: message(3, { room: "dm:2:5" }) })];
+  setup(VIEWER, rooms, [message(1)], [{ ...EXPERTS[0], status: "mine" }, EXPERTS[1]]);
+  await userEvent.click(await screen.findByRole("button", { name: "채팅 열기" }));
+  await userEvent.click(await screen.findByRole("tab", { name: /^DM\s*1$/ }));
+  expect(await screen.findByRole("combobox", { name: "DM 보기" })).toHaveValue("rooms");
+  expect(screen.getByRole("button", { name: /park\.expert/ })).toBeInTheDocument();
+});
+
+it("대화한 방만 있고 지금 산 시간이 없으면 DM을 누를 때 전문가 목록이 열린다", async () => {
+  const rooms = [room("global"), room("dm:2:5", { title: "park.expert", partner_id: 5, unread: 1, last_message: message(3, { room: "dm:2:5" }) })];
+  setup(VIEWER, rooms);
+  await userEvent.click(await screen.findByRole("button", { name: "채팅 열기" }));
+  await userEvent.click(await screen.findByRole("tab", { name: /^DM\s*1$/ }));
+  expect(await screen.findByRole("combobox", { name: "DM 보기" })).toHaveValue("experts");
+  expect(await screen.findByRole("list", { name: "전문가 목록" })).toBeInTheDocument();
 });
 
 it("전문가는 1:1을 먼저 걸 수 없어 DM에 드롭다운 없이 받은 대화만 본다", async () => {

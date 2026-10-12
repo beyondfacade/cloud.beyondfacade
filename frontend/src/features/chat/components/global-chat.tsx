@@ -8,7 +8,7 @@ import type { ChatRoom } from "@/shared/api/types";
 import { loginHref, SESSION_QUERY_KEY, signupHref } from "@/shared/auth/session";
 import { useSession } from "@/shared/auth/use-session";
 import { EXPERT_CHAT_EVENT } from "@/shared/lib/open-expert-chat";
-import { chatRoomsKey, fetchChatRooms } from "../api";
+import { chatRoomsKey, fetchChatExperts, fetchChatRooms } from "../api";
 import { applyChatEvent } from "../hooks/chat-cache";
 import { useChatStream } from "../hooks/use-chat-stream";
 import { badgeLabel, totalUnread } from "../lib/chat-state";
@@ -144,6 +144,22 @@ export function GlobalChat() {
   const dmTitle = dm && (list.find((r) => r.key === dm.key)?.title ?? dm.title);
   const openDm = (opened: ChatRoom) =>
     setView((v) => ({ ...v, dm: { key: opened.key, title: opened.title, owner: me!.username } }));
+  // 일반 회원이 DM을 누르면: 대화한 방이 있고 지금 시간을 산 전문가가 있으면 대화한 전문가, 아니면 전문가 목록
+  const pickDirectView = async (): Promise<DirectView> => {
+    if (directRooms.length === 0) return "experts";
+    try {
+      const experts = await fetchChatExperts();
+      return experts.some((expert) => expert.status === "mine") ? "rooms" : "experts";
+    } catch {
+      return "experts";
+    }
+  };
+  const selectMode = async (mode: Mode) => {
+    const picked = mode === "direct" && canStart ? await pickDirectView() : null;
+    setView((v) => ({
+      ...v, mode, directView: picked ?? v.directView, dm: mode === "direct" && v.mode === "direct" ? null : v.dm,
+    }));
+  };
 
   const close = () => {
     setView((v) => ({ ...v, open: false }));
@@ -187,7 +203,7 @@ export function GlobalChat() {
                       role="tab"
                       aria-selected={view.mode === m.key}
                       className={styles.toggleButton}
-                      onClick={() => setView((v) => ({ ...v, mode: m.key, dm: m.key === "direct" && v.mode === "direct" ? null : v.dm }))}
+                      onClick={() => void selectMode(m.key)}
                     >
                       {m.label}
                       {badgeLabel(modeUnread[m.key]) && <span className={styles.count}>{badgeLabel(modeUnread[m.key])}</span>}
