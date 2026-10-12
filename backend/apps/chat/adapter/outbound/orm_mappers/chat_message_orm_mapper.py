@@ -5,7 +5,7 @@ from apps.chat.domain.entities.chat_message_entity import ChatMessage
 
 _FIELDS = (
     "room", "sender_id", "sender_username", "sender_role", "body", "created_at", "reply_to_id", "deleted_at",
-    "deleted_by",
+    "deleted_by", "attachment_name", "attachment_size",
 )
 
 

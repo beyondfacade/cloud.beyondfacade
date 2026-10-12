@@ -9,12 +9,14 @@ from apps.chat.app.errors import (
     ChatRoomForbidden,
     ChatRoomNotFound,
     ChatTooFast,
+    InvalidChatAttachment,
     InvalidChatMessage,
     InvalidConsultation,
 )
 
 _STATUS: dict[type[ChatError], int] = {
     InvalidChatMessage: 400,
+    InvalidChatAttachment: 400,
     InvalidConsultation: 400,
     ChatRoomForbidden: 403,
     ChatRoomNotFound: 404,

@@ -5,6 +5,7 @@ import { accounts } from "../admin/users/store";
 
 export const PAGE_SIZE = 50;
 const MAX_BODY_LENGTH = 500;
+const MAX_ATTACHMENT_BYTES = 5 * 1024 * 1024;
 const RATE_LIMIT = { count: 5, windowMs: 10_000 };
 const FIXED_ROOMS = [
   { key: "global", kind: "global", title: "전체", admits: () => true },
@@ -16,13 +17,16 @@ export const messages: ChatMessage[] = [
   {
     id: 1, room: "global", sender_id: 1, sender_username: "ops", sender_role: "operator",
     body: "메타볼레 채팅에 오신 걸 환영해요. 상권 이야기 자유롭게 나눠 주세요.", deleted: false,
-    created_at: "2026-10-12T00:10:00Z", reply_to: null,
+    created_at: "2026-10-12T00:10:00Z", reply_to: null, attachment: null,
   },
   {
     id: 2, room: "global", sender_id: 2, sender_username: "viewer", sender_role: "viewer",
     body: "성수동 카페 리포트 보신 분 계세요?", deleted: false, created_at: "2026-10-12T00:12:00Z", reply_to: null,
+    attachment: null,
   },
 ];
+/** 메시지 id → PDF 바이트 */
+export const attachments = new Map<number, Uint8Array>();
 /** "회원id:방" → 마지막으로 읽은 메시지 id */
 export const reads = new Map<string, number>();
 /** 전문가 상담 시간당 요금(원) — 실 API는 admin_user.hourly_rate */
@@ -69,7 +73,9 @@ const replyOf = (id: number | null): ChatReply | null => {
 };
 
 /** 저장본은 답장 원문 id만 갖고, 내보낼 때마다 원문의 지금 상태로 미리보기를 채운다. */
-export const present = (message: ChatMessage): ChatMessage => ({ ...message, reply_to: replyOf(message.reply_to?.id ?? null) });
+export const present = (message: ChatMessage): ChatMessage => ({
+  ...message, reply_to: replyOf(message.reply_to?.id ?? null), attachment: message.deleted ? null : message.attachment,
+});
 
 function summary(me: AdminMe, key: string, kind: ChatRoom["kind"], title: string, partner: number | null): ChatRoom {
   const myId = memberId(me.username);
@@ -153,7 +159,7 @@ export function buyConsultation(me: AdminMe, expertId: number, hours: number): C
   return directRoom(me, expertId);
 }
 
-export function send(me: AdminMe, room: string, body: string, replyToId: number | null): ChatMessage | Response {
+function partnerDenied(me: AdminMe, room: string): Response | null {
   const partner = directPartner(room, memberId(me.username));
   const partnerUser = partner ? accounts.get(usernameOf(partner))?.user : undefined;
   if (room.startsWith("dm:") && !partnerUser?.is_active) {
@@ -162,21 +168,55 @@ export function send(me: AdminMe, room: string, body: string, replyToId: number 
   if (partnerUser && !canTalkDirect(me.role, partnerUser.role)) {
     return adminError(403, "CHAT_ROOM_FORBIDDEN", "1:1 대화는 일반 회원과 전문가 사이에서만 할 수 있습니다.");
   }
-  const text = body.trim();
-  if (!text || text.length > MAX_BODY_LENGTH) return adminError(400, "INVALID_CHAT_MESSAGE", "메시지는 1~500자로 입력해 주세요.");
-  const now = Date.now();
+  return null;
+}
+
+function tooFast(me: AdminMe, now: number): Response | null {
   const recent = messages.filter((m) => m.sender_username === me.username && now - Date.parse(m.created_at) < RATE_LIMIT.windowMs);
-  if (recent.length >= RATE_LIMIT.count) {
-    return adminError(429, "CHAT_TOO_FAST", "메시지를 너무 빨리 보내고 있어요. 잠시 후 다시 보내 주세요.");
-  }
-  if (replyToId && messages.find((m) => m.id === replyToId)?.room !== room) {
-    return adminError(404, "CHAT_MESSAGE_NOT_FOUND", "답장할 메시지를 찾을 수 없습니다.");
-  }
+  return recent.length >= RATE_LIMIT.count
+    ? adminError(429, "CHAT_TOO_FAST", "메시지를 너무 빨리 보내고 있어요. 잠시 후 다시 보내 주세요.")
+    : null;
+}
+
+function append(me: AdminMe, room: string, body: string, now: number, extra: Partial<ChatMessage>): ChatMessage {
   const message: ChatMessage = {
     id: (messages.at(-1)?.id ?? 0) + 1, room, sender_id: memberId(me.username), sender_username: me.username,
-    sender_role: me.role, body: text, deleted: false, created_at: new Date(now).toISOString(),
-    reply_to: replyToId ? { id: replyToId, sender_username: "", preview: null, deleted: false } : null,
+    sender_role: me.role, body, deleted: false, created_at: new Date(now).toISOString(), reply_to: null, attachment: null, ...extra,
   };
   messages.push(message);
   return present(message);
+}
+
+export function send(me: AdminMe, room: string, body: string, replyToId: number | null): ChatMessage | Response {
+  const denied = partnerDenied(me, room);
+  if (denied) return denied;
+  const text = body.trim();
+  if (!text || text.length > MAX_BODY_LENGTH) return adminError(400, "INVALID_CHAT_MESSAGE", "메시지는 1~500자로 입력해 주세요.");
+  const now = Date.now();
+  const fast = tooFast(me, now);
+  if (fast) return fast;
+  if (replyToId && messages.find((m) => m.id === replyToId)?.room !== room) {
+    return adminError(404, "CHAT_MESSAGE_NOT_FOUND", "답장할 메시지를 찾을 수 없습니다.");
+  }
+  return append(me, room, text, now, {
+    reply_to: replyToId ? { id: replyToId, sender_username: "", preview: null, deleted: false } : null,
+  });
+}
+
+/** 1:1 대화 PDF — 실 API처럼 5MB 이하, .pdf 이름, %PDF- 로 시작. */
+export function sendAttachment(me: AdminMe, room: string, name: string, content: Uint8Array): ChatMessage | Response {
+  if (!room.startsWith("dm:")) return adminError(403, "CHAT_ROOM_FORBIDDEN", "PDF는 1:1 대화에서만 올릴 수 있습니다.");
+  const denied = partnerDenied(me, room);
+  if (denied) return denied;
+  const fileName = name.replace(/\\/g, "/").split("/").at(-1)!.trim();
+  const isPdf = new TextDecoder().decode(content.slice(0, 5)) === "%PDF-";
+  if (!fileName.toLowerCase().endsWith(".pdf") || fileName.length > 120 || !isPdf || content.length > MAX_ATTACHMENT_BYTES) {
+    return adminError(400, "INVALID_CHAT_ATTACHMENT", "5MB 이하 PDF 파일만 올릴 수 있어요.");
+  }
+  const now = Date.now();
+  const fast = tooFast(me, now);
+  if (fast) return fast;
+  const message = append(me, room, fileName, now, { attachment: { name: fileName, size: content.length } });
+  attachments.set(message.id, content);
+  return message;
 }

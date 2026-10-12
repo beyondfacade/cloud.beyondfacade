@@ -9,7 +9,11 @@ from apps.chat.domain.entities.chat_message_entity import ChatMessage
 
 class ChatMessageRepositoryPort(ABC):
     @abstractmethod
-    def add(self, message: ChatMessage) -> ChatMessage: ...
+    def add(self, message: ChatMessage, attachment: bytes | None = None) -> ChatMessage:
+        """attachment가 있으면 메시지와 같은 트랜잭션에 PDF 바이트를 저장한다."""
+
+    @abstractmethod
+    def attachment_content(self, message_id: int) -> bytes | None: ...
 
     @abstractmethod
     def get(self, message_id: int) -> ChatMessage | None: ...

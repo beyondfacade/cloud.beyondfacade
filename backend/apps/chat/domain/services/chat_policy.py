@@ -1,8 +1,10 @@
-"""채팅 메시지 규칙 — 본문 길이, 도배 방지, 답장 미리보기, 1:1 상대, 전문가 상담 상태."""
+"""채팅 메시지 규칙 — 본문 길이, 도배 방지, 답장 미리보기, 1:1 상대, 전문가 상담 상태, PDF 첨부."""
 
 from datetime import datetime, timedelta
 
 MAX_BODY_LENGTH = 500
+MAX_ATTACHMENT_BYTES = 5 * 1024 * 1024  # 프록시·인그레스 기본 본문 한도 안쪽
+_MAX_ATTACHMENT_NAME = 120
 RATE_LIMIT_COUNT = 5
 RATE_LIMIT_WINDOW = timedelta(seconds=10)
 _PREVIEW_LENGTH = 80
@@ -35,6 +37,18 @@ def clean_body(body: str) -> str | None:
     if not text or len(text) > MAX_BODY_LENGTH:
         return None
     return text
+
+
+def clean_attachment_name(name: str) -> str | None:
+    """경로를 뗀 .pdf 파일 이름 — 아니면 None."""
+    base = name.replace("\\", "/").rsplit("/", 1)[-1].strip()
+    if not base.lower().endswith(".pdf") or len(base) > _MAX_ATTACHMENT_NAME:
+        return None
+    return base
+
+
+def is_pdf(content: bytes) -> bool:
+    return 0 < len(content) <= MAX_ATTACHMENT_BYTES and content.startswith(b"%PDF-")
 
 
 def rate_window_start(now: datetime) -> datetime:

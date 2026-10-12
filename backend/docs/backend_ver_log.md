@@ -1,5 +1,13 @@
 # Backend Version Log
 
+## [v0.115.0] - 2026-10-12
+
+### Added
+- **1:1 대화 PDF 첨부** — `POST /chat/rooms/{room}/attachments?name=파일.pdf`(본문은 PDF 바이트 그대로, `Content-Type: application/pdf` — python-multipart 의존성 없이), `GET /chat/messages/{id}/attachment`(inline PDF, `Cache-Control: private, no-store`). 1:1 방에서만(아니면 403 `CHAT_ROOM_FORBIDDEN`), 5MB 이하·`.pdf` 이름·`%PDF-` 시작만(아니면 400 `INVALID_CHAT_ATTACHMENT`), 도배 제한은 메시지와 같다. 내려받기는 그 방 회원만, 지워진 메시지면 404
+- 메시지 응답에 `attachment: {name, size} | null`(지워지면 null) — 본문은 파일 이름이라 대화 목록 미리보기·답장 인용이 그대로 동작. 실시간 이벤트 코덱도 첨부를 실어 보낸다
+- 저장: `chat_message.attachment_name/size` + 바이트는 `chat_attachment`(메시지 삭제 시 CASCADE) — 파드 디스크는 배포마다 사라지고, 목록 조회가 큰 바이트를 읽지 않게 따로 둔다. 마이그레이션 e5f7a9b1c3d6
+- 테스트: 업로드 → 목록·이벤트에 첨부, 상대는 내려받고 방 밖 회원은 404, 형식·방 종류 오류, 지운 뒤 404
+
 ## [v0.114.0] - 2026-10-12
 
 ### Added

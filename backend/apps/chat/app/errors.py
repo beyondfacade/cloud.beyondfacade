@@ -21,6 +21,10 @@ class InvalidChatMessage(ChatError):
     code = "INVALID_CHAT_MESSAGE"
 
 
+class InvalidChatAttachment(ChatError):
+    code = "INVALID_CHAT_ATTACHMENT"
+
+
 class ChatTooFast(ChatError):
     code = "CHAT_TOO_FAST"
 

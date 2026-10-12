@@ -11,6 +11,12 @@ class ChatReplyDto:
 
 
 @dataclass(frozen=True)
+class ChatAttachmentDto:
+    name: str
+    size: int  # bytes
+
+
+@dataclass(frozen=True)
 class ChatMessageDto:
     id: int
     room: str
@@ -21,6 +27,7 @@ class ChatMessageDto:
     deleted: bool
     created_at: datetime
     reply_to: ChatReplyDto | None
+    attachment: ChatAttachmentDto | None = None  # 지워진 메시지면 None
 
 
 @dataclass(frozen=True)

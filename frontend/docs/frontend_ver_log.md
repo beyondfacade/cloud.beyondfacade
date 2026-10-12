@@ -1,5 +1,12 @@
 # Frontend Version Log
 
+## [v0.80.0] - 2026-10-12
+
+### Added
+- **DM 채팅창 PDF 업로드·크게 보기** — 1:1 대화 입력줄에 클립 버튼(PDF만, 5MB 이하는 보내기 전에도 확인). 올린 PDF는 파일 이름·크기 카드로 보이고, 누르면 화면 가득 뷰어(`chat-pdf-viewer.tsx`)가 열린다. 뷰어는 로그인 쿠키로 PDF를 받아 blob URL로 띄워 API가 다른 origin이어도 되고, 내려받기 링크·Esc/바깥 클릭 닫기(채팅 창은 그대로). 글로벌·관리자 방에는 첨부 버튼이 없다(백엔드 v0.115.0)
+- mock: `POST /chat/rooms/{room}/attachments`, `GET /chat/messages/{id}/attachment`(실 API와 같은 검증), 메시지에 `attachment` 필드
+- 테스트: DM에서 업로드·카드·뷰어 열고 Esc로 닫기, 글로벌 방엔 첨부 버튼 없음, mock 계약(업로드·내려받기·방 밖 404·형식/방 오류)
+
 ## [v0.79.0] - 2026-10-12
 
 ### Changed

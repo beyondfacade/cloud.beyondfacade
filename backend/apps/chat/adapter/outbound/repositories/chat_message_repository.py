@@ -4,7 +4,7 @@ from datetime import datetime
 from sqlalchemy import func, or_, select, update
 
 from apps.chat.adapter.outbound.orm_mappers.chat_message_orm_mapper import to_entity, to_orm
-from apps.chat.adapter.outbound.orms.chat_message_orm import ChatMessageOrm
+from apps.chat.adapter.outbound.orms.chat_message_orm import ChatAttachmentOrm, ChatMessageOrm
 from apps.chat.app.ports.output.chat_message_port import ChatMessageRepositoryPort
 from apps.chat.domain.entities.chat_message_entity import ChatMessage
 from apps.chat.domain.value_objects.chat_room import DirectRoom, parse_room
@@ -12,12 +12,19 @@ from core.matrix.grid_oracle_database_manager import session_scope
 
 
 class SqlAlchemyChatMessageRepository(ChatMessageRepositoryPort):
-    def add(self, message: ChatMessage) -> ChatMessage:
+    def add(self, message: ChatMessage, attachment: bytes | None = None) -> ChatMessage:
         with session_scope() as session:
             orm = to_orm(message)
             session.add(orm)
             session.flush()
+            if attachment is not None:
+                session.add(ChatAttachmentOrm(message_id=orm.id, content=attachment))
             return replace(message, id=orm.id)
+
+    def attachment_content(self, message_id: int) -> bytes | None:
+        with session_scope() as session:
+            orm = session.get(ChatAttachmentOrm, message_id)
+            return orm.content if orm else None
 
     def get(self, message_id: int) -> ChatMessage | None:
         with session_scope() as session:

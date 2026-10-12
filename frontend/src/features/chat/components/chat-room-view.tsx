@@ -4,14 +4,16 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { ApiError } from "@/shared/api/client";
 import type { AdminMe, ChatMessage, ChatPage } from "@/shared/api/types";
-import { chatMessagesKey, deleteChatMessage, fetchChatMessages, markChatRead, sendChatMessage } from "../api";
+import { chatMessagesKey, deleteChatMessage, fetchChatMessages, markChatRead, sendChatAttachment, sendChatMessage } from "../api";
 import { applyChatEvent, clearRoomUnread } from "../hooks/chat-cache";
 import { isMine, prependOlder } from "../lib/chat-state";
 import { ChatComposer } from "./chat-composer";
 import { ChatMessageItem } from "./chat-message-item";
+import { ChatPdfViewer } from "./chat-pdf-viewer";
 import styles from "./global-chat.module.css";
 
 const NEAR_BOTTOM_PX = 80;
+const MAX_PDF_BYTES = 5 * 1024 * 1024;
 
 const errorText = (error: unknown) => (error instanceof ApiError ? error.message : "잠시 후 다시 시도해 주세요.");
 
@@ -34,6 +36,18 @@ export function ChatRoomView({ room, me, emptyText }: { room: string; me: AdminM
       applyChatEvent(client, { type: "message", room, message_id: message.id, message }, { me: me.username, activeRoom: room });
     },
   });
+  const attach = useMutation({
+    mutationFn: async (file: File) => {
+      if (file.type && file.type !== "application/pdf") throw new ApiError("INVALID_CHAT_ATTACHMENT", "PDF 파일만 올릴 수 있어요.");
+      if (file.size > MAX_PDF_BYTES) throw new ApiError("INVALID_CHAT_ATTACHMENT", "5MB 이하 PDF 파일만 올릴 수 있어요.");
+      return sendChatAttachment(room, file);
+    },
+    onSuccess: (message) => {
+      stickToBottom.current = true;
+      applyChatEvent(client, { type: "message", room, message_id: message.id, message }, { me: me.username, activeRoom: room });
+    },
+  });
+  const [viewing, setViewing] = useState<ChatMessage | null>(null);
   const remove = useMutation({
     mutationFn: (message: ChatMessage) => deleteChatMessage(message.id),
     onSuccess: (_, message) =>
@@ -72,6 +86,8 @@ export function ChatRoomView({ room, me, emptyText }: { room: string; me: AdminM
     }
   };
 
+  const failed = [send, attach, remove].find((mutation) => mutation.isError);
+
   const onDelete = (message: ChatMessage) => {
     if (window.confirm("이 메시지를 삭제할까요? 모든 사람에게서 사라집니다.")) remove.mutate(message);
   };
@@ -97,6 +113,7 @@ export function ChatRoomView({ room, me, emptyText }: { room: string; me: AdminM
             canDelete={me.can_operate}
             onReply={setReplyTo}
             onDelete={onDelete}
+            onOpenPdf={setViewing}
           />
         ))}
       </ul>
@@ -105,9 +122,11 @@ export function ChatRoomView({ room, me, emptyText }: { room: string; me: AdminM
         replyTo={replyTo}
         onCancelReply={() => setReplyTo(null)}
         onSend={(body) => send.mutateAsync(body)}
-        sending={send.isPending}
-        error={send.isError ? errorText(send.error) : remove.isError ? errorText(remove.error) : null}
+        sending={send.isPending || attach.isPending}
+        error={failed ? errorText(failed.error) : null}
+        onAttach={room.startsWith("dm:") ? (file) => attach.mutate(file) : undefined}
       />
+      {viewing && <ChatPdfViewer message={viewing} onClose={() => setViewing(null)} />}
     </>
   );
 }

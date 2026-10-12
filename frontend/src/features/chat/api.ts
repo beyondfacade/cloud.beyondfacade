@@ -1,4 +1,4 @@
-import { apiDelete, apiGet, apiPost, apiPut } from "@/shared/api/client";
+import { ApiError, apiDelete, apiGet, apiPost, apiPut } from "@/shared/api/client";
 import type { ChatExpert, ChatMessage, ChatPage, ChatRead, ChatRoom } from "@/shared/api/types";
 import { config } from "@/shared/config";
 
@@ -16,6 +16,29 @@ export const fetchChatMessages = (room: string, beforeId?: number) =>
 
 export const sendChatMessage = (room: string, body: string, replyToId: number | null) =>
   apiPost<ChatMessage>(`${roomPath(room)}/messages`, { body, reply_to_id: replyToId });
+
+/** PDF 바이트를 본문 그대로 보낸다 — 1:1 대화에서만, 5MB 이하. */
+export const sendChatAttachment = async (room: string, file: File) => {
+  const res = await fetch(`${config.apiBase}${roomPath(room)}/attachments?name=${encodeURIComponent(file.name)}`, {
+    method: "POST",
+    credentials: "include",
+    headers: { "Content-Type": "application/pdf" },
+    body: file,
+  });
+  if (!res.ok) await apiError(res);
+  return (await res.json()) as ChatMessage;
+};
+
+export const fetchChatAttachment = async (messageId: number) => {
+  const res = await fetch(`${config.apiBase}/chat/messages/${messageId}/attachment`, { credentials: "include" });
+  if (!res.ok) await apiError(res);
+  return res.blob();
+};
+
+async function apiError(res: Response): Promise<never> {
+  const body = await res.json().catch(() => null);
+  throw new ApiError(body?.error?.code ?? `HTTP_${res.status}`, body?.error?.message ?? "파일을 처리하지 못했어요.");
+}
 
 export const deleteChatMessage = (id: number) => apiDelete(`/chat/messages/${id}`);
 

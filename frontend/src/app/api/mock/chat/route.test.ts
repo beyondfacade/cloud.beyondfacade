@@ -3,7 +3,9 @@ import type { ChatMessage, ChatRoom } from "@/shared/api/types";
 import { POST as buyConsultation } from "./consultations/route";
 import { POST as openDirect } from "./direct/route";
 import { GET as members } from "./members/route";
+import { GET as downloadPdf } from "./messages/[id]/attachment/route";
 import { DELETE as remove } from "./messages/[id]/route";
+import { POST as uploadPdf } from "./rooms/[room]/attachments/route";
 import { PUT as markRead } from "./reads/[room]/route";
 import { GET as listMessages, POST as postMessage } from "./rooms/[room]/messages/route";
 import { GET as listRooms } from "./rooms/route";
@@ -47,7 +49,7 @@ describe("채팅 mock 계약", () => {
     const { items, has_more } = await (await page("global", "viewer")).json();
     expect(has_more).toBe(false);
     expect(Object.keys(items[0]).sort()).toEqual(
-      ["body", "created_at", "deleted", "id", "reply_to", "room", "sender_id", "sender_role", "sender_username"],
+      ["attachment", "body", "created_at", "deleted", "id", "reply_to", "room", "sender_id", "sender_role", "sender_username"],
     );
   });
 
@@ -130,6 +132,26 @@ describe("채팅 mock 계약", () => {
     vi.setSystemTime(Date.now() + 60_000);
     expect(await status()).toBe("available");
     consultations.length = 0;
+  });
+
+  it("1:1 대화에만 PDF를 올리고, 그 방 회원만 내려받는다", async () => {
+    const upload = (room: string, user: string, name: string, body: string) =>
+      uploadPdf(
+        new Request(`${base}/rooms/${room}/attachments?name=${encodeURIComponent(name)}`, {
+          method: "POST", headers: { ...as(user), "content-type": "application/pdf" }, body,
+        }),
+        roomCtx(room),
+      );
+    const download = (id: number, user: string) =>
+      downloadPdf(new Request(`${base}/messages/${id}/attachment`, { headers: as(user) }), { params: Promise.resolve({ id: String(id) }) });
+    const sent = await upload("dm:2:5", "viewer", "자료.pdf", "%PDF-1.4 본문");
+    const message: ChatMessage = await sent.json();
+    expect([sent.status, message.body, message.attachment?.name]).toEqual([201, "자료.pdf", "자료.pdf"]);
+    const file = await download(message.id, "park.expert");
+    expect([file.status, file.headers.get("content-type"), await file.text()]).toEqual([200, "application/pdf", "%PDF-1.4 본문"]);
+    expect((await download(message.id, "ops")).status).toBe(404);
+    expect(await errorCode(await upload("dm:2:5", "viewer", "메모.txt", "%PDF-1.4"))).toBe("INVALID_CHAT_ATTACHMENT");
+    expect(await errorCode(await upload("global", "viewer", "a.pdf", "%PDF-1.4"))).toBe("CHAT_ROOM_FORBIDDEN");
   });
 
   it("읽음 표시는 앞으로만 가고, 읽으면 안 읽은 개수가 0이 된다", async () => {

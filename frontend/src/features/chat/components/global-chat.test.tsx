@@ -31,7 +31,7 @@ const OPS: AdminMe = { username: "ops", role: "operator", can_operate: true };
 const VIEWER: AdminMe = { username: "viewer", role: "viewer", can_operate: false };
 const message = (id: number, over: Partial<ChatMessage> = {}): ChatMessage => ({
   id, room: "global", sender_id: 2, sender_username: "viewer", sender_role: "viewer", body: `메시지 ${id}`,
-  deleted: false, created_at: new Date().toISOString(), reply_to: null, ...over,
+  deleted: false, created_at: new Date().toISOString(), reply_to: null, attachment: null, ...over,
 });
 const room = (key: string, over: Partial<ChatRoom> = {}): ChatRoom => ({
   key, kind: key.startsWith("dm:") ? "direct" : (key as ChatRoom["kind"]), title: key === "global" ? "전체" : key,
@@ -53,6 +53,10 @@ function setup(me: AdminMe | null, rooms: ChatRoom[] = [room("global")], items: 
       return Promise.resolve(me ? json(200, me) : json(401, { error: { code: "UNAUTHENTICATED", message: "로그인이 필요합니다." } }));
     }
     if (url.endsWith("/chat/rooms")) return Promise.resolve(json(200, rooms));
+    if (url.endsWith("/attachment")) return Promise.resolve(new Response("%PDF-1.4", { headers: { "content-type": "application/pdf" } }));
+    if (url.includes("/attachments?name=")) {
+      return Promise.resolve(json(201, message(100, { room: "dm:2:5", body: "계획서.pdf", attachment: { name: "계획서.pdf", size: 8 } })));
+    }
     if (url.includes("/messages") && method === "GET") return Promise.resolve(json(200, { items, has_more: false }));
     if (url.includes("/messages") && method === "POST") {
       const body = JSON.parse(String(init?.body));
@@ -192,6 +196,27 @@ it("글로벌 채팅/DM 토글이 있고, 일반 회원에게는 글로벌 채�
   expect(screen.getAllByRole("tab").map((tab) => tab.textContent)).toEqual(["글로벌 채팅", "DM"]);
   expect(screen.queryByRole("combobox", { name: "글로벌 채팅방" })).not.toBeInTheDocument();
   expect(await screen.findByText("메시지 1")).toBeInTheDocument();
+  expect(screen.queryByRole("button", { name: "PDF 첨부" })).not.toBeInTheDocument(); // PDF는 1:1에서만
+});
+
+it("1:1 대화에서 PDF를 올리고, 첨부 카드를 누르면 PDF를 크게 본다", async () => {
+  vi.stubGlobal("URL", Object.assign(URL, { createObjectURL: () => "blob:pdf", revokeObjectURL: () => {} }));
+  sessionStorage.setItem("metabole-chat-v2", JSON.stringify({
+    open: true, mode: "direct", room: "global", directView: "rooms", dm: { key: "dm:2:5", title: "park.expert", owner: "viewer" },
+  }));
+  const shared = message(7, { room: "dm:2:5", sender_username: "park.expert", body: "자료.pdf", attachment: { name: "자료.pdf", size: 2048 } });
+  setup(VIEWER, [room("global")], [shared]);
+  await userEvent.upload(await screen.findByLabelText("PDF 파일"), new File(["%PDF-1.4"], "계획서.pdf", { type: "application/pdf" }));
+  await waitFor(() => expect(calls("/attachments", "POST")).toHaveLength(1));
+  expect(String(calls("/attachments", "POST")[0][0])).toContain(`name=${encodeURIComponent("계획서.pdf")}`);
+  expect(await screen.findByRole("button", { name: "계획서.pdf PDF 크게 보기" })).toBeInTheDocument();
+  await userEvent.click(screen.getByRole("button", { name: "자료.pdf PDF 크게 보기" }));
+  const viewer = await screen.findByRole("dialog", { name: "자료.pdf 보기" });
+  expect(await within(viewer).findByTitle("자료.pdf")).toHaveAttribute("src", "blob:pdf");
+  expect(calls("/chat/messages/7/attachment")).toHaveLength(1);
+  await userEvent.keyboard("{Escape}");
+  expect(screen.queryByRole("dialog", { name: "자료.pdf 보기" })).not.toBeInTheDocument();
+  expect(screen.getByRole("dialog", { name: "메타볼레 채팅" })).toBeInTheDocument(); // 채팅 창은 그대로
 });
 
 it("관리자는 글로벌 채팅 드롭다운으로 전체·관리자 방을 고르고, 남의 메시지에 삭제 버튼이 있다", async () => {

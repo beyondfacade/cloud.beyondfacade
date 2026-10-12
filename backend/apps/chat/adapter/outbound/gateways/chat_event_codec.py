@@ -4,7 +4,7 @@ import json
 from dataclasses import asdict
 from datetime import datetime
 
-from apps.chat.app.dtos.chat_message_dto import ChatEventDto, ChatMessageDto, ChatReplyDto
+from apps.chat.app.dtos.chat_message_dto import ChatAttachmentDto, ChatEventDto, ChatMessageDto, ChatReplyDto
 
 CHANNEL = "chat_event"
 
@@ -23,6 +23,12 @@ def decode(payload: str) -> ChatEventDto:
 
 def _message(raw: dict) -> ChatMessageDto:
     reply = raw.get("reply_to")
+    attachment = raw.get("attachment")
     return ChatMessageDto(
-        **{**raw, "created_at": datetime.fromisoformat(raw["created_at"]), "reply_to": ChatReplyDto(**reply) if reply else None}
+        **{
+            **raw,
+            "created_at": datetime.fromisoformat(raw["created_at"]),
+            "reply_to": ChatReplyDto(**reply) if reply else None,
+            "attachment": ChatAttachmentDto(**attachment) if attachment else None,
+        }
     )

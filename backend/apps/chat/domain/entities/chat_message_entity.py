@@ -13,6 +13,8 @@ class ChatMessage:
     reply_to_id: int | None = None
     deleted_at: datetime | None = None
     deleted_by: int | None = None
+    attachment_name: str | None = None  # PDF 첨부 메시지면 파일 이름 (본문도 같은 이름)
+    attachment_size: int | None = None
     id: int | None = None
 
     @property

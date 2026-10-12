@@ -30,6 +30,15 @@ class ChatMessageUseCase(ABC):
         """InvalidChatMessage(1~500자) · ChatTooFast(10초에 5개) · ChatMessageNotFound(답장 대상)."""
 
     @abstractmethod
+    def send_attachment(self, member: ChatMember, room_key: str, name: str, content: bytes) -> ChatMessageDto:
+        """1:1 대화에만 PDF 한 개(5MB 이하, .pdf 이름, %PDF- 시작) — 본문은 파일 이름.
+        1:1이 아니면 ChatRoomForbidden · 형식·크기가 틀리면 InvalidChatAttachment · 도배 제한은 메시지와 같다."""
+
+    @abstractmethod
+    def attachment(self, member: ChatMember, message_id: int) -> tuple[str, bytes]:
+        """(파일 이름, PDF 바이트) — 그 방에 들어갈 수 있는 회원만, 지워진 메시지면 ChatMessageNotFound."""
+
+    @abstractmethod
     def delete(self, member: ChatMember, message_id: int) -> None:
         """관리자 전용(라우터 가드) — 본문은 지우고 자리만 남긴다."""
 

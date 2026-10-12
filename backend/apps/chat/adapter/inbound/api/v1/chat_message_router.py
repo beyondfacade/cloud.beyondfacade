@@ -1,5 +1,6 @@
 import asyncio
 from collections.abc import AsyncIterator
+from urllib.parse import quote
 
 from fastapi import APIRouter, Depends, Query, Request, Response
 from fastapi.responses import StreamingResponse
@@ -25,8 +26,10 @@ from apps.chat.adapter.inbound.mappers.chat_message_mapper import (
     to_room_response,
 )
 from apps.chat.app.dtos.chat_message_dto import ChatEventDto
+from apps.chat.app.errors import InvalidChatAttachment
 from apps.chat.app.ports.input.chat_message_use_case import ChatMessageUseCase
 from apps.chat.dependencies.chat_dependencies import get_chat_message_use_case
+from apps.chat.domain.services.chat_policy import MAX_ATTACHMENT_BYTES
 
 router = APIRouter(prefix="/chat", tags=["chat"])
 
@@ -66,6 +69,41 @@ def send(
     use_case: ChatMessageUseCase = Depends(get_chat_message_use_case),
 ) -> ChatMessageResponse:
     return to_message_response(use_case.send(to_member(principal), room_key, body.body, body.reply_to_id))
+
+
+@router.post("/rooms/{room_key}/attachments", response_model=ChatMessageResponse, status_code=201)
+async def send_attachment(
+    room_key: str,
+    request: Request,
+    name: str = Query(min_length=1, max_length=255),
+    principal: AdminPrincipalDto = Depends(require_admin),
+    use_case: ChatMessageUseCase = Depends(get_chat_message_use_case),
+) -> ChatMessageResponse:
+    """본문은 PDF 바이트 그대로(Content-Type: application/pdf) — multipart 의존성 없이 받는다."""
+    length = request.headers.get("content-length", "")
+    if length.isdigit() and int(length) > MAX_ATTACHMENT_BYTES:
+        raise InvalidChatAttachment("5MB 이하 PDF 파일만 올릴 수 있어요.")
+    content = await request.body()
+    dto = await run_in_threadpool(use_case.send_attachment, to_member(principal), room_key, name, content)
+    return to_message_response(dto)
+
+
+@router.get("/messages/{message_id}/attachment", response_model=None)
+def attachment(
+    message_id: int,
+    principal: AdminPrincipalDto = Depends(require_admin),
+    use_case: ChatMessageUseCase = Depends(get_chat_message_use_case),
+) -> Response:
+    name, content = use_case.attachment(to_member(principal), message_id)
+    return Response(
+        content,
+        media_type="application/pdf",
+        headers={
+            "Content-Disposition": f"inline; filename*=UTF-8''{quote(name)}",
+            "Cache-Control": "private, no-store",
+            "X-Content-Type-Options": "nosniff",
+        },
+    )
 
 
 @router.delete("/messages/{message_id}", status_code=204)

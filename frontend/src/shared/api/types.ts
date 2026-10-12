@@ -935,6 +935,12 @@ export interface ChatMessage {
   deleted: boolean;
   created_at: string;
   reply_to: ChatReply | null;
+  attachment: ChatAttachment | null; // 1:1 대화의 PDF — 지워진 메시지면 null
+}
+
+export interface ChatAttachment {
+  name: string;
+  size: number; // bytes
 }
 
 export interface ChatPage {

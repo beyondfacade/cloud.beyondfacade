@@ -65,7 +65,7 @@ def feed():
     with session_scope() as session:
         session.execute(
             text(
-                "truncate chat_consultation, chat_read, chat_message, access_event, ip_block, admin_session, admin_audit, admin_user "
+                "truncate chat_consultation, chat_read, chat_attachment, chat_message, access_event, ip_block, admin_session, admin_audit, admin_user "
                 "restart identity cascade"
             )
         )
@@ -248,6 +248,35 @@ def test_상담을_사면_그_전문가는_다른_회원에게_대화_중이라_
         session.execute(text("update chat_consultation set ends_at = now() - interval '1 minute'"))
     assert [e["status"] for e in other.get("/chat/members").json()] == ["available"]
     assert other.post("/chat/direct", json={"user_id": 3}).status_code == 200
+
+
+def _upload(client: TestClient, room: str, name: str, content: bytes):
+    return client.post(
+        f"/chat/rooms/{room}/attachments", params={"name": name}, content=content, headers={"content-type": "application/pdf"}
+    )
+
+
+def test_1대1_대화에_PDF를_올리면_첨부_메시지가_되고_그_방_회원만_내려받는다(feed):
+    _make_expert("guest2", 30000)
+    viewer, expert, outsider = _client("viewer"), _client("guest2"), _client("ops")
+    pdf = b"%PDF-1.4\n" + b"x" * 100
+    sent = _upload(viewer, "dm:2:3", "상담 자료.pdf", pdf)
+    assert sent.status_code == 201
+    assert (sent.json()["body"], sent.json()["attachment"]) == ("상담 자료.pdf", {"name": "상담 자료.pdf", "size": len(pdf)})
+    assert feed.events[-1].message.attachment.name == "상담 자료.pdf"
+    message_id = sent.json()["id"]
+    assert expert.get("/chat/rooms/dm:2:3/messages").json()["items"][-1]["attachment"]["size"] == len(pdf)
+    downloaded = expert.get(f"/chat/messages/{message_id}/attachment")
+    assert (downloaded.status_code, downloaded.content) == (200, pdf)
+    assert downloaded.headers["content-type"] == "application/pdf"
+    assert downloaded.headers["content-disposition"].startswith("inline;")
+    assert outsider.get(f"/chat/messages/{message_id}/attachment").status_code == 404
+    assert _upload(viewer, "dm:2:3", "메모.txt", pdf).json()["error"]["code"] == "INVALID_CHAT_ATTACHMENT"
+    assert _upload(viewer, "dm:2:3", "가짜.pdf", b"hello").status_code == 400
+    assert _upload(viewer, "global", "a.pdf", pdf).json()["error"]["code"] == "CHAT_ROOM_FORBIDDEN"
+    SqlAlchemyChatMessageRepository().mark_deleted(message_id, 1, datetime.now(UTC))
+    assert expert.get(f"/chat/messages/{message_id}/attachment").status_code == 404
+    assert expert.get("/chat/rooms/dm:2:3/messages").json()["items"][-1]["attachment"] is None
 
 
 def test_시연_계정_001이_로그아웃하면_시연_전문가_상담이_처음_상태로_돌아간다():

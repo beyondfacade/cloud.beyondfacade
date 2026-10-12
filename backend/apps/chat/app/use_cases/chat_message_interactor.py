@@ -2,6 +2,7 @@ from collections.abc import Callable
 from datetime import UTC, datetime, timedelta
 
 from apps.chat.app.dtos.chat_message_dto import (
+    ChatAttachmentDto,
     ChatEventDto,
     ChatExpertDto,
     ChatMessageDto,
@@ -15,6 +16,7 @@ from apps.chat.app.errors import (
     ChatMessageNotFound,
     ChatRoomForbidden,
     ChatTooFast,
+    InvalidChatAttachment,
     InvalidChatMessage,
     InvalidConsultation,
 )
@@ -38,8 +40,10 @@ from apps.chat.domain.services.chat_policy import (
     RATE_LIMIT_COUNT,
     can_open_direct,
     can_talk_direct,
+    clean_attachment_name,
     clean_body,
     expert_status,
+    is_pdf,
     rate_window_start,
     reply_preview,
 )
@@ -84,6 +88,9 @@ def to_message_dto(message: ChatMessage, replies: dict[int, ChatMessage]) -> Cha
         deleted=message.deleted,
         created_at=message.created_at,
         reply_to=_reply_dto(replied) if replied else None,
+        attachment=ChatAttachmentDto(name=message.attachment_name, size=message.attachment_size or 0)
+        if message.attachment_name and not message.deleted
+        else None,
     )
 
 
@@ -133,17 +140,11 @@ class ChatMessageInteractor(ChatMessageUseCase):
     def send(self, member: ChatMember, room_key: str, body: str, reply_to_id: int | None) -> ChatMessageDto:
         room = admitted_room(member, room_key)
         if isinstance(room, DirectRoom):
-            partner = self._members.active(room.partner_of(member.id))
-            if partner is None:
-                raise ChatMemberNotFound("대화 상대를 찾을 수 없습니다.")
-            if not can_talk_direct(member.role, partner.role):
-                raise ChatRoomForbidden("1:1 대화는 일반 회원과 전문가 사이에서만 할 수 있습니다.")
+            self._check_partner(member, room)
         text = clean_body(body)
         if text is None:
             raise InvalidChatMessage("메시지는 1~500자로 입력해 주세요.")
-        now = self._clock()
-        if self._messages.count_by_sender_since(member.id, rate_window_start(now)) >= RATE_LIMIT_COUNT:
-            raise ChatTooFast("메시지를 너무 빨리 보내고 있어요. 잠시 후 다시 보내 주세요.")
+        now = self._check_rate(member)
         replies = self._reply_target(room, reply_to_id)
         saved = self._messages.add(
             ChatMessage(
@@ -151,9 +152,34 @@ class ChatMessageInteractor(ChatMessageUseCase):
                 body=text, created_at=now, reply_to_id=reply_to_id,
             )
         )
-        dto = to_message_dto(saved, replies)
-        self._publisher.publish(ChatEventDto(type="message", room=room.key, message_id=saved.id, message=dto))
-        return dto
+        return self._publish(saved, replies)
+
+    def send_attachment(self, member: ChatMember, room_key: str, name: str, content: bytes) -> ChatMessageDto:
+        room = admitted_room(member, room_key)
+        if not isinstance(room, DirectRoom):
+            raise ChatRoomForbidden("PDF는 1:1 대화에서만 올릴 수 있습니다.")
+        self._check_partner(member, room)
+        clean_name = clean_attachment_name(name)
+        if clean_name is None or not is_pdf(content):
+            raise InvalidChatAttachment("5MB 이하 PDF 파일만 올릴 수 있어요.")
+        now = self._check_rate(member)
+        saved = self._messages.add(
+            ChatMessage(
+                room=room.key, sender_id=member.id, sender_username=member.username, sender_role=member.role,
+                body=clean_name, created_at=now, attachment_name=clean_name, attachment_size=len(content),
+            ),
+            attachment=content,
+        )
+        return self._publish(saved, {})
+
+    def attachment(self, member: ChatMember, message_id: int) -> tuple[str, bytes]:
+        message = self._messages.get(message_id)
+        if message is None or message.deleted or not message.attachment_name or not parse_room(message.room).admits(member):
+            raise ChatMessageNotFound("파일을 찾을 수 없습니다.")
+        content = self._messages.attachment_content(message_id)
+        if content is None:
+            raise ChatMessageNotFound("파일을 찾을 수 없습니다.")
+        return message.attachment_name, content
 
     def delete(self, member: ChatMember, message_id: int) -> None:
         message = self._messages.get(message_id)
@@ -251,6 +277,24 @@ class ChatMessageInteractor(ChatMessageUseCase):
             return parse_room(event.room).admits(member)
         except ValueError:
             return False
+
+    def _check_partner(self, member: ChatMember, room: DirectRoom) -> None:
+        partner = self._members.active(room.partner_of(member.id))
+        if partner is None:
+            raise ChatMemberNotFound("대화 상대를 찾을 수 없습니다.")
+        if not can_talk_direct(member.role, partner.role):
+            raise ChatRoomForbidden("1:1 대화는 일반 회원과 전문가 사이에서만 할 수 있습니다.")
+
+    def _check_rate(self, member: ChatMember) -> datetime:
+        now = self._clock()
+        if self._messages.count_by_sender_since(member.id, rate_window_start(now)) >= RATE_LIMIT_COUNT:
+            raise ChatTooFast("메시지를 너무 빨리 보내고 있어요. 잠시 후 다시 보내 주세요.")
+        return now
+
+    def _publish(self, saved: ChatMessage, replies: dict[int, ChatMessage]) -> ChatMessageDto:
+        dto = to_message_dto(saved, replies)
+        self._publisher.publish(ChatEventDto(type="message", room=saved.room, message_id=saved.id, message=dto))
+        return dto
 
     def _reply_target(self, room: ChatRoom, reply_to_id: int | None) -> dict[int, ChatMessage]:
         if reply_to_id is None:

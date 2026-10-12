@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from sqlalchemy import BigInteger, DateTime, ForeignKey, Index, String, Text
+from sqlalchemy import BigInteger, DateTime, ForeignKey, Index, Integer, LargeBinary, String, Text
 from sqlalchemy.orm import Mapped, mapped_column
 
 import apps.admin.adapter.outbound.orms.admin_user_orm  # noqa: F401  FK 대상이 메타데이터에 있어야 한다
@@ -22,8 +22,19 @@ class ChatMessageOrm(OrmBase):
     reply_to_id: Mapped[int | None] = mapped_column(BigInteger, ForeignKey("chat_message.id", ondelete="SET NULL"))
     deleted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     deleted_by: Mapped[int | None] = mapped_column(ForeignKey("admin_user.id", ondelete="SET NULL"))
+    attachment_name: Mapped[str | None] = mapped_column(String(120))
+    attachment_size: Mapped[int | None] = mapped_column(Integer)
 
     __table_args__ = (
         Index("ix_chat_message_room_id", "room", "id"),
         Index("ix_chat_message_sender_created_at", "sender_id", "created_at"),
     )
+
+
+class ChatAttachmentOrm(OrmBase):
+    """1:1 대화 PDF 바이트 — 메시지 목록 조회가 큰 바이트를 읽지 않게 따로 둔다 (파드 디스크는 배포마다 사라진다)."""
+
+    __tablename__ = "chat_attachment"
+
+    message_id: Mapped[int] = mapped_column(BigInteger, ForeignKey("chat_message.id", ondelete="CASCADE"), primary_key=True)
+    content: Mapped[bytes] = mapped_column(LargeBinary)

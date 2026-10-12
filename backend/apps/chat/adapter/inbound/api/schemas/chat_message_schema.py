@@ -25,6 +25,11 @@ class ChatReplyResponse(BaseModel):
     deleted: bool
 
 
+class ChatAttachmentResponse(BaseModel):
+    name: str
+    size: int
+
+
 class ChatMessageResponse(BaseModel):
     id: int
     room: str
@@ -35,6 +40,7 @@ class ChatMessageResponse(BaseModel):
     deleted: bool
     created_at: datetime
     reply_to: ChatReplyResponse | None
+    attachment: ChatAttachmentResponse | None
 
 
 class ChatPageResponse(BaseModel):
