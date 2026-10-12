@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { industryLabel } from "@/shared/industries";
+import { rememberExpertIndustry } from "@/shared/lib/open-expert-chat";
 import { fetchAnalysisRegionSummary } from "../api";
 import { AnalysisForm } from "./analysis-form";
 import { ProgressPanel } from "./progress-panel";
@@ -25,7 +26,14 @@ export function AnalysisPage() {
 }
 
 function AnalysisWorkspace({ region, industry, budget }: { region: string; industry: string; budget?: number }) {
-  const { state, start, loading } = useAgentReport();
+  const { state, start: startReport, loading } = useAgentReport();
+  const start = useCallback(
+    (params: Parameters<typeof startReport>[0]) => {
+      rememberExpertIndustry(industryLabel(params.industry));
+      return startReport(params);
+    },
+    [startReport],
+  );
   const autoStart = !!region && !!industry;
   const query = new URLSearchParams({ region, industry });
   if (budget !== undefined) query.set("budget", String(budget));

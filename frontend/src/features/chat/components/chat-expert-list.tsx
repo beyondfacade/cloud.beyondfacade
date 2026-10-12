@@ -3,6 +3,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { ApiError } from "@/shared/api/client";
+import { rememberedExpertIndustry } from "@/shared/lib/open-expert-chat";
 import type { ChatExpert, ChatExpertStatus, ChatRoom } from "@/shared/api/types";
 import { buyConsultation, CHAT_QUERY_KEY, fetchChatExperts, openDirectRoom } from "../api";
 import { initial } from "./chat-direct-list";
@@ -13,6 +14,13 @@ const HOURS = [1, 2, 3] as const;
 const STATUS_LABEL: Record<ChatExpertStatus, string> = { available: "대화 가능", busy: "대화 중", mine: "내 상담 중" };
 
 const won = (amount: number) => `${amount.toLocaleString("ko-KR")}원`;
+
+/** 리포트에서 고른 업종의 전문가를 맨 위로 — 업종 이름이 전문 업종을 품으면 같은 업종(부동산중개업 ⊃ 부동산). */
+function industryFirst(experts: ChatExpert[], industry: string | null): ChatExpert[] {
+  if (!industry) return experts;
+  const matches = (expert: ChatExpert) => !!expert.specialty && industry.includes(expert.specialty);
+  return [...experts.filter(matches), ...experts.filter((expert) => !matches(expert))];
+}
 
 /** 대화할 수 있는 전문가 전체와 요금·상담 상태 — 상담을 사면 그 전문가와의 1:1 방을 연다(일반 회원 전용). */
 export function ChatExpertList({ onOpen }: { onOpen: (room: ChatRoom) => void }) {
@@ -34,7 +42,7 @@ export function ChatExpertList({ onOpen }: { onOpen: (room: ChatRoom) => void })
   if (experts.data.length === 0) return <p className={styles.empty}>지금 대화할 수 있는 전문가가 없어요.</p>;
   return (
     <ul className={styles.rows} aria-label="전문가 목록">
-      {experts.data.map((expert) => (
+      {industryFirst(experts.data, rememberedExpertIndustry()).map((expert) => (
         <ExpertRow
           key={expert.id}
           expert={expert}

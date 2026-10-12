@@ -3,7 +3,7 @@ import { act, fireEvent, render, screen, waitFor, within } from "@testing-librar
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import type { AdminMe, ChatMessage, ChatRoom } from "@/shared/api/types";
-import { openExpertChat } from "@/shared/lib/open-expert-chat";
+import { openExpertChat, rememberExpertIndustry } from "@/shared/lib/open-expert-chat";
 import { GlobalChat } from "./global-chat";
 
 const navigation = vi.hoisted(() => ({ pathname: "/map" }));
@@ -103,6 +103,16 @@ it("전문가와 연결하기 이벤트가 오면 창이 열리고 DM의 전문�
   expect(screen.getByRole("tab", { name: "DM" })).toHaveAttribute("aria-selected", "true");
   expect(screen.getByRole("combobox", { name: "DM 보기" })).toHaveValue("experts");
   expect(calls("/chat/direct", "POST")).toHaveLength(0);
+});
+
+it("리포트로 고른 업종이 있으면 그 업종 전문가가 전문가 목록 맨 위에 온다", async () => {
+  rememberExpertIndustry("부동산중개업");
+  setup(VIEWER);
+  await screen.findByRole("button", { name: "채팅 열기" });
+  act(() => openExpertChat());
+  const list = await screen.findByRole("list", { name: "전문가 목록" });
+  const text = list.textContent ?? "";
+  expect(text.indexOf("choi.expert")).toBeLessThan(text.indexOf("park.expert")); // 응답 순서는 park → choi
 });
 
 it("일반 회원의 DM은 드롭다운으로 대화한 전문가와 전문가 목록을 오가고, 목록에서 상담을 사면 그 방이 열린다", async () => {
