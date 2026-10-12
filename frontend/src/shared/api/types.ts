@@ -913,3 +913,54 @@ export interface CollectorRun {
   key: string;
   started_at: string;
 }
+
+// ── 글로벌 채팅 (/chat/*) — 로그인 회원만. 방 key: global · operators · dm:{작은 id}:{큰 id} ──
+
+export type ChatRoomKind = "global" | "operators" | "direct";
+
+export interface ChatReply {
+  id: number;
+  sender_username: string;
+  preview: string | null; // 지워진 메시지면 null
+  deleted: boolean;
+}
+
+export interface ChatMessage {
+  id: number;
+  room: string;
+  sender_id: number | null;
+  sender_username: string;
+  sender_role: AdminRole;
+  body: string | null; // 지워진 메시지면 null
+  deleted: boolean;
+  created_at: string;
+  reply_to: ChatReply | null;
+}
+
+export interface ChatPage {
+  items: ChatMessage[]; // 오래된 것 → 최신
+  has_more: boolean;
+}
+
+export interface ChatRoom {
+  key: string;
+  kind: ChatRoomKind;
+  title: string;
+  partner_id: number | null;
+  unread: number;
+  last_message: ChatMessage | null;
+}
+
+export interface ChatPeer {
+  id: number;
+  username: string;
+}
+
+export type ChatEvent =
+  | { type: "message"; room: string; message_id: number; message: ChatMessage }
+  | { type: "deleted"; room: string; message_id: number; message: null };
+
+export interface ChatRead {
+  room: string;
+  last_read_id: number;
+}

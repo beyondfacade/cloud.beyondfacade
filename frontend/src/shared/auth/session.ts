@@ -23,10 +23,11 @@ export function logout(): Promise<void> {
   return apiPost<void>("/admin/auth/logout", {});
 }
 
-/** 로그인·가입·로그아웃 직후 — 헤더는 바로 바뀌고, 이전 사람의 관제실 캐시는 버린다. */
+/** 로그인·가입·로그아웃 직후 — 헤더는 바로 바뀌고, 이전 사람의 관제실·채팅 캐시는 버린다. */
 export function replaceSession(client: QueryClient, me: AdminMe | null): void {
   client.setQueryData(SESSION_QUERY_KEY, me);
   client.removeQueries({ queryKey: ["admin"] });
+  client.removeQueries({ queryKey: ["chat"] });
 }
 
 const AUTH_PAGES = [LOGIN_PATH, SIGNUP_PATH];

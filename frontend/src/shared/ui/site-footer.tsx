@@ -7,7 +7,8 @@ export function SiteFooter() {
   const pathname = usePathname();
   if (pathname === "/map") return null;
   if (pathname === "/login" || pathname === "/signup" || pathname.startsWith("/admin")) {
-    return <Link href="/sources" className="fixed bottom-3 right-4 z-10 rounded bg-[var(--bg-base)] px-2 py-1 text-xs text-[var(--text-secondary)] hover:text-[var(--accent)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]">데이터 출처</Link>;
+    // 오른쪽 아래는 채팅 버튼 자리
+    return <Link href="/sources" className="fixed bottom-3 left-4 z-10 rounded bg-[var(--bg-base)] px-2 py-1 text-xs text-[var(--text-secondary)] hover:text-[var(--accent)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]">데이터 출처</Link>;
   }
 
   return (

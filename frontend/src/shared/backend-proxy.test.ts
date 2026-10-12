@@ -18,6 +18,10 @@ describe("backendProxyRewrites", () => {
     ["/api/backend/analysis/a1/events/history", true],
     ["/api/backend/analysis/a1/events-extra", true],
     ["/api/backend/verdicts/1168064000", true],
+    ["/api/backend/chat/stream", false],
+    ["/api/backend/chat/stream/", false],
+    ["/api/backend/chat/rooms", true],
+    ["/api/backend/chat/stream-extra", true],
     ["/api/backend", true],
   ])("SSE 경로만 rewrite에서 제외한다: %s → %s", (path, matches) => {
     const [rewrite] = backendProxyRewrites("http://127.0.0.1:8201");

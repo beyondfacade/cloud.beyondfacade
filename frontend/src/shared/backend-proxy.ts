@@ -6,5 +6,5 @@ export const BACKEND_PROXY_PREFIX = "/api/backend";
 export function backendProxyRewrites(origin: string | undefined) {
   if (!origin) return [];
   // afterFiles rewrite는 동적 라우트보다 먼저 적용되므로 SSE 전용 Route Handler 경로만 제외한다.
-  return [{ source: `${BACKEND_PROXY_PREFIX}/:path((?!analysis/[^/]+/events/?$).*)*`, destination: `${origin.replace(/\/+$/, "")}/:path*` }];
+  return [{ source: `${BACKEND_PROXY_PREFIX}/:path((?!analysis/[^/]+/events/?$|chat/stream/?$).*)*`, destination: `${origin.replace(/\/+$/, "")}/:path*` }];
 }

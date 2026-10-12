@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { GlobalChat } from "@/features/chat/components/global-chat";
 import { ApiProviders } from "@/shared/api/providers";
 import { TopBar } from "@/shared/ui/top-bar";
 import { SiteFooter } from "@/shared/ui/site-footer";
@@ -26,6 +27,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           <TopBar />
           {children}
           <SiteFooter />
+          <GlobalChat />
         </ApiProviders>
       </body>
     </html>
