@@ -489,3 +489,12 @@ frontend/src/
 - 백엔드와 프론트엔드의 버전은 독립적으로 관리합니다.
 - 변경이 없는 쪽의 로그는 건드리지 않습니다.
 
+
+---
+
+## [Shared] Part VII — main 푸시 = 운영 배포
+
+- main에 푸시하면 곧 운영 배포다 — 백엔드는 Argo CD(EKS), 프론트는 Vercel.
+- **푸시 전엔 항상 `git pull --rebase origin main`** (커밋 안 한 변경이 있으면 `--autostash`). 백엔드 푸시마다 CI가 `deploy: backend <sha>` 태그 커밋을 main에 올려서, pull 없이 푸시하면 거절된다.
+- 푸시 전 `git log origin/main..main`으로 나가는 커밋을 확인한다 — 다른 사람 커밋이 섞여 있으면 먼저 묻는다.
+- AI는 "커밋할까요?"·"푸시할까요?"처럼 커밋·푸시를 묻거나 안내할 때 위 두 가지(pull --rebase, 운영 배포)를 함께 말한다.
