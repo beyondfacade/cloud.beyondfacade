@@ -1,0 +1,122 @@
+# API — 파드 1개 = uvicorn 워커 1개, 확장은 파드 수로 (serverplan K4·§7)
+# 주의: /regions/geojson은 실행 중에 /data/geojson 파일을 읽는다(이 파드엔 없다 → 500). K3(정적화) 전에는 배포 불가.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api
+  labels: {app: api}
+spec:
+  replicas: 2
+  selector:
+    matchLabels: {app: api}
+  strategy:
+    rollingUpdate: {maxUnavailable: 0, maxSurge: 1}  # 새 파드가 ready가 된 뒤에 옛 파드를 내린다
+  template:
+    metadata:
+      labels: {app: api}
+    spec:
+      terminationGracePeriodSeconds: 90  # preStop 10초 + SSE 리포트 최대 60초 + 여유
+      securityContext: {runAsNonRoot: true, runAsUser: 10001}
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: topology.kubernetes.io/zone
+          whenUnsatisfiable: ScheduleAnyway
+          labelSelector:
+            matchLabels: {app: api}
+      containers:
+        - name: api
+          image: beyondfacade-api
+          ports:
+            - containerPort: 8000
+          envFrom:
+            - configMapRef: {name: backend-config}
+            - secretRef: {name: backend-env}
+          resources:
+            requests: {cpu: 500m, memory: 512Mi}
+            limits: {cpu: "1", memory: 1Gi}  # 워커 1개라 1코어 넘게 줘도 못 쓴다
+          readinessProbe:
+            httpGet: {path: /health/ready, port: 8000}
+            periodSeconds: 5
+          livenessProbe:
+            httpGet: {path: /health, port: 8000}
+            periodSeconds: 10
+            failureThreshold: 3
+          lifecycle:
+            preStop:
+              # 엔드포인트 제거와 SIGTERM이 동시에 온다 — ALB가 대상을 빼기 전에 닫혀 502가 나지 않게 기다린다
+              exec: {command: ["sleep", "10"]}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: api
+spec:
+  selector: {app: api}
+  ports:
+    - port: 80
+      targetPort: 8000
+---
+# AWS Load Balancer Controller가 이 Ingress로 ALB를 만든다. 인증서는 host로 ACM에서 자동으로 찾는다.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: api
+  annotations:
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTPS":443}]'
+    alb.ingress.kubernetes.io/healthcheck-path: /health/ready
+    alb.ingress.kubernetes.io/load-balancer-attributes: idle_timeout.timeout_seconds=300  # SSE 리포트가 60초 기본값에 끊기지 않게
+    alb.ingress.kubernetes.io/target-group-attributes: >-
+      deregistration_delay.timeout_seconds=70,load_balancing.algorithm.type=least_outstanding_requests
+spec:
+  ingressClassName: alb
+  tls:
+    - hosts: [api.beyondfacade.cloud]
+  rules:
+    - host: api.beyondfacade.cloud
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: api
+                port: {number: 80}
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: api
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: api
+  minReplicas: 2
+  maxReplicas: 10  # DB 연결 한도(config.yaml)와 같이 움직인다
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target: {type: Utilization, averageUtilization: 60}
+  behavior:
+    scaleUp:  # 빨리 늘린다 — 15초마다 2배 또는 +4개 중 큰 쪽
+      stabilizationWindowSeconds: 0
+      selectPolicy: Max
+      policies:
+        - {type: Percent, value: 100, periodSeconds: 15}
+        - {type: Pods, value: 4, periodSeconds: 15}
+    scaleDown:  # 천천히 줄인다 — 5분 지켜본 뒤 1분에 1개
+      stabilizationWindowSeconds: 300
+      policies:
+        - {type: Pods, value: 1, periodSeconds: 60}
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: api
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels: {app: api}

@@ -1,5 +1,13 @@
 # Backend Version Log
 
+## [v0.97.0] - 2026-10-12
+
+> 10/6 `feat/k8s-phase0`의 v0.81.0를 main에 다시 얹음(버전 재부여)
+
+### Added
+- `deploy/k8s/` — EKS 운영 매니페스트(Kustomize, serverplan §4·§6·§7). API Deployment(readiness `/health/ready`·liveness `/health`, preStop 10초·종료 유예 90초, 비루트, AZ 분산)·Service·ALB Ingress(target-type ip, idle 300초, least outstanding requests, 등록 해제 70초)·HPA(2~10, CPU 60%, 빨리 늘리고 천천히 줄임)·PDB(최소 1)·ConfigMap(DB 풀 5+5)·CronJob 8개(호스트 crontab과 같은 일정·모듈, 서울 시간대, 겹침 금지). 계정 ID·ECR 주소·인증서 ARN은 넣지 않았다. kustomize build + kubeconform(k8s 1.31) 15개 리소스 통과, 크론 모듈 16개 이미지 안에 있음 확인
+- 주의: `/regions/geojson`이 실행 중에 `/data/geojson`을 읽어 파드에선 500 — K3(정적화) 전에는 배포 불가
+
 ## [v0.96.0] - 2026-10-12
 
 > 10/6 `feat/k8s-phase0`의 v0.80.0를 main에 다시 얹음(버전 재부여)

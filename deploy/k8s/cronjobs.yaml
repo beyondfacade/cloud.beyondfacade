@@ -1,0 +1,219 @@
+# 수집·색인·정리 크론 — 호스트 crontab(scripts/*.sh)과 같은 일정·같은 모듈 (serverplan §1-3)
+# 로그는 stdout(파일·tail 정리 불필요). 여러 단계는 앞 단계가 실패하면 멈춘다(scripts의 set -e와 같다).
+# 제외: host-metrics-sampler(K10 재설계 전), jekyll-devlog(로컬 전용).
+---
+# 뉴스 증분
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: news-poller
+spec:
+  schedule: "10 * * * *"
+  timeZone: Asia/Seoul
+  concurrencyPolicy: Forbid  # 겹쳐 돌면 같은 데이터를 두 번 쓴다
+  jobTemplate:
+    spec:
+      backoffLimit: 0  # 호스트 크론처럼 재시도하지 않는다 — 다음 일정에 증분으로 따라잡는다
+      template:
+        spec:
+          restartPolicy: Never
+          securityContext: {runAsNonRoot: true, runAsUser: 10001}
+          containers:
+            - name: news-poller
+              image: beyondfacade-api
+              command: ["sh", "-c", "python -m apps.news.adapter.inbound.cli.news_poller"]
+              envFrom:
+                - configMapRef: {name: backend-config}
+                - secretRef: {name: backend-env}
+              resources:
+                requests: {cpu: 250m, memory: 512Mi}
+                limits: {memory: 1Gi}
+---
+# 인허가 점포·학원·부동산 → 좌표·동 배정 → 지표·판정 재계산
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: store-collector
+spec:
+  schedule: "20 4 * * *"
+  timeZone: Asia/Seoul
+  concurrencyPolicy: Forbid  # 겹쳐 돌면 같은 데이터를 두 번 쓴다
+  jobTemplate:
+    spec:
+      backoffLimit: 0  # 호스트 크론처럼 재시도하지 않는다 — 다음 일정에 증분으로 따라잡는다
+      template:
+        spec:
+          restartPolicy: Never
+          securityContext: {runAsNonRoot: true, runAsUser: 10001}
+          containers:
+            - name: store-collector
+              image: beyondfacade-api
+              command: ["sh", "-c", "python -m apps.store.adapter.inbound.cli.store_collector && python -m apps.store.adapter.inbound.cli.academy_collector && python -m apps.store.adapter.inbound.cli.broker_collector && python -m apps.store.adapter.inbound.cli.geocode_stores && python -m apps.store.adapter.inbound.cli.assign_regions && python -m apps.metric.adapter.inbound.cli.build_metrics && python -m apps.verdict.adapter.inbound.cli.build_verdicts"]
+              envFrom:
+                - configMapRef: {name: backend-config}
+                - secretRef: {name: backend-env}
+              resources:
+                requests: {cpu: 250m, memory: 512Mi}
+                limits: {memory: 1Gi}
+---
+# 지원사업 공고
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: funding-collector
+spec:
+  schedule: "10 5 * * *"
+  timeZone: Asia/Seoul
+  concurrencyPolicy: Forbid  # 겹쳐 돌면 같은 데이터를 두 번 쓴다
+  jobTemplate:
+    spec:
+      backoffLimit: 0  # 호스트 크론처럼 재시도하지 않는다 — 다음 일정에 증분으로 따라잡는다
+      template:
+        spec:
+          restartPolicy: Never
+          securityContext: {runAsNonRoot: true, runAsUser: 10001}
+          containers:
+            - name: funding-collector
+              image: beyondfacade-api
+              command: ["sh", "-c", "python -m apps.funding.adapter.inbound.cli.funding_collector"]
+              envFrom:
+                - configMapRef: {name: backend-config}
+                - secretRef: {name: backend-env}
+              resources:
+                requests: {cpu: 250m, memory: 512Mi}
+                limits: {memory: 1Gi}
+---
+# RAG 증분 색인 — bge-m3 임베딩(OLLAMA_BASE_URL)
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: rag-indexer
+spec:
+  schedule: "50 5 * * *"
+  timeZone: Asia/Seoul
+  concurrencyPolicy: Forbid  # 겹쳐 돌면 같은 데이터를 두 번 쓴다
+  jobTemplate:
+    spec:
+      backoffLimit: 0  # 호스트 크론처럼 재시도하지 않는다 — 다음 일정에 증분으로 따라잡는다
+      template:
+        spec:
+          restartPolicy: Never
+          securityContext: {runAsNonRoot: true, runAsUser: 10001}
+          containers:
+            - name: rag-indexer
+              image: beyondfacade-api
+              command: ["sh", "-c", "python -m apps.rag.adapter.inbound.cli.build_rag_index --provider bge-m3"]
+              envFrom:
+                - configMapRef: {name: backend-config}
+                - secretRef: {name: backend-env}
+              resources:
+                requests: {cpu: 250m, memory: 512Mi}
+                limits: {memory: 1Gi}
+---
+# 기준금리·대출금리·임대동향(주 1회)
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: interest-rate-collector
+spec:
+  schedule: "20 5 * * 1"
+  timeZone: Asia/Seoul
+  concurrencyPolicy: Forbid  # 겹쳐 돌면 같은 데이터를 두 번 쓴다
+  jobTemplate:
+    spec:
+      backoffLimit: 0  # 호스트 크론처럼 재시도하지 않는다 — 다음 일정에 증분으로 따라잡는다
+      template:
+        spec:
+          restartPolicy: Never
+          securityContext: {runAsNonRoot: true, runAsUser: 10001}
+          containers:
+            - name: interest-rate-collector
+              image: beyondfacade-api
+              command: ["sh", "-c", "python -m apps.shock.adapter.inbound.cli.load_interest_rate && python -m apps.shock.adapter.inbound.cli.load_loan_rate && python -m apps.rent.adapter.inbound.cli.load_rent_price"]
+              envFrom:
+                - configMapRef: {name: backend-config}
+                - secretRef: {name: backend-env}
+              resources:
+                requests: {cpu: 250m, memory: 512Mi}
+                limits: {memory: 1Gi}
+---
+# 어린이집(주 1회)
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: childcare-collector
+spec:
+  schedule: "30 5 * * 1"
+  timeZone: Asia/Seoul
+  concurrencyPolicy: Forbid  # 겹쳐 돌면 같은 데이터를 두 번 쓴다
+  jobTemplate:
+    spec:
+      backoffLimit: 0  # 호스트 크론처럼 재시도하지 않는다 — 다음 일정에 증분으로 따라잡는다
+      template:
+        spec:
+          restartPolicy: Never
+          securityContext: {runAsNonRoot: true, runAsUser: 10001}
+          containers:
+            - name: childcare-collector
+              image: beyondfacade-api
+              command: ["sh", "-c", "python -m apps.childcare.adapter.inbound.cli.childcare_collector"]
+              envFrom:
+                - configMapRef: {name: backend-config}
+                - secretRef: {name: backend-env}
+              resources:
+                requests: {cpu: 250m, memory: 512Mi}
+                limits: {memory: 1Gi}
+---
+# 편의점(주 1회, API 427회)
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: convenience-collector
+spec:
+  schedule: "40 5 * * 1"
+  timeZone: Asia/Seoul
+  concurrencyPolicy: Forbid  # 겹쳐 돌면 같은 데이터를 두 번 쓴다
+  jobTemplate:
+    spec:
+      backoffLimit: 0  # 호스트 크론처럼 재시도하지 않는다 — 다음 일정에 증분으로 따라잡는다
+      template:
+        spec:
+          restartPolicy: Never
+          securityContext: {runAsNonRoot: true, runAsUser: 10001}
+          containers:
+            - name: convenience-collector
+              image: beyondfacade-api
+              command: ["sh", "-c", "python -m apps.convenience.adapter.inbound.cli.convenience_collector"]
+              envFrom:
+                - configMapRef: {name: backend-config}
+                - secretRef: {name: backend-env}
+              resources:
+                requests: {cpu: 250m, memory: 512Mi}
+                limits: {memory: 1Gi}
+---
+# 관리자 세션·보안 이벤트 정리
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: admin-housekeeping
+spec:
+  schedule: "30 3 * * *"
+  timeZone: Asia/Seoul
+  concurrencyPolicy: Forbid  # 겹쳐 돌면 같은 데이터를 두 번 쓴다
+  jobTemplate:
+    spec:
+      backoffLimit: 0  # 호스트 크론처럼 재시도하지 않는다 — 다음 일정에 증분으로 따라잡는다
+      template:
+        spec:
+          restartPolicy: Never
+          securityContext: {runAsNonRoot: true, runAsUser: 10001}
+          containers:
+            - name: admin-housekeeping
+              image: beyondfacade-api
+              command: ["sh", "-c", "python -m apps.admin.adapter.inbound.cli.admin_housekeeping"]
+              envFrom:
+                - configMapRef: {name: backend-config}
+                - secretRef: {name: backend-env}
+              resources:
+                requests: {cpu: 250m, memory: 512Mi}
+                limits: {memory: 1Gi}

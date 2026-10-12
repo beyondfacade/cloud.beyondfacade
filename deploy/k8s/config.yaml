@@ -1,0 +1,11 @@
+# 비밀이 아닌 설정. 비밀값(DATABASE_URL·API 키)은 Secret `backend-env` — External Secrets가 Secrets Manager에서 만든다(serverplan K8).
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: backend-config
+data:
+  # 파드 최대 10 × (5 + 5) = 100 연결 ≤ RDS max_connections × 0.8 (serverplan §7-6)
+  DB_POOL_SIZE: "5"
+  DB_MAX_OVERFLOW: "5"
+  # serverplan §5 결정(A: 집 서버 사설 터널 / C: 클러스터 안 임베딩 파드)에 따라 바꾼다
+  OLLAMA_BASE_URL: "http://ollama.invalid:11434"
