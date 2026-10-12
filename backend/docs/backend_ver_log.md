@@ -1,5 +1,15 @@
 # Backend Version Log
 
+## [v0.105.4] - 2026-10-12
+
+### Fixed
+- `infra/terraform` GitHub Actions OIDC 신뢰 조건: 이 저장소는 GitHub의 immutable subject 형식(`repo:beyondfacade@320367866/cloud.beyondfacade@1344487674:…`)을 써서, 이름 형식(`repo:beyondfacade/cloud.beyondfacade:…`)만 받던 역할을 첫 배포 워크플로가 받지 못했다(`Not authorized to perform sts:AssumeRoleWithWebIdentity`). 변수 `github_repo` → `github_oidc_sub_prefix`(실제 값은 `gh api repos/<repo>/actions/oidc/customization/sub`로 확인). 역할 신뢰 조건 1줄 제자리 수정
+
+## [v0.106.0] - 2026-10-12
+
+### Added
+- 회원 등급 **전문가(`expert`)** — 순서는 관리자(`operator`) > 전문가 > 일반(`viewer`). 권한은 지금은 일반과 같다(`can_operate` 거짓, 관리자 페이지 읽기까지). 지정은 기존 CLI 그대로 `set_admin_role --role expert`. `role`은 문자열 컬럼이라 마이그레이션 없음. 유저 목록 `role` 필터도 `expert`를 받는다
+
 ## [v0.105.3] - 2026-10-12
 
 ### Fixed

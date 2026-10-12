@@ -15,10 +15,10 @@ variable "alert_email" {
   type        = string
 }
 
-variable "github_repo" {
-  description = "이미지 푸시·배포를 허용할 GitHub 저장소 (owner/name)"
+variable "github_oidc_sub_prefix" {
+  description = "배포를 허용할 GitHub 저장소의 OIDC sub 앞부분 — 저장소가 immutable subject 형식(owner@ID/repo@ID)을 쓴다(gh api repos/<repo>/actions/oidc/customization/sub)"
   type        = string
-  default     = "beyondfacade/cloud.beyondfacade"
+  default     = "repo:beyondfacade@320367866/cloud.beyondfacade@1344487674"
 }
 
 variable "api_domain" {
