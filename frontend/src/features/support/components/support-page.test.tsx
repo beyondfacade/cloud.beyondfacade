@@ -66,7 +66,7 @@ it("동·업종으로 지원 정보를 불러와 동네 이름과 업종을 제�
   expect(await screen.findByText("역삼1동")).toBeInTheDocument();
   expect(screen.getByRole("heading", { level: 1, name: "창업 지원·대출 정보" })).toBeInTheDocument();
   expect(screen.getByText("한식")).toBeInTheDocument();
-  expect(fetchMock).toHaveBeenCalledWith(expect.stringContaining("/funding/support?region=1168064000&industry=korean_food"), undefined);
+  expect(fetchMock).toHaveBeenCalledWith(expect.stringContaining("/funding/support?region=1168064000&industry=korean_food"), { credentials: "include" });
 });
 
 it("대출·보증 묶음에 금리 참고값과 대출 공고를 보여 준다", async () => {
@@ -151,7 +151,7 @@ it("질문을 Enter로 제출하면 URL과 조회에 싣고 지우면 검색을 
     { scroll: false },
   );
   rerender(<SupportPage />);
-  await waitFor(() => expect(fetchMock).toHaveBeenCalledWith(expect.stringContaining("q=" + encodeURIComponent("인테리어 비용").replaceAll("%20", "+")), undefined));
+  await waitFor(() => expect(fetchMock).toHaveBeenCalledWith(expect.stringContaining("q=" + encodeURIComponent("인테리어 비용").replaceAll("%20", "+")), { credentials: "include" }));
   expect(screen.getByRole("textbox")).toHaveValue("인테리어 비용");
   await user.click(screen.getByRole("button", { name: "지우기" }));
   rerender(<SupportPage />);

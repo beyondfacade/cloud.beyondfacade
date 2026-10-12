@@ -61,7 +61,7 @@ it("URL의 동·업종·원 단위 예산으로 StrictMode에서도 분석을 �
   await waitFor(() => expect(FakeEventSource.instances).toHaveLength(1));
   expect(postBodies()).toEqual([{ region: "1168064000", industry: "korean_food", budget: 50000000 }]);
   expect(await screen.findByText("역삼1동 · 한식 · 예산 5,000만원")).toBeInTheDocument();
-  expect(fetchMock).toHaveBeenCalledWith(expect.stringContaining("/regions/1168064000/summary?industry=korean_food"), undefined);
+  expect(fetchMock).toHaveBeenCalledWith(expect.stringContaining("/regions/1168064000/summary?industry=korean_food"), { credentials: "include" });
   expect(screen.queryByRole("textbox", { name: "지역 코드" })).not.toBeInTheDocument();
   expect(screen.getByRole("button", { name: "다시 분석" })).toBeDisabled();
 });

@@ -1,5 +1,10 @@
 # Frontend Version Log
 
+## [v0.67.0] - 2026-10-12
+
+### Changed
+- 다른 호스트의 API에서도 관리자 쿠키 인증이 동작하도록 GET·POST·DELETE·PATCH·PUT 요청에 `credentials: "include"`를 추가했다.
+
 ## [v0.66.0] - 2026-10-12
 
 > 10/6 `feat/k8s-phase0`의 v0.58.0를 main에 다시 얹음(버전 재부여)

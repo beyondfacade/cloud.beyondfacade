@@ -3,6 +3,16 @@ import { apiDelete, apiGet, apiPatch, apiPost, apiPut, staticGet, ApiError } fro
 
 afterEach(() => vi.restoreAllMocks());
 
+it("API 요청은 다른 호스트의 API에도 쿠키를 싣는다", async () => {
+  const fetchMock = vi.fn().mockImplementation(() => Promise.resolve(
+    new Response(JSON.stringify({ ok: 1 }))));
+  vi.stubGlobal("fetch", fetchMock);
+  await apiGet("/x");
+  await apiPost("/x", {}, "https://api.beyondfacade.cloud");
+  expect(fetchMock).toHaveBeenNthCalledWith(1, expect.any(String), expect.objectContaining({ credentials: "include" }));
+  expect(fetchMock).toHaveBeenNthCalledWith(2, "https://api.beyondfacade.cloud/x", expect.objectContaining({ credentials: "include" }));
+});
+
 it("정적 파일은 apiBase 없이 지정한 경로로 요청한다", async () => {
   const fetchMock = vi.fn().mockResolvedValue(new Response(JSON.stringify({ ok: 1 })));
   vi.stubGlobal("fetch", fetchMock);

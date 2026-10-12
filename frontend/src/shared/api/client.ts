@@ -15,7 +15,7 @@ async function handle<T>(res: Response): Promise<T> {
 }
 
 export const apiGet = <T>(path: string, options?: { signal?: AbortSignal }) =>
-  fetch(`${config.apiBase}${path}`, options).then((r) => handle<T>(r));
+  fetch(`${config.apiBase}${path}`, { ...options, credentials: "include" }).then((r) => handle<T>(r));
 
 export const staticGet = <T>(path: string, options?: { signal?: AbortSignal }) =>
   fetch(path, options).then((r) => handle<T>(r));
@@ -23,17 +23,19 @@ export const staticGet = <T>(path: string, options?: { signal?: AbortSignal }) =
 export const apiPost = <T>(path: string, body: unknown, base: string = config.apiBase, options?: { signal?: AbortSignal }) =>
   fetch(`${base}${path}`, {
     method: "POST",
+    credentials: "include",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
     signal: options?.signal,
   }).then((r) => handle<T>(r));
 
 export const apiDelete = <T = void>(path: string) =>
-  fetch(`${config.apiBase}${path}`, { method: "DELETE" }).then((r) => handle<T>(r));
+  fetch(`${config.apiBase}${path}`, { method: "DELETE", credentials: "include" }).then((r) => handle<T>(r));
 
 const sendJson = (method: "PATCH" | "PUT") => <T>(path: string, body: unknown) =>
   fetch(`${config.apiBase}${path}`, {
     method,
+    credentials: "include",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
   }).then((r) => handle<T>(r));
