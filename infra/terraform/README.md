@@ -43,7 +43,7 @@ apply가 끝나면 사람이 할 일:
 
 1. **메일 2통 확인** — SNS 구독 확인 링크를 누른다(안 누르면 알람이 안 온다)
 2. **인증서 검증** — `terraform output acm_validation_records`의 CNAME을 Cloudflare DNS에 넣는다(프록시 끔, 회색 구름). 몇 분 뒤 ACM 콘솔에서 "발급됨"
-3. **비밀값 넣기** — Secrets Manager 콘솔 → `beyondfacade/prod/backend-env` → 값 편집 → 키/값으로 `backend/.env` 항목을 하나씩 입력(파일 업로드 금지). `DATABASE_URL`만 새로 만든다:
+3. **비밀값 넣기** — `deploy/k8s/external-secret.yaml`이 이 값을 Secret `backend-env`로 옮긴다. Secrets Manager 콘솔 → `beyondfacade/prod/backend-env` → 값 편집 → 키/값으로 `backend/.env` 항목을 하나씩 입력(파일 업로드 금지). `DATABASE_URL`만 새로 만든다:
    ```
    postgresql+psycopg://beyondfacade:<비밀번호>@<rds_endpoint>:5432/beyondfacade
    ```
@@ -52,7 +52,6 @@ apply가 끝나면 사람이 할 일:
 
 ## 이 코드 밖에서 남은 일 (serverplan §15 Phase 2~4)
 
-- ExternalSecret 매니페스트(Secrets Manager → Secret `backend-env`) — `deploy/k8s`에 추가
 - 이미지: 노드가 arm64라 `docker buildx build --platform linux/arm64 --build-context geojson=data/geojson backend` → ECR 푸시
 - DB 복원: `pg_dump -Fc` → S3 → 클러스터 안 일회성 Job에서 `pg_restore`, `CREATE EXTENSION vector`, 행수 비교
 - 앱 네임스페이스는 관리자가 처음 한 번 만든다(GitHub Actions 역할은 `beyondfacade` 네임스페이스 안만 바꿀 수 있다)

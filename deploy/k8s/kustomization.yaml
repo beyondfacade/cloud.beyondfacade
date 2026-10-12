@@ -6,6 +6,7 @@ namespace: beyondfacade
 resources:
   - namespace.yaml
   - config.yaml
+  - external-secret.yaml
   - api.yaml
   - cronjobs.yaml
 images:

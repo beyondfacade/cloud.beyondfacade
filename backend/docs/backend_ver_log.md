@@ -1,5 +1,10 @@
 # Backend Version Log
 
+## [v0.100.0] - 2026-10-12
+
+### Added
+- `deploy/k8s/external-secret.yaml` — SecretStore(AWS Secrets Manager, 서울) + ExternalSecret `backend-env`: Secrets Manager `beyondfacade/prod/backend-env`의 JSON 키/값을 Secret `backend-env`로 만든다(1시간마다 동기화, serverplan K8). api·CronJob은 기존대로 `secretRef: backend-env`를 읽는다. AWS 권한은 External Secrets 컨트롤러의 Pod Identity(`infra/terraform` addons.tf, 이 비밀 하나만 읽기). kustomize build 17개 리소스, kubeconform(k8s 1.35) 16개 통과 — SecretStore는 kubeconform이 스키마를 읽지 못해 ESO CRD 스키마(v1)와 필드를 직접 대조
+
 ## [v0.99.0] - 2026-10-12
 
 ### Added
