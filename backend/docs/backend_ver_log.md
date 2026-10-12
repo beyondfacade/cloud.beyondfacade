@@ -1,5 +1,11 @@
 # Backend Version Log
 
+## [v0.104.1] - 2026-10-12
+
+### Fixed
+- `infra/terraform/README.md` Secrets Manager 키 목록: `ANTHROPIC_API_KEY`를 "넣지 않음(평가 전용)"에서 "그대로 복사"로 — 운영 리포트 hybrid 폴백 2단계(Gemini → Opus → gemma)가 쓴다. 집 Ollama를 연결하지 않기로 해(팀장 결정, B안) gemma도 없으므로, 빼 두면 Gemini 실패 때 리포트가 바로 실패했을 것(팀장 지적)
+- `Settings.anthropic_api_key` 주석이 "운영 경로엔 없음"으로 낡아 있던 것을 바로잡음(10/6 Opus 폴백 추가 때 안 고쳤다)
+
 ## [v0.104.0] - 2026-10-12
 
 ### Added
