@@ -70,7 +70,8 @@ import apps.tobacco.adapter.outbound.orms.tobacco_retailer_orm  # noqa: F401
 import apps.housing.adapter.outbound.orms.apt_trade_count_orm  # noqa: F401
 import apps.verdict.adapter.outbound.orms.region_industry_verdict_orm  # noqa: F401
 
-config.set_main_option("sqlalchemy.url", get_settings().database_url)
+# configparser 보간을 피한다 — URL 인코딩된 비밀번호의 %가 보간 문법으로 읽혀 오류(그 메시지에 URL 전체가 찍힌다)
+config.set_main_option("sqlalchemy.url", get_settings().database_url.replace("%", "%%"))
 target_metadata = OrmBase.metadata
 
 # other values from the config, defined by the needs of env.py,

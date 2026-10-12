@@ -1,5 +1,12 @@
 # Backend Version Log
 
+## [v0.108.1] - 2026-10-12
+
+### Fixed
+- `migrations/env.py`: `DATABASE_URL`의 `%`를 `%%`로 넘긴다 — 운영 비밀번호는 URL 인코딩이라 `%`가 들어가는데, alembic 설정(configparser) 보간이 이를 문법으로 읽어 첫 운영 마이그레이션이 실패했고 그 오류 메시지에 URL 전체(비밀번호 포함)가 찍혔다(10/12, Job 로그 — RDS 마스터 비밀번호는 즉시 교체함). 테스트: `%` 인코딩 URL로 `alembic current`가 보간 오류 없이 접속 단계까지 가고, 실패해도 비밀번호가 찍히지 않음(RED: interpolation 오류 확인 → GREEN)
+- 배포 워크플로: ① API 존재 확인이 접속 오류까지 "아직 없음"으로 보고 성공 처리하던 것을 `NotFound`일 때만 첫 배포 안내, 그 밖엔 실패로 ② 마이그레이션 Job 로그는 공개 Actions 로그에 `Running upgrade` 줄만 남긴다(오류 메시지에 접속 정보가 섞일 수 있음)
+- 참고(코드 밖): RDS 관리 비밀 자동 교체 7일 → 30일(다음 2026-11-12) — 운영 중(10/20) 교체되면 `backend-env`의 `DATABASE_URL`이 낡아 DB 연결이 끊긴다
+
 ## [v0.108.0] - 2026-10-12
 
 ### Added
