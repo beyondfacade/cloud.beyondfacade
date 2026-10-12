@@ -5,7 +5,7 @@
 | 디렉터리 | 만드는 것 | state |
 |---|---|---|
 | `bootstrap/` | Terraform state 버킷 1개 | 로컬 파일 (gitignore) |
-| `envs/prod/` | VPC·NAT, EKS·노드 그룹·애드온 4개, RDS, ECR, S3, Secrets Manager 껍데기, ACM, GitHub OIDC 역할, 알람·예산 | S3 (bootstrap 버킷) |
+| `envs/prod/` | VPC·NAT, EKS·노드 그룹·애드온 4개, RDS, ECR, S3, Secrets Manager 껍데기, ACM, GitHub OIDC 역할, 알람 | S3 (bootstrap 버킷) |
 
 | 파일 (`envs/prod/`) | 내용 |
 |---|---|
@@ -16,17 +16,19 @@
 | `storage.tf` | ECR `beyondfacade-api`, S3 데이터 버킷, Secrets Manager `beyondfacade/prod/backend-env` |
 | `certificate.tf` | ACM 인증서 `api.beyondfacade.cloud` |
 | `github_actions.tf` | main 브랜치 워크플로만 ECR 푸시·EKS 조회 |
-| `monitoring.tf` | RDS CPU·디스크 알람 → 메일, 월 예산 $200·$300·$350·예측 $400 경보 |
+| `monitoring.tf` | RDS CPU·디스크 알람 → 메일 (예산·Cost Explorer는 조직 SCP가 막아 없음) |
 
 ## 처음 한 번 — 준비
 
 1. 도구: AWS CLI v2, Terraform 1.10 이상, kubectl
-2. AWS 계정 루트에 MFA. 루트 말고 관리자 IAM 사용자(또는 SSO)로 `aws configure` → `aws sts get-caller-identity`로 확인
-3. **크레딧 약관 확인** — 적용 제외 서비스·만료일 (serverplan §20-8)
+2. 관리자 IAM 사용자(MFA 등록)로 `aws configure --profile beyondfacade` → `aws sts get-caller-identity --profile beyondfacade`로 확인
+3. **비용은 이 계정에서 안 보인다** — 조직(Organizations) SCP가 Budgets·Cost Explorer·결제 데이터를 막는다(10/12 확인). 실제 비용·남은 크레딧은 팀장을 통해 조직 관리 계정(부트캠프 쪽)에 묻고, 평소엔 serverplan §20-3 일 비용(운영 약 $21)으로 어림한다
 
 ## 만들기 (serverplan §20-5 D1)
 
 ```bash
+export AWS_PROFILE=beyondfacade         # Terraform·kubectl이 이 프로필의 키를 쓴다
+
 # 1) state 버킷
 cd infra/terraform/bootstrap
 terraform init && terraform apply          # 출력 state_bucket 기억
@@ -41,7 +43,7 @@ terraform apply                             # 20~30분 (EKS·Multi-AZ RDS가 오
 
 apply가 끝나면 사람이 할 일:
 
-1. **메일 2통 확인** — SNS 구독 확인 링크를 누른다(안 누르면 알람이 안 온다)
+1. **메일 확인** — SNS 구독 확인 링크를 누른다(안 누르면 알람이 안 온다)
 2. **인증서 검증** — `terraform output acm_validation_records`의 CNAME을 Cloudflare DNS에 넣는다(프록시 끔, 회색 구름). 몇 분 뒤 ACM 콘솔에서 "발급됨"
 3. **비밀값 넣기** — `deploy/k8s/external-secret.yaml`이 이 값을 Secret `backend-env`로 옮긴다. Secrets Manager 콘솔 → `beyondfacade/prod/backend-env` → 값 편집 → 키/값으로 `backend/.env` 항목을 하나씩 입력(파일 업로드 금지). `DATABASE_URL`만 새로 만든다:
    ```
@@ -72,4 +74,4 @@ terraform destroy
 # ⑤ bootstrap도: state 버킷을 비운 뒤 cd ../../bootstrap && terraform destroy
 ```
 
-그다음 Cost Explorer에서 일 비용이 0인지, 다른 리전에 남은 것이 없는지 본다(§20-7 4단계).
+그다음 남은 리소스가 없는지 리전별로 본다(EC2·EBS·EIP·LB·NAT·RDS·스냅샷·로그 그룹, §20-7 4단계). 비용 0 확인은 팀장에게 부탁한다.

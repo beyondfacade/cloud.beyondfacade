@@ -11,7 +11,7 @@ variable "admin_cidrs" {
 }
 
 variable "alert_email" {
-  description = "알람·예산 경보를 받을 메일 (SNS 구독 확인 메일을 한 번 눌러야 받는다)"
+  description = "알람을 받을 메일 (SNS 구독 확인 메일을 한 번 눌러야 받는다)"
   type        = string
 }
 
@@ -64,10 +64,4 @@ variable "db_deletion_protection" {
   description = "정리 단계(§20-7 3단계)에서 false로 apply한 뒤 destroy"
   type        = bool
   default     = true
-}
-
-variable "budget_limit_usd" {
-  description = "크레딧 차감 전 금액 기준 월 예산 (운영·정리 기간이 모두 10월이다)"
-  type        = number
-  default     = 400
 }

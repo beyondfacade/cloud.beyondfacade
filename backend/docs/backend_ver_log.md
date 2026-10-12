@@ -1,5 +1,10 @@
 # Backend Version Log
 
+## [v0.100.1] - 2026-10-12
+
+### Fixed
+- `infra/terraform`에서 월 예산(`aws_budgets_budget`)·`budget_limit_usd` 변수 제거 — 실제 계정이 AWS Organizations 소속이라 SCP가 Budgets·Cost Explorer·결제 데이터를 명시적으로 막아(`budgets:ViewBudget` explicitDeny, 결제 지표 0개) apply가 실패했을 것. IAM 정책 시뮬레이터(SCP 반영 — budgets 거부가 실제 호출과 일치)로 나머지 리소스 생성 권한은 모두 허용 확인. README: `--profile beyondfacade`·`AWS_PROFILE`, 비용은 조직 관리 계정 쪽에서 확인
+
 ## [v0.100.0] - 2026-10-12
 
 ### Added
