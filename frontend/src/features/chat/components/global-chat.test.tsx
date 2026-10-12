@@ -100,6 +100,7 @@ it("전문가와 연결하기 이벤트가 오면 창이 열리고 DM의 전문�
   act(() => openExpertChat());
   const list = await screen.findByRole("list", { name: "전문가 목록" });
   expect(within(list).getByText("카페 전문")).toBeInTheDocument();
+  expect(list.querySelector("img")?.getAttribute("src")).toMatch(/^\/experts\/expert-\d\.jpg$/);
   expect(screen.getByRole("tab", { name: "DM" })).toHaveAttribute("aria-selected", "true");
   expect(screen.getByRole("combobox", { name: "DM 보기" })).toHaveValue("experts");
   expect(calls("/chat/direct", "POST")).toHaveLength(0);

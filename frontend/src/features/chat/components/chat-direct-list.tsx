@@ -4,14 +4,23 @@ import type { ChatRoom } from "@/shared/api/types";
 import { badgeLabel, chatTime, lastLine } from "../lib/chat-state";
 import styles from "./global-chat.module.css";
 
-/** 계정 프로필 사진이 없으니 기본 사람 모양 아바타. */
-export function PersonAvatar() {
+const EXPERT_PHOTOS = 6;
+
+/** 전문가 계정의 이력서 사진 — 같은 전문가는 늘 같은 사진. */
+export const expertPhoto = (expertId: number) => `/experts/expert-${(expertId % EXPERT_PHOTOS) + 1}.jpg`;
+
+/** 사진이 없으면 기본 사람 모양 아바타. */
+export function PersonAvatar({ photo }: { photo?: string }) {
   return (
     <span className={styles.avatar} aria-hidden="true">
-      <svg viewBox="0 0 24 24" fill="currentColor">
-        <circle cx="12" cy="8.5" r="4" />
-        <path d="M4.5 20.5a7.5 7.5 0 0 1 15 0z" />
-      </svg>
+      {photo ? (
+        <img src={photo} alt="" width={32} height={32} />
+      ) : (
+        <svg viewBox="0 0 24 24" fill="currentColor">
+          <circle cx="12" cy="8.5" r="4" />
+          <path d="M4.5 20.5a7.5 7.5 0 0 1 15 0z" />
+        </svg>
+      )}
     </span>
   );
 }
@@ -40,7 +49,7 @@ export function ChatDirectList({ rooms, onOpen, canStart }: Props) {
         return (
           <li key={room.key}>
             <button type="button" className={styles.row} onClick={() => onOpen(room)}>
-              <PersonAvatar />
+              <PersonAvatar photo={canStart && room.partner_id !== null ? expertPhoto(room.partner_id) : undefined} />
               <span className={styles.rowText}>
                 <span className={styles.rowTitle}>{room.title}</span>
                 <span className={styles.rowSub}>{lastLine(room.last_message)}</span>
