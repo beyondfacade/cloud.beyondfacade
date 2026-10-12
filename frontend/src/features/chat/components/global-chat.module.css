@@ -117,8 +117,9 @@
 .row:hover { background: var(--bg-raised); }
 .avatar {
   display: grid; flex-shrink: 0; place-items: center; width: 32px; height: 32px; border-radius: 999px;
-  background: var(--landing-halo); font-size: 13px; font-weight: 700; color: var(--accent);
+  overflow: hidden; background: var(--landing-halo); color: var(--accent);
 }
+.avatar svg { width: 20px; height: 20px; margin-top: 4px; }
 .rowText { display: flex; flex: 1; flex-direction: column; min-width: 0; }
 .rowTitle { font-size: 13px; font-weight: 650; }
 .rowSub { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12px; color: var(--text-secondary); }

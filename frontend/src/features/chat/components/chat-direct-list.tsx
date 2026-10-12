@@ -4,7 +4,17 @@ import type { ChatRoom } from "@/shared/api/types";
 import { badgeLabel, chatTime, lastLine } from "../lib/chat-state";
 import styles from "./global-chat.module.css";
 
-export const initial = (name: string) => name.slice(0, 1).toUpperCase();
+/** 계정 프로필 사진이 없으니 기본 사람 모양 아바타. */
+export function PersonAvatar() {
+  return (
+    <span className={styles.avatar} aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="currentColor">
+        <circle cx="12" cy="8.5" r="4" />
+        <path d="M4.5 20.5a7.5 7.5 0 0 1 15 0z" />
+      </svg>
+    </span>
+  );
+}
 
 interface Props {
   rooms: ChatRoom[];
@@ -30,7 +40,7 @@ export function ChatDirectList({ rooms, onOpen, canStart }: Props) {
         return (
           <li key={room.key}>
             <button type="button" className={styles.row} onClick={() => onOpen(room)}>
-              <span className={styles.avatar} aria-hidden="true">{initial(room.title)}</span>
+              <PersonAvatar />
               <span className={styles.rowText}>
                 <span className={styles.rowTitle}>{room.title}</span>
                 <span className={styles.rowSub}>{lastLine(room.last_message)}</span>
