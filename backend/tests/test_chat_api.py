@@ -202,6 +202,15 @@ def test_나_자신이나_없는_회원과는_대화를_열_수_없다():
     assert viewer.post("/chat/direct", json={"user_id": 999}).status_code == 404
 
 
+def test_전문가와_연결하기는_활성_전문가와의_1대1_방을_연다():
+    viewer = _client("viewer")
+    response = viewer.post("/chat/expert")
+    assert (response.status_code, response.json()["error"]["code"]) == (404, "CHAT_MEMBER_NOT_FOUND")
+    get_admin_user_use_case().set_role("guest2", "expert")
+    room = viewer.post("/chat/expert").json()
+    assert (room["key"], room["kind"], room["title"], room["partner_id"]) == ("dm:2:3", "direct", "guest2", 3)
+
+
 def test_안_읽은_개수는_남이_보낸_것만_세고_읽음_표시는_앞으로만_간다():
     viewer = _client("viewer")
     first = _send(viewer, "global", "하나").json()

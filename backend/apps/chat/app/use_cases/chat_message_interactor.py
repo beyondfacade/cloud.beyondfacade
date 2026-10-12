@@ -138,6 +138,12 @@ class ChatMessageInteractor(ChatMessageUseCase):
         room = direct_room(member.id, peer.id)
         return self._summary(member, room, peer.username, peer.id, self._reads.last_read_ids(member.id))
 
+    def open_expert(self, member: ChatMember) -> ChatRoomDto:
+        expert = self._members.expert(member.id)
+        if expert is None:
+            raise ChatMemberNotFound("지금 연결할 수 있는 전문가가 없습니다.")
+        return self.open_direct(member, expert.id)
+
     def search_members(self, member: ChatMember, q: str) -> list[ChatPeerDto]:
         needle = q.strip()
         return self._members.search(needle, member.id, MEMBER_SEARCH_LIMIT) if needle else []

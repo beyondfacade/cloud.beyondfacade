@@ -98,6 +98,16 @@ export function directRoom(me: AdminMe, userId: number): ChatRoom | Response {
   return summary(me, `dm:${Math.min(myId, userId)}:${Math.max(myId, userId)}`, "direct", peer, userId);
 }
 
+/** 활성 전문가 중 계정명순 첫 명(나 제외)과의 1:1 방. */
+export function expertRoom(me: AdminMe): ChatRoom | Response {
+  const expert = [...accounts.values()]
+    .map((account) => account.user)
+    .filter((user) => user.is_active && user.role === "expert" && user.username !== me.username)
+    .sort((a, b) => a.username.localeCompare(b.username))[0];
+  if (!expert) return adminError(404, "CHAT_MEMBER_NOT_FOUND", "지금 연결할 수 있는 전문가가 없습니다.");
+  return directRoom(me, memberId(expert.username));
+}
+
 export function searchMembers(me: AdminMe, q: string): ChatPeer[] {
   const needle = q.trim().toLowerCase();
   if (!needle) return [];

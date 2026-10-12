@@ -1,13 +1,15 @@
 "use client";
 
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { type KeyboardEvent, useEffect, useRef, useState } from "react";
+import { ApiError } from "@/shared/api/client";
 import type { ChatRoom } from "@/shared/api/types";
 import { loginHref, SESSION_QUERY_KEY, signupHref } from "@/shared/auth/session";
 import { useSession } from "@/shared/auth/use-session";
-import { chatRoomsKey, fetchChatRooms } from "../api";
+import { EXPERT_CHAT_EVENT } from "@/shared/lib/open-expert-chat";
+import { chatRoomsKey, fetchChatRooms, openExpertRoom } from "../api";
 import { applyChatEvent } from "../hooks/chat-cache";
 import { useChatStream } from "../hooks/use-chat-stream";
 import { badgeLabel, totalUnread } from "../lib/chat-state";
@@ -105,6 +107,23 @@ export function GlobalChat() {
     onLost: () => void client.invalidateQueries({ queryKey: SESSION_QUERY_KEY }),
   });
 
+  const expert = useMutation({
+    mutationFn: (_owner: string) => openExpertRoom(),
+    onSuccess: (room, owner) =>
+      setView({ open: true, tab: "direct", dm: { key: room.key, title: room.title, owner } }),
+  });
+  const { mutate: connectExpert, reset: resetExpert } = expert;
+  const username = me?.username ?? null;
+  useEffect(() => {
+    const onExpert = () => {
+      resetExpert();
+      setView((v) => ({ ...v, open: true }));
+      if (username) connectExpert(username); // 비로그인은 열린 창의 로그인 안내를 본다
+    };
+    window.addEventListener(EXPERT_CHAT_EVENT, onExpert);
+    return () => window.removeEventListener(EXPERT_CHAT_EVENT, onExpert);
+  }, [username, connectExpert, resetExpert, setView]);
+
   if (HIDDEN_PATHS.includes(pathname) || session.isPending) return null;
 
   const list = rooms.data ?? [];
@@ -118,6 +137,7 @@ export function GlobalChat() {
   const dmTitle = dm && (list.find((r) => r.key === dm.key)?.title ?? dm.title);
 
   const close = () => {
+    resetExpert();
     setView((v) => ({ ...v, open: false }));
     launcherRef.current?.focus();
   };
@@ -168,6 +188,11 @@ export function GlobalChat() {
             )}
           </header>
           <div className={styles.body}>
+            {expert.isError && (
+              <p className={`${styles.empty} ${styles.error}`} role="alert">
+                {expert.error instanceof ApiError ? expert.error.message : "전문가와 연결하지 못했어요."}
+              </p>
+            )}
             {!me && <Guest next={pathname} />}
             {me && tab !== "direct" && <ChatRoomView key={tab} room={tab} me={me} emptyText={EMPTY_TEXT[tab]} />}
             {me && tab === "direct" && dm && (

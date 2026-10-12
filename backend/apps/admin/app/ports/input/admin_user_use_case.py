@@ -36,6 +36,10 @@ class AdminUserUseCase(ABC):
         """정지 계정도 포함 — 지난 대화의 상대 이름을 보여 줄 때."""
 
     @abstractmethod
+    def first_active_expert(self, exclude_id: int) -> AdminPrincipalDto | None:
+        """전문가와 연결하기 — 활성 전문가 중 계정명순 첫 명(나 제외), 없으면 None."""
+
+    @abstractmethod
     def set_active(self, actor: AdminPrincipalDto, username: str, active: bool, ip: str | None) -> AdminUserDto:
         """정지하면 그 계정의 세션을 모두 끊는다. 자기 자신은 SelfChange, 활성 관리자가 0명이 되면 LastOperator."""
 

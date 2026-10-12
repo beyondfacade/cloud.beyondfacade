@@ -1,5 +1,6 @@
 import { afterEach, expect, it, vi } from "vitest";
 import { fireEvent, render, screen, within } from "@testing-library/react";
+import { EXPERT_CHAT_EVENT } from "@/shared/lib/open-expert-chat";
 import { ReportView } from "./report-view";
 import { applyAgentEvent, initialAgentState } from "../lib/agent-events";
 
@@ -142,6 +143,15 @@ it("완료된 리포트는 동·업종을 파일 이름으로 PDF 저장(인쇄 
   rerender(<ReportView state={{ ...initialAgentState(), facts: reportFacts(), done: true }} />);
   fireEvent.click(screen.getByRole("button", { name: "PDF로 저장" }));
   expect(fileName).toBe("창업 경고 리포트_역삼1동_카페");
+});
+
+it("완료된 리포트의 전문가와 연결하기는 채팅 창에 연결 요청을 보낸다", () => {
+  const requested = vi.fn();
+  window.addEventListener(EXPERT_CHAT_EVENT, requested);
+  render(<ReportView state={{ ...initialAgentState(), facts: reportFacts(), done: true }} />);
+  fireEvent.click(screen.getByRole("button", { name: "전문가와 연결하기" }));
+  window.removeEventListener(EXPERT_CHAT_EVENT, requested);
+  expect(requested).toHaveBeenCalledOnce();
 });
 
 it("사실 섹션 제목과 같은 마크다운 제목은 중복하지 않고 본문을 유지한다", () => {

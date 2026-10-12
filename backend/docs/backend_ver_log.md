@@ -1,5 +1,12 @@
 # Backend Version Log
 
+## [v0.108.0] - 2026-10-12
+
+### Added
+- **전문가와 연결하기** `POST /chat/expert`(로그인 회원) — 활성 전문가 중 계정명순 첫 명(나 제외)과의 1:1 방을 연다. 응답은 `POST /chat/direct`와 같은 방 요약. 연결할 전문가가 없으면 404 `CHAT_MEMBER_NOT_FOUND`("지금 연결할 수 있는 전문가가 없습니다.")
+  - admin `AdminUserUseCase.first_active_expert`, chat `ChatMemberPort.expert` — chat BC는 기존처럼 게이트웨이(`admin_member_gateway.py`)로만 부른다
+- 테스트: API 1개(전문가 없으면 404 → 전문가로 올리면 그 회원과의 방)
+
 ## [v0.107.0] - 2026-10-12
 
 ### Added

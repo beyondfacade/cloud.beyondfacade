@@ -3,6 +3,7 @@
 import { useState } from "react";
 import ReactMarkdown, { type Options } from "react-markdown";
 import remarkGfm from "remark-gfm";
+import { openExpertChat } from "@/shared/lib/open-expert-chat";
 import { saveAsPdf } from "@/shared/lib/save-as-pdf";
 import { buildPrepMarkdown, buildQuestionsMarkdown, type PrepContext } from "../lib/prep-markdown";
 import styles from "./plan-workspace.module.css";
@@ -48,6 +49,8 @@ export function PrepSheet(ctx: PrepContext) {
           </button>
           <button type="button" onClick={() => saveAsPdf(`창업자금 상담 준비자료_${ctx.regionName}_${ctx.industryLabel}`)}
             className="rounded-md border border-[var(--border)] px-3 py-2 text-xs text-[var(--text-primary)]">PDF로 저장</button>
+          <button type="button" onClick={openExpertChat}
+            className="rounded-md border border-[var(--border)] px-3 py-2 text-xs text-[var(--text-primary)]">전문가와 연결하기</button>
         </div>
       </div>
       <div className={`${styles.prepDoc} report-markdown max-h-96 overflow-auto rounded-lg border border-[var(--border)] bg-[var(--bg-surface)] p-4 text-sm text-[var(--text-primary)] print:max-h-none print:overflow-visible print:border-0 print:p-0`}

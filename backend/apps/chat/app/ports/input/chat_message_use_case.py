@@ -38,6 +38,10 @@ class ChatMessageUseCase(ABC):
         """1:1 대화방 — 메시지가 오가기 전에는 방 목록에 없다."""
 
     @abstractmethod
+    def open_expert(self, member: ChatMember) -> ChatRoomDto:
+        """전문가와의 1:1 대화방 — 연결할 전문가가 없으면 ChatMemberNotFound."""
+
+    @abstractmethod
     def search_members(self, member: ChatMember, q: str) -> list[ChatPeerDto]: ...
 
     @abstractmethod

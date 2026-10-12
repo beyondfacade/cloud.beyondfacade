@@ -1,6 +1,7 @@
 import { afterAll, beforeEach, describe, expect, it, vi } from "vitest";
 import type { ChatMessage, ChatRoom } from "@/shared/api/types";
 import { POST as openDirect } from "./direct/route";
+import { POST as openExpert } from "./expert/route";
 import { GET as members } from "./members/route";
 import { DELETE as remove } from "./messages/[id]/route";
 import { PUT as markRead } from "./reads/[room]/route";
@@ -101,6 +102,12 @@ describe("채팅 mock 계약", () => {
     const dm = (await rooms("ops")).find((r) => r.key === "dm:1:2")!;
     expect([dm.title, dm.unread]).toEqual(["viewer", 1]);
     expect((await page("dm:1:2", "lee.ops")).status).toBe(403);
+  });
+
+  it("전문가와 연결하기는 활성 전문가와의 1:1 방을 열고, 비로그인은 401", async () => {
+    const room: ChatRoom = await (await openExpert(new Request(`${base}/expert`, json("POST", {}, "viewer")))).json();
+    expect([room.key, room.kind, room.title, room.partner_id]).toEqual(["dm:2:5", "direct", "park.expert", 5]);
+    expect((await openExpert(new Request(`${base}/expert`, { method: "POST" }))).status).toBe(401);
   });
 
   it("읽음 표시는 앞으로만 가고, 읽으면 안 읽은 개수가 0이 된다", async () => {

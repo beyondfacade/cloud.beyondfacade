@@ -76,3 +76,7 @@ class ChatMemberPort(ABC):
 
     @abstractmethod
     def usernames(self, user_ids: list[int]) -> dict[int, str]: ...
+
+    @abstractmethod
+    def expert(self, exclude_id: int) -> ChatPeerDto | None:
+        """연결할 활성 전문가 한 명 — 없으면 None."""

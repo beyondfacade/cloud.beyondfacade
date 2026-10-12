@@ -21,6 +21,8 @@ export const deleteChatMessage = (id: number) => apiDelete(`/chat/messages/${id}
 
 export const openDirectRoom = (userId: number) => apiPost<ChatRoom>("/chat/direct", { user_id: userId });
 
+export const openExpertRoom = () => apiPost<ChatRoom>("/chat/expert", {});
+
 export const searchChatMembers = (q: string) => apiGet<ChatPeer[]>(`/chat/members?q=${encodeURIComponent(q)}`);
 
 export const markChatRead = (room: string, lastReadId: number) =>

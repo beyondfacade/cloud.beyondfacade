@@ -23,7 +23,7 @@ it("비로그인은 목록도 401", async () => {
 
 it("목록은 계정명순이고 비밀번호 해시 같은 필드는 없다", async () => {
   const { items } = await (await list()).json();
-  expect(items.map((u: { username: string }) => u.username)).toEqual(["kim.analyst", "lee.ops", "ops", "viewer"]);
+  expect(items.map((u: { username: string }) => u.username)).toEqual(["kim.analyst", "lee.ops", "ops", "park.expert", "viewer"]);
   expect(Object.keys(items[0]).sort()).toEqual(
     ["active_sessions", "created_at", "email", "has_google", "has_password", "is_active", "last_login_at", "role", "username"],
   );

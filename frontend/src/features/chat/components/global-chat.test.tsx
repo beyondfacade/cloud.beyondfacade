@@ -3,6 +3,7 @@ import { act, fireEvent, render, screen, waitFor, within } from "@testing-librar
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import type { AdminMe, ChatMessage, ChatRoom } from "@/shared/api/types";
+import { openExpertChat } from "@/shared/lib/open-expert-chat";
 import { GlobalChat } from "./global-chat";
 
 const navigation = vi.hoisted(() => ({ pathname: "/map" }));
@@ -52,6 +53,7 @@ function setup(me: AdminMe | null, rooms: ChatRoom[] = [room("global")], items: 
       const body = JSON.parse(String(init?.body));
       return Promise.resolve(json(201, message(99, { sender_username: me!.username, body: body.body })));
     }
+    if (url.endsWith("/chat/expert")) return Promise.resolve(json(200, room("dm:2:5", { title: "park.expert", partner_id: 5 })));
     if (url.includes("/chat/reads/")) return Promise.resolve(json(200, { room: "global", last_read_id: 1 }));
     if (method === "DELETE") return Promise.resolve(json(204, null));
     return Promise.resolve(json(404, { error: { code: "NOT_FOUND", message: "없음" } }));
@@ -83,6 +85,15 @@ it("비로그인도 채팅 버튼은 보이고, 열면 지금 화면으로 돌�
   expect(screen.getByRole("link", { name: "회원가입" })).toHaveAttribute("href", "/signup?next=%2Fmap");
   expect(FakeEventSource.last).toBeNull();
   expect(calls("/chat/rooms")).toHaveLength(0);
+});
+
+it("전문가와 연결하기 이벤트가 오면 창이 열리고 전문가와의 1:1 방으로 들어간다", async () => {
+  setup(VIEWER);
+  await screen.findByRole("button", { name: "채팅 열기" });
+  act(() => openExpertChat());
+  expect(await screen.findByText("park.expert")).toBeInTheDocument();
+  expect(screen.getByRole("tab", { name: "대화" })).toHaveAttribute("aria-selected", "true");
+  expect(calls("/chat/expert", "POST")).toHaveLength(1);
 });
 
 it("로그인·가입 화면에서는 채팅 버튼을 띄우지 않는다", async () => {

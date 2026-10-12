@@ -18,3 +18,7 @@ class AdminMemberGateway(ChatMemberPort):
 
     def usernames(self, user_ids: list[int]) -> dict[int, str]:
         return {user_id: p.username for user_id, p in self._users.members_by_ids(user_ids).items()}
+
+    def expert(self, exclude_id: int) -> ChatPeerDto | None:
+        principal = self._users.first_active_expert(exclude_id)
+        return ChatPeerDto(id=principal.id, username=principal.username) if principal else None

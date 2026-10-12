@@ -28,6 +28,10 @@ export const accounts = new Map<string, MockAccount>(
       user: { username: "kim.analyst", role: "viewer", is_active: false, created_at: "2026-09-23T11:00:00+09:00", last_login_at: null, active_sessions: 0, email: "kim.analyst@gmail.com", has_password: false, has_google: true },
       sessions: [],
     },
+    {
+      user: { username: "park.expert", role: "expert", is_active: true, created_at: "2026-09-24T10:00:00+09:00", last_login_at: "2026-10-12T09:00:00+09:00", active_sessions: 0, email: "park.expert@example.com", has_password: true, has_google: false },
+      sessions: [],
+    },
   ] satisfies MockAccount[]).map((account) => [account.user.username, account]),
 );
 

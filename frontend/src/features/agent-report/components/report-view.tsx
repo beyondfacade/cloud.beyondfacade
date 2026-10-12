@@ -1,6 +1,7 @@
 import ReactMarkdown, { type Options } from "react-markdown";
 import remarkGfm from "remark-gfm";
 import type { FactSection } from "@/shared/api/types";
+import { openExpertChat } from "@/shared/lib/open-expert-chat";
 import { saveAsPdf } from "@/shared/lib/save-as-pdf";
 import type { AgentState } from "../lib/agent-events";
 import { analogAnchors, gradedParagraphs } from "../lib/graded-paragraphs";
@@ -74,10 +75,16 @@ export function ReportView({ state }: ReportViewProps) {
         <span className="flex items-center gap-3">
           <span>{state.error ? "작성 중단" : state.done ? "작성 완료" : "리포트 작성 중"}</span>
           {finished && (
-            <button type="button" onClick={() => saveAsPdf(`창업 경고 리포트_${region.name}_${region.industry_name}`)}
-              className="cursor-pointer rounded-md border border-[var(--border)] bg-[var(--bg-surface)] px-2.5 py-1.5 text-xs font-semibold text-[var(--text-primary)] hover:border-[var(--accent)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)] print:hidden">
-              PDF로 저장
-            </button>
+            <>
+              <button type="button" onClick={() => saveAsPdf(`창업 경고 리포트_${region.name}_${region.industry_name}`)}
+                className="cursor-pointer rounded-md border border-[var(--border)] bg-[var(--bg-surface)] px-2.5 py-1.5 text-xs font-semibold text-[var(--text-primary)] hover:border-[var(--accent)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)] print:hidden">
+                PDF로 저장
+              </button>
+              <button type="button" onClick={openExpertChat}
+                className="cursor-pointer rounded-md border border-[var(--border)] bg-[var(--bg-surface)] px-2.5 py-1.5 text-xs font-semibold text-[var(--text-primary)] hover:border-[var(--accent)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)] print:hidden">
+                전문가와 연결하기
+              </button>
+            </>
           )}
         </span>
       </header>
