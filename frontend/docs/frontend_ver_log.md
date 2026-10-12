@@ -1,5 +1,10 @@
 # Frontend Version Log
 
+## [v0.77.1] - 2026-10-12
+
+### Removed
+- 창업자금 상담 준비자료의 "Markdown 복사"·"질문만 복사" 버튼 — 내보내기는 PDF로 저장만. 안 쓰게 된 `buildQuestionsMarkdown`과 그 테스트, 복사 버튼 테스트 제거(문서 본문은 그대로 Markdown으로 그린다)
+
 ## [v0.77.0] - 2026-10-12
 
 ### Changed

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { FinanceInput, FinanceResult, FundingCandidate } from "@/shared/api/types";
-import { buildPrepMarkdown, buildQuestionsMarkdown, type PrepContext } from "./prep-markdown";
+import { buildPrepMarkdown, type PrepContext } from "./prep-markdown";
 import { emptyDraft, recordCalculation, setCandidatesSeen, setProfile, setQuestions, type PlanDraft } from "./plan-draft";
 
 const input: FinanceInput = {
@@ -99,11 +99,5 @@ describe("상담 준비자료 Markdown", () => {
     expect(md).toContain("## 최초안과 현재안");
     expect(md).toContain("변경 이유: 월세를 250만에서 100만으로 낮춘 매물");
     expect(md).toContain("| 자기자본 외 조달 필요 | 3,160만 원 | 2,260만 원 |");
-  });
-
-  it("질문만 복사는 번호와 종류를 유지한다", () => {
-    expect(buildQuestionsMarkdown(ctx().draft.questions)).toBe(
-      "1. (조달) 자기자본 외 3,160만 원을 어떤 경로로 나눠 조달할 수 있는지\n",
-    );
   });
 });

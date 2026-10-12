@@ -1,4 +1,4 @@
-import type { FundingCandidate, PlanProfile, PlanQuestion } from "@/shared/api/types";
+import type { FundingCandidate, PlanProfile } from "@/shared/api/types";
 import { AMOUNT_LABELS, type AmountField } from "./form-defaults";
 import { formatManwon, formatPercent } from "./money";
 import type { PlanDraft, PlanSnapshot } from "./plan-draft";
@@ -154,10 +154,4 @@ export function buildPrepMarkdown(ctx: PrepContext): string {
   }
 
   return lines.join("\n") + "\n";
-}
-
-/** 질문 목록만 뽑은 짧은 형태 — 화면의 "질문만 복사"용. */
-export function buildQuestionsMarkdown(questions: PlanQuestion[]): string {
-  if (questions.length === 0) return "";
-  return questions.map((q, i) => `${i + 1}. (${KIND_LABELS[q.kind] ?? q.kind}) ${q.text}`).join("\n") + "\n";
 }

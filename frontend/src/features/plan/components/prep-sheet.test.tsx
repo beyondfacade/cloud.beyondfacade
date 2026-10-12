@@ -54,17 +54,6 @@ describe("상담 준비자료", () => {
     expect(fileName).toBe("창업자금 상담 준비자료_역삼1동_카페");
   });
 
-  it("복사 버튼은 Markdown 전체를 클립보드에 넣는다", async () => {
-    const writeText = vi.fn().mockResolvedValue(undefined);
-    Object.assign(navigator, { clipboard: { writeText } });
-    render(<PrepSheet draft={draftWithPlan()} regionName="역삼1동" industryLabel="카페" candidates={[]} caveats={[]} />);
-
-    await userEvent.click(screen.getByRole("button", { name: "Markdown 복사" }));
-
-    expect(writeText).toHaveBeenCalledWith(expect.stringContaining("# 창업자금 상담 준비자료"));
-    expect(screen.getByRole("button", { name: "복사했습니다" })).toBeInTheDocument();
-  });
-
   it("은행에 보내는 것처럼 보이는 버튼을 두지 않는다", () => {
     render(<PrepSheet draft={draftWithPlan()} regionName="역삼1동" industryLabel="카페" candidates={[]} caveats={[]} />);
 
