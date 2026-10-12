@@ -83,12 +83,13 @@ class AdminUserInteractor(AdminUserUseCase):
             and (wanted_role is None or user.role is wanted_role)
         ]
 
-    def search_members(self, q: str, exclude_id: int, limit: int) -> list[AdminPrincipalDto]:
+    def search_members(self, q: str, exclude_id: int, limit: int, role: str) -> list[AdminPrincipalDto]:
         needle = q.strip().lower()
+        wanted = AdminRole(role)
         found = [
             to_principal(user)
             for user in self._users.list_all()
-            if user.is_active and user.id != exclude_id and needle in user.username.lower()
+            if user.is_active and user.role is wanted and user.id != exclude_id and needle in user.username.lower()
         ]
         return found[:limit]
 

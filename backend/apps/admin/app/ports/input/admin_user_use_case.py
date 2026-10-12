@@ -24,8 +24,8 @@ class AdminUserUseCase(ABC):
         """q는 계정명·이메일 부분 일치(대소문자 무시), status는 all | active | suspended."""
 
     @abstractmethod
-    def search_members(self, q: str, exclude_id: int, limit: int) -> list[AdminPrincipalDto]:
-        """채팅 상대 찾기 — 활성 계정만, 계정명 부분 일치(대소문자 무시), 계정명순."""
+    def search_members(self, q: str, exclude_id: int, limit: int, role: str) -> list[AdminPrincipalDto]:
+        """채팅 상대 찾기 — 활성 계정 중 그 등급만, 계정명 부분 일치(대소문자 무시), 계정명순."""
 
     @abstractmethod
     def active_member(self, user_id: int) -> AdminPrincipalDto | None:

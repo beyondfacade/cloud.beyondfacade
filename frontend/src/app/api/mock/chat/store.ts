@@ -1,5 +1,5 @@
 /** 채팅 mock — 개발 서버 프로세스 동안만 유지. 회원 id는 mock 회원 목록 순서(ops=1, viewer=2, …). */
-import type { AdminMe, ChatMessage, ChatPeer, ChatReply, ChatRoom } from "@/shared/api/types";
+import type { AdminMe, AdminRole, ChatMessage, ChatPeer, ChatReply, ChatRoom } from "@/shared/api/types";
 import { adminError } from "../admin-fixtures";
 import { accounts } from "../admin/users/store";
 
@@ -89,11 +89,19 @@ export function roomsFor(me: AdminMe): ChatRoom[] {
   return [...fixed, ...directs];
 }
 
+/** 1:1은 일반 회원이 전문가에게만 건다 — 실 API chat_policy와 같은 규칙. */
+const canOpenDirect = (role: AdminRole, peerRole: AdminRole) => role === "viewer" && peerRole === "expert";
+const canTalkDirect = (role: AdminRole, partnerRole: AdminRole) => canOpenDirect(role, partnerRole) || canOpenDirect(partnerRole, role);
+
 export function directRoom(me: AdminMe, userId: number): ChatRoom | Response {
   const myId = memberId(me.username);
   const peer = usernameOf(userId);
-  if (userId === myId || !peer || !accounts.get(peer)?.user.is_active) {
+  const account = peer ? accounts.get(peer) : undefined;
+  if (userId === myId || !peer || !account?.user.is_active) {
     return adminError(404, "CHAT_MEMBER_NOT_FOUND", "대화 상대를 찾을 수 없습니다.");
+  }
+  if (!canOpenDirect(me.role, account.user.role)) {
+    return adminError(403, "CHAT_ROOM_FORBIDDEN", "1:1 대화는 일반 회원이 전문가에게만 걸 수 있습니다.");
   }
   return summary(me, `dm:${Math.min(myId, userId)}:${Math.max(myId, userId)}`, "direct", peer, userId);
 }
@@ -113,7 +121,7 @@ export function searchMembers(me: AdminMe, q: string): ChatPeer[] {
   if (!needle) return [];
   return [...accounts.values()]
     .map((account) => account.user)
-    .filter((user) => user.is_active && user.username !== me.username && user.username.toLowerCase().includes(needle))
+    .filter((user) => canOpenDirect(me.role, user.role) && user.is_active && user.username.toLowerCase().includes(needle))
     .sort((a, b) => a.username.localeCompare(b.username))
     .slice(0, 10)
     .map((user) => ({ id: memberId(user.username), username: user.username }));
@@ -121,8 +129,12 @@ export function searchMembers(me: AdminMe, q: string): ChatPeer[] {
 
 export function send(me: AdminMe, room: string, body: string, replyToId: number | null): ChatMessage | Response {
   const partner = directPartner(room, memberId(me.username));
-  if (room.startsWith("dm:") && (!partner || !accounts.get(usernameOf(partner))?.user.is_active)) {
+  const partnerUser = partner ? accounts.get(usernameOf(partner))?.user : undefined;
+  if (room.startsWith("dm:") && !partnerUser?.is_active) {
     return adminError(404, "CHAT_MEMBER_NOT_FOUND", "대화 상대를 찾을 수 없습니다.");
+  }
+  if (partnerUser && !canTalkDirect(me.role, partnerUser.role)) {
+    return adminError(403, "CHAT_ROOM_FORBIDDEN", "1:1 대화는 일반 회원과 전문가 사이에서만 할 수 있습니다.");
   }
   const text = body.trim();
   if (!text || text.length > MAX_BODY_LENGTH) return adminError(400, "INVALID_CHAT_MESSAGE", "메시지는 1~500자로 입력해 주세요.");

@@ -43,6 +43,7 @@ class ChatRoomDto:
 class ChatPeerDto:
     id: int
     username: str
+    role: str
 
 
 @dataclass(frozen=True)

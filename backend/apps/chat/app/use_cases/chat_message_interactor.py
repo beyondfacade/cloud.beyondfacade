@@ -9,7 +9,13 @@ from apps.chat.app.dtos.chat_message_dto import (
     ChatReplyDto,
     ChatRoomDto,
 )
-from apps.chat.app.errors import ChatMemberNotFound, ChatMessageNotFound, ChatTooFast, InvalidChatMessage
+from apps.chat.app.errors import (
+    ChatMemberNotFound,
+    ChatMessageNotFound,
+    ChatRoomForbidden,
+    ChatTooFast,
+    InvalidChatMessage,
+)
 from apps.chat.app.ports.input.chat_message_use_case import ChatMessageUseCase
 from apps.chat.app.ports.output.chat_message_port import (
     ChatEventFeedPort,
@@ -21,7 +27,16 @@ from apps.chat.app.ports.output.chat_message_port import (
 from apps.chat.app.ports.output.chat_read_port import ChatReadRepositoryPort
 from apps.chat.app.use_cases.room_access import admitted_room
 from apps.chat.domain.entities.chat_message_entity import ChatMessage
-from apps.chat.domain.services.chat_policy import RATE_LIMIT_COUNT, clean_body, rate_window_start, reply_preview
+from apps.chat.domain.services.chat_policy import (
+    DIRECT_OPENER_ROLE,
+    DIRECT_PARTNER_ROLE,
+    RATE_LIMIT_COUNT,
+    can_open_direct,
+    can_talk_direct,
+    clean_body,
+    rate_window_start,
+    reply_preview,
+)
 from apps.chat.domain.value_objects.chat_room import (
     ChatMember,
     ChatRoom,
@@ -103,8 +118,12 @@ class ChatMessageInteractor(ChatMessageUseCase):
 
     def send(self, member: ChatMember, room_key: str, body: str, reply_to_id: int | None) -> ChatMessageDto:
         room = admitted_room(member, room_key)
-        if isinstance(room, DirectRoom) and self._members.active(room.partner_of(member.id)) is None:
-            raise ChatMemberNotFound("대화 상대를 찾을 수 없습니다.")
+        if isinstance(room, DirectRoom):
+            partner = self._members.active(room.partner_of(member.id))
+            if partner is None:
+                raise ChatMemberNotFound("대화 상대를 찾을 수 없습니다.")
+            if not can_talk_direct(member.role, partner.role):
+                raise ChatRoomForbidden("1:1 대화는 일반 회원과 전문가 사이에서만 할 수 있습니다.")
         text = clean_body(body)
         if text is None:
             raise InvalidChatMessage("메시지는 1~500자로 입력해 주세요.")
@@ -135,6 +154,8 @@ class ChatMessageInteractor(ChatMessageUseCase):
         peer = self._members.active(user_id) if user_id != member.id else None
         if peer is None:
             raise ChatMemberNotFound("대화 상대를 찾을 수 없습니다.")
+        if not can_open_direct(member.role, peer.role):
+            raise ChatRoomForbidden("1:1 대화는 일반 회원이 전문가에게만 걸 수 있습니다.")
         room = direct_room(member.id, peer.id)
         return self._summary(member, room, peer.username, peer.id, self._reads.last_read_ids(member.id))
 
@@ -146,7 +167,9 @@ class ChatMessageInteractor(ChatMessageUseCase):
 
     def search_members(self, member: ChatMember, q: str) -> list[ChatPeerDto]:
         needle = q.strip()
-        return self._members.search(needle, member.id, MEMBER_SEARCH_LIMIT) if needle else []
+        if not needle or member.role != DIRECT_OPENER_ROLE:
+            return []
+        return self._members.search(needle, member.id, MEMBER_SEARCH_LIMIT, DIRECT_PARTNER_ROLE)
 
     def latest_id(self) -> int:
         return self._messages.latest_id()

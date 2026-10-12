@@ -91,17 +91,25 @@ describe("채팅 mock 계약", () => {
     expect(items.at(-1)!.reply_to).toMatchObject({ preview: null, deleted: true });
   });
 
-  it("회원을 찾아 1:1 대화를 열고, 메시지가 오가면 상대의 방 목록에 안 읽음과 함께 생긴다", async () => {
-    const found = await (await members(new Request(`${base}/members?q=OP`, { headers: as("viewer") }))).json();
-    expect(found).toEqual([{ id: 3, username: "lee.ops" }, { id: 1, username: "ops" }]);
+  it("일반 회원은 전문가만 찾아 1:1을 열고, 메시지가 오가면 전문가의 방 목록에 안 읽음과 함께 생긴다", async () => {
+    const found = await (await members(new Request(`${base}/members?q=E`, { headers: as("viewer") }))).json();
+    expect(found).toEqual([{ id: 5, username: "park.expert" }]);
     expect(await (await members(new Request(`${base}/members?q=%20`, { headers: as("viewer") }))).json()).toEqual([]);
-    const room: ChatRoom = await (await openDirect(new Request(`${base}/direct`, json("POST", { user_id: 1 }, "viewer")))).json();
-    expect([room.key, room.kind, room.title, room.partner_id]).toEqual(["dm:1:2", "direct", "ops", 1]);
+    const room: ChatRoom = await (await openDirect(new Request(`${base}/direct`, json("POST", { user_id: 5 }, "viewer")))).json();
+    expect([room.key, room.kind, room.title, room.partner_id]).toEqual(["dm:2:5", "direct", "park.expert", 5]);
     expect(await errorCode(await openDirect(new Request(`${base}/direct`, json("POST", { user_id: 2 }, "viewer"))))).toBe("CHAT_MEMBER_NOT_FOUND");
-    expect((await post("dm:1:2", "viewer", "안녕하세요")).status).toBe(201);
-    const dm = (await rooms("ops")).find((r) => r.key === "dm:1:2")!;
+    expect((await post("dm:2:5", "viewer", "안녕하세요")).status).toBe(201);
+    const dm = (await rooms("park.expert")).find((r) => r.key === "dm:2:5")!;
     expect([dm.title, dm.unread]).toEqual(["viewer", 1]);
-    expect((await page("dm:1:2", "lee.ops")).status).toBe(403);
+    expect((await post("dm:2:5", "park.expert", "네 말씀하세요")).status).toBe(201);
+    expect((await page("dm:2:5", "ops")).status).toBe(403);
+  });
+
+  it("1:1은 일반 회원이 전문가에게만 걸고, 다른 조합은 403에 찾기 결과도 없다", async () => {
+    expect(await errorCode(await openDirect(new Request(`${base}/direct`, json("POST", { user_id: 1 }, "viewer"))))).toBe("CHAT_ROOM_FORBIDDEN");
+    expect((await openDirect(new Request(`${base}/direct`, json("POST", { user_id: 2 }, "park.expert")))).status).toBe(403);
+    expect(await (await members(new Request(`${base}/members?q=v`, { headers: as("park.expert") }))).json()).toEqual([]);
+    expect((await post("dm:1:2", "viewer", "관리자님?")).status).toBe(403);
   });
 
   it("전문가와 연결하기는 활성 전문가와의 1:1 방을 열고, 비로그인은 401", async () => {

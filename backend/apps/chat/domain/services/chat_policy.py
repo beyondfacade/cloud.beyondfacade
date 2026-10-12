@@ -1,4 +1,4 @@
-"""채팅 메시지 규칙 — 본문 길이, 도배 방지, 답장 미리보기."""
+"""채팅 메시지 규칙 — 본문 길이, 도배 방지, 답장 미리보기, 1:1 상대."""
 
 from datetime import datetime, timedelta
 
@@ -6,6 +6,18 @@ MAX_BODY_LENGTH = 500
 RATE_LIMIT_COUNT = 5
 RATE_LIMIT_WINDOW = timedelta(seconds=10)
 _PREVIEW_LENGTH = 80
+DIRECT_OPENER_ROLE = "viewer"
+DIRECT_PARTNER_ROLE = "expert"
+
+
+def can_open_direct(opener_role: str, peer_role: str) -> bool:
+    """1:1은 일반 회원이 전문가에게만 건다 — 전문가는 열린 방에서 답만 한다."""
+    return opener_role == DIRECT_OPENER_ROLE and peer_role == DIRECT_PARTNER_ROLE
+
+
+def can_talk_direct(role: str, partner_role: str) -> bool:
+    """이미 열린 1:1도 지금 일반↔전문가 사이일 때만 보낸다 — 등급이 바뀌면 더 못 보낸다."""
+    return {role, partner_role} == {DIRECT_OPENER_ROLE, DIRECT_PARTNER_ROLE}
 
 
 def clean_body(body: str) -> str | None:

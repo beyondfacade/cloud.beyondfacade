@@ -96,6 +96,21 @@ it("전문가와 연결하기 이벤트가 오면 창이 열리고 전문가와�
   expect(calls("/chat/expert", "POST")).toHaveLength(1);
 });
 
+it("1:1 탭의 전문가 찾기는 일반 회원에게만 보인다", async () => {
+  setup(VIEWER);
+  await userEvent.click(await screen.findByRole("button", { name: "채팅 열기" }));
+  await userEvent.click(screen.getByRole("tab", { name: "대화" }));
+  expect(screen.getByRole("searchbox", { name: "대화할 전문가 찾기" })).toBeInTheDocument();
+});
+
+it("전문가는 1:1을 먼저 걸 수 없어 찾기 칸 대신 안내를 본다", async () => {
+  setup({ username: "park.expert", role: "expert", can_operate: false });
+  await userEvent.click(await screen.findByRole("button", { name: "채팅 열기" }));
+  await userEvent.click(screen.getByRole("tab", { name: "대화" }));
+  expect(screen.queryByRole("searchbox")).not.toBeInTheDocument();
+  expect(screen.getByText(/일반 회원이 전문가에게 걸면 생겨요/)).toBeInTheDocument();
+});
+
 it("로그인·가입 화면에서는 채팅 버튼을 띄우지 않는다", async () => {
   navigation.pathname = "/login";
   setup(OPS);

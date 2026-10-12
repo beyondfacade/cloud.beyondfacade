@@ -33,7 +33,7 @@ def to_room_response(dto: ChatRoomDto) -> ChatRoomResponse:
 
 
 def to_peer_response(dto: ChatPeerDto) -> ChatPeerResponse:
-    return ChatPeerResponse(**asdict(dto))
+    return ChatPeerResponse(id=dto.id, username=dto.username)
 
 
 def to_event_response(dto: ChatEventDto) -> ChatEventResponse:

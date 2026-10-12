@@ -179,21 +179,35 @@ def test_삭제는_관리자만_하고_본문은_지워진_채_자리만_남는�
     assert ops.delete("/chat/messages/9999").status_code == 404
 
 
-def test_회원을_찾아_1대1_대화를_열고_상대만_볼_수_있다():
+def test_일반_회원은_전문가를_찾아_1대1_대화를_열고_전문가는_그_방에서_답한다():
+    get_admin_user_use_case().set_role("guest2", "expert")
     viewer = _client("viewer")
-    found = viewer.get("/chat/members", params={"q": "OP"}).json()
-    assert found == [{"id": 1, "username": "ops"}]
-    assert [peer["username"] for peer in viewer.get("/chat/members", params={"q": "e"}).json()] == ["guest2"]
+    assert viewer.get("/chat/members", params={"q": "e"}).json() == [{"id": 3, "username": "guest2"}]  # 관리자 ops는 안 나온다
     assert viewer.get("/chat/members", params={"q": " "}).json() == []
-    room = viewer.post("/chat/direct", json={"user_id": 1}).json()
-    assert (room["key"], room["kind"], room["title"], room["partner_id"]) == ("dm:1:2", "direct", "ops", 1)
+    room = viewer.post("/chat/direct", json={"user_id": 3}).json()
+    assert (room["key"], room["kind"], room["title"], room["partner_id"]) == ("dm:2:3", "direct", "guest2", 3)
     assert [r["key"] for r in viewer.get("/chat/rooms").json()] == ["global"]  # 메시지가 오가기 전엔 목록에 없다
-    assert _send(viewer, "dm:1:2", "안녕하세요 관리자님").status_code == 201
-    ops_rooms = {r["key"]: r for r in _client("ops").get("/chat/rooms").json()}
-    assert (ops_rooms["dm:1:2"]["title"], ops_rooms["dm:1:2"]["unread"]) == ("viewer", 1)
-    outsider = _client("guest2")
-    assert outsider.get("/chat/rooms/dm:1:2/messages").status_code == 403
-    assert [r["key"] for r in outsider.get("/chat/rooms").json()] == ["global"]
+    assert _send(viewer, "dm:2:3", "안녕하세요 전문가님").status_code == 201
+    expert = _client("guest2")
+    expert_rooms = {r["key"]: r for r in expert.get("/chat/rooms").json()}
+    assert (expert_rooms["dm:2:3"]["title"], expert_rooms["dm:2:3"]["unread"]) == ("viewer", 1)
+    assert _send(expert, "dm:2:3", "네 말씀하세요").status_code == 201
+    ops = _client("ops")
+    assert ops.get("/chat/rooms/dm:2:3/messages").status_code == 403
+    assert "dm:2:3" not in [r["key"] for r in ops.get("/chat/rooms").json()]
+
+
+def test_1대1은_일반_회원이_전문가에게만_걸고_다른_조합은_보낼_수도_없다():
+    get_admin_user_use_case().set_role("guest2", "expert")
+    viewer, expert, ops = _client("viewer"), _client("guest2"), _client("ops")
+    forbidden = viewer.post("/chat/direct", json={"user_id": 1})  # 일반 → 관리자
+    assert (forbidden.status_code, forbidden.json()["error"]["code"]) == (403, "CHAT_ROOM_FORBIDDEN")
+    assert expert.post("/chat/direct", json={"user_id": 2}).status_code == 403  # 전문가가 먼저 걸 수는 없다
+    assert ops.post("/chat/direct", json={"user_id": 3}).status_code == 403
+    assert expert.get("/chat/members", params={"q": "v"}).json() == []
+    assert ops.get("/chat/members", params={"q": "e"}).json() == []
+    _insert("dm:1:2", 1)  # 규칙 전에 열린 일반↔관리자 방
+    assert _send(viewer, "dm:1:2", "아직 되나요").status_code == 403
 
 
 def test_나_자신이나_없는_회원과는_대화를_열_수_없다():

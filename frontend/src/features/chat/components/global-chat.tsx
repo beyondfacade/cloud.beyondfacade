@@ -77,7 +77,7 @@ function Guest({ next }: { next: string }) {
     <div className={styles.guest}>
       <p>
         <strong>로그인한 회원만 참여할 수 있어요</strong>
-        메타볼레 회원들과 상권 이야기를 나누고,<br />다른 회원과 1:1로 대화할 수 있어요.
+        메타볼레 회원들과 상권 이야기를 나누고,<br />전문가와 1:1로 대화할 수 있어요.
       </p>
       <div className={styles.guestLinks}>
         <Link href={loginHref(next)} className={styles.link} data-primary="true">로그인</Link>
@@ -209,6 +209,7 @@ export function GlobalChat() {
             {me && tab === "direct" && !dm && (
               <ChatDirectList
                 rooms={list.filter((r) => r.kind === "direct")}
+                canStart={me.role === "viewer"}
                 onOpen={(room) => setView((v) => ({ ...v, dm: { key: room.key, title: room.title, owner: me.username } }))}
               />
             )}

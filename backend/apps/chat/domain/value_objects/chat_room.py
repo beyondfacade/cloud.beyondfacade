@@ -12,7 +12,7 @@ class ChatMember:
     id: int
     username: str
     can_operate: bool
-    role: str = "viewer"  # 메시지에 남길 보낸 때의 등급 — 권한 판단은 can_operate로만
+    role: str = "viewer"  # 메시지에 남길 보낸 때의 등급, 1:1 상대 판단(chat_policy) — 관리자 권한은 can_operate로만
 
 
 class ChatRoom(ABC):

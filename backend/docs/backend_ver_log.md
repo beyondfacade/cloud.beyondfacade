@@ -1,5 +1,14 @@
 # Backend Version Log
 
+## [v0.109.0] - 2026-10-12
+
+### Changed
+- **1:1 대화는 일반 회원 → 전문가만** — 규칙은 `chat/domain/services/chat_policy.py`(`can_open_direct`·`can_talk_direct`) 한 곳.
+  - 열기(`POST /chat/direct`): 일반 회원이 전문가에게만. 그 밖의 조합(전문가가 먼저, 관리자, 일반↔일반 등)은 403 `CHAT_ROOM_FORBIDDEN`. 전문가와 연결하기(`POST /chat/expert`)도 같은 규칙을 탄다.
+  - 보내기: 이미 있는 1:1 방도 지금 일반↔전문가 사이일 때만 — 규칙 전에 열린 다른 조합의 방이나 등급이 바뀐 뒤에는 403(지난 대화 읽기는 그대로).
+  - 회원 찾기(`GET /chat/members`): 일반 회원에게 활성 전문가만, 다른 등급은 빈 목록. admin `search_members`에 등급 인자 추가, chat `ChatPeerDto`에 `role`(응답 필드는 그대로 id·username).
+- 테스트: 1:1 API 테스트를 일반→전문가로 바꾸고, 막히는 조합 1개 추가
+
 ## [v0.108.1] - 2026-10-12
 
 ### Fixed

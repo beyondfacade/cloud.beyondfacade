@@ -35,14 +35,15 @@ class ChatMessageUseCase(ABC):
 
     @abstractmethod
     def open_direct(self, member: ChatMember, user_id: int) -> ChatRoomDto:
-        """1:1 대화방 — 메시지가 오가기 전에는 방 목록에 없다."""
+        """1:1 대화방 — 일반 회원이 전문가에게만 건다(아니면 ChatRoomForbidden). 메시지가 오가기 전에는 방 목록에 없다."""
 
     @abstractmethod
     def open_expert(self, member: ChatMember) -> ChatRoomDto:
         """전문가와의 1:1 대화방 — 연결할 전문가가 없으면 ChatMemberNotFound."""
 
     @abstractmethod
-    def search_members(self, member: ChatMember, q: str) -> list[ChatPeerDto]: ...
+    def search_members(self, member: ChatMember, q: str) -> list[ChatPeerDto]:
+        """일반 회원에게만 전문가를 찾아 준다 — 그 밖의 등급은 빈 목록."""
 
     @abstractmethod
     def latest_id(self) -> int: ...
