@@ -22,7 +22,7 @@
 
 1. 도구: AWS CLI v2, Terraform 1.10 이상, kubectl
 2. 관리자 IAM 사용자(MFA 등록)로 `aws configure --profile beyondfacade` → `aws sts get-caller-identity --profile beyondfacade`로 확인
-3. **비용은 이 계정에서 안 보인다** — 조직(Organizations) SCP가 Budgets·Cost Explorer·결제 데이터를 막는다(10/12 확인). 실제 비용·남은 크레딧은 팀장을 통해 조직 관리 계정(부트캠프 쪽)에 묻고, 평소엔 serverplan §20-3 일 비용(운영 약 $21)으로 어림한다
+3. **비용은 이 계정에서 안 보인다** — 조직(Organizations) SCP가 Budgets·Cost Explorer·결제 데이터를 막는다(10/12 확인). 실제 비용·남은 크레딧은 팀장을 통해 조직 관리 계정(부트캠프 쪽)에 묻고, 평소엔 **매일 `python3 scripts/aws-cost-estimate.py`**(켜진 리소스 × 서울 공시 단가 → 시간당·하루·14일, 같은 계정의 다른 프로젝트 몫도 따로)로 어림한다 — 안 1 사양이면 하루 약 $20 + 로그 수집
 
 ## 만들기 (serverplan §20-5 D1)
 

@@ -1,5 +1,10 @@
 # Backend Version Log
 
+## [v0.104.0] - 2026-10-12
+
+### Added
+- `scripts/aws-cost-estimate.py` — 서울 리전에 켜진 리소스(EKS·EC2·EBS·NAT·로드밸런서·공인 IPv4·RDS·Secrets·KMS) × 공시 단가로 시간당·하루·14일 비용을 어림하고, 지난 24시간 CloudWatch 로그 수집량·비용을 따로 보인다. 이 계정은 조직 SCP가 Budgets·Cost Explorer·결제 데이터를 막아(10/12) 실제 청구액을 볼 수 없어서 만들었다. 단가는 10/12 Price List API(서울)에서 확인(EC2 c7g·RDS m7g 단일/Multi-AZ·NAT $0.059·ALB $0.0225·IPv4 $0.005·EBS gp3 $0.0912·RDS gp3 $0.131/$0.262·로그 $0.76/GB). 같은 계정의 다른 프로젝트 리소스(크레딧 공유)는 "다른"으로 나눠 센다. 표준 라이브러리 + aws CLI만. 실계정 실행 확인(우리 리소스 0, 다른 프로젝트 Aurora 서버리스 1). 안 1 사양 환산 시간당 약 $0.84(하루 약 $20) — serverplan §20-3과 일치
+
 ## [v0.103.1] - 2026-10-12
 
 ### Fixed
