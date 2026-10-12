@@ -63,7 +63,7 @@ apply가 끝나면 사람이 할 일:
 
 | 누가 | 언제 | 무엇을 |
 |---|---|---|
-| GitHub Actions `backend-deploy` | main에 `backend/`·`data/geojson/`이 바뀔 때(또는 Actions 탭에서 수동 실행) | arm64 이미지 빌드(태그 = git SHA) → ECR 푸시 → API·CronJob **이미지만** 교체, 실패하면 이전 버전으로 되돌림 |
+| GitHub Actions `backend-deploy` | main에 `backend/`·`data/geojson/`이 바뀔 때(또는 Actions 탭에서 수동 실행) | arm64 이미지 빌드(태그 = git SHA) → ECR 푸시 → **DB 마이그레이션**(새 이미지로 Job `alembic upgrade head`, 실패하면 여기서 멈춤) → API·CronJob **이미지만** 교체, 실패하면 이전 버전으로 되돌림 |
 | 관리자(Terraform apply한 사람) | 첫 배포, `deploy/k8s` 매니페스트가 바뀔 때 | `scripts/k8s-apply.sh` — 매니페스트 전체 적용, 이미지는 지금 것을 유지 |
 
 CI 역할은 `beyondfacade` 네임스페이스 안 Edit 권한뿐이라 매니페스트 전체(Namespace·ExternalSecret 등)는 사람이 적용한다.

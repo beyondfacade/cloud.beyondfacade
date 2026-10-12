@@ -1,5 +1,10 @@
 # Backend Version Log
 
+## [v0.105.0] - 2026-10-12
+
+### Added
+- 배포 워크플로에 DB 마이그레이션 단계 — 이미지 교체 전에 새 이미지로 일회성 Job(`deploy/k8s-jobs/db-migrate.yaml`, 이름에 커밋 SHA)을 띄워 `alembic upgrade head`, 성공해야 API·CronJob 이미지를 바꾼다(실패·5분 초과면 멈추고 로그 출력). 돌고 있는 옛 파드에는 새 마이그레이션 파일이 없어 `kubectl exec`로는 안 된다. 지금까지는 마이그레이션이 자동으로 안 돌아 새 컬럼을 쓰는 코드가 운영에서 오류를 냈을 것. 이미지 안(uid 10001)에서 `alembic heads`·`current`가 `DATABASE_URL`로 동작함 확인(로컬 DB head d7b3e5a9c214), actionlint·kubeconform 통과. 평소(새 마이그레이션 없음)엔 아무것도 안 하고 통과
+
 ## [v0.104.1] - 2026-10-12
 
 ### Fixed

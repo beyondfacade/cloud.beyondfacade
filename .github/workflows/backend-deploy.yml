@@ -1,4 +1,4 @@
-# main에 백엔드가 바뀌면: arm64 이미지 빌드 → ECR 푸시 → EKS의 API·CronJob 이미지 교체 (serverplan §13-1)
+# main에 백엔드가 바뀌면: arm64 이미지 빌드 → ECR 푸시 → DB 마이그레이션(새 이미지 Job) → EKS의 API·CronJob 이미지 교체 (serverplan §13-1)
 # - CI 역할은 beyondfacade 네임스페이스 안 Edit 권한뿐이라 이미지만 바꾼다.
 #   매니페스트(deploy/k8s)가 바뀌면 관리자가 scripts/k8s-apply.sh로 적용한다(지금 이미지를 유지).
 # - 테스트는 로컬에서 돌린 뒤 머지한다 — pytest가 실 DB·data/raw를 써서 CI에서 못 돈다.
@@ -61,6 +61,7 @@ jobs:
     runs-on: ubuntu-24.04 # aws CLI·kubectl이 깔려 있다
     timeout-minutes: 15
     steps:
+      - uses: actions/checkout@v7
       - uses: aws-actions/configure-aws-credentials@v6
         with:
           role-to-assume: ${{ vars.AWS_DEPLOY_ROLE_ARN }}
@@ -73,6 +74,20 @@ jobs:
           if ! kubectl get deployment/api -n "$NAMESPACE" > /dev/null 2>&1; then
             echo "::notice::아직 배포된 API가 없다 — 첫 배포는 관리자가: scripts/k8s-apply.sh $IMAGE"
             exit 0
+          fi
+          # 마이그레이션 먼저 — 새 코드가 아직 없는 컬럼을 찾지 않게. 실패하면 이미지를 바꾸지 않는다
+          job="db-migrate-${GITHUB_SHA::12}"
+          kubectl delete job "$job" -n "$NAMESPACE" --ignore-not-found
+          sed -e "s|name: db-migrate|name: $job|" -e "s|image: beyondfacade-api|image: $IMAGE|" deploy/k8s-jobs/db-migrate.yaml | kubectl apply -f -
+          for _ in $(seq 60); do  # 최대 5분
+            status=$(kubectl get job "$job" -n "$NAMESPACE" -o jsonpath='{.status.succeeded}{.status.failed}')
+            [ -n "$status" ] && break
+            sleep 5
+          done
+          kubectl logs "job/$job" -n "$NAMESPACE" || true
+          if [ "$(kubectl get job "$job" -n "$NAMESPACE" -o jsonpath='{.status.succeeded}')" != "1" ]; then
+            echo "::error::DB 마이그레이션 실패 또는 5분 초과 — 이미지를 바꾸지 않았다"
+            exit 1
           fi
           kubectl set image deployment/api "api=$IMAGE" -n "$NAMESPACE"
           kubectl set image cronjob --all "*=$IMAGE" -n "$NAMESPACE"
