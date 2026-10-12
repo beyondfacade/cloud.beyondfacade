@@ -1,5 +1,10 @@
 # Backend Version Log
 
+## [v0.103.1] - 2026-10-12
+
+### Fixed
+- ALB Ingress에 HTTP(80) 리스너 + `ssl-redirect: 443` — serverplan §20-9 표의 "HTTP → HTTPS 리디렉트"가 매니페스트에 빠져 있어 `http://api.beyondfacade.cloud`는 연결이 안 됐을 것. §20-9 설정 8개 항목 전부 대조, kubeconform 통과
+
 ## [v0.103.0] - 2026-10-12
 
 ### Added

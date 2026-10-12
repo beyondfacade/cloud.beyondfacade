@@ -64,7 +64,8 @@ metadata:
   annotations:
     alb.ingress.kubernetes.io/scheme: internet-facing
     alb.ingress.kubernetes.io/target-type: ip
-    alb.ingress.kubernetes.io/listen-ports: '[{"HTTPS":443}]'
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTP":80},{"HTTPS":443}]'
+    alb.ingress.kubernetes.io/ssl-redirect: "443"  # http://로 온 요청은 https://로 돌려보낸다 (serverplan §20-9)
     alb.ingress.kubernetes.io/healthcheck-path: /health/ready
     alb.ingress.kubernetes.io/load-balancer-attributes: idle_timeout.timeout_seconds=300  # SSE 리포트가 60초 기본값에 끊기지 않게
     alb.ingress.kubernetes.io/target-group-attributes: >-
