@@ -351,9 +351,9 @@ export function FacilityRoom() {
       {snapshot.isError && !data && <RoomError error={snapshot.error} />}
       {data && (
         <>
-          <StatStrip label="설비 요약" items={hostItems(data)} />
+          <StatStrip label="인프라 요약" items={hostItems(data)} />
           <Tabs
-            label="설비 탭"
+            label="인프라 관리 탭"
             tabs={[
               { key: "dashboard", label: "대시보드", render: () => <DashboardPanel data={data} gpuSeries={gpuSeries} /> },
               { key: "trends", label: "추세", render: () => <TrendPanel /> },

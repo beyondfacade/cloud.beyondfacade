@@ -5,7 +5,7 @@ import { accounts } from "../../users/store";
 
 const EMAIL = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
 
-/** 실 API와 같은 계약 — 201 + httpOnly 세션 쿠키 + 일반(viewer). 가입한 계정은 mock 인사팀 목록에도 들어간다. */
+/** 실 API와 같은 계약 — 201 + httpOnly 세션 쿠키 + 일반(viewer). 가입한 계정은 mock 유저 관리 목록에도 들어간다. */
 export async function POST(request: Request) {
   const body = await request.json().catch(() => null);
   const username = typeof body?.username === "string" ? body.username : "";

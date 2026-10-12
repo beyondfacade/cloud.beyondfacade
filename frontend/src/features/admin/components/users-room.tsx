@@ -400,7 +400,7 @@ export function UsersRoom() {
       {everyone.isError && !data && <RoomError error={everyone.error} />}
       {data && (
         <Tabs
-          label="인사팀 탭"
+          label="유저 관리 탭"
           tabs={[{ key: "users", label: "유저 목록", count: data.items.length, render: () => <UserListPanel me={me.data} everyone={data.items} now={everyone.dataUpdatedAt} /> }]}
         />
       )}

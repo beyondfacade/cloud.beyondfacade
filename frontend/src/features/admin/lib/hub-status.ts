@@ -28,7 +28,7 @@ export function facilityStatus(snapshot: FacilitySnapshot): DoorStatus {
   const late = snapshot.collectors.filter((c) => c.status !== "ok").length;
   if (down) return { tone: "danger", label: `서비스 장애 ${down}건${late ? ` · 수집 지연 ${late}건` : ""}` };
   if (late) return { tone: "warn", label: `수집 지연·누락 ${late}건` };
-  return { tone: "ok", label: "설비 정상" };
+  return { tone: "ok", label: "인프라 정상" };
 }
 
 export function usersStatus(users: AdminUser[]): DoorStatus {

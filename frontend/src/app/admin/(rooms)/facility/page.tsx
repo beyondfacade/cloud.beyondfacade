@@ -4,7 +4,7 @@ import { RouteFallback } from "@/shared/ui/route-fallback";
 
 export default function FacilityRoute() {
   return (
-    <Suspense fallback={<RouteFallback label="설비실을 불러오는 중" />}>
+    <Suspense fallback={<RouteFallback label="인프라 관리를 불러오는 중" />}>
       <FacilityRoom />
     </Suspense>
   );

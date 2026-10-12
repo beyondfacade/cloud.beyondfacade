@@ -4,7 +4,7 @@ import { RouteFallback } from "@/shared/ui/route-fallback";
 
 export default function HealthcareRoute() {
   return (
-    <Suspense fallback={<RouteFallback label="헬스케어실을 불러오는 중" />}>
+    <Suspense fallback={<RouteFallback label="AI 관리를 불러오는 중" />}>
       <HealthcareRoom />
     </Suspense>
   );

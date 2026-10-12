@@ -378,7 +378,7 @@ export function HealthcareRoom() {
         <>
           <StatStrip label="AI 파이프라인 요약" items={overviewItems(data)} />
           <Tabs
-            label="헬스케어 탭"
+            label="AI 관리 탭"
             tabs={[
               { key: "pipeline", label: "개요", render: () => <PipelinePanel data={data} /> },
               { key: "usage", label: "사용량", render: () => <UsagePanel data={data} /> },
