@@ -13,7 +13,7 @@ it("세션 쿠키가 없으면 401 UNAUTHENTICATED", async () => {
 
 it("세션 쿠키의 계정과 등급을 돌려준다", async () => {
   const body = await (await call("theme=dark; metabole_admin=viewer")).json();
-  expect(body).toEqual({ username: "viewer", role: "viewer", can_operate: false });
+  expect(body).toEqual({ id: 2, username: "viewer", role: "viewer", can_operate: false, specialty: null, avatar_version: null });
 });
 
 it("등급은 회원 목록에서 읽어 관리자 지정이 바로 반영된다", async () => {

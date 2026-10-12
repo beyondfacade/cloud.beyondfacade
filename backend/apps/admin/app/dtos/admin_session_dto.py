@@ -10,6 +10,7 @@ class AdminPrincipalDto:
     can_operate: bool
     hourly_rate: int | None = None  # 전문가 상담 시간당 요금(원)
     specialty: str | None = None  # 전문가 전문 업종
+    avatar_version: int | None = None  # 프로필 사진 버전 — 없으면 None
 
 
 @dataclass(frozen=True)

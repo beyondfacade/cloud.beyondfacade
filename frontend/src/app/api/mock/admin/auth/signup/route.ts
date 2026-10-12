@@ -1,5 +1,5 @@
 import type { AdminUser } from "@/shared/api/types";
-import { adminError, sessionCookie } from "../../../admin-fixtures";
+import { adminError, mockMe, sessionCookie } from "../../../admin-fixtures";
 import { invalidUsername, weakPassword } from "../../users/guard";
 import { accounts } from "../../users/store";
 
@@ -26,7 +26,7 @@ export async function POST(request: Request) {
   };
   accounts.set(username, { user, sessions: [] });
   return Response.json(
-    { username, role: "viewer", can_operate: false },
+    mockMe(username),
     { status: 201, headers: { "set-cookie": sessionCookie(username) } },
   );
 }

@@ -65,6 +65,14 @@ class WeakPassword(AdminError, ValueError):
     code = "WEAK_PASSWORD"
 
 
+class InvalidAvatar(AdminError, ValueError):
+    code = "INVALID_AVATAR"
+
+
+class InvalidSpecialty(AdminError, ValueError):
+    code = "INVALID_SPECIALTY"
+
+
 class WrongPassword(AdminError):
     """현재 비밀번호 확인 실패 — 401이 아니다(프론트가 세션 만료로 오인해 로그인으로 보내지 않게)."""
 

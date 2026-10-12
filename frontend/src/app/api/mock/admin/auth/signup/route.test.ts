@@ -12,9 +12,9 @@ it("가입하면 201과 httpOnly 세션 쿠키, 일반 등급을 준다", async 
   const res = await call({});
   expect(res.status).toBe(201);
   expect(res.headers.get("set-cookie")).toMatch(/metabole_admin=new\.one; HttpOnly/);
-  expect(await res.json()).toEqual({ username: "new.one", role: "viewer", can_operate: false });
+  expect(await res.json()).toMatchObject({ username: "new.one", role: "viewer", can_operate: false });
   const me = await GET(new Request("http://test/api/mock/admin/auth/me", { headers: { cookie: "metabole_admin=new.one" } }));
-  expect(await me.json()).toEqual({ username: "new.one", role: "viewer", can_operate: false });
+  expect(await me.json()).toMatchObject({ username: "new.one", role: "viewer", can_operate: false });
 });
 
 it.each([

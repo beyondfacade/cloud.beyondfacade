@@ -8,7 +8,7 @@ it("로그인하면 httpOnly 세션 쿠키와 등급을 준다 — 토큰은 본
   const res = await call({ username: "ops", password: "pw" });
   expect(res.status).toBe(200);
   expect(res.headers.get("set-cookie")).toMatch(/metabole_admin=ops; HttpOnly/);
-  expect(await res.json()).toEqual({ username: "ops", role: "operator", can_operate: true });
+  expect(await res.json()).toMatchObject({ username: "ops", role: "operator", can_operate: true });
 });
 
 it("viewer 계정은 일반 회원이다", async () => {
@@ -18,7 +18,7 @@ it("viewer 계정은 일반 회원이다", async () => {
 
 it("이메일로도 로그인한다 — 대소문자 무시", async () => {
   const body = await (await call({ username: "Viewer@Example.com", password: "pw" })).json();
-  expect(body).toEqual({ username: "viewer", role: "viewer", can_operate: false });
+  expect(body).toMatchObject({ username: "viewer", role: "viewer", can_operate: false });
 });
 
 it.each([

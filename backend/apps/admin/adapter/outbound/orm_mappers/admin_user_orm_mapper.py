@@ -17,6 +17,7 @@ def to_entity(orm: AdminUserOrm) -> AdminUser:
         last_login_at=orm.last_login_at,
         hourly_rate=orm.hourly_rate,
         specialty=orm.specialty,
+        avatar_version=orm.avatar_version,
     )
 
 
@@ -29,3 +30,4 @@ def apply_to_orm(entity: AdminUser, orm: AdminUserOrm) -> None:
     orm.google_sub = entity.google_sub
     orm.hourly_rate = entity.hourly_rate
     orm.specialty = entity.specialty
+    orm.avatar_version = entity.avatar_version

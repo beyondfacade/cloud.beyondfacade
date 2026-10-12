@@ -1,13 +1,18 @@
 "use client";
 
 import type { ChatRoom } from "@/shared/api/types";
+import { avatarUrl } from "@/shared/auth/session";
 import { badgeLabel, chatTime, lastLine } from "../lib/chat-state";
 import styles from "./global-chat.module.css";
 
 const EXPERT_PHOTOS = 6;
 
 /** 전문가 계정의 이력서 사진 — 같은 전문가는 늘 같은 사진. */
-export const expertPhoto = (expertId: number) => `/experts/expert-${(expertId % EXPERT_PHOTOS) + 1}.jpg`;
+const expertPhoto = (expertId: number) => `/experts/expert-${(expertId % EXPERT_PHOTOS) + 1}.jpg`;
+
+/** 올린 사진 → (전문가면) 더미 이력서 사진 → 실루엣 순. */
+export const profilePhoto = (userId: number, avatarVersion: number | null, isExpert: boolean) =>
+  avatarVersion ? avatarUrl(userId, avatarVersion) : isExpert ? expertPhoto(userId) : undefined;
 
 /** 사진이 없으면 기본 사람 모양 아바타. */
 export function PersonAvatar({ photo }: { photo?: string }) {
@@ -49,7 +54,7 @@ export function ChatDirectList({ rooms, onOpen, canStart }: Props) {
         return (
           <li key={room.key}>
             <button type="button" className={styles.row} onClick={() => onOpen(room)}>
-              <PersonAvatar photo={canStart && room.partner_id !== null ? expertPhoto(room.partner_id) : undefined} />
+              <PersonAvatar photo={room.partner_id !== null ? profilePhoto(room.partner_id, room.partner_avatar_version, canStart) : undefined} />
               <span className={styles.rowText}>
                 <span className={styles.rowTitle}>{room.title}</span>
                 <span className={styles.rowSub}>{lastLine(room.last_message)}</span>

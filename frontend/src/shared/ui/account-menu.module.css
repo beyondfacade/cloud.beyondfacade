@@ -5,7 +5,8 @@
 .link:disabled { opacity: .55; cursor: default; }
 .cta { border-radius: 8px; padding: 8px 14px; background: var(--accent); font-size: 13px; font-weight: 650; white-space: nowrap; color: var(--accent-fg); transition: opacity .18s; }
 .cta:hover { opacity: .88; }
-.who { display: flex; align-items: center; gap: 8px; padding-inline: 6px; font-size: 13px; font-weight: 600; color: var(--text-primary); }
+.who { display: flex; align-items: center; gap: 8px; padding: 4px 6px; border-radius: 6px; font-size: 13px; font-weight: 600; color: var(--text-primary); text-decoration: none; transition: background .15s; }
+.who:hover { background: var(--bg-raised); }
 .name { max-width: 14ch; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .grade { border: 1px solid var(--border); border-radius: 6px; padding: 2px 7px; font-size: 10px; font-weight: 700; letter-spacing: .4px; white-space: nowrap; color: var(--text-secondary); }
 .grade[data-role="operator"] { border-color: var(--accent); color: var(--accent); }
@@ -22,5 +23,5 @@
   .link, .cta { padding-inline: 7px; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .link, .cta { transition: none; }
+  .link, .cta, .who { transition: none; }
 }

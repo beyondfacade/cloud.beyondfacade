@@ -29,3 +29,4 @@ class AdminUser:
     last_login_at: datetime | None = None
     hourly_rate: int | None = None  # 전문가 상담 시간당 요금(원) — 그 밖의 등급은 None
     specialty: str | None = None  # 전문가 전문 업종(예: 카페) — 그 밖의 등급은 None
+    avatar_version: int | None = None  # 프로필 사진을 올릴 때마다 1씩 — 없으면 None (이미지 주소 캐시 무효화용)

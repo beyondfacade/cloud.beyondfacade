@@ -125,7 +125,7 @@ def test_가입하면_일반_등급으로_바로_로그인된다():
     client = TestClient(app, client=IP)
     response = _signup(client)
     assert response.status_code == 201
-    assert response.json() == {"username": "kim", "role": "viewer", "can_operate": False}
+    assert response.json().items() >= {"username": "kim", "role": "viewer", "can_operate": False}.items()
     assert "metabole_admin" in response.cookies
     assert client.get("/admin/auth/me").json()["username"] == "kim"
 
@@ -183,14 +183,14 @@ def test_일반_회원을_CLI로_관리자로_올리면_쓰기가_열린다():
     client = TestClient(app, client=IP)
     _signup(client)
     get_admin_user_use_case().set_role("kim", "operator")
-    assert client.get("/admin/auth/me").json() == {"username": "kim", "role": "operator", "can_operate": True}
+    assert client.get("/admin/auth/me").json().items() >= {"username": "kim", "role": "operator", "can_operate": True}.items()
 
 
 def test_전문가로_올려도_쓰기는_열리지_않는다():
     client = TestClient(app, client=IP)
     _signup(client)
     get_admin_user_use_case().set_role("kim", "expert")
-    assert client.get("/admin/auth/me").json() == {"username": "kim", "role": "expert", "can_operate": False}
+    assert client.get("/admin/auth/me").json().items() >= {"username": "kim", "role": "expert", "can_operate": False}.items()
 
 
 def test_인사팀_목록은_이메일과_가입_방식을_담고_이메일로도_찾는다(google):
@@ -236,7 +236,7 @@ def test_처음_보는_구글_계정은_일반_회원으로_가입되고_next로
     callback = _google_login(client, google, _identity(), next_path="/admin/security")
     assert callback.status_code == 302
     assert callback.headers["location"] == "/admin/security"
-    assert client.get("/admin/auth/me").json() == {"username": "lee.young.news", "role": "viewer", "can_operate": False}
+    assert client.get("/admin/auth/me").json().items() >= {"username": "lee.young.news", "role": "viewer", "can_operate": False}.items()
     assert _count("select count(*) from access_event where kind = 'signup'") == 1
 
 

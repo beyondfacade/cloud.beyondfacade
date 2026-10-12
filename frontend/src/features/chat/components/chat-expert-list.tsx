@@ -6,7 +6,7 @@ import { ApiError } from "@/shared/api/client";
 import { rememberedExpertIndustry } from "@/shared/lib/open-expert-chat";
 import type { ChatExpert, ChatExpertStatus, ChatRoom } from "@/shared/api/types";
 import { buyConsultation, CHAT_QUERY_KEY, fetchChatExperts, openDirectRoom } from "../api";
-import { expertPhoto, PersonAvatar } from "./chat-direct-list";
+import { PersonAvatar, profilePhoto } from "./chat-direct-list";
 import styles from "./global-chat.module.css";
 
 const EXPERTS_KEY = [...CHAT_QUERY_KEY, "experts"] as const;
@@ -82,7 +82,7 @@ function ExpertRow({ expert, pending, onChat, onBuy }: RowProps) {
   const rate = expert.hourly_rate;
   return (
     <li className={styles.expertRow} data-status={expert.status}>
-      <PersonAvatar photo={expertPhoto(expert.id)} />
+      <PersonAvatar photo={profilePhoto(expert.id, expert.avatar_version, true)} />
       <span className={styles.rowText}>
         <span className={styles.rowTitle}>
           {expert.username}

@@ -42,6 +42,7 @@ class ChatRoomDto:
     kind: str
     title: str
     partner_id: int | None
+    partner_avatar_version: int | None  # 상대 프로필 사진 버전 — 없으면 None
     unread: int
     last_message: ChatMessageDto | None
 
@@ -53,6 +54,7 @@ class ChatPeerDto:
     role: str
     hourly_rate: int | None
     specialty: str | None
+    avatar_version: int | None
 
 
 @dataclass(frozen=True)
@@ -62,6 +64,7 @@ class ChatExpertDto:
     specialty: str | None
     hourly_rate: int | None
     status: str  # available | busy | mine
+    avatar_version: int | None
 
 
 @dataclass(frozen=True)

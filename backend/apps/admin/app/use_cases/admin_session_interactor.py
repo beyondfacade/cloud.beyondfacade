@@ -7,12 +7,16 @@ from functools import cache
 from apps.admin.app.dtos.admin_session_dto import AdminPrincipalDto, GoogleLoginStartDto, LoginResultDto
 from apps.admin.app.dtos.google_identity_dto import GoogleIdentityDto
 from apps.admin.app.errors import (
+    AdminUserNotFound,
     EmailTaken,
+    ForbiddenRole,
     GoogleEmailUnverified,
     GoogleLoginFailed,
     GoogleNotConfigured,
+    InvalidAvatar,
     InvalidCredentials,
     InvalidEmail,
+    InvalidSpecialty,
     InvalidUsername,
     LoginThrottled,
     OAuthStateMismatch,
@@ -45,6 +49,7 @@ from apps.admin.domain.services.account_policy import (
 from apps.admin.domain.services.login_policy import SIGNUP_LIMIT, SIGNUP_WINDOW, THROTTLE_LIMIT, THROTTLE_WINDOW
 from apps.admin.domain.services.oauth_handshake import new_oauth_state, new_pkce_pair
 from apps.admin.domain.services.password_hasher import hash_password, verify_password
+from apps.admin.domain.services.profile_policy import avatar_media_type, avatar_problem, specialty_problem
 from apps.admin.domain.services.session_token import SESSION_TTL, hash_token, new_session_token
 
 _LOGIN_PATH = "/admin/auth/login"
@@ -66,6 +71,7 @@ def to_principal(user: AdminUser) -> AdminPrincipalDto:
         can_operate=user.role.can_operate,
         hourly_rate=user.hourly_rate,
         specialty=user.specialty,
+        avatar_version=user.avatar_version,
     )
 
 
@@ -198,6 +204,29 @@ class AdminSessionInteractor(AdminSessionUseCase):
         detail = f"{user.username} → {username}"
         self._audit.add(audit_entry(self._clock(), principal, AuditAction.USERNAME_CHANGE, username, detail, ip))
         return to_principal(saved)
+
+    def change_avatar(self, principal: AdminPrincipalDto, content: bytes) -> AdminPrincipalDto:
+        user = self._current_user(principal)
+        if problem := avatar_problem(content):
+            raise InvalidAvatar(problem)
+        version = self._users.save_avatar(user.id, avatar_media_type(content), content)
+        return to_principal(replace(user, avatar_version=version))
+
+    def avatar(self, user_id: int) -> tuple[str, bytes]:
+        found = self._users.get_avatar(user_id)
+        if found is None:
+            raise AdminUserNotFound("프로필 사진이 없습니다.")
+        return found
+
+    def change_specialty(self, principal: AdminPrincipalDto, specialty: str | None) -> AdminPrincipalDto:
+        user = self._current_user(principal)
+        if user.role is not AdminRole.EXPERT:
+            raise ForbiddenRole("전문가 계정만 전문 업종을 정할 수 있습니다.")
+        if specialty is not None:
+            specialty = specialty.strip()
+            if problem := specialty_problem(specialty):
+                raise InvalidSpecialty(problem)
+        return to_principal(self._users.save(replace(user, specialty=specialty)))
 
     def _current_user(self, principal: AdminPrincipalDto) -> AdminUser:
         user = self._users.get_by_id(principal.id)

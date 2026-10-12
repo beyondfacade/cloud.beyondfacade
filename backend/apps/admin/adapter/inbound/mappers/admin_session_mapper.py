@@ -5,4 +5,11 @@ from apps.admin.app.dtos.admin_session_dto import AdminPrincipalDto
 
 
 def to_me_response(dto: AdminPrincipalDto) -> AdminMeResponse:
-    return AdminMeResponse(username=dto.username, role=dto.role, can_operate=dto.can_operate)
+    return AdminMeResponse(
+        id=dto.id,
+        username=dto.username,
+        role=dto.role,
+        can_operate=dto.can_operate,
+        specialty=dto.specialty,
+        avatar_version=dto.avatar_version,
+    )

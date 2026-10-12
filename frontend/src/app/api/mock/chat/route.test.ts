@@ -45,7 +45,7 @@ describe("채팅 mock 계약", () => {
     expect((await rooms("viewer")).map((r) => r.key)).toEqual(["global"]);
     const opsRooms = await rooms("ops");
     expect(opsRooms.map((r) => [r.key, r.title])).toEqual([["global", "전체"], ["operators", "관리자"]]);
-    expect(Object.keys(opsRooms[0]).sort()).toEqual(["key", "kind", "last_message", "partner_id", "title", "unread"]);
+    expect(Object.keys(opsRooms[0]).sort()).toEqual(["key", "kind", "last_message", "partner_avatar_version", "partner_id", "title", "unread"]);
     const { items, has_more } = await (await page("global", "viewer")).json();
     expect(has_more).toBe(false);
     expect(Object.keys(items[0]).sort()).toEqual(
@@ -95,7 +95,7 @@ describe("채팅 mock 계약", () => {
   });
 
   it("일반 회원은 전문가만 찾아 1:1을 열고, 메시지가 오가면 전문가의 방 목록에 안 읽음과 함께 생긴다", async () => {
-    const expert = { id: 5, username: "park.expert", specialty: "카페", hourly_rate: 30_000, status: "available" };
+    const expert = { id: 5, username: "park.expert", specialty: "카페", hourly_rate: 30_000, status: "available", avatar_version: null };
     const found = await (await members(new Request(`${base}/members?q=E`, { headers: as("viewer") }))).json();
     expect(found).toEqual([expert]);
     expect(await (await members(new Request(`${base}/members`, { headers: as("viewer") }))).json()).toEqual([expert]);

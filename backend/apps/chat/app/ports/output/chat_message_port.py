@@ -83,4 +83,5 @@ class ChatMemberPort(ABC):
     def active(self, user_id: int) -> ChatPeerDto | None: ...
 
     @abstractmethod
-    def usernames(self, user_ids: list[int]) -> dict[int, str]: ...
+    def members(self, user_ids: list[int]) -> dict[int, ChatPeerDto]:
+        """정지 계정도 포함 — 지난 대화 상대의 이름·사진을 보여 줄 때."""

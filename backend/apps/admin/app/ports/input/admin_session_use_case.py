@@ -52,3 +52,15 @@ class AdminSessionUseCase(ABC):
     @abstractmethod
     def change_username(self, principal: AdminPrincipalDto, username: str, ip: str | None) -> AdminPrincipalDto:
         """내 계정명을 바꾼다 — 세션은 유지. InvalidUsername·UsernameTaken, 지금과 같으면 그대로 돌려준다."""
+
+    @abstractmethod
+    def change_avatar(self, principal: AdminPrincipalDto, content: bytes) -> AdminPrincipalDto:
+        """내 프로필 사진을 바꾼다 — PNG·JPEG·WebP 1MB 이하가 아니면 InvalidAvatar."""
+
+    @abstractmethod
+    def avatar(self, user_id: int) -> tuple[str, bytes]:
+        """(media_type, content) — 사진이 없으면 AdminUserNotFound."""
+
+    @abstractmethod
+    def change_specialty(self, principal: AdminPrincipalDto, specialty: str | None) -> AdminPrincipalDto:
+        """전문가만 — 아니면 ForbiddenRole. 앞뒤 공백을 떼고 1~20자가 아니면 InvalidSpecialty, None은 비운다."""

@@ -53,6 +53,7 @@ class ChatRoomResponse(BaseModel):
     kind: str
     title: str
     partner_id: int | None
+    partner_avatar_version: int | None  # 사진 주소 /admin/auth/avatars/{partner_id}?v={버전}
     unread: int
     last_message: ChatMessageResponse | None
 
@@ -63,6 +64,7 @@ class ChatExpertResponse(BaseModel):
     specialty: str | None
     hourly_rate: int | None
     status: Literal["available", "busy", "mine"]
+    avatar_version: int | None
 
 
 class ChatEventResponse(BaseModel):

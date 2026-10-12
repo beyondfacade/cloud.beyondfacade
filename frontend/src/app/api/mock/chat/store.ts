@@ -1,7 +1,7 @@
 /** 채팅 mock — 개발 서버 프로세스 동안만 유지. 회원 id는 mock 회원 목록 순서(ops=1, viewer=2, …). */
 import type { AdminMe, AdminRole, ChatExpert, ChatExpertStatus, ChatMessage, ChatReply, ChatRoom } from "@/shared/api/types";
 import { adminError } from "../admin-fixtures";
-import { accounts } from "../admin/users/store";
+import { accounts, memberId } from "../admin/users/store";
 
 export const PAGE_SIZE = 50;
 const MAX_BODY_LENGTH = 500;
@@ -31,15 +31,11 @@ export const attachments = new Map<number, Uint8Array>();
 export const reads = new Map<string, number>();
 /** 전문가 상담 시간당 요금(원) — 실 API는 admin_user.hourly_rate */
 const HOURLY_RATES = new Map([["park.expert", 30_000]]);
-/** 전문가 전문 업종 — 실 API는 admin_user.specialty */
-const SPECIALTIES = new Map([["park.expert", "카페"]]);
 const CONSULTATION_HOURS = [1, 2, 3];
 /** 산 상담 — 끝나기 전까지 그 전문가는 '대화 중' */
 export const consultations: { viewerId: number; expertId: number; endsAt: number }[] = [];
 
-export function memberId(username: string): number {
-  return [...accounts.keys()].indexOf(username) + 1;
-}
+export { memberId };
 
 const usernameOf = (id: number) => [...accounts.keys()][id - 1];
 
@@ -84,6 +80,7 @@ function summary(me: AdminMe, key: string, kind: ChatRoom["kind"], title: string
   const last = inRoom.at(-1);
   return {
     key, kind, title, partner_id: partner,
+    partner_avatar_version: (partner && accounts.get(usernameOf(partner) ?? "")?.avatar?.version) || null,
     unread: inRoom.filter((m) => m.id > lastRead && !m.deleted && m.sender_username !== me.username).length,
     last_message: last ? present(last) : null,
   };
@@ -139,8 +136,9 @@ export function searchMembers(me: AdminMe, q: string): ChatExpert[] {
     .map((user) => {
       const id = memberId(user.username);
       return {
-        id, username: user.username, specialty: SPECIALTIES.get(user.username) ?? null,
+        id, username: user.username, specialty: accounts.get(user.username)?.specialty ?? null,
         hourly_rate: HOURLY_RATES.get(user.username) ?? null, status: expertStatus(id, myId),
+        avatar_version: accounts.get(user.username)?.avatar?.version ?? null,
       };
     });
 }

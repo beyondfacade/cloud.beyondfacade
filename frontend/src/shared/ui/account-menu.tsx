@@ -7,7 +7,7 @@ import { GRADE_LABEL, loginHref, logout, replaceSession, signupHref } from "@/sh
 import { useSession } from "@/shared/auth/use-session";
 import styles from "./account-menu.module.css";
 
-/** 공개 화면 헤더의 계정 영역 — 비로그인은 로그인·가입, 로그인하면 관리자 페이지(일반은 읽기, 관리자는 쓰기)와 로그아웃. */
+/** 공개 화면 헤더의 계정 영역 — 비로그인은 로그인·가입, 로그인하면 관리자 페이지(일반은 읽기, 관리자는 쓰기)·마이페이지(계정명·등급)·로그아웃. */
 export function AccountMenu() {
   const pathname = usePathname();
   const router = useRouter();
@@ -39,10 +39,10 @@ export function AccountMenu() {
         <span className={styles.full}>관리자 페이지</span>
         <span className={styles.short}>관제실</span>
       </Link>
-      <span className={styles.who}>
+      <Link href="/mypage" prefetch={false} className={styles.who} aria-label={`마이페이지 — ${me.username} ${GRADE_LABEL[me.role]}`}>
         <span className={styles.name}>{me.username}</span>
         <span className={styles.grade} data-role={me.role}>{GRADE_LABEL[me.role]}</span>
-      </span>
+      </Link>
       <button type="button" className={styles.link} onClick={() => signOut.mutate()} disabled={signOut.isPending}>
         로그아웃
       </button>

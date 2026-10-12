@@ -28,13 +28,13 @@ it.each([
 it("같은 이름이면 그대로 돌려주고 감사도 남기지 않는다", async () => {
   const before = auditEntries.length;
   const res = await patch("viewer", "viewer");
-  expect(await res.json()).toEqual({ username: "viewer", role: "viewer", can_operate: false });
+  expect(await res.json()).toMatchObject({ username: "viewer", role: "viewer", can_operate: false });
   expect(auditEntries.length).toBe(before);
 });
 
 it("계정명을 바꾸면 계정·쿠키가 새 이름으로 옮겨지고 감사에 남는다", async () => {
   const res = await patch("viewer.kim", "viewer");
-  expect(await res.json()).toEqual({ username: "viewer.kim", role: "viewer", can_operate: false });
+  expect(await res.json()).toMatchObject({ username: "viewer.kim", role: "viewer", can_operate: false });
   expect(res.headers.get("set-cookie")).toContain("metabole_admin=viewer.kim");
   expect([accounts.has("viewer"), accounts.get("viewer.kim")?.user.username]).toEqual([false, "viewer.kim"]);
   expect(auditEntries[0]).toMatchObject({ action: "username.change", target: "viewer.kim", detail: "viewer → viewer.kim" });

@@ -42,8 +42,8 @@ const json = (status: number, body: unknown) => new Response(status === 204 ? nu
 let fetchMock: ReturnType<typeof vi.fn>;
 
 const EXPERTS: ChatExpert[] = [
-  { id: 5, username: "park.expert", specialty: "카페", hourly_rate: 30_000, status: "available" },
-  { id: 6, username: "choi.expert", specialty: "부동산", hourly_rate: 20_000, status: "busy" },
+  { id: 5, username: "park.expert", specialty: "카페", hourly_rate: 30_000, status: "available", avatar_version: null },
+  { id: 6, username: "choi.expert", specialty: "부동산", hourly_rate: 20_000, status: "busy", avatar_version: 4 },
 ];
 
 function setup(me: AdminMe | null, rooms: ChatRoom[] = [room("global")], items: ChatMessage[] = [message(1)], experts = EXPERTS) {
@@ -104,7 +104,6 @@ it("전문가와 연결하기 이벤트가 오면 창이 열리고 DM의 전문�
   act(() => openExpertChat());
   const list = await screen.findByRole("list", { name: "전문가 목록" });
   expect(within(list).getByText("카페 전문")).toBeInTheDocument();
-  expect(list.querySelector("img")?.getAttribute("src")).toMatch(/^\/experts\/expert-\d\.jpg$/);
   expect(screen.getByRole("tab", { name: "DM" })).toHaveAttribute("aria-selected", "true");
   expect(screen.getByRole("combobox", { name: "DM 보기" })).toHaveValue("experts");
   expect(calls("/chat/direct", "POST")).toHaveLength(0);
@@ -118,6 +117,15 @@ it("전문가 목록 기본 순서는 무작위로 섞인다", async () => {
   const text = (await screen.findByRole("list", { name: "전문가 목록" })).textContent ?? "";
   expect(text.indexOf("choi.expert")).toBeLessThan(text.indexOf("park.expert"));
   vi.mocked(Math.random).mockRestore();
+});
+
+it("전문가가 올린 사진이 있으면 그 사진, 없으면 이력서 더미 사진을 쓴다", async () => {
+  setup(VIEWER);
+  await screen.findByRole("button", { name: "채팅 열기" });
+  act(() => openExpertChat());
+  const list = await screen.findByRole("list", { name: "전문가 목록" });
+  const photos = [...list.querySelectorAll("img")].map((img) => img.getAttribute("src"));
+  expect(photos).toEqual(expect.arrayContaining(["/api/mock/admin/auth/avatars/6?v=4", "/experts/expert-6.jpg"]));
 });
 
 it("리포트로 고른 업종이 있으면 그 업종 전문가가 전문가 목록 맨 위에 온다", async () => {

@@ -11,7 +11,7 @@ import type {
   ProbeResult,
   SecurityOverview,
 } from "@/shared/api/types";
-import { accounts } from "./admin/users/store";
+import { accounts, memberId } from "./admin/users/store";
 
 const SESSION_COOKIE = "metabole_admin";
 /** 계약 테스트가 쓰는 옛 쿠키 값 "operator"는 ops 계정으로 읽는다. */
@@ -24,8 +24,17 @@ export function mockAdminFrom(request: Request): AdminMe | null {
   if (!value) return null;
   const account = accounts.get(LEGACY_ALIAS[value] ?? decodeURIComponent(value));
   if (!account?.user.is_active) return null;
-  const { username, role } = account.user;
-  return { username, role, can_operate: role === "operator" };
+  return mockMe(account.user.username);
+}
+
+/** 실 API /admin/auth/me와 같은 모양. */
+export function mockMe(username: string): AdminMe {
+  const account = accounts.get(username)!;
+  const { role } = account.user;
+  return {
+    id: memberId(username), username, role, can_operate: role === "operator",
+    specialty: account.specialty ?? null, avatar_version: account.avatar?.version ?? null,
+  };
 }
 
 export function sessionCookie(username: string | null): string {

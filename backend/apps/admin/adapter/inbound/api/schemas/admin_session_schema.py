@@ -22,10 +22,17 @@ class UsernameChangeRequest(BaseModel):
     username: str = Field(min_length=1, max_length=64)  # 형식 규칙은 도메인이 판정해 INVALID_USERNAME으로 답한다
 
 
+class SpecialtyChangeRequest(BaseModel):
+    specialty: str | None = Field(max_length=64)  # null이면 비운다 — 길이 규칙은 도메인이 INVALID_SPECIALTY로 답한다
+
+
 class AdminMeResponse(BaseModel):
+    id: int
     username: str
     role: str
     can_operate: bool
+    specialty: str | None
+    avatar_version: int | None  # 사진 주소 /admin/auth/avatars/{id}?v={avatar_version} — 없으면 null
 
 
 class AuthProvidersResponse(BaseModel):

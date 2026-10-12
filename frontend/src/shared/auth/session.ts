@@ -2,6 +2,7 @@ import type { QueryClient } from "@tanstack/react-query";
 import { LOGIN_PATH } from "@/shared/admin-gate";
 import { ApiError, apiGet, apiPost } from "@/shared/api/client";
 import type { AdminMe, AdminRole } from "@/shared/api/types";
+import { config } from "@/shared/config";
 
 /** 공용 로그인 상태 — 상단 바·랜딩·로그인 화면·관제실이 함께 본다. 세션은 httpOnly 쿠키라 JS는 토큰을 모른다. */
 export const SESSION_QUERY_KEY = ["session", "me"] as const;
@@ -38,6 +39,9 @@ export function safeNext(next: string | null | undefined): string {
   const onAuthPage = AUTH_PAGES.some((page) => next === page || next.startsWith(`${page}?`) || next.startsWith(`${page}/`));
   return onAuthPage ? "/" : next;
 }
+
+/** 올린 프로필 사진 — 사진을 바꾸면 버전이 올라 주소가 바뀌므로 브라우저 캐시를 그대로 쓴다. */
+export const avatarUrl = (userId: number, version: number) => `${config.apiBase}/admin/auth/avatars/${userId}?v=${version}`;
 
 export const loginHref = (next: string) => `${LOGIN_PATH}?next=${encodeURIComponent(next)}`;
 export const signupHref = (next: string) => `${SIGNUP_PATH}?next=${encodeURIComponent(next)}`;

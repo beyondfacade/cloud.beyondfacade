@@ -1,4 +1,4 @@
-import { adminError, mockAdminFrom, sessionCookie, unauthenticated } from "../../../admin-fixtures";
+import { adminError, mockAdminFrom, mockMe, sessionCookie, unauthenticated } from "../../../admin-fixtures";
 import { recordAudit } from "../../security/audit/store";
 import { invalidUsername } from "../../users/guard";
 import { accounts } from "../../users/store";
@@ -20,7 +20,7 @@ export async function PATCH(request: Request) {
     recordAudit(me, "username.change", username, `${me.username} → ${username}`);
   }
   return Response.json(
-    { username, role: me.role, can_operate: me.can_operate },
+    mockMe(username),
     { headers: { "set-cookie": sessionCookie(username) } },
   );
 }

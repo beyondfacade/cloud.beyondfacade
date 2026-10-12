@@ -1,5 +1,14 @@
 # Backend Version Log
 
+## [v0.116.0] - 2026-10-12
+
+### Added
+- **프로필 사진** — `PUT /admin/auth/avatar`(본문은 이미지 바이트 그대로 — multipart 의존성 없이), PNG·JPEG·WebP를 파일 앞머리로 판별하고 1MB 이하만(아니면 400 `INVALID_AVATAR`). `GET /admin/auth/avatars/{user_id}`는 로그인 회원 누구나(채팅 목록이 남의 사진을 그린다), 없으면 404. 올릴 때마다 `admin_user.avatar_version`이 1씩 올라 주소 `?v=버전`이 바뀌므로 `Cache-Control: private, max-age=31536000, immutable`
+- **전문 업종 변경** — `PATCH /admin/auth/specialty {specialty: str | null}`. 전문가만(아니면 403 `FORBIDDEN_ROLE`), 앞뒤 공백을 떼고 1~20자(아니면 400 `INVALID_SPECIALTY`), null은 비운다
+- `/admin/auth/me`(로그인·가입·계정명 변경 응답 포함)에 `id`·`specialty`·`avatar_version`. 채팅 전문가 목록에 `avatar_version`, 방 목록에 `partner_avatar_version` — chat BC는 `ChatMemberPort.members`(옛 `usernames` 대체)로 받는다
+- 저장: 바이트는 `admin_user_avatar`(계정 삭제 시 CASCADE) — 파드 디스크는 배포마다 사라진다. 마이그레이션 f6a8b1c3d5e7
+- 테스트: 사진 올리기·버전 증가·내려받기, 빈 파일·비이미지·1MB 초과 거절, 비로그인 401·없는 사진 404, 전문가 업종 설정·비우기·길이 초과, 일반 회원 403
+
 ## [v0.115.1] - 2026-10-12
 
 ### Changed

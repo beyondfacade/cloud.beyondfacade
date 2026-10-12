@@ -603,9 +603,12 @@ export interface VerdictAlternatives {
 export type AdminRole = "viewer" | "expert" | "operator";
 
 export interface AdminMe {
+  id: number;
   username: string;
   role: AdminRole;
   can_operate: boolean;
+  specialty: string | null; // 전문가 전문 업종
+  avatar_version: number | null; // 프로필 사진 버전 — 없으면 null
 }
 
 /** 공개 가입 — 가입하면 일반(viewer)으로 바로 로그인된다. */
@@ -953,6 +956,7 @@ export interface ChatRoom {
   kind: ChatRoomKind;
   title: string;
   partner_id: number | null;
+  partner_avatar_version: number | null;
   unread: number;
   last_message: ChatMessage | null;
 }
@@ -966,6 +970,7 @@ export interface ChatExpert {
   specialty: string | null; // 전문 업종(예: 카페)
   hourly_rate: number | null; // 원
   status: ChatExpertStatus;
+  avatar_version: number | null;
 }
 
 export type ChatEvent =

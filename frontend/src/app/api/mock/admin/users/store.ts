@@ -3,6 +3,10 @@ import type { AdminSessionInfo, AdminUser } from "@/shared/api/types";
 interface MockAccount {
   user: AdminUser;
   sessions: AdminSessionInfo[];
+  /** 실 API는 admin_user.specialty */
+  specialty?: string | null;
+  /** 실 API는 admin_user.avatar_version + admin_user_avatar */
+  avatar?: { version: number; type: string; bytes: Uint8Array };
 }
 
 const session = (id: string, created: string, ip: string): AdminSessionInfo => ({
@@ -31,9 +35,15 @@ export const accounts = new Map<string, MockAccount>(
     {
       user: { username: "park.expert", role: "expert", is_active: true, created_at: "2026-09-24T10:00:00+09:00", last_login_at: "2026-10-12T09:00:00+09:00", active_sessions: 0, email: "park.expert@example.com", has_password: true, has_google: false },
       sessions: [],
+      specialty: "카페",
     },
   ] satisfies MockAccount[]).map((account) => [account.user.username, account]),
 );
+
+/** 회원 id는 mock 회원 목록 순서(ops=1, viewer=2, …). */
+export function memberId(username: string): number {
+  return [...accounts.keys()].indexOf(username) + 1;
+}
 
 /** mock 로그인 쿠키에는 세션 식별이 없다 — 본인 목록의 첫 세션을 '지금 세션'으로 본다. */
 export function sessionsFor(username: string, viewer: string): AdminSessionInfo[] {

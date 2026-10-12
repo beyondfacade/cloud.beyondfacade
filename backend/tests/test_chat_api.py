@@ -185,7 +185,7 @@ def test_삭제는_관리자만_하고_본문은_지워진_채_자리만_남는�
 def test_일반_회원은_전문가를_찾아_1대1_대화를_열고_전문가는_그_방에서_답한다():
     get_admin_user_use_case().set_role("guest2", "expert")
     viewer = _client("viewer")
-    guest2 = {"id": 3, "username": "guest2", "specialty": None, "hourly_rate": None, "status": "available"}
+    guest2 = {"id": 3, "username": "guest2", "specialty": None, "hourly_rate": None, "status": "available", "avatar_version": None}
     assert viewer.get("/chat/members", params={"q": "e"}).json() == [guest2]  # 관리자 ops는 안 나온다
     assert viewer.get("/chat/members").json() == [guest2]  # q 없이 = 전문가 목록
     room = viewer.post("/chat/direct", json={"user_id": 3}).json()

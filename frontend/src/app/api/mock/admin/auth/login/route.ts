@@ -1,4 +1,4 @@
-import { adminError, sessionCookie } from "../../../admin-fixtures";
+import { adminError, mockMe, sessionCookie } from "../../../admin-fixtures";
 import { accounts } from "../../users/store";
 
 const INVALID = () => adminError(401, "INVALID_CREDENTIALS", "아이디 또는 비밀번호가 올바르지 않습니다.");
@@ -20,9 +20,9 @@ export async function POST(request: Request) {
   const account = findAccount(loginId);
   const usable = account?.user.is_active && account.user.has_password;
   if (!account || !usable || !password || password === "wrong") return INVALID();
-  const { username, role } = account.user;
+  const { username } = account.user;
   return Response.json(
-    { username, role, can_operate: role === "operator" },
+    mockMe(username),
     { headers: { "set-cookie": sessionCookie(username) } },
   );
 }

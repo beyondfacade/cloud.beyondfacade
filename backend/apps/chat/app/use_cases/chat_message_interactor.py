@@ -123,11 +123,14 @@ class ChatMessageInteractor(ChatMessageUseCase):
         reads = self._reads.last_read_ids(member.id)
         fixed = [self._summary(member, room, room.title_for(member), None, reads) for room in rooms_for(member)]
         directs = [room for key in self._messages.direct_rooms_of(member.id) if isinstance(room := parse_room(key), DirectRoom)]
-        names = self._members.usernames([room.partner_of(member.id) for room in directs])
-        direct_summaries = [
-            self._summary(member, room, names.get(room.partner_of(member.id), "알 수 없음"), room.partner_of(member.id), reads)
-            for room in directs
-        ]
+        peers = self._members.members([room.partner_of(member.id) for room in directs])
+        direct_summaries = []
+        for room in directs:
+            partner_id = room.partner_of(member.id)
+            peer = peers.get(partner_id)
+            title = peer.username if peer else "알 수 없음"
+            avatar = peer.avatar_version if peer else None
+            direct_summaries.append(self._summary(member, room, title, partner_id, reads, avatar))
         direct_summaries.sort(key=lambda room: room.last_message.id if room.last_message else 0, reverse=True)
         return fixed + direct_summaries
 
@@ -199,7 +202,7 @@ class ChatMessageInteractor(ChatMessageUseCase):
         if expert_status(peer.id, member.id, self._consultations.holders(self._clock())) == "busy":
             raise ChatExpertBusy("이 전문가는 지금 다른 회원과 상담 중입니다.")
         room = direct_room(member.id, peer.id)
-        return self._summary(member, room, peer.username, peer.id, self._reads.last_read_ids(member.id))
+        return self._summary(member, room, peer.username, peer.id, self._reads.last_read_ids(member.id), peer.avatar_version)
 
     def search_members(self, member: ChatMember, q: str) -> list[ChatExpertDto]:
         if member.role != DIRECT_OPENER_ROLE:
@@ -212,6 +215,7 @@ class ChatMessageInteractor(ChatMessageUseCase):
                 specialty=peer.specialty,
                 hourly_rate=peer.hourly_rate,
                 status=expert_status(peer.id, member.id, holders),
+                avatar_version=peer.avatar_version,
             )
             for peer in self._members.search(q.strip(), member.id, MEMBER_SEARCH_LIMIT, DIRECT_PARTNER_ROLE)
         ]
@@ -310,7 +314,13 @@ class ChatMessageInteractor(ChatMessageUseCase):
         return [to_message_dto(message, replies) for message in found]
 
     def _summary(
-        self, member: ChatMember, room: ChatRoom, title: str, partner_id: int | None, reads: dict[str, int]
+        self,
+        member: ChatMember,
+        room: ChatRoom,
+        title: str,
+        partner_id: int | None,
+        reads: dict[str, int],
+        partner_avatar_version: int | None = None,
     ) -> ChatRoomDto:
         last = self._messages.latest(room.key)
         return ChatRoomDto(
@@ -318,6 +328,7 @@ class ChatMessageInteractor(ChatMessageUseCase):
             kind=room.kind,
             title=title,
             partner_id=partner_id,
+            partner_avatar_version=partner_avatar_version,
             unread=self._messages.count_unread(room.key, reads.get(room.key, 0), member.id),
             last_message=to_message_dto(last, self._messages.get_many([last.reply_to_id] if last.reply_to_id else []))
             if last

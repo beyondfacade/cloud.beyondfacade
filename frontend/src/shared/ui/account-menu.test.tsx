@@ -39,6 +39,7 @@ it("일반 회원은 이름과 일반 등급, 관리자 페이지 링크를 본�
   expect(await screen.findByText("kim")).toBeInTheDocument();
   expect(screen.getByText("일반")).toBeInTheDocument();
   expect(screen.getByRole("link", { name: "관리자 페이지" })).toHaveAttribute("href", "/admin");
+  expect(screen.getByRole("link", { name: /마이페이지/ })).toHaveAttribute("href", "/mypage");
 });
 
 it("관리자는 관리자 등급으로 표시된다", async () => {

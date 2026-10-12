@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from sqlalchemy import DateTime, func
+from sqlalchemy import DateTime, ForeignKey, LargeBinary, func
 from sqlalchemy.orm import Mapped, mapped_column
 
 from core.matrix.grid_oracle_database_manager import OrmBase
@@ -22,3 +22,14 @@ class AdminUserOrm(OrmBase):
     last_login_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     hourly_rate: Mapped[int | None]  # 전문가 상담 시간당 요금(원)
     specialty: Mapped[str | None]  # 전문가 전문 업종
+    avatar_version: Mapped[int | None]  # 프로필 사진 버전 — 없으면 NULL
+
+
+class AdminUserAvatarOrm(OrmBase):
+    """프로필 사진 원본 — 파드 디스크는 사라지므로 DB에 둔다. 계정 하나에 한 장."""
+
+    __tablename__ = "admin_user_avatar"
+
+    user_id: Mapped[int] = mapped_column(ForeignKey("admin_user.id", ondelete="CASCADE"), primary_key=True)
+    media_type: Mapped[str]  # image/png | image/jpeg | image/webp
+    content: Mapped[bytes] = mapped_column(LargeBinary)

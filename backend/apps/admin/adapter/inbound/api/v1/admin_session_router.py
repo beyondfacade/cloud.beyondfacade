@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, Query, Request, Response
+from fastapi.concurrency import run_in_threadpool
 from fastapi.responses import RedirectResponse
 
 from apps.admin.adapter.inbound.api.client_ip import client_ip_from_scope
@@ -16,6 +17,7 @@ from apps.admin.adapter.inbound.api.schemas.admin_session_schema import (
     LoginRequest,
     PasswordChangeRequest,
     SignupRequest,
+    SpecialtyChangeRequest,
     UsernameChangeRequest,
 )
 from apps.admin.adapter.inbound.api.session_cookie import (
@@ -25,10 +27,11 @@ from apps.admin.adapter.inbound.api.session_cookie import (
 )
 from apps.admin.adapter.inbound.mappers.admin_session_mapper import to_me_response
 from apps.admin.app.dtos.admin_session_dto import AdminPrincipalDto
-from apps.admin.app.errors import AdminError
+from apps.admin.app.errors import AdminError, InvalidAvatar
 from apps.admin.app.ports.input.admin_session_use_case import AdminSessionUseCase
 from apps.admin.dependencies.admin_dependencies import get_admin_session_use_case
 from apps.admin.dependencies.admin_guard import require_admin
+from apps.admin.domain.services.profile_policy import MAX_AVATAR_BYTES
 from apps.chat.app.ports.input.chat_message_use_case import ChatMessageUseCase
 from apps.chat.dependencies.chat_dependencies import get_chat_message_use_case
 from core.matrix.grid_keymaker_secret_manager import get_settings
@@ -167,3 +170,37 @@ def change_username(
     use_case: AdminSessionUseCase = Depends(get_admin_session_use_case),
 ) -> AdminMeResponse:
     return to_me_response(use_case.change_username(principal, body.username, client_ip_from_scope(request.scope)))
+
+
+@router.put("/avatar", response_model=AdminMeResponse)
+async def change_avatar(
+    request: Request,
+    principal: AdminPrincipalDto = Depends(require_admin),
+    use_case: AdminSessionUseCase = Depends(get_admin_session_use_case),
+) -> AdminMeResponse:
+    """본문은 이미지 바이트 그대로 — multipart 의존성 없이 받는다. 형식은 파일 앞머리로 판별한다."""
+    length = request.headers.get("content-length", "")
+    if length.isdigit() and int(length) > MAX_AVATAR_BYTES:
+        raise InvalidAvatar("사진은 1MB 이하만 올릴 수 있습니다.")
+    content = await request.body()
+    return to_me_response(await run_in_threadpool(use_case.change_avatar, principal, content))
+
+
+@router.get("/avatars/{user_id}", response_model=None, dependencies=[Depends(require_admin)])
+def avatar(user_id: int, use_case: AdminSessionUseCase = Depends(get_admin_session_use_case)) -> Response:
+    media_type, content = use_case.avatar(user_id)
+    # 주소에 ?v=버전이 붙어 사진을 바꾸면 주소도 바뀐다
+    return Response(
+        content,
+        media_type=media_type,
+        headers={"Cache-Control": "private, max-age=31536000, immutable", "X-Content-Type-Options": "nosniff"},
+    )
+
+
+@router.patch("/specialty", response_model=AdminMeResponse)
+def change_specialty(
+    body: SpecialtyChangeRequest,
+    principal: AdminPrincipalDto = Depends(require_admin),
+    use_case: AdminSessionUseCase = Depends(get_admin_session_use_case),
+) -> AdminMeResponse:
+    return to_me_response(use_case.change_specialty(principal, body.specialty))

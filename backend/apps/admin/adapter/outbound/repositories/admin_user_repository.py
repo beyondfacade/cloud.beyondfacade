@@ -3,7 +3,7 @@ from datetime import datetime
 from sqlalchemy import select, update
 
 from apps.admin.adapter.outbound.orm_mappers.admin_user_orm_mapper import apply_to_orm, to_entity
-from apps.admin.adapter.outbound.orms.admin_user_orm import AdminUserOrm
+from apps.admin.adapter.outbound.orms.admin_user_orm import AdminUserAvatarOrm, AdminUserOrm
 from apps.admin.app.ports.output.admin_user_port import AdminUserRepositoryPort
 from apps.admin.domain.entities.admin_user_entity import AdminUser
 from core.matrix.grid_oracle_database_manager import session_scope
@@ -53,3 +53,20 @@ class SqlAlchemyAdminUserRepository(AdminUserRepositoryPort):
         with session_scope() as session:
             rows = session.execute(select(AdminUserOrm).order_by(AdminUserOrm.username)).scalars()
             return [to_entity(orm) for orm in rows]
+
+    def save_avatar(self, user_id: int, media_type: str, content: bytes) -> int:
+        with session_scope() as session:
+            user = session.get(AdminUserOrm, user_id, with_for_update=True)
+            avatar = session.get(AdminUserAvatarOrm, user_id)
+            if avatar is None:
+                avatar = AdminUserAvatarOrm(user_id=user_id)
+                session.add(avatar)
+            avatar.media_type = media_type
+            avatar.content = content
+            user.avatar_version = (user.avatar_version or 0) + 1
+            return user.avatar_version
+
+    def get_avatar(self, user_id: int) -> tuple[str, bytes] | None:
+        with session_scope() as session:
+            avatar = session.get(AdminUserAvatarOrm, user_id)
+            return (avatar.media_type, avatar.content) if avatar else None

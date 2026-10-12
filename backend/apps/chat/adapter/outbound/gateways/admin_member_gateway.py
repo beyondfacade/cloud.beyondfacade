@@ -13,6 +13,7 @@ def _peer(principal: AdminPrincipalDto) -> ChatPeerDto:
         role=principal.role,
         hourly_rate=principal.hourly_rate,
         specialty=principal.specialty,
+        avatar_version=principal.avatar_version,
     )
 
 
@@ -27,5 +28,5 @@ class AdminMemberGateway(ChatMemberPort):
         principal = self._users.active_member(user_id)
         return _peer(principal) if principal else None
 
-    def usernames(self, user_ids: list[int]) -> dict[int, str]:
-        return {user_id: p.username for user_id, p in self._users.members_by_ids(user_ids).items()}
+    def members(self, user_ids: list[int]) -> dict[int, ChatPeerDto]:
+        return {user_id: _peer(p) for user_id, p in self._users.members_by_ids(user_ids).items()}

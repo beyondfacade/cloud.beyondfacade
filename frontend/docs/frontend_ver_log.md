@@ -1,5 +1,13 @@
 # Frontend Version Log
 
+## [v0.81.0] - 2026-10-12
+
+### Added
+- **마이페이지 `/mypage`** — 헤더의 내 계정명·등급을 누르면 간다(`account-menu.tsx`의 링크). 프로필 사진은 누구나 PNG·JPG·WebP 1MB 이하로 올리고(보내기 전에도 형식·크기 확인), 전문가는 전문 업종을 업종 목록에서 골라 저장하거나 비운다(목록에 없는 지금 값도 그대로 보인다). 비로그인이면 마이페이지로 돌아오는 로그인 링크(백엔드 v0.116.0)
+- 채팅 대화 목록·전문가 목록 프로필 칸은 올린 사진 → (전문가면) 이력서 더미 사진 → 사람 실루엣 순으로 그린다. 사진 주소는 `avatarUrl(id, 버전)` — 사진을 바꾸면 주소가 바뀐다
+- `AdminMe`에 `id`·`specialty`·`avatar_version`, `ChatExpert.avatar_version`, `ChatRoom.partner_avatar_version`. mock도 같은 계약(`/admin/auth/avatar`·`avatars/[id]`·`specialty`, 전문 업종은 mock 계정에 둔다)
+- 테스트: 마이페이지(비로그인·사진 올리기·크기 초과·전문 업종 저장), mock 사진·업종 계약, 헤더 마이페이지 링크, 전문가 목록 사진 우선순위
+
 ## [v0.80.0] - 2026-10-12
 
 ### Added
