@@ -64,8 +64,9 @@
 .more:hover { color: var(--accent); }
 .empty { margin: auto; padding: 24px; text-align: center; font-size: 13px; line-height: 1.6; color: var(--text-secondary); }
 
-.message { display: flex; flex-direction: column; align-items: flex-start; margin-bottom: 12px; }
-.message[data-mine="true"] { align-items: flex-end; }
+.message { display: flex; align-items: flex-start; gap: 8px; margin-bottom: 12px; }
+.messageBody { display: flex; flex: 1; flex-direction: column; align-items: flex-start; min-width: 0; }
+.message[data-mine="true"] .messageBody { align-items: flex-end; }
 .meta { display: flex; align-items: center; gap: 6px; margin-bottom: 3px; font-size: 11px; color: var(--text-secondary); }
 .name { font-weight: 650; color: var(--text-primary); }
 .grade {

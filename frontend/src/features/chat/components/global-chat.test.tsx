@@ -207,6 +207,31 @@ it("글로벌 채팅/DM 토글이 있고, 일반 회원에게는 글로벌 채�
   expect(screen.queryByRole("button", { name: "PDF 첨부" })).not.toBeInTheDocument(); // PDF는 1:1에서만
 });
 
+it("남의 말풍선 옆에는 프로필 아이콘(올린 사진 → 전문가 이력서 사진 → 실루엣)이, 내 말풍선에는 없다", async () => {
+  setup(VIEWER, [room("global")], [
+    message(1, { sender_id: 9, sender_username: "lee", sender_role: "expert", sender_avatar_version: 2 }),
+    message(2, { sender_id: 10, sender_username: "choi", sender_role: "expert", sender_avatar_version: null }),
+    message(3, { sender_id: 1, sender_username: "ops", sender_role: "operator", sender_avatar_version: null }),
+    message(4),
+  ]);
+  await userEvent.click(await screen.findByRole("button", { name: "채팅 열기" }));
+  await screen.findByText("메시지 4");
+  const items = within(screen.getByRole("list", { name: "메시지 목록" })).getAllByRole("listitem");
+  expect(items.map((item) => item.querySelector("img")?.getAttribute("src") ?? null)).toEqual([
+    "/api/mock/admin/auth/avatars/9?v=2", "/experts/expert-5.jpg", null, null,
+  ]);
+  expect(items[2].querySelector("svg")).not.toBeNull();
+  expect(items[3].querySelector("svg")).toBeNull();
+});
+
+it("전문가도 글로벌 채팅 전체방에 메시지를 보낸다", async () => {
+  setup({ username: "park.expert", role: "expert", can_operate: false });
+  await userEvent.click(await screen.findByRole("button", { name: "채팅 열기" }));
+  await userEvent.click(screen.getByRole("tab", { name: "글로벌 채팅" }));
+  await userEvent.type(await screen.findByRole("textbox", { name: "메시지 입력" }), "전문가 인사{Enter}");
+  await waitFor(() => expect(calls("/chat/rooms/global/messages", "POST")).toHaveLength(1));
+});
+
 it("1:1 대화에서 PDF를 올리고, 첨부 카드를 누르면 PDF를 크게 본다", async () => {
   vi.stubGlobal("URL", Object.assign(URL, { createObjectURL: () => "blob:pdf", revokeObjectURL: () => {} }));
   sessionStorage.setItem("metabole-chat-v2", JSON.stringify({

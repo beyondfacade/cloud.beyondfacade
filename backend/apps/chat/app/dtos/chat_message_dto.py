@@ -28,6 +28,7 @@ class ChatMessageDto:
     created_at: datetime
     reply_to: ChatReplyDto | None
     attachment: ChatAttachmentDto | None = None  # 지워진 메시지면 None
+    sender_avatar_version: int | None = None  # 보낸 사람의 지금 프로필 사진 버전 — 없으면 None
 
 
 @dataclass(frozen=True)

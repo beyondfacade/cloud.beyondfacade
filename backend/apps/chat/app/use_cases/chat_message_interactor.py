@@ -76,7 +76,9 @@ def _reply_dto(message: ChatMessage) -> ChatReplyDto:
     )
 
 
-def to_message_dto(message: ChatMessage, replies: dict[int, ChatMessage]) -> ChatMessageDto:
+def to_message_dto(
+    message: ChatMessage, replies: dict[int, ChatMessage], avatars: dict[int, int | None] | None = None
+) -> ChatMessageDto:
     replied = replies.get(message.reply_to_id) if message.reply_to_id else None
     return ChatMessageDto(
         id=message.id,
@@ -91,6 +93,7 @@ def to_message_dto(message: ChatMessage, replies: dict[int, ChatMessage]) -> Cha
         attachment=ChatAttachmentDto(name=message.attachment_name, size=message.attachment_size or 0)
         if message.attachment_name and not message.deleted
         else None,
+        sender_avatar_version=(avatars or {}).get(message.sender_id) if message.sender_id else None,
     )
 
 
@@ -155,7 +158,7 @@ class ChatMessageInteractor(ChatMessageUseCase):
                 body=text, created_at=now, reply_to_id=reply_to_id,
             )
         )
-        return self._publish(saved, replies)
+        return self._publish(member, saved, replies)
 
     def send_attachment(self, member: ChatMember, room_key: str, name: str, content: bytes) -> ChatMessageDto:
         room = admitted_room(member, room_key)
@@ -173,7 +176,7 @@ class ChatMessageInteractor(ChatMessageUseCase):
             ),
             attachment=content,
         )
-        return self._publish(saved, {})
+        return self._publish(member, saved, {})
 
     def attachment(self, member: ChatMember, message_id: int) -> tuple[str, bytes]:
         message = self._messages.get(message_id)
@@ -296,8 +299,8 @@ class ChatMessageInteractor(ChatMessageUseCase):
             raise ChatTooFast("메시지를 너무 빨리 보내고 있어요. 잠시 후 다시 보내 주세요.")
         return now
 
-    def _publish(self, saved: ChatMessage, replies: dict[int, ChatMessage]) -> ChatMessageDto:
-        dto = to_message_dto(saved, replies)
+    def _publish(self, member: ChatMember, saved: ChatMessage, replies: dict[int, ChatMessage]) -> ChatMessageDto:
+        dto = to_message_dto(saved, replies, {member.id: member.avatar_version})
         self._publisher.publish(ChatEventDto(type="message", room=saved.room, message_id=saved.id, message=dto))
         return dto
 
@@ -311,7 +314,9 @@ class ChatMessageInteractor(ChatMessageUseCase):
 
     def _dtos(self, found: list[ChatMessage]) -> list[ChatMessageDto]:
         replies = self._messages.get_many([m.reply_to_id for m in found if m.reply_to_id])
-        return [to_message_dto(message, replies) for message in found]
+        senders = self._members.members(sorted({m.sender_id for m in found if m.sender_id}))
+        avatars = {user_id: peer.avatar_version for user_id, peer in senders.items()}
+        return [to_message_dto(message, replies, avatars) for message in found]
 
     def _summary(
         self,

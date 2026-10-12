@@ -17,12 +17,12 @@ export const messages: ChatMessage[] = [
   {
     id: 1, room: "global", sender_id: 1, sender_username: "ops", sender_role: "operator",
     body: "메타볼레 채팅에 오신 걸 환영해요. 상권 이야기 자유롭게 나눠 주세요.", deleted: false,
-    created_at: "2026-10-12T00:10:00Z", reply_to: null, attachment: null,
+    created_at: "2026-10-12T00:10:00Z", reply_to: null, attachment: null, sender_avatar_version: null,
   },
   {
     id: 2, room: "global", sender_id: 2, sender_username: "viewer", sender_role: "viewer",
     body: "성수동 카페 리포트 보신 분 계세요?", deleted: false, created_at: "2026-10-12T00:12:00Z", reply_to: null,
-    attachment: null,
+    attachment: null, sender_avatar_version: null,
   },
 ];
 /** 메시지 id → PDF 바이트 */
@@ -68,9 +68,10 @@ const replyOf = (id: number | null): ChatReply | null => {
   };
 };
 
-/** 저장본은 답장 원문 id만 갖고, 내보낼 때마다 원문의 지금 상태로 미리보기를 채운다. */
+/** 저장본은 답장 원문 id만 갖고, 내보낼 때마다 원문·보낸 사람의 지금 상태로 미리보기·사진 버전을 채운다. */
 export const present = (message: ChatMessage): ChatMessage => ({
   ...message, reply_to: replyOf(message.reply_to?.id ?? null), attachment: message.deleted ? null : message.attachment,
+  sender_avatar_version: accounts.get(message.sender_username)?.avatar?.version ?? null,
 });
 
 function summary(me: AdminMe, key: string, kind: ChatRoom["kind"], title: string, partner: number | null): ChatRoom {
@@ -179,7 +180,7 @@ function tooFast(me: AdminMe, now: number): Response | null {
 function append(me: AdminMe, room: string, body: string, now: number, extra: Partial<ChatMessage>): ChatMessage {
   const message: ChatMessage = {
     id: (messages.at(-1)?.id ?? 0) + 1, room, sender_id: memberId(me.username), sender_username: me.username,
-    sender_role: me.role, body, deleted: false, created_at: new Date(now).toISOString(), reply_to: null, attachment: null, ...extra,
+    sender_role: me.role, body, deleted: false, created_at: new Date(now).toISOString(), reply_to: null, attachment: null, sender_avatar_version: null, ...extra,
   };
   messages.push(message);
   return present(message);

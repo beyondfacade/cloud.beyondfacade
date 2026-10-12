@@ -934,6 +934,7 @@ export interface ChatMessage {
   sender_id: number | null;
   sender_username: string;
   sender_role: AdminRole;
+  sender_avatar_version: number | null; // 보낸 사람의 지금 프로필 사진 버전
   body: string | null; // 지워진 메시지면 null
   deleted: boolean;
   created_at: string;

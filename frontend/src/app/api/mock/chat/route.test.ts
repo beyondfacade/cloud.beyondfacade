@@ -49,7 +49,7 @@ describe("채팅 mock 계약", () => {
     const { items, has_more } = await (await page("global", "viewer")).json();
     expect(has_more).toBe(false);
     expect(Object.keys(items[0]).sort()).toEqual(
-      ["attachment", "body", "created_at", "deleted", "id", "reply_to", "room", "sender_id", "sender_role", "sender_username"],
+      ["attachment", "body", "created_at", "deleted", "id", "reply_to", "room", "sender_avatar_version", "sender_id", "sender_role", "sender_username"],
     );
   });
 

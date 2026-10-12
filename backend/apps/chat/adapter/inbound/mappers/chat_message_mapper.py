@@ -16,7 +16,11 @@ from apps.chat.domain.value_objects.chat_room import ChatMember
 
 def to_member(principal: AdminPrincipalDto) -> ChatMember:
     return ChatMember(
-        id=principal.id, username=principal.username, can_operate=principal.can_operate, role=principal.role
+        id=principal.id,
+        username=principal.username,
+        can_operate=principal.can_operate,
+        role=principal.role,
+        avatar_version=principal.avatar_version,
     )
 
 

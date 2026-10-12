@@ -36,6 +36,7 @@ class ChatMessageResponse(BaseModel):
     sender_id: int | None
     sender_username: str
     sender_role: str
+    sender_avatar_version: int | None  # 사진 주소 /admin/auth/avatars/{sender_id}?v={버전}
     body: str | None
     deleted: bool
     created_at: datetime

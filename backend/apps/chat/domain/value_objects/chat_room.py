@@ -13,6 +13,7 @@ class ChatMember:
     username: str
     can_operate: bool
     role: str = "viewer"  # 메시지에 남길 보낸 때의 등급, 1:1 상대 판단(chat_policy) — 관리자 권한은 can_operate로만
+    avatar_version: int | None = None  # 보낸 메시지 이벤트에 실을 프로필 사진 버전
 
 
 class ChatRoom(ABC):

@@ -115,6 +115,22 @@ def test_채팅은_로그인이_필요하다():
     assert guest.get("/chat/stream").status_code == 401
 
 
+def test_전문가도_전체방에_보내고_메시지에_보낸_사람의_프로필_사진_버전이_실린다(feed):
+    get_admin_user_use_case().upsert("guest4", PASSWORD, "expert")
+    expert = _client("guest4")
+    png = b"\x89PNG\r\n\x1a\n" + b"\x00" * 16
+    assert expert.put("/admin/auth/avatar", content=png).json()["avatar_version"] == 1
+
+    sent = _send(expert, "global", "전문가 인사")
+    assert sent.status_code == 201
+    assert (sent.json()["sender_role"], sent.json()["sender_avatar_version"]) == ("expert", 1)
+    assert feed.events[-1].message.sender_avatar_version == 1
+    _send(_client("viewer"), "global", "반가워요")
+
+    items = _client("ops").get("/chat/rooms/global/messages").json()["items"]
+    assert [(m["sender_username"], m["sender_avatar_version"]) for m in items] == [("guest4", 1), ("viewer", None)]
+
+
 def test_일반_회원은_전체방만_관리자는_관리자방도_본다():
     assert [room["key"] for room in _client("viewer").get("/chat/rooms").json()] == ["global"]
     rooms = _client("ops").get("/chat/rooms").json()

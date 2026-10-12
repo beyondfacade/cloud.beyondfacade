@@ -1,5 +1,11 @@
 # Backend Version Log
 
+## [v0.117.0] - 2026-10-12
+
+### Added
+- 채팅 메시지 응답·실시간 이벤트에 `sender_avatar_version`(보낸 사람의 지금 프로필 사진 버전, 없으면 null) — 말풍선 옆 프로필 아이콘용. 목록은 한 페이지의 보낸 사람을 `ChatMemberPort.members`로 한 번에 읽고, 보낼 때는 로그인 회원(`ChatMember.avatar_version`)에서 채운다
+- 테스트: 전문가도 전체방에 보내고(전체방은 등급 제한 없음), 보낸 응답·이벤트·목록에 사진 버전이 실림
+
 ## [v0.116.0] - 2026-10-12
 
 ### Added
