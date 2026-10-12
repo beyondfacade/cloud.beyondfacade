@@ -16,7 +16,10 @@
 .pageEdition > span { font-size: 30px; font-weight: 300; }
 .mobileBreak { display: none; }
 .workspaceGrid { display: grid; grid-template-columns: 320px minmax(0, 1fr); gap: 28px; align-items: start; }
-.sidebar { display: grid; gap: 27px; min-width: 0; }
+.sidebar {
+  position: sticky; top: 24px; display: grid; gap: 27px; min-width: 0;
+  max-height: calc(100dvh - 48px); overflow-y: auto; overscroll-behavior: contain; /* 화면보다 길면 사이드바만 스크롤 */
+}
 .contextPanel { padding: 25px 24px; border: 1px solid var(--border); border-radius: 12px; }
 .panelHeading { display: flex; align-items: center; gap: 12px; }
 .panelNumber { font-size: 11px; letter-spacing: .8px; font-weight: 650; }
@@ -83,7 +86,7 @@
   .pageHeader h1 { font-size: 32px; }
   .pageDescription { max-width: 390px; font-size: 12px; }
   .workspaceGrid { grid-template-columns: minmax(0, 1fr); gap: 28px; }
-  .sidebar { gap: 24px; }
+  .sidebar { position: static; gap: 24px; max-height: none; overflow-y: visible; }
   .formFields { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; }
   .contextPanel { padding: 24px; }
   .panelDescription br { display: none; }
