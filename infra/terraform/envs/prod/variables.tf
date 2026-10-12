@@ -55,13 +55,31 @@ variable "db_instance_class" {
 }
 
 variable "db_multi_az" {
-  description = "예산이 모자라면 장애 조치 증거가 필요한 기간(10/16~10/22)에만 true (§20-3)"
+  description = "예산 때문에 증거가 필요한 기간(부하 테스트 10/14~10/16, 장애 조치 리허설 10/21~10/22)에만 true (§21-8)"
   type        = bool
   default     = true
 }
 
 variable "db_deletion_protection" {
   description = "정리 단계(§20-7 3단계)에서 false로 apply한 뒤 destroy"
+  type        = bool
+  default     = true
+}
+
+variable "loadtest_runner" {
+  description = "k6용 EC2(loadtest.tf) — 부하 테스트 기간에만 true"
+  type        = bool
+  default     = false
+}
+
+variable "loadtest_instance_type" {
+  description = "11-1·11-2는 c7g.xlarge, 11-3(VU 3,000명)은 c7g.2xlarge (§20-4)"
+  type        = string
+  default     = "c7g.xlarge"
+}
+
+variable "alb_alarms" {
+  description = "ALB 알람(monitoring.tf) — ALB는 Ingress가 만든다. 정리 때 Argo CD 앱을 지우기 전에 false로 apply"
   type        = bool
   default     = true
 }

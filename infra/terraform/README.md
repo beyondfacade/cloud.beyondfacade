@@ -94,15 +94,23 @@ scripts/db-restore.sh
 
 ## 이 코드 밖에서 남은 일 (serverplan §15 Phase 2~4)
 
-- 집 Ollama 연결(Tailscale), ALB 5xx·지연 알람(ALB가 생긴 뒤)
+- 집 Ollama 연결(Tailscale) — 하지 않기로 함(serverplan §21-3)
 
 ## 바꾸기 — 부하 테스트 단계 (serverplan §20-4)
 
 `terraform.tfvars`에서 `node_max_size`·`db_instance_class`를 올려 `plan` → `apply`, 끝나면 되돌려 다시 `apply`. **콘솔에서 손으로 바꾸지 않는다** — 다음 apply가 되돌린다.
 
+11차(AWS) 순서 — 스크립트는 `scripts/load/aws.sh`:
+
+1. `terraform.tfvars`에 `loadtest_runner = true`(11-3이면 `loadtest_instance_type = "c7g.2xlarge"`도), `db_multi_az = true` → apply. k6 EC2는 들어오는 포트가 없고 SSM으로만 명령을 받는다
+2. 테스트 모드 커밋: `deploy/k8s/api.yaml`에 `LLM_MODE=fake`(가짜 LLM, 요금 없음). 11-2·11-3은 HPA `maxReplicas` 20 + `node_max_size = 8`, DB 클래스 올림
+3. `scripts/load/aws.sh snapshot` → `scripts/load/aws.sh stage 11-1 ceiling3k -e LLM=1 -e GZIP=1` — 결과는 `logs/load/11-1-<시각>/`
+4. 끝나면 테스트 모드 커밋 revert, tfvars 되돌려 apply(`loadtest_runner = false` → EC2 삭제), `scripts/load/aws.sh cleanup`
+
 ## 지우기 (serverplan §20-7) — 순서가 중요하다
 
 ```bash
+# ⓪ terraform.tfvars에 alb_alarms = false → apply (ALB 알람이 태그로 ALB를 찾는다 — ALB가 먼저 사라지면 plan이 멈춘다)
 kubectl delete application beyondfacade -n argocd  # ① 앱부터 — Ingress(→ ALB)까지 지운다. 클러스터를 먼저 지우면 ALB가 고아로 남아 계속 과금
 kubectl get ingress -A  # 비어 있어야 다음으로 (Ingress만 지우면 Argo CD가 다시 만든다)
 # ② pg_dump를 받아 로컬에서 복원 확인 (§20-7 2단계)

@@ -1,5 +1,15 @@
 # Backend Version Log
 
+## [v0.118.0] - 2026-10-12
+
+### Added
+- 11차 부하 테스트(AWS) 준비 — `infra/terraform/envs/prod/loadtest.tf`: k6용 EC2(Graviton, public 서브넷, 들어오는 포트 없음·SSM으로만 명령, 결과는 데이터 버킷 `loadtest/`만 쓰기). `loadtest_runner`(기본 false)·`loadtest_instance_type` 변수로 테스트 기간에만 켠다
+- ALB 알람 3개(serverplan §11-2) — 5분 5xx 비율 > 1%(요청 20건 미만이면 0), p95 > 500ms 10분(5분 100건 이상일 때만), 정상 대상 < 2. ALB는 Ingress가 만들어 LB Controller 태그로 찾는다 — `alb_alarms` 변수(정리 때 false로 먼저 apply)
+- `scripts/load/aws.sh` — `stage`(pg_stat_statements 초기화 → 원격 k6 → HPA·파드 CPU·노드 15초 기록 → 느린 쿼리·CloudWatch ALB/RDS 1분 지표·k6 결과를 `logs/load/<단계>-<시각>/`), `snapshot`(RDS 수동 스냅샷), `cleanup`(model='fake' 리포트·LLM 기록, k6 IP 보안 이벤트 삭제)
+
+### Changed
+- `db_multi_az` 설명·README: Multi-AZ는 부하 테스트(10/14~10/16)·장애 조치 리허설(10/21~10/22)에만, 정리 순서에 ⓪ `alb_alarms = false` 추가
+
 ## [v0.117.0] - 2026-10-12
 
 ### Added
