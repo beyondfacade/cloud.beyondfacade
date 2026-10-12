@@ -55,9 +55,9 @@ from apps.chat.domain.value_objects.chat_room import (
 PAGE_SIZE = 50
 CATCH_UP_LIMIT = 200
 MEMBER_SEARCH_LIMIT = 50
-# 로컬 시연 계정 — 001이 로그아웃하면 002·003·004의 상담을 지우고 '001이 003을 1시간 산 상태'로 되돌린다
+# 로컬 시연 계정 — 001이 로그아웃하면 002~005의 상담을 지우고 '001이 003을 1시간 산 상태'로 되돌린다
 DEMO_VIEWER = "001"
-DEMO_EXPERTS = ("002", "003", "004")
+DEMO_EXPERTS = ("002", "003", "004", "005")
 DEMO_BUSY_EXPERT = "003"
 DEMO_HOURS = 1
 
