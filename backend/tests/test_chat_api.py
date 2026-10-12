@@ -24,7 +24,7 @@ from main import app
 PASSWORD = "correct-horse-battery"
 IPS = {
     "ops": "198.51.100.40", "viewer": "198.51.100.41", "guest2": "198.51.100.42", "guest4": "198.51.100.44",
-    "001": "198.51.100.51", "006": "198.51.100.56",
+    "001": "198.51.100.51", "002": "198.51.100.52", "006": "198.51.100.56",
 }
 
 
@@ -287,11 +287,20 @@ def test_시연_계정_001이_로그아웃하면_시연_전문가_상담이_처�
     _make_expert("003", 20000)
     demo, viewer = _client("001"), _client("viewer")
     assert demo.post("/chat/consultations", json={"expert_id": 5, "hours": 3}).status_code == 201
+    assert _send(demo, "dm:4:5", "상담 부탁드려요").status_code == 201
+    assert _upload(demo, "dm:4:5", "자료.pdf", b"%PDF-1.4").status_code == 201
+    assert _send(viewer, "global", "전체방 글은 남는다").status_code == 201
     statuses = lambda client: {e["username"]: e["status"] for e in client.get("/chat/members").json()}  # noqa: E731
     assert statuses(viewer) == {"002": "busy", "003": "available"}
     assert viewer.post("/admin/auth/logout").status_code == 204  # 다른 계정 로그아웃은 그대로
     assert statuses(_client("viewer")) == {"002": "busy", "003": "available"}
     assert demo.post("/admin/auth/logout").status_code == 204
+    expert = _client("002")
+    assert [room["key"] for room in expert.get("/chat/rooms").json() if room["kind"] == "direct"] == []
+    assert expert.get("/chat/rooms/dm:4:5/messages").json()["items"] == []
+    assert _client("viewer").get("/chat/rooms/global/messages").json()["items"][-1]["body"] == "전체방 글은 남는다"
+    with session_scope() as session:
+        assert session.execute(text("select count(*) from chat_attachment")).scalar_one() == 0
     assert statuses(_client("viewer")) == {"002": "available", "003": "busy"}
     assert statuses(_client("001")) == {"002": "available", "003": "busy"}
     assert statuses(_client("006")) == {"002": "available", "003": "mine"}

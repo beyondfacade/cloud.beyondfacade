@@ -58,7 +58,7 @@ class ChatMessageUseCase(ABC):
 
     @abstractmethod
     def reset_demo_consultations(self, username: str) -> None:
-        """로컬 시연 계정(001)이 로그아웃하면 시연 전문가(002~005) 상담을 초기 상태로 — 그 밖의 계정은 아무 일도 없다."""
+        """로컬 시연 계정(001)이 로그아웃하면 시연 전문가(002~005)의 상담을 초기 상태로, 1:1 대화 내역은 비운다 — 그 밖의 계정은 아무 일도 없다."""
 
     @abstractmethod
     def latest_id(self) -> int: ...

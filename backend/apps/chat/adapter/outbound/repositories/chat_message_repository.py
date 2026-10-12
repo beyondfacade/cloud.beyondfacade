@@ -1,7 +1,7 @@
 from dataclasses import replace
 from datetime import datetime
 
-from sqlalchemy import func, or_, select, update
+from sqlalchemy import delete, func, or_, select, update
 
 from apps.chat.adapter.outbound.orm_mappers.chat_message_orm_mapper import to_entity, to_orm
 from apps.chat.adapter.outbound.orms.chat_message_orm import ChatAttachmentOrm, ChatMessageOrm
@@ -94,6 +94,12 @@ class SqlAlchemyChatMessageRepository(ChatMessageRepositoryPort):
                 .values(deleted_at=at, deleted_by=by)
             )
             return to_entity(session.get(ChatMessageOrm, message_id))
+
+    def delete_rooms(self, rooms: list[str]) -> None:
+        if not rooms:
+            return
+        with session_scope() as session:
+            session.execute(delete(ChatMessageOrm).where(ChatMessageOrm.room.in_(rooms)))
 
 
 def _is_direct_room_of(key: str, user_id: int) -> bool:

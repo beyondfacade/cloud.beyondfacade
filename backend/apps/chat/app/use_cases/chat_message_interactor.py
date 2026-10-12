@@ -59,7 +59,7 @@ from apps.chat.domain.value_objects.chat_room import (
 PAGE_SIZE = 50
 CATCH_UP_LIMIT = 200
 MEMBER_SEARCH_LIMIT = 50
-# 로컬 시연 계정 — 001이 로그아웃하면 002~005의 상담을 지우고 '006이 003을 1시간 산 상태'로 되돌린다
+# 로컬 시연 계정 — 001이 로그아웃하면 002~005의 상담과 1:1 대화(첨부 포함)를 지우고 '006이 003을 1시간 산 상태'로 되돌린다
 DEMO_VIEWER = "001"
 DEMO_BUSY_VIEWER = "006"
 DEMO_EXPERTS = ("002", "003", "004", "005")
@@ -248,6 +248,7 @@ class ChatMessageInteractor(ChatMessageUseCase):
             if peer.username in DEMO_EXPERTS
         }
         self._consultations.delete_for_experts([peer.id for peer in experts.values()])
+        self._messages.delete_rooms(sorted({room for peer in experts.values() for room in self._messages.direct_rooms_of(peer.id)}))
         busy = experts.get(DEMO_BUSY_EXPERT)
         if viewer is None or busy is None or busy.hourly_rate is None:
             return

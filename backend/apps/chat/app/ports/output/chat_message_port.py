@@ -50,6 +50,10 @@ class ChatMessageRepositoryPort(ABC):
     @abstractmethod
     def mark_deleted(self, message_id: int, by: int, at: datetime) -> ChatMessage: ...
 
+    @abstractmethod
+    def delete_rooms(self, rooms: list[str]) -> None:
+        """방의 메시지를 첨부까지 실제로 지운다 — 시연 초기화 전용."""
+
 
 class ChatSubscription(ABC):
     @abstractmethod
