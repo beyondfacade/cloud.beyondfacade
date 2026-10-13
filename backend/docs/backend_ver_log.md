@@ -1,5 +1,10 @@
 # Backend Version Log
 
+## [v0.118.2] - 2026-10-13
+
+### Fixed
+- store-collector CronJob이 좌표 미매칭만 남은 날(`geocode_stores` exit 2) 지역 배정·지표 집계·판정 배치를 건너뛰던 문제 — exit 2만 통과시키고 다른 실패는 그대로 Job 실패. 집 서버 래퍼는 `{ … } || echo`라 계속 돌았는데 k8s 명령은 `&&`로만 이어져 10/13 04:20 첫 실행에서 멈췄다
+
 ## [v0.118.1] - 2026-10-13
 
 ### Changed
