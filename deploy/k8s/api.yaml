@@ -99,7 +99,7 @@ spec:
     kind: Deployment
     name: api
   minReplicas: 2
-  maxReplicas: 10  # DB 연결 한도(config.yaml)와 같이 움직인다
+  maxReplicas: 20  # 11차 부하 테스트 11-2·11-3 동안만(노드 상한 8과 같이) — 끝나면 revert. 20 × (5 + 5) = 200 연결 ≤ RDS 832의 80%
   metrics:
     - type: Resource
       resource:
