@@ -1,5 +1,10 @@
 # Backend Version Log
 
+## [v0.118.1] - 2026-10-13
+
+### Changed
+- 11차 부하 테스트 모드 켬 — `deploy/k8s/api.yaml` 파드 env `LLM_MODE=fake`(고정 지연 가짜 LLM, 요금 없음). ConfigMap이 아니라 파드 템플릿에 둬서 롤링 재시작된다. 테스트가 끝나면 이 커밋을 revert한다(serverplan §21-8)
+
 ## [v0.118.0] - 2026-10-12
 
 ### Added
