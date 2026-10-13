@@ -1,5 +1,10 @@
 # Backend Version Log
 
+## [v0.118.3] - 2026-10-13
+
+### Changed
+- rag-indexer CronJob `suspend: true` — 운영엔 Ollama가 없어(B안) 10/13 첫 실행부터 임베딩 실패(DNS). 지원사업 정렬은 질문 임베딩도 못 해 이미 규칙 순서라 사용자 영향 없음. Ollama 연결 시 풀고 한 번 실행(증분)
+
 ## [v0.118.2] - 2026-10-13
 
 ### Fixed
