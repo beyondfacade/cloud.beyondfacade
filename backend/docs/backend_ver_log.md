@@ -1,5 +1,13 @@
 # Backend Version Log
 
+## [v0.118.6] - 2026-10-14
+
+### Changed
+- 11차 부하 테스트 모드 끔 — API 파드 `LLM_MODE=fake`(v0.118.1) 제거, HPA 최대 20 → 10(v0.118.4 되돌림). 결과는 serverplan §21-10~12
+
+### Fixed
+- `scripts/load/aws.sh` — `AWS_PROFILE` 기본값 beyondfacade(안 붙이면 NoCredentials), `snapshot`이 생성에 실패하면 대기 안내를 찍지 않고 실패로 끝남
+
 ## [v0.118.5] - 2026-10-14
 
 ### Added

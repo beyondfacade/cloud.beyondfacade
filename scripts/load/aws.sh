@@ -11,6 +11,7 @@ set -uo pipefail
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 cd "$ROOT"
 export AWS_REGION=ap-northeast-2
+export AWS_PROFILE="${AWS_PROFILE:-beyondfacade}"  # 이 계정의 프로필 — 없으면 NoCredentials
 NS=beyondfacade
 BASE=https://api.beyondfacade.cloud
 TF=infra/terraform/envs/prod
@@ -158,7 +159,7 @@ cleanup() {
 snapshot() {
   local id="beyondfacade-before-11-$(date +%m%d-%H%M)"
   aws rds create-db-snapshot --db-instance-identifier beyondfacade --db-snapshot-identifier "$id" \
-    --query DBSnapshot.DBSnapshotIdentifier --output text
+    --query DBSnapshot.DBSnapshotIdentifier --output text || return 1
   echo "완료까지 몇 분 — aws rds wait db-snapshot-available --db-snapshot-identifier $id"
 }
 
