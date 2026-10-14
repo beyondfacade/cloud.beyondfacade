@@ -1,5 +1,10 @@
 # Backend Version Log
 
+## [v0.118.5] - 2026-10-14
+
+### Added
+- `scripts/load/load.js` 프로필 `ceiling4k5` — 1,000 → 4,500 VU(계단마다 2분 오르막 + 3분 유지, 32분). 11-2(DB xlarge)가 3,000 VU에서도 포화하지 않아 11-3 천장 측정용(serverplan §21-11)
+
 ## [v0.118.4] - 2026-10-13
 
 ### Changed
