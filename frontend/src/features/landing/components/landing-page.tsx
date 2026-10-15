@@ -3,6 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { AccountMenu } from "@/shared/ui/account-menu";
 import { ThemeToggle } from "@/shared/ui/theme-toggle";
+import { IntroVideo } from "./intro-video";
 import styles from "./landing-page.module.css";
 
 function Arrow({ diagonal = false }: { diagonal?: boolean }) {
@@ -17,6 +18,7 @@ interface LandingPageProps {
 export function LandingPage({ hero }: LandingPageProps = {}) {
   return (
     <div className={`${styles.landing} bg-[var(--landing-bg)] text-[var(--landing-ink)]`}>
+      <IntroVideo />
       <a className={styles.skipLink} href="#main">본문으로 건너뛰기</a>
       <header className={styles.header}>
         <Link href="/" className={styles.brand} aria-label="Metabole 첫 화면">

@@ -28,6 +28,7 @@ it("반복된 검색값과 특수문자도 지도 주소에 보존한다", async
 
 it.each([{}, { utm_source: "newsletter" }])("지도 선택값이 없는 방문에는 경고 지도 링크를 제공한다 (%j)", async (query) => {
   render(await Home({ searchParams: Promise.resolve(query) }));
+  expect(screen.getByRole("dialog", { name: "메타볼레 인트로 영상" })).toBeInTheDocument();
   expect(screen.getByRole("link", { name: "창업 경고 지도 보기" })).toHaveAttribute("href", "/map");
 });
 
