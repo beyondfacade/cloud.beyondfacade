@@ -9,6 +9,7 @@ resources:
   - external-secret.yaml
   - rbac.yaml
   - api.yaml
+  - ollama.yaml
   - cronjobs.yaml
   - db-migrate.yaml
 images:

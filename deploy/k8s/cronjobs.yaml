@@ -90,9 +90,8 @@ kind: CronJob
 metadata:
   name: rag-indexer
 spec:
-  # 운영엔 Ollama가 없어(B안) 임베딩을 못 만들어 매일 실패한다 — 검색 쪽도 규칙 순서로 돌아가 색인을 쓸 곳이 없다.
-  # Ollama를 연결하면 false로 바꾸고 한 번 돌린다(증분이라 밀린 공고를 따라잡는다)
-  suspend: true
+  # 클러스터 안 Ollama(ollama.yaml)로 임베딩한다 — 10/22 연결, 켤 때 한 번 돌려 밀린 공고를 따라잡았다(증분)
+  suspend: false
   schedule: "50 5 * * *"
   timeZone: Asia/Seoul
   concurrencyPolicy: Forbid  # 겹쳐 돌면 같은 데이터를 두 번 쓴다

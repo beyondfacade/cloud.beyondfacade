@@ -1,5 +1,15 @@
 # Backend Version Log
 
+## [v0.118.8] - 2026-10-22
+
+### Added
+- 운영 임베딩 서버 — `deploy/k8s/ollama.yaml`(Deployment·Service `ollama`, `ollama/ollama:0.33.2`, bge-m3만 CPU). init 컨테이너가 모델을 emptyDir에 받고 본 컨테이너는 `OLLAMA_KEEP_ALIVE=-1`. API 파드가 없는 노드에만 뜬다(이미지 arm64 6.98GB + 모델 1.2GB가 20GB 노드에 빠듯 — 자리가 없으면 Cluster Autoscaler가 노드 추가, 상한 3). 리포트 LLM 로컬 폴백(gemma4:12b)은 받지 않는다 — 지금처럼 바로 실패. 10/22 로컬 CPU 실측(1코어): 질문 p95 396ms, 메모리 1.73GB, GPU 색인 벡터와 코사인 ≥ 0.99986
+
+### Changed
+- `OLLAMA_BASE_URL` `http://ollama.invalid:11434` → `http://ollama:11434` — 지원사업 질문 정렬이 규칙 순서에서 질문과 가까운 순으로 돌아온다
+- rag-indexer CronJob `suspend: false`(v0.118.3 되돌림) — 켤 때 한 번 수동 실행해 10/12 이후 공고를 따라잡는다
+- API 파드는 새 주소를 읽으려면 다시 떠야 한다(ConfigMap만 바뀌면 그대로) — 이 버전 로그 변경으로 backend-deploy가 새 이미지를 올려 함께 다시 뜬다
+
 ## [v0.118.7] - 2026-10-22
 
 ### Fixed

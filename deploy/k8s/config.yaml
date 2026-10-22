@@ -7,8 +7,8 @@ data:
   # 파드 최대 10 × (5 + 5) = 100 연결 ≤ RDS max_connections × 0.8 (serverplan §7-6)
   DB_POOL_SIZE: "5"
   DB_MAX_OVERFLOW: "5"
-  # serverplan §5 결정(A: 집 서버 사설 터널 / C: 클러스터 안 임베딩 파드)에 따라 바꾼다
-  OLLAMA_BASE_URL: "http://ollama.invalid:11434"
+  # serverplan §5 C안 — 클러스터 안 임베딩 파드(ollama.yaml, bge-m3만)
+  OLLAMA_BASE_URL: "http://ollama:11434"
   # 프론트 https://www.beyondfacade.cloud(Vercel) ↔ API https://api.beyondfacade.cloud — 다른 호스트라 필요 (serverplan Phase 6-4)
   CORS_ALLOW_ORIGINS: "https://www.beyondfacade.cloud"
   COOKIE_DOMAIN: "beyondfacade.cloud"  # www의 관리자 미들웨어가 api가 준 세션 쿠키를 본다

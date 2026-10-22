@@ -1,0 +1,67 @@
+# 임베딩 서버 — bge-m3만 CPU로 띄운다(지원사업 질문 정렬·RAG 증분 색인). serverplan §5 C안: 클러스터 안 임베딩 파드
+# GPU 없이 충분 — 10/22 로컬 CPU 실측(1코어): 질문 1개 p95 396ms, 동시 4명 p95 896ms, 메모리 1.73GB,
+# GPU 색인 벡터와 코사인 0.99986 이상(RDS 색인 그대로 씀). 리포트 LLM 폴백(gemma4:12b)은 받지 않는다 — 없으면 바로 실패한다
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ollama
+  labels: {app: ollama}
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate  # 2GiB 파드를 둘 띄울 자리가 없다 — 바뀌는 동안은 규칙 순서로 돌아간다(5초 타임아웃)
+  selector:
+    matchLabels: {app: ollama}
+  template:
+    metadata:
+      labels: {app: ollama}
+    spec:
+      securityContext: {runAsNonRoot: true, runAsUser: 10001, fsGroup: 10001}
+      affinity:
+        # API 파드가 없는 노드에만 — 이미지(arm64 풀린 크기 6.98GB)+모델 1.2GB가 디스크 20GB 노드에 API와 같이 들어가면 빠듯하고,
+        # CPU도 나눠 쓰지 않게. 자리가 없으면 Cluster Autoscaler가 노드를 하나 더 띄운다(상한 3). 못 뜨면 검색은 규칙 순서로 돈다
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchLabels: {app: api}
+              topologyKey: kubernetes.io/hostname
+      initContainers:
+        # 모델(약 1.2GB)을 emptyDir에 받는다 — 파드가 새로 뜰 때마다 다시 받는다
+        - name: pull-model
+          image: ollama/ollama:0.33.2
+          command: ["sh", "-c", "ollama serve & until ollama list >/dev/null 2>&1; do sleep 1; done; ollama pull bge-m3"]
+          env:
+            - {name: HOME, value: /ollama}
+            - {name: OLLAMA_MODELS, value: /ollama/models}
+          volumeMounts:
+            - {name: ollama, mountPath: /ollama}
+      containers:
+        - name: ollama
+          image: ollama/ollama:0.33.2
+          env:
+            - {name: HOME, value: /ollama}
+            - {name: OLLAMA_MODELS, value: /ollama/models}
+            - {name: OLLAMA_KEEP_ALIVE, value: "-1"}  # 한 번 올린 모델을 내리지 않는다 — 콜드 로드는 첫 질문 한 번만
+          ports:
+            - containerPort: 11434
+          volumeMounts:
+            - {name: ollama, mountPath: /ollama}
+          resources:
+            requests: {cpu: 500m, memory: 2Gi}
+            limits: {memory: 2560Mi}  # CPU 상한은 두지 않는다 — 노드가 한가하면 2코어까지 써서 빨라진다
+          readinessProbe:
+            httpGet: {path: /api/tags, port: 11434}
+            periodSeconds: 10
+      volumes:
+        - name: ollama
+          emptyDir: {sizeLimit: 3Gi}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ollama
+spec:
+  selector: {app: ollama}
+  ports:
+    - port: 11434
+      targetPort: 11434
