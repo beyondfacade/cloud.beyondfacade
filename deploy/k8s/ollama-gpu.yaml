@@ -1,0 +1,53 @@
+# 12차 부하 테스트(GPU 임베딩) 전용 — 평소 0개. GPU 노드(terraform gpu_node = true) 위에 bge-m3만 띄운다
+# 라벨 app: ollama라 Service `ollama`(ollama.yaml)가 그대로 가리킨다 — API 설정 변경 없음.
+# CPU 파드와 같이 떠 있으면 요청이 반씩 나뉘어 CPU 쪽이 병목이 된다 → 측정 때 `kubectl scale`로 GPU 1 · CPU 0.
+# Argo가 Deployment의 replicas 차이를 무시하므로(addons.tf ignoreDifferences) 푸시 없이 바꾸고, 끝나면 손으로 되돌린다
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ollama-gpu
+  labels: {app: ollama}
+spec:
+  replicas: 0
+  strategy:
+    type: Recreate  # GPU 1장 — 두 파드가 동시에 뜰 수 없다
+  selector:  # ollama.yaml의 selector(app: ollama)와 겹치지만 ReplicaSet은 pod-template-hash로 갈라 서로 파드를 뺏지 않는다
+    matchLabels: {app: ollama, accel: gpu}
+  template:
+    metadata:
+      labels: {app: ollama, accel: gpu}
+    spec:
+      securityContext: {runAsNonRoot: true, runAsUser: 10001, fsGroup: 10001}
+      nodeSelector: {nvidia.com/gpu.present: "true"}
+      tolerations:
+        - {key: nvidia.com/gpu, operator: Exists, effect: NoSchedule}
+      initContainers:
+        # 모델(약 1.2GB)을 emptyDir에 받는다 — ollama.yaml과 같다
+        - name: pull-model
+          image: ollama/ollama:0.33.2
+          command: ["sh", "-c", "ollama serve & until ollama list >/dev/null 2>&1; do sleep 1; done; ollama pull bge-m3"]
+          env:
+            - {name: HOME, value: /ollama}
+            - {name: OLLAMA_MODELS, value: /ollama/models}
+          volumeMounts:
+            - {name: ollama, mountPath: /ollama}
+      containers:
+        - name: ollama
+          image: ollama/ollama:0.33.2  # 멀티 아키텍처 — x86 GPU 노드에선 CUDA판(압축 3.4GB)
+          env:
+            - {name: HOME, value: /ollama}
+            - {name: OLLAMA_MODELS, value: /ollama/models}
+            - {name: OLLAMA_KEEP_ALIVE, value: "-1"}
+          ports:
+            - containerPort: 11434
+          volumeMounts:
+            - {name: ollama, mountPath: /ollama}
+          resources:
+            requests: {cpu: "1", memory: 2Gi}
+            limits: {memory: 4Gi, nvidia.com/gpu: 1}  # g4dn.xlarge: 4 vCPU · 16GB · T4 16GB
+          readinessProbe:
+            httpGet: {path: /api/tags, port: 11434}
+            periodSeconds: 10
+      volumes:
+        - name: ollama
+          emptyDir: {sizeLimit: 3Gi}

@@ -1,5 +1,14 @@
 # Backend Version Log
 
+## [v0.120.0] - 2026-10-23
+
+### Added
+- 12차 부하 테스트(GPU 임베딩·TPS 1,500) 준비 — 평소엔 아무것도 켜지지 않는다(비용 0)
+  - terraform 변수 `gpu_node`(기본 false): true면 GPU 노드 그룹 `gpu`(g4dn.xlarge 1대, `AL2023_x86_64_NVIDIA`, 디스크 60GB, 라벨 `nvidia.com/gpu.present=true`, taint `nvidia.com/gpu`)와 NVIDIA device plugin(helm 0.20.1, kube-system)을 만든다. 노드 그룹 자체를 만들고 지우는 이유: 모듈이 desired를 무시해 "0대 → min=max=1"이 검증에 걸린다
+  - `deploy/k8s/ollama-gpu.yaml` — GPU 노드용 Ollama(bge-m3, `nvidia.com/gpu: 1`), `replicas: 0`. 라벨 `app: ollama`라 Service `ollama`가 그대로 가리킨다. 측정 때 `kubectl scale`로 GPU 1 · CPU 0(Argo가 replicas 차이를 무시)
+  - `scripts/load/ollama_monitor.sh` — 15초마다 Ollama CPU·메모리·임베딩 성공/취소 수·지연 중앙값·GPU 사용률
+  - `scripts/load/aggregate_aws.py` — AWS 단계 폴더 계단별 집계(profile별 계단, 임베딩 성공률·RDS CPU·Ollama 열). 11-3·11-4 기록과 같은 값 확인
+
 ## [v0.119.0] - 2026-10-23
 
 ### Added

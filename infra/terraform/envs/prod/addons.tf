@@ -4,6 +4,7 @@
 #   metrics-server:               HPA가 파드 CPU를 본다
 #   Cluster Autoscaler:           파드가 못 뜨면 노드를 늘린다 (max = var.node_max_size)
 #   Argo CD:                      main의 deploy/k8s를 클러스터에 맞춘다(GitOps) — CI는 클러스터에 접속하지 않는다
+#   (12차 부하 테스트 때만) NVIDIA device plugin: GPU 노드가 nvidia.com/gpu를 내놓게 — var.gpu_node
 # 애드온의 AWS 권한은 Pod Identity로 준다 — 키를 파드에 넣지 않는다.
 # LB Controller가 먼저다: 모든 Service 생성을 webhook으로 가로채서, 그 파드가 뜨기 전에 다른 차트가 Service를 만들면
 # "no endpoints available for service aws-load-balancer-webhook-service"로 실패한다(10/12 첫 apply에서 external-secrets).
@@ -183,4 +184,17 @@ resource "helm_release" "argocd_apps" {
   })]
 
   depends_on = [helm_release.argocd]
+}
+
+# 12차 부하 테스트(GPU 임베딩) 동안만 — GPU 노드가 nvidia.com/gpu를 내놓게 한다. 차트 기본 affinity가
+# nvidia.com/gpu.present=true 노드에만 띄우고(eks.tf gpu 노드 그룹 라벨) 기본 toleration이 GPU taint를 견딘다
+resource "helm_release" "nvidia_device_plugin" {
+  count      = var.gpu_node ? 1 : 0
+  name       = "nvidia-device-plugin"
+  repository = "https://nvidia.github.io/k8s-device-plugin"
+  chart      = "nvidia-device-plugin"
+  version    = "0.20.1"
+  namespace  = "kube-system"
+
+  depends_on = [module.eks, helm_release.aws_load_balancer_controller]
 }

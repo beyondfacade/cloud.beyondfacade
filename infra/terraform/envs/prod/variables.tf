@@ -66,6 +66,12 @@ variable "db_deletion_protection" {
   default     = true
 }
 
+variable "gpu_node" {
+  description = "12차 부하 테스트(GPU 임베딩) 동안만 true — GPU 노드 그룹(g4dn.xlarge 1대)과 NVIDIA device plugin을 만든다. 평소 false면 둘 다 없다(비용 0)"
+  type        = bool
+  default     = false
+}
+
 variable "loadtest_runner" {
   description = "k6용 EC2(loadtest.tf) — 부하 테스트 기간에만 true"
   type        = bool

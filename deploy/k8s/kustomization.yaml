@@ -10,6 +10,7 @@ resources:
   - rbac.yaml
   - api.yaml
   - ollama.yaml
+  - ollama-gpu.yaml
   - cronjobs.yaml
   - db-migrate.yaml
 images:
