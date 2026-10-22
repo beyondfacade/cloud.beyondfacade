@@ -162,6 +162,7 @@ def test_bge_m3는_프리픽스_없이_bge_m3_모델로_요청한다():
     q = adapter.embed_query("카페 지원")
     docs = adapter.embed_documents([f"문서{i}" for i in range(120)])
     assert captured[0] == {"model": "bge-m3", "input": ["카페 지원"]}
-    assert [len(c["input"]) for c in captured[1:]] == [50, 50, 20]
+    # 문서는 요청마다 1개 — 색인 묶음이 질의를 막지 않게(Ollama는 요청을 하나씩 처리, 50개 묶음이면 질의가 5초 타임아웃)
+    assert [len(c["input"]) for c in captured[1:]] == [1] * 120
     assert len(q) == 1024 and len(docs) == 120
     assert adapter.model_name == "bge-m3" and adapter.provider == "ollama"

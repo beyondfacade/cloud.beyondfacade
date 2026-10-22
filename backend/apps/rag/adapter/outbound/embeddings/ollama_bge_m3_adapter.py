@@ -13,7 +13,9 @@ class OllamaBgeM3EmbeddingAdapter(EmbeddingPort):
     MODEL_NAME = "bge-m3"
     PROVIDER = "ollama"
     OLLAMA_MODEL = "bge-m3"
-    BATCH_SIZE = 50
+    # 요청마다 문서 1개 — Ollama는 요청을 하나씩 처리해 50개 묶음(CPU 약 25초) 동안 화면 질의가 5초 타임아웃에 걸린다.
+    # 1개씩이면 색인은 약 13% 느려지고 색인 중 질의 지연은 최대 0.7초(10/22 로컬 CPU 2코어 실측)
+    BATCH_SIZE = 1
 
     def __init__(self, base_url: str | None = None, transport=None, timeout: float = 120.0):
         # 색인은 콜드스타트(모델 로드) 대비 120초(ollama_qwen3_adapter와 같음). 화면이 기다리는 질의 경로는 짧게 준다
