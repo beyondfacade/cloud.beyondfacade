@@ -2,6 +2,7 @@
 
 from apps.ops.adapter.outbound.gateways.admin_audit_gateway import AdminAuditGateway
 from apps.ops.adapter.outbound.gateways.collector_log_gateway import CollectorLogGateway
+from apps.ops.adapter.outbound.gateways.k8s_cronjob_gateway import K8sCronJobGateway, in_cluster
 from apps.ops.adapter.outbound.gateways.llm_call_gateway import LlmCallGateway
 from apps.ops.adapter.outbound.gateways.llm_chain_gateway import LlmChainGateway
 from apps.ops.adapter.outbound.gateways.llm_usage_gateway import LlmUsageGateway
@@ -41,7 +42,7 @@ def get_facility_use_case() -> FacilityUseCase:
         gpus=NvidiaSmiGateway(),
         database=PostgresStatusGateway(),
         ollama=OllamaStatusGateway(),
-        logs=CollectorLogGateway(),
+        logs=K8sCronJobGateway() if in_cluster() else CollectorLogGateway(),
     )
 
 
@@ -52,4 +53,7 @@ def get_host_history_use_case() -> HostHistoryUseCase:
 
 
 def get_collector_tools_use_case() -> CollectorToolsUseCase:
+    if in_cluster():
+        cronjobs = K8sCronJobGateway()
+        return CollectorToolsInteractor(logs=cronjobs, runner=cronjobs, audit=AdminAuditGateway())
     return CollectorToolsInteractor(logs=CollectorLogGateway(), runner=ScriptRunnerGateway(), audit=AdminAuditGateway())

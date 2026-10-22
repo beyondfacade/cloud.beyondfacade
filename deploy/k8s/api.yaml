@@ -15,6 +15,7 @@ spec:
     metadata:
       labels: {app: api}
     spec:
+      serviceAccountName: api
       terminationGracePeriodSeconds: 90  # preStop 10초 + SSE 리포트 최대 60초 + 여유
       securityContext: {runAsNonRoot: true, runAsUser: 10001}
       topologySpreadConstraints:

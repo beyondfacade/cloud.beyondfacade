@@ -1,5 +1,11 @@
 # Backend Version Log
 
+## [v0.118.7] - 2026-10-22
+
+### Fixed
+- AWS 전환 뒤 관리자 인프라 추세가 비던 문제 — `deploy/k8s/cronjobs.yaml`에 `host-metrics-sampler`(매분, `apps.ops.adapter.inbound.cli.sample_host_metrics`) 추가. 전환 때 제외해 `host_metric_sample`에 표본이 쌓이지 않았다. /proc은 Job이 뜬 노드 기준이라 노드가 여럿이면 표본마다 노드가 섞이고, GPU 칸은 비어 있다
+- AWS 전환 뒤 관리자 수집기 화면이 모두 '누락'·빈 로그·실행 불가이던 문제 — 파드엔 `logs/`·`scripts/`가 없다. 클러스터 안(`KUBERNETES_SERVICE_HOST`)에서는 `K8sCronJobGateway`로 바꿔 마지막 실행 = CronJob `lastSuccessfulTime`, 로그 = 최근 Job 파드 로그, 실행 중 = 활성 Job, 수동 실행 = CronJob 템플릿으로 Job 생성(`kubectl create job --from`과 같다). API 파드 전용 ServiceAccount `api` + Role(`deploy/k8s/rbac.yaml`, 네임스페이스 안 cronjobs list·jobs list/create·pods list·pods/log get). 로컬은 기존 로그·스크립트 어댑터 그대로
+
 ## [v0.118.6] - 2026-10-14
 
 ### Changed
