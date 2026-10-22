@@ -32,10 +32,6 @@ spec:
           envFrom:
             - configMapRef: {name: backend-config}
             - secretRef: {name: backend-env}
-          env:
-            # 11-4 부하 테스트 중에만(serverplan §21-14) — 고정 지연 가짜 LLM, 요금 없음. 리포트는 model='fake'로 남아 scripts/load/aws.sh cleanup이 지운다.
-            # ConfigMap이 아니라 여기 두는 이유: 파드 템플릿이 바뀌어야 롤링 재시작된다. 테스트가 끝나면 이 커밋을 revert한다
-            - {name: LLM_MODE, value: fake}
           resources:
             requests: {cpu: 500m, memory: 512Mi}
             limits: {cpu: "1", memory: 1Gi}  # 워커 1개라 1코어 넘게 줘도 못 쓴다

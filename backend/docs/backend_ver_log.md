@@ -1,5 +1,10 @@
 # Backend Version Log
 
+## [v0.118.11] - 2026-10-22
+
+### Changed
+- 11-4 부하 테스트 모드 끔 — API 파드 `LLM_MODE=fake`(v0.118.10) 제거. 결과는 serverplan §21-14
+
 ## [v0.118.10] - 2026-10-22
 
 ### Changed
