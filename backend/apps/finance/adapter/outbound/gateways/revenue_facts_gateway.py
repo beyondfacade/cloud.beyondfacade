@@ -6,7 +6,8 @@
 비현실적이다. ③ 서울 전체 점포당 값도 같은 자릿수다(v0.33.0 검증). 인터랙터가 ÷3을 맡는다.
 
 업종에 CS 코드가 여러 개 붙는 경우(academy 4·cafe 3·hair_salon 3, v0.26.0 매핑 보정)는
-매출 합 ÷ 점포 합 — 코드별로 나눠 평균하면 모집단이 쪼개진다. 서울 중앙값도 같은 방식으로 동마다 낸 값의 중앙값이다.
+매출 합 ÷ 점포 합 — 코드별로 나눠 평균하면 모집단이 쪼개진다. 서울 중앙값도 같은 방식으로 동마다 낸 값의 중앙값이며,
+metric BC가 업종×분기로 미리 계산해 둔 표(industry_sales_median_quarter)에서 읽는다 — 없으면 None.
 """
 
 from sqlalchemy import and_, func, select
@@ -16,6 +17,7 @@ from apps.commerce.adapter.outbound.orms.region_commerce_store_orm import Region
 from apps.finance.app.dtos.finance_dto import RevenueBasis
 from apps.finance.app.ports.output.finance_port import RevenueFactsPort
 from apps.master.adapter.outbound.orms.industry_source_code_orm import IndustrySourceCodeOrm
+from apps.metric.adapter.outbound.orms.industry_sales_median_orm import IndustrySalesMedianOrm
 from core.matrix.grid_oracle_database_manager import session_scope
 
 _SOURCE_SYSTEM = "seoul_commercial"
@@ -67,29 +69,13 @@ class RevenueFactsGateway(RevenueFactsPort):
             year_quarter, quarterly_sales, store_count = row
             if not store_count:
                 return None
-            per_region = (
-                select((func.sum(sales.sales_amount) / func.sum(store.store_count)).label("per_store"))
-                .join(
-                    store,
-                    and_(
-                        store.adstrd_code == sales.adstrd_code,
-                        store.service_industry_code == sales.service_industry_code,
-                        store.year_quarter == sales.year_quarter,
-                    ),
-                )
-                .where(
-                    sales.year_quarter == year_quarter,
-                    sales.service_industry_code.in_(codes),
-                    sales.sales_amount.is_not(None),
-                    store.store_count.is_not(None),
-                )
-                .group_by(sales.region_code)
-                .having(func.sum(store.store_count) > 0)
-                .subquery()
-            )
+            # 미리 계산해 둔 값 — 요청마다 427개 동을 다시 모으던 계산이 11차 부하 테스트 DB 시간의 대부분이었다
             seoul_median = session.execute(
-                select(func.percentile_cont(0.5).within_group(per_region.c.per_store))
-            ).scalar()
+                select(IndustrySalesMedianOrm.median_quarterly_sales_per_store).where(
+                    IndustrySalesMedianOrm.industry_id == industry_id,
+                    IndustrySalesMedianOrm.year_quarter == year_quarter,
+                )
+            ).scalar_one_or_none()
         return RevenueBasis(
             year_quarter=year_quarter,
             quarterly_sales=int(quarterly_sales),

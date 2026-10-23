@@ -347,6 +347,7 @@ erDiagram
 |---|---|---|
 | `region_industry_metric` 테이블 전체 | store에서 계산 가능한 집계를 사전 저장 | 지도 단계구분도 API가 요청마다 수십만 store 행을 집계하면 latency 목표(-40%) 불달성. 배치(일 1회)로 충분한 신선도 |
 | `region_industry_metric.store_count` 등 파생 수치 | growth_rate는 open/close/store_count에서 유도 가능 | 프론트 차트가 매번 계산하지 않도록 저장. 원천(store)이 진실이고 지표는 재생성 가능 — 불일치 시 배치 재실행으로 복구 |
+| `industry_sales_median_quarter` 테이블 전체 (10/23) | 상권 원천(region_commerce_sales·store)에서 계산 가능한 업종×분기 서울 중앙값을 사전 저장 | 재무 프리필이 요청마다 427개 동을 집계 — 11차 부하 테스트에서 DB 시간의 대부분(11-3: 2위 쿼리의 13배). 값은 업종×분기에만 달려 있다. 원천이 진실이고 매일 새벽 `build_sales_median`이 통째 재생성 |
 | `store.status` | open_date/close_date에서 유도 가능 | 상태 필터 쿼리 빈도가 압도적 → 인덱스 걸린 상태 컬럼 유지 |
 | `interest_rate` ↔ 지표 테이블 비연결 | 계산기 전용 독립 시계열 | 상권과 무관한 전국 공시 데이터. 계산기 유스케이스에서 rent_price(district)와 애플리케이션 조인 |
 
@@ -411,6 +412,8 @@ erDiagram
     store ||..o{ region_industry_metric : "배치 집계(개폐업)"
     convenience_store ||..o{ region_industry_metric : "스냅샷 점포수"
     childcare_center ||..o{ region_industry_metric : "스냅샷 점포수"
+    industry ||--o{ industry_sales_median_quarter : ""
+    region_commerce_sales ||..o{ industry_sales_median_quarter : "배치 집계(서울 중앙값)"
 
     %% ── 검색 계층 (RAG) ──
     region |o--o{ rag_chunk : "지역 필터"
@@ -676,6 +679,12 @@ erDiagram
         int close_count "nullable - 스냅샷 원천"
         float closure_rate "nullable"
         float growth_rate "nullable"
+    }
+    industry_sales_median_quarter {
+        string industry_id PK, FK
+        string year_quarter PK "원천 분기 20254"
+        float median_quarterly_sales_per_store "동별 점포당 분기 매출의 서울 중앙값"
+        int region_count
     }
     rag_chunk {
         string chunk_id PK

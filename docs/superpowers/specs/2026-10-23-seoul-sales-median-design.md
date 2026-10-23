@@ -26,18 +26,19 @@
 |---|---|---|
 | `industry_id` | varchar, PK, FK → `industry` | 우리 업종 |
 | `year_quarter` | varchar(5), PK | 원천 분기 코드(예: `20254`) |
-| `median_quarterly_sales_per_store` | numeric | 동마다 낸 (매출 합 ÷ 점포 합)의 서울 중앙값 — 분기 합 단위(지금 게이트웨이와 같음) |
+| `median_quarterly_sales_per_store` | double | 동마다 낸 (매출 합 ÷ 점포 합)의 서울 중앙값 — 분기 합 단위(지금 게이트웨이와 같음) |
 | `region_count` | int | 중앙값에 들어간 동 수(검수용) |
 
 - **집계 계층의 의도적 역정규화**(docs/erd.md 원칙 — 집계 계층에만 허용, 근거 명시): 원천에서 언제든 다시 만들 수 있는 파생 값을 저장한다. 근거는 §1의 부하 측정.
 - ERD 연결: `industry ||--o{ industry_sales_median_quarter` (고립 테이블 아님).
 - 계산식은 지금 게이트웨이와 **같다** — 업종에 붙은 원천 코드(`industry_source_code`, `seoul_commercial`) 전부를 합쳐, 동(`region_code`)별 `sum(sales_amount) / sum(store_count)`(`having sum(store_count) > 0`, 매출·점포 NULL 제외, 같은 동·코드·분기로 조인)의 `percentile_cont(0.5)`.
-- **모든 분기**를 계산한다(약 28분기 × 12업종 ≈ 340행) — 동마다 "최신 분기"가 다를 수 있어 그 분기로 바로 찾게.
+- **모든 분기**를 계산한다(개발 DB: 매핑된 16업종 × 20분기 = 320행) — 동마다 "최신 분기"가 다를 수 있어 그 분기로 바로 찾게.
 
-### 3-2. 파일 (기존 집계 표 `region_industry_metric`과 같은 세트 — 라우터 없음)
+### 3-2. 파일 (라우터 없음 — 읽는 쪽은 재무 게이트웨이뿐)
 
-metric BC에 `industry_sales_median` 세트: entity · dto · input port(use case: `build`) · output port(repository) · interactor · repository · orm · orm_mapper · dependencies.
-계산은 **repository의 `rebuild()` 한 메서드**가 `INSERT … SELECT … ON CONFLICT DO UPDATE` 한 문장으로 한다(원천을 파이썬으로 끌어오지 않는다 — 427동×분기 집계라 DB 안에서 끝내는 게 빠르다). interactor는 `rebuild()`를 부르고 처리 행 수를 돌려줄 뿐이다. 마이그레이션의 채우기 SQL은 같은 식을 복사해 둔다(마이그레이션은 앱 코드를 import하지 않는다).
+metric BC에 `industry_sales_median`: orm · input port(use case: `build`) · output port(repository: `rebuild`) · interactor · repository · dependencies · CLI `build_sales_median`.
+엔티티·DTO·ORM 매퍼는 두지 않는다 — 앱 안에서 이 행을 객체로 읽는 곳이 없다(재무 게이트웨이는 지금 상권·마스터 ORM을 읽듯 이 ORM을 직접 읽는다).
+계산은 **repository의 `rebuild()` 한 메서드**가 한 트랜잭션에서 `DELETE` 후 `INSERT … SELECT` 한 문장으로 한다(지우고 다시 넣어 매핑에서 빠진 조합도 남지 않는다)(원천을 파이썬으로 끌어오지 않는다 — 427동×분기 집계라 DB 안에서 끝내는 게 빠르다). interactor는 `rebuild()`를 부르고 처리 행 수를 돌려줄 뿐이다. 마이그레이션의 채우기 SQL은 같은 식을 복사해 둔다(마이그레이션은 앱 코드를 import하지 않는다).
 
 ### 3-3. 채우는 시점 — 두 곳
 

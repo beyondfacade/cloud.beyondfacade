@@ -49,7 +49,7 @@ spec:
             - name: store-collector
               image: beyondfacade-api
               # geocode_stores의 exit 2는 '미매칭만 남음'(재시도 막기용) — 실패가 아니라서 뒤 단계(지역 배정·지표·판정)를 계속 돌린다
-              command: ["sh", "-c", "python -m apps.store.adapter.inbound.cli.store_collector && python -m apps.store.adapter.inbound.cli.academy_collector && python -m apps.store.adapter.inbound.cli.broker_collector && { python -m apps.store.adapter.inbound.cli.geocode_stores || [ $? -eq 2 ]; } && python -m apps.store.adapter.inbound.cli.assign_regions && python -m apps.metric.adapter.inbound.cli.build_metrics && python -m apps.verdict.adapter.inbound.cli.build_verdicts"]
+              command: ["sh", "-c", "python -m apps.store.adapter.inbound.cli.store_collector && python -m apps.store.adapter.inbound.cli.academy_collector && python -m apps.store.adapter.inbound.cli.broker_collector && { python -m apps.store.adapter.inbound.cli.geocode_stores || [ $? -eq 2 ]; } && python -m apps.store.adapter.inbound.cli.assign_regions && python -m apps.metric.adapter.inbound.cli.build_metrics && python -m apps.metric.adapter.inbound.cli.build_sales_median && python -m apps.verdict.adapter.inbound.cli.build_verdicts"]
               envFrom:
                 - configMapRef: {name: backend-config}
                 - secretRef: {name: backend-env}

@@ -1,5 +1,13 @@
 # Backend Version Log
 
+## [v0.119.0] - 2026-10-23
+
+### Added
+- 업종×분기 서울 점포당 매출 중앙값 사전 계산 — 표 `industry_sales_median_quarter`(metric BC, 집계 계층, PK 업종·분기, FK industry). 마이그레이션 `a7c9e1f3b5d8`이 표를 만들며 바로 채우고, 이후 매일 새벽 store-collector 체인의 `build_metrics` 다음 `build_sales_median`이 통째 재생성(멱등, 수 초). 개발 DB 16업종 × 20분기 = 320행 — 기존 실시간 계산과 320쌍 모두 일치(최대 차이 6e-11)
+
+### Changed
+- 재무 프리필의 서울 중앙값(`RevenueFactsGateway`)을 요청마다 `percentile_cont`로 계산하지 않고 위 표에서 한 줄 읽는다. 응답 값은 같다(표에 없으면 지금처럼 None — 이상값 판정만 건너뜀). 근거: 11차 부하 테스트에서 이 계산이 DB 시간의 대부분(11-1 약 92%, 11-3 2위 쿼리의 13배). 설계 `docs/superpowers/specs/2026-10-23-seoul-sales-median-design.md`
+
 ## [v0.118.12] - 2026-10-23
 
 ### Changed
