@@ -5,7 +5,7 @@ import { VerdictCard } from "./verdict-card";
 
 it("훅 없이 판정 배지와 산출일을 표시한다", () => {
   render(<VerdictCard industryLabel="카페" verdict={{ region_code: "1", industry_id: "cafe", basis: "permit", verdict_code: "clear", strong_count: 0, on_count: 0, signals: [], computed_at: "2026-09-29T04:30:00+09:00" }} />);
-  expect(screen.getByRole("status", { name: "카페 판정: 경고 없음" })).toBeInTheDocument();
+  expect(screen.getByRole("status", { name: "카페 판정: 큰 위험 신호 없음" })).toBeInTheDocument();
   expect(screen.getByText("2026-09-29", { selector: "time" }).parentElement).toHaveTextContent("산출일 2026-09-29");
 });
 
@@ -17,7 +17,7 @@ const base = { region_code: "1", industry_id: "real_estate", verdict_code: "oran
 it("판정 근거 약함 배지는 weak_basis가 true일 때만 표시한다", () => {
   const verdict = { ...base, industry_id: "japanese_food", basis: "permit" as const, signals: [], weak_basis: true };
   const { rerender } = render(<VerdictCard industryLabel="일식" verdict={verdict} />);
-  expect(screen.getByText("판정 근거 약함")).toHaveAttribute("title", "이 업종은 과거 여러 시점에서 경고 신호가 폐업을 꾸준히 가르지 못했습니다. 신호가 켜져도 비추천은 내지 않습니다.");
+  expect(screen.getByText("판정 근거 약함")).toHaveAttribute("title", "이 업종은 과거 여러 시점에서 경고 신호가 폐업을 꾸준히 가르지 못했습니다. 신호가 켜져도 '폐업 위험 높음'은 내지 않습니다.");
   rerender(<VerdictCard industryLabel="일식" verdict={{ ...verdict, weak_basis: false }} />);
   expect(screen.queryByText("판정 근거 약함")).toBeNull();
 });

@@ -60,7 +60,7 @@ def test_여섯_절을_계약_순서로_제목과_함께_쓴다():
 def test_판정은_켜진_신호와_기준을_넘지_않은_신호와_자료_부족_신호를_나눠_쓴다():
     # 한 줄로 묶으면 해석이 "경고 없음은 자료가 비어서"로 읽었다 — 계산해서 꺼진 신호를 이름으로 따로 쓴다
     assert _body("verdict", verdict=_RED) == (
-        "[확인된 사실] 송정동 한식 판정: **비추천** — 경고 신호 3개 중 2개 켜짐(강한 신호 2개). "
+        "[확인된 사실] 송정동 한식 판정: **폐업 위험 높음** — 경고 신호 3개 중 2개 켜짐(강한 신호 2개). "
         "계산했지만 기준을 넘지 않은 신호 1개(포화). 자료 부족으로 계산하지 못한 신호 1개(생존 절벽). "
         "산출 2026-10-04."
     )
@@ -206,8 +206,8 @@ def test_대안은_두_축을_각_최대_3개까지_등급_라벨_그대로_쓴�
     }
 
     assert _body("alternatives", alternatives=alternatives) == (
-        "[확인된 사실] 같은 동네(송정동)의 다른 업종\n- 카페 (경고 없음)\n- 미용실 (조건부)\n\n"
-        "[확인된 사실] 같은 업종(한식)의 다른 동네\n- 부암동 (경고 없음)\n- 평창동 (경고 없음)\n- 교남동 (경고 없음)"
+        "[확인된 사실] 같은 동네(송정동)의 다른 업종\n- 카페 (큰 위험 신호 없음)\n- 미용실 (폐업 위험 있음)\n\n"
+        "[확인된 사실] 같은 업종(한식)의 다른 동네\n- 부암동 (큰 위험 신호 없음)\n- 평창동 (큰 위험 신호 없음)\n- 교남동 (큰 위험 신호 없음)"
     )
     assert _body("alternatives", alternatives=_UNAVAILABLE).startswith("[확인된 사실] 대안(송정동 한식): 자료 부족 — ")
 
@@ -309,7 +309,7 @@ def test_대안에_경고_없음이_있으면_대안_절_안내_문장을_쓰고
     clear = {"available": True, "industries": [{"verdict_code": "orange"}], "regions": [{"verdict_code": "clear"}]}
     none = {"available": True, "industries": [{"verdict_code": "orange"}], "regions": []}
 
-    assert alternatives_pointer({"alternatives": clear}) == "대안 동네·업종 절에 경고 없음으로 나온 곳도 함께 확인해 보세요."
+    assert alternatives_pointer({"alternatives": clear}) == "대안 동네·업종 절에 '큰 위험 신호 없음'으로 나온 곳도 함께 확인해 보세요."
     assert alternatives_pointer({"alternatives": none}) is None
     assert alternatives_pointer({"alternatives": _UNAVAILABLE}) is None
 

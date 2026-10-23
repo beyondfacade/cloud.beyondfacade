@@ -6,10 +6,10 @@ it("판정 코드 순서는 빨강→주황→경고 없음→보류다 (범례 
 });
 
 it("판정 라벨은 이름과 괄호 설명을 갖고, 🟢 추천은 없다", () => {
-  expect(verdictLabel("red")).toEqual({ name: "비추천", qualifier: "강한 경고 신호 2개 이상" });
-  expect(verdictLabel("orange").name).toBe("조건부");
-  expect(verdictLabel("clear").name).toBe("경고 없음");
-  expect(verdictLabel("insufficient")).toEqual({ name: "판정 보류", qualifier: "표본 부족 — 판정 가능한 신호 2개 미만" });
+  expect(verdictLabel("red")).toEqual({ name: "폐업 위험 높음", qualifier: "강한 경고 신호 2개 이상" });
+  expect(verdictLabel("orange").name).toBe("폐업 위험 있음");
+  expect(verdictLabel("clear").name).toBe("큰 위험 신호 없음");
+  expect(verdictLabel("insufficient")).toEqual({ name: "자료 부족", qualifier: "표본 부족 — 판정 가능한 신호 2개 미만" });
   expect(Object.values(VERDICT_CODES)).not.toContain("green");
 });
 

@@ -7,7 +7,7 @@ it("판정 네 단계와 데이터 없음만 순서대로 표시한다", () => {
   expect(screen.getByText("창업 경고")).toBeInTheDocument();
   const rows = screen.getAllByRole("listitem");
   expect(rows).toHaveLength(5);
-  for (const [i, name] of ["비추천", "조건부", "경고 없음", "판정 보류", "데이터 없음"].entries()) {
+  for (const [i, name] of ["폐업 위험 높음", "폐업 위험 있음", "큰 위험 신호 없음", "자료 부족", "데이터 없음"].entries()) {
     expect(rows[i]).toHaveTextContent(name);
   }
   expect(screen.queryByText(/~/)).toBeNull();
@@ -21,5 +21,5 @@ it("판정 데이터가 없으면 범례를 표시하지 않는다", () => {
 it("범례에 경고 없음이 추천이 아니라는 안내 줄을 표시한다", () => {
   const classes = ["red", "clear"].map((code) => ({ code, color: "#123456" }));
   render(<MapLegend scale={{ classes }} />);
-  expect(screen.getByText("\"경고 없음\"은 추천이 아닙니다.")).toBeInTheDocument();
+  expect(screen.getByText("\"큰 위험 신호 없음\"은 추천이 아닙니다.")).toBeInTheDocument();
 });

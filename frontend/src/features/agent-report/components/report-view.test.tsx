@@ -79,7 +79,7 @@ it("사실만 와도 여섯 섹션의 그림과 본문 스켈레톤을 즉시 �
   render(<ReportView state={{ ...initialAgentState(), facts: reportFacts() }} />);
   expect(screen.getAllByRole("heading", { level: 2 }).map((h) => h.textContent)).toEqual(SECTIONS.map(([, title]) => title));
   expect(screen.getAllByLabelText("본문 작성 중")).toHaveLength(6);
-  expect(screen.getByRole("status", { name: "카페 판정: 조건부" })).toBeInTheDocument();
+  expect(screen.getByRole("status", { name: "카페 판정: 폐업 위험 있음" })).toBeInTheDocument();
   expect(screen.getByRole("img", { name: "점포수 추세" })).toBeInTheDocument();
   expect(screen.getByText("원두 가격 상승")).toBeInTheDocument();
   expect(screen.getByRole("img", { name: "하루 4블록 유동 강도" })).toBeInTheDocument();
@@ -94,7 +94,7 @@ it("본문 조각이 그림 아래에 붙고 해당 스켈레톤만 사라지며
     { title: "상권 동향", url: "https://www.example.com/news/1", grade: "signal", press: null, published_at: "2026-10-06" },
     { title: "창업 소식", url: "https://news.example.com/2", grade: "signal", press: "서울신문", published_at: null },
   ] }} />);
-  const chart = screen.getByRole("status", { name: "카페 판정: 조건부" });
+  const chart = screen.getByRole("status", { name: "카페 판정: 폐업 위험 있음" });
   expect(chart.compareDocumentPosition(screen.getByText("판정 해석입니다.")) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   expect(screen.getAllByLabelText("본문 작성 중")).toHaveLength(5);
   expect(screen.getByRole("heading", { name: "최근 뉴스 — 네이버 검색결과" })).toBeInTheDocument();

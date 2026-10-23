@@ -67,9 +67,9 @@ def _on_signals(verdict: dict) -> list[str]:
 
 # 판정 등급 → 결론 문장 (자료 부족·판정 대상 아님은 여기 오지 않는다 — scarce_lead 경로)
 _LEADS = {
-    "red": lambda subject, on: f"{subject} 권하지 않습니다 — 켜진 경고 신호 {len(on)}개({', '.join(on)}).",
-    "orange": lambda subject, on: f"{subject} 조건부입니다 — {', '.join(on)}{_object_particle(on[-1])} 먼저 확인해야 합니다.",
-    "clear": lambda subject, on: f"{subject} 경고 신호가 없습니다 — 다만 이것이 장사가 된다는 근거는 아닙니다.",
+    "red": lambda subject, on: f"{subject} 폐업 위험이 높습니다 — 켜진 경고 신호 {len(on)}개({', '.join(on)}).",
+    "orange": lambda subject, on: f"{subject} 폐업 위험이 있습니다 — {', '.join(on)}{_object_particle(on[-1])} 먼저 확인해야 합니다.",
+    "clear": lambda subject, on: f"{subject} 큰 위험 신호가 없습니다 — 다만 이것이 장사가 된다는 근거는 아닙니다.",
 }
 
 

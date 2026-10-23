@@ -31,17 +31,17 @@ def _verdict(code: str) -> dict:
 
 def test_비추천은_권하지_않는다와_켜진_신호를_첫_문장에_쓴다():
     lead = answer_lead(_facts(), QuestionTopic("general")).split("\n")[0]
-    assert lead == "[확인된 사실] 송정동 한식은 권하지 않습니다 — 켜진 경고 신호 2개(순유출, 조기 폐업)."
+    assert lead == "[확인된 사실] 송정동 한식은 폐업 위험이 높습니다 — 켜진 경고 신호 2개(순유출, 조기 폐업)."
 
 
 def test_조건부는_먼저_확인할_신호를_쓴다():
     lead = answer_lead(_facts(verdict=_verdict("orange")), QuestionTopic("general")).split("\n")[0]
-    assert lead == "[확인된 사실] 송정동 한식은 조건부입니다 — 순유출, 조기 폐업을 먼저 확인해야 합니다."
+    assert lead == "[확인된 사실] 송정동 한식은 폐업 위험이 있습니다 — 순유출, 조기 폐업을 먼저 확인해야 합니다."
 
 
 def test_경고_없음은_장사가_된다는_근거가_아니라고_쓴다():
     lead = answer_lead(_facts(verdict=_verdict("clear")), QuestionTopic("general")).split("\n")[0]
-    assert lead == "[확인된 사실] 송정동 한식은 경고 신호가 없습니다 — 다만 이것이 장사가 된다는 근거는 아닙니다."
+    assert lead == "[확인된 사실] 송정동 한식은 큰 위험 신호가 없습니다 — 다만 이것이 장사가 된다는 근거는 아닙니다."
 
 
 def test_일반_질문은_넘지_않은_기준과_점포당_매출을_근거로_든다():
@@ -60,7 +60,7 @@ def test_점포당_매출은_서울_같은_업종_동_중앙값과_견준_낱말
 def test_예산_질문은_예산으로_시작하고_충분한지는_판단할_수_없다고_쓴다():
     text = answer_lead(_facts(budget=50_000_000), QuestionTopic("budget"))
     lead = text.split("\n")[0]
-    assert lead.startswith("[확인된 사실] 예산 5,000만 원으로 보면 송정동 한식은 권하지 않습니다")
+    assert lead.startswith("[확인된 사실] 예산 5,000만 원으로 보면 송정동 한식은 폐업 위험이 높습니다")
     assert lead.endswith("예산이 충분한지는 이 리포트로 판단할 수 없습니다.")
     assert "상가 임대료(서울 기타 권역, 2026년 2분기): ㎡당 월 약 4.9만 원" in text
     assert f"- {BUDGET_GAP}" in text

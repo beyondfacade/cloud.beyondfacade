@@ -57,7 +57,7 @@ export function VerdictCard({ verdict, industryLabel }: { verdict: RegionIndustr
           </span>
         )}
         {verdict.weak_basis && (
-          <span title="이 업종은 과거 여러 시점에서 경고 신호가 폐업을 꾸준히 가르지 못했습니다. 신호가 켜져도 비추천은 내지 않습니다." className="rounded border border-[var(--border)] px-1 text-[10px] text-[var(--text-secondary)]">
+          <span title="이 업종은 과거 여러 시점에서 경고 신호가 폐업을 꾸준히 가르지 못했습니다. 신호가 켜져도 '폐업 위험 높음'은 내지 않습니다." className="rounded border border-[var(--border)] px-1 text-[10px] text-[var(--text-secondary)]">
             판정 근거 약함
           </span>
         )}
@@ -86,7 +86,7 @@ export function VerdictCard({ verdict, industryLabel }: { verdict: RegionIndustr
       ) : (
         <p className="text-sm text-[var(--text-secondary)]">
           {verdict.verdict_code === "insufficient"
-            ? "표본이 부족해 판정을 보류했습니다."
+            ? "표본이 부족해 판정하지 않았습니다."
             : "서울 같은 업종 동네와 비교해 켜진 경고 신호가 없습니다."}
         </p>
       )}

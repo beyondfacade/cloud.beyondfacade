@@ -27,7 +27,7 @@ SECTION_TITLES = {
 }
 
 # 판정 코드 → 라벨. 프론트 `shared/verdict.ts` LABELS와 같은 어휘다.
-VERDICT_LABELS = {"red": "비추천", "orange": "조건부", "clear": "경고 없음", "insufficient": "판정 보류"}
+VERDICT_LABELS = {"red": "폐업 위험 높음", "orange": "폐업 위험 있음", "clear": "큰 위험 신호 없음", "insufficient": "자료 부족"}
 # 신호 키 → 이름. 프론트 `shared/verdict.ts` SIGNAL_LABELS와 같은 어휘다.
 SIGNAL_LABELS = {
     "net_outflow": "순유출",
@@ -84,7 +84,7 @@ def quarter_label(year_quarter: str | None) -> str:
 
 
 _WEAK_BASIS = (
-    "판정 근거 약함 — 이 업종은 과거 여러 시점에서 경고 신호가 폐업을 꾸준히 가르지 못해, 신호가 켜져도 비추천은 내지 않습니다."
+    "판정 근거 약함 — 이 업종은 과거 여러 시점에서 경고 신호가 폐업을 꾸준히 가르지 못해, 신호가 켜져도 '폐업 위험 높음'은 내지 않습니다."
 )
 
 
@@ -464,7 +464,7 @@ def alternatives_pointer(facts: dict) -> str | None:
         return None
     items = [*(alternatives.get("industries") or []), *(alternatives.get("regions") or [])]
     if any(item.get("verdict_code") == "clear" for item in items):
-        return "대안 동네·업종 절에 경고 없음으로 나온 곳도 함께 확인해 보세요."
+        return "대안 동네·업종 절에 '큰 위험 신호 없음'으로 나온 곳도 함께 확인해 보세요."
     return None
 
 

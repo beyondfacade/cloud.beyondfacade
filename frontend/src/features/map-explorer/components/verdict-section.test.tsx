@@ -52,7 +52,7 @@ it("켜진 판정 신호는 강함부터 원천 순서를 유지해 최대 세 �
     signal("saturation", "strong", "포화 근거"),
   ]));
   renderSection();
-  expect(await screen.findByRole("status", { name: /비추천/ })).toBeInTheDocument();
+  expect(await screen.findByRole("status", { name: /폐업 위험 높음/ })).toBeInTheDocument();
   const fired = screen.getAllByTestId("fired-signal").map((el) => el.textContent);
   expect(fired).toHaveLength(3);
   expect(fired[0]).toContain("생존 절벽");
@@ -66,7 +66,7 @@ it("켜진 판정 신호는 강함부터 원천 순서를 유지해 최대 세 �
 it("근거 보기 토글과 꺼진 신호의 상세 근거를 표시하지 않는다", async () => {
   vi.spyOn(api, "fetchVerdict").mockResolvedValue(verdict("red", FOUR));
   renderSection();
-  await screen.findByRole("status", { name: /비추천/ });
+  await screen.findByRole("status", { name: /폐업 위험 높음/ });
   expect(screen.queryByRole("button", { name: /근거 보기|근거 접기/ })).toBeNull();
   expect(screen.queryByText("표본 부족 — 상주인구 900명")).toBeNull();
 });
@@ -74,9 +74,9 @@ it("근거 보기 토글과 꺼진 신호의 상세 근거를 표시하지 않�
 it("경고 없음·보류 판정은 켜진 신호 목록 대신 한 줄 설명을 보여준다", async () => {
   vi.spyOn(api, "fetchVerdict").mockResolvedValue(verdict("insufficient", FOUR.map((s) => ({ ...s, level: "unavailable" }))));
   renderSection();
-  expect(await screen.findByRole("status", { name: /판정 보류/ })).toBeInTheDocument();
+  expect(await screen.findByRole("status", { name: /자료 부족/ })).toBeInTheDocument();
   expect(screen.queryAllByTestId("fired-signal")).toHaveLength(0);
-  expect(screen.getByText("표본이 부족해 판정을 보류했습니다.")).toBeInTheDocument();
+  expect(screen.getByText("표본이 부족해 판정하지 않았습니다.")).toBeInTheDocument();
 });
 
 it.each(["convenience_store", "real_estate"])("판정 제외 업종 %s은 요청 없이 안내 한 줄을 보여준다", (industry) => {
@@ -136,7 +136,7 @@ it("경고 없음 카드는 대안을 요청하지 않는다", async () => {
   vi.spyOn(api, "fetchVerdict").mockResolvedValue(verdict("clear", FOUR.map((s) => ({ ...s, level: "off" }))));
   renderSection();
   const spy = vi.mocked(api.fetchVerdictAlternatives);
-  expect(await screen.findByRole("status", { name: /경고 없음/ })).toBeInTheDocument();
+  expect(await screen.findByRole("status", { name: /큰 위험 신호 없음/ })).toBeInTheDocument();
   await new Promise((r) => setTimeout(r, 0)); // 대안 컴포넌트가 마운트됐다면 이 틱에 queryFn이 돌았을 것
   expect(screen.queryByTestId("alt-industries")).toBeNull();
   expect(spy).not.toHaveBeenCalled();

@@ -130,6 +130,12 @@ def test_같은_등급을_단정하면_모순이_아니다():
     assert not contradicts_verdict("판정 보류 — 표본 부족", {"available": True, "verdict_code": "insufficient"})
 
 
+def test_바뀐_등급_이름도_단정하면_대조한다():
+    assert contradicts_verdict("판정은 **큰 위험 신호 없음**입니다.", _RED)
+    assert contradicts_verdict("판정 등급은 폐업 위험 높음입니다.", _ORANGE)
+    assert not contradicts_verdict("**폐업 위험 있음** — 켜진 신호 1개", _ORANGE)
+
+
 def test_모르는_등급_코드는_대조하지_않는다():
     assert not contradicts_verdict("**비추천**", {"available": True, "verdict_code": "purple"})
 

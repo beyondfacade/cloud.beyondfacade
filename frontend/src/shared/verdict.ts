@@ -12,10 +12,10 @@ export interface VerdictLabel {
 }
 
 const LABELS: Record<VerdictCode, VerdictLabel> = {
-  red: { name: "비추천", qualifier: "강한 경고 신호 2개 이상" },
-  orange: { name: "조건부", qualifier: "경고 신호 1개 이상" },
-  clear: { name: "경고 없음", qualifier: "켜진 신호 없음" },
-  insufficient: { name: "판정 보류", qualifier: "표본 부족 — 판정 가능한 신호 2개 미만" },
+  red: { name: "폐업 위험 높음", qualifier: "강한 경고 신호 2개 이상" },
+  orange: { name: "폐업 위험 있음", qualifier: "경고 신호 1개 이상" },
+  clear: { name: "큰 위험 신호 없음", qualifier: "켜진 신호 없음" },
+  insufficient: { name: "자료 부족", qualifier: "표본 부족 — 판정 가능한 신호 2개 미만" },
 };
 
 export function verdictLabel(code: string): VerdictLabel {

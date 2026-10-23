@@ -67,12 +67,12 @@ export function LandingPage({ hero }: LandingPageProps = {}) {
           <div className={styles.feature}>
             <span className={`${styles.featureNumber} text-[var(--landing-accent)]`}>01 / VERDICT</span>
             <h3>판정은 셋 중 하나</h3>
-            <p className="text-[var(--landing-muted)]">비추천 · 조건부 · 경고 없음. <br />추천 등급은 없고, 표본이 부족하면 판정을 보류합니다.</p>
+            <p className="text-[var(--landing-muted)]">폐업 위험 높음 · 폐업 위험 있음 · 큰 위험 신호 없음. <br />추천 등급은 없고, 표본이 부족하면 &apos;자료 부족&apos;으로 둡니다.</p>
           </div>
           <div className={styles.feature}>
             <span className={`${styles.featureNumber} text-[var(--landing-accent)]`}>02 / EVIDENCE</span>
             <h3>과거로 돌아가 검증했습니다</h3>
-            <p className="text-[var(--landing-muted)]">2022년 6월 데이터로 판정한 뒤 실제 폐업과 대조했습니다. 카페는 그 뒤 1년간 새로 문을 연 가게 중 비추천 동에서 76.8%, 경고 없음 동에서 38.2%가 3년 안에 문을 닫았습니다. 카페·미용실 외 업종은 차이가 작거나 표본이 적어 참고로만 보세요.</p>
+            <p className="text-[var(--landing-muted)]">2022년 6월 데이터로 판정한 뒤 실제 폐업과 대조했습니다. 카페는 그 뒤 1년간 새로 문을 연 가게 중 &apos;폐업 위험 높음&apos; 동에서 76.8%, &apos;큰 위험 신호 없음&apos; 동에서 38.2%가 3년 안에 문을 닫았습니다. 카페·미용실 외 업종은 차이가 작거나 표본이 적어 참고로만 보세요.</p>
           </div>
           <div className={styles.feature}>
             <span className={`${styles.featureNumber} text-[var(--landing-accent)]`}>03 / WHAT NEXT</span>

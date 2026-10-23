@@ -4,10 +4,10 @@ import { reportFacts } from "../../lib/report-facts.fixture";
 import { AlternativesCards } from "./alternatives-cards";
 
 it.each([
-  ["red", "비추천", "var(--danger)"],
-  ["orange", "조건부", "var(--warn)"],
-  ["clear", "경고 없음", "var(--text-secondary)"],
-  ["insufficient", "판정 보류", "var(--border)"],
+  ["red", "폐업 위험 높음", "var(--danger)"],
+  ["orange", "폐업 위험 있음", "var(--warn)"],
+  ["clear", "큰 위험 신호 없음", "var(--text-secondary)"],
+  ["insufficient", "자료 부족", "var(--border)"],
 ] as const)("대안의 %s 판정을 해당 색상의 배지로 표시한다", (code, label, color) => {
   const alternatives = reportFacts().alternatives;
   if ("available" in alternatives) throw new Error("대안 없음");
@@ -29,8 +29,8 @@ it("두 축에 이름과 판정 라벨을 최대 세 개씩 표시한다", () =>
     regions: Array.from({ length: 4 }, (_, i) => ({ ...alternatives.regions[0], region_code: `${i}`, region_name: `동네${i}` })),
   }} />);
   expect(screen.getAllByRole("listitem")).toHaveLength(6);
-  expect(screen.getAllByText("경고 없음")).toHaveLength(3);
-  expect(screen.getAllByText("조건부")).toHaveLength(3);
+  expect(screen.getAllByText("큰 위험 신호 없음")).toHaveLength(3);
+  expect(screen.getAllByText("폐업 위험 있음")).toHaveLength(3);
   expect(screen.queryByText("업종3")).toBeNull();
   expect(screen.queryByText("동네3")).toBeNull();
 });

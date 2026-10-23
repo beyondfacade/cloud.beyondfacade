@@ -255,7 +255,7 @@ def test_질문이_있으면_직접_답을_여섯_절보다_먼저_낸다():
 
     sections = [e.payload["section"] for e in events if e.type == "report_delta"]
     assert sections == ["answer_lead", *SECTION_TITLES, "answer"]
-    assert _deltas(events)["answer_lead"].startswith("[확인된 사실] 대출을 끼고 시작한다면 송정동 한식은 권하지 않습니다")
+    assert _deltas(events)["answer_lead"].startswith("[확인된 사실] 대출을 끼고 시작한다면 송정동 한식은 폐업 위험이 높습니다")
 
 
 def test_질문이_있으면_LLM에_유형과_직접_답을_주고_해석만_시킨다():

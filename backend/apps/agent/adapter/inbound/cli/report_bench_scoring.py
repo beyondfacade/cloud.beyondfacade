@@ -32,7 +32,7 @@ _YEAR_RANGE = range(1990, 2101)
 _NON_FACT_SUFFIXES = "대위"  # 연령대("20대")·순위("12위")는 사실값이 아니다
 _EPS = 1e-6
 
-VERDICT_LABELS = {"red": "비추천", "orange": "조건부", "clear": "경고 없음", "insufficient": "판정 보류"}
+VERDICT_LABELS = {"red": "폐업 위험 높음", "orange": "폐업 위험 있음", "clear": "큰 위험 신호 없음", "insufficient": "자료 부족"}
 
 _FACTS_JSON_LIMIT = 3000
 RUBRIC_PATH = "data/eval/report_judge_rubric.md"  # 리포지토리 루트 기준

@@ -34,9 +34,9 @@ it("동네 고정·업종 고정 두 줄을 이름과 판정 라벨로 보여준
   const industries = await screen.findByTestId("alt-industries");
   expect(industries).toHaveTextContent("굳이 이 동네라면");
   expect(industries).toHaveTextContent("분식");
-  expect(industries).toHaveTextContent("경고 없음");
+  expect(industries).toHaveTextContent("큰 위험 신호 없음");
   expect(industries).toHaveTextContent("호프·주점");
-  expect(industries).toHaveTextContent("조건부");
+  expect(industries).toHaveTextContent("폐업 위험 있음");
   const regions = screen.getByTestId("alt-regions");
   expect(regions).toHaveTextContent("굳이 한식이라면");
   expect(regions).toHaveTextContent("삼성2동");

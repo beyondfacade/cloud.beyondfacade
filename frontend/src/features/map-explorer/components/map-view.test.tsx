@@ -183,11 +183,11 @@ it("업종만으로 최신 판정을 조회하고 지도와 범례에 같은 판
   verdictRows = [{ region_code: "1168064000", value: "red" }];
   renderMap("korean_food");
   map.emit("load", {});
-  expect(await screen.findByText("비추천")).toBeInTheDocument();
+  expect(await screen.findByText("폐업 위험 높음")).toBeInTheDocument();
   expect(fetchMock.mock.calls.map(([url]) => url)).toEqual(expect.arrayContaining([
     "/geojson/seoul-regions.geojson", "/api/mock/verdicts?industry=korean_food",
   ]));
-  const swatch = screen.getByText("비추천").closest("li")!.querySelector("span")!;
+  const swatch = screen.getByText("폐업 위험 높음").closest("li")!.querySelector("span")!;
   const paint = map.setPaintProperty.mock.calls.filter(([, property]) => property === "fill-color").at(-1)![2];
   const color = document.createElement("span");
   color.style.backgroundColor = paint[3];
