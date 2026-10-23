@@ -15,4 +15,4 @@ resources:
   - db-migrate.yaml
 images:
   - name: beyondfacade-api
-    newTag: 1229e72cbbb7d811cc2e9f98e3ddd2d4e1193ab6  # backend-deploy가 새 이미지를 올린 뒤 그 git SHA로 커밋한다 — 지금 운영 버전
+    newTag: 923720fdd8a49dc018fb1bc0396542fa7590d50b  # backend-deploy가 새 이미지를 올린 뒤 그 git SHA로 커밋한다 — 지금 운영 버전
