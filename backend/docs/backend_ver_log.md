@@ -1,5 +1,10 @@
 # Backend Version Log
 
+## [v0.120.2] - 2026-10-23
+
+### Changed
+- 12차 부하 테스트 모드 끔 — API 파드 `LLM_MODE=fake` 제거, HPA 최대 20 → 10(v0.120.1 되돌림). 결과는 docs/plan/부하테스트12차.md §9 · serverplan §21-16
+
 ## [v0.120.1] - 2026-10-23
 
 ### Changed

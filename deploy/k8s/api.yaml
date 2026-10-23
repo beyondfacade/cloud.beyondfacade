@@ -32,10 +32,6 @@ spec:
           envFrom:
             - configMapRef: {name: backend-config}
             - secretRef: {name: backend-env}
-          env:
-            # 12차 부하 테스트 중에만(docs/plan/부하테스트12차.md) — 고정 지연 가짜 LLM, 요금 없음. 리포트는 model='fake'로 남아 scripts/load/aws.sh cleanup이 지운다.
-            # ConfigMap이 아니라 여기 두는 이유: 파드 템플릿이 바뀌어야 롤링 재시작된다. 테스트가 끝나면 이 커밋을 되돌린다
-            - {name: LLM_MODE, value: fake}
           resources:
             requests: {cpu: 500m, memory: 512Mi}
             limits: {cpu: "1", memory: 1Gi}  # 워커 1개라 1코어 넘게 줘도 못 쓴다
@@ -100,7 +96,7 @@ spec:
     kind: Deployment
     name: api
   minReplicas: 2
-  maxReplicas: 20  # 12차 부하 테스트 동안만(노드 상한 8과 같이) — 끝나면 10으로. 20 × (5 + 5) = 200 연결 ≤ RDS 한도의 80%
+  maxReplicas: 10  # DB 연결 한도(config.yaml)와 같이 움직인다
   metrics:
     - type: Resource
       resource:
